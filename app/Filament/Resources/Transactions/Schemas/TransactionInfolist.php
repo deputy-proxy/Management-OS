@@ -12,7 +12,11 @@ class TransactionInfolist
             ->components([
                 \Filament\Infolists\Components\TextEntry::make('financial_account_id'),
                 \Filament\Infolists\Components\TextEntry::make('vendor_invoice_id'),
-                \Filament\Infolists\Components\TextEntry::make('transaction_type')
+                \Filament\Infolists\Components\TextEntry::make('transaction_type'),
+                \Filament\Infolists\Components\TextEntry::make('amount'),
+                \Filament\Infolists\Components\TextEntry::make('payment_method'),
+                \Filament\Infolists\Components\TextEntry::make('timestamp')
+                    ->dateTime()
             ]);
     }
 }

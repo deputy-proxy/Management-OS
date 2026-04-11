@@ -13,7 +13,7 @@ class Transaction extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type'];
+    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp'];
 
     public function financialAccount(): BelongsTo
     {

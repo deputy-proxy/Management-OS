@@ -16,6 +16,13 @@ class TransactionForm
                 Forms\Components\Select::make('vendor_invoice_id')
                     ->relationship('vendorInvoice', 'id'),
                 Forms\Components\TextInput::make('transaction_type')
+                    ->required(),
+                Forms\Components\TextInput::make('amount')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('payment_method')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('timestamp')
                     ->required()
             ]);
     }

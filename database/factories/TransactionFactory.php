@@ -25,7 +25,10 @@ class TransactionFactory extends Factory
         return [
             'financial_account_id' => \App\Models\FinancialAccount::factory(),
             'vendor_invoice_id' => \App\Models\VendorInvoice::factory(),
-            'transaction_type' => $this->faker->word()
+            'transaction_type' => $this->faker->word(),
+            'amount' => $this->faker->randomFloat(2, 10, 1000),
+            'payment_method' => $this->faker->word(),
+            'timestamp' => $this->faker->dateTime()
         ];
     }
 }

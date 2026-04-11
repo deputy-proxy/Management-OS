@@ -22,7 +22,11 @@ class TransactionsTable
                     ->label('Vendor Invoice')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('transaction_type')
+                Tables\Columns\TextColumn::make('transaction_type'),
+                Tables\Columns\TextColumn::make('amount'),
+                Tables\Columns\TextColumn::make('payment_method'),
+                Tables\Columns\TextColumn::make('timestamp')
+                    ->dateTime()
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
