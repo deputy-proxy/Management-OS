@@ -3,6 +3,7 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 
+@source "../../../../vendor/relaticle/comments/resources/views/**/*.blade.php";
 
 /* ============================================================
   STACKED THEME — Light Mode

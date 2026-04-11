@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Hexters\HexaLite\HexaLiteRolePermission;
+use Relaticle\Comments\Concerns\CanComment;
+use Relaticle\Comments\Contracts\Commentator;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Commentator
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
     use HexaLiteRolePermission;
+    use CanComment;
 
     /**
      * The attributes that are mass assignable.

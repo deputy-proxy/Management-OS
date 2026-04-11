@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Courses\Pages;
 use App\Filament\Resources\Courses\CourseResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditCourse extends EditRecord
 {
@@ -14,6 +15,7 @@ class EditCourse extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+            CommentsAction::make(),
         ];
     }
 }

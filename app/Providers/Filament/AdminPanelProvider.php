@@ -22,6 +22,7 @@ use Lartisan\Architect\ArchitectPlugin;
 use Hexters\HexaLite\HexaLite;
 use Usamamuneerchaudhary\CommandPalette\FilamentCommandPalettePlugin;
 use AlizHarb\ActivityLog\ActivityLogPlugin;
+use Relaticle\Comments\CommentsPlugin;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -71,6 +72,7 @@ class AdminPanelProvider extends PanelProvider
                 ArchitectPlugin::make(),
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
+                CommentsPlugin::make(),
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
