@@ -14,7 +14,9 @@ class TransactionForm
                     ->relationship('financialAccount', 'title')
                     ->required(),
                 Forms\Components\Select::make('vendor_invoice_id')
-                    ->relationship('vendorInvoice', 'id')
+                    ->relationship('vendorInvoice', 'id'),
+                Forms\Components\TextInput::make('transaction_type')
+                    ->required()
             ]);
     }
 }

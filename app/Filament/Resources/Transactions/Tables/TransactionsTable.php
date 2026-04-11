@@ -21,7 +21,8 @@ class TransactionsTable
                 Tables\Columns\TextColumn::make('vendorInvoice.id')
                     ->label('Vendor Invoice')
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('transaction_type')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()

@@ -24,7 +24,8 @@ class TransactionFactory extends Factory
     {
         return [
             'financial_account_id' => \App\Models\FinancialAccount::factory(),
-            'vendor_invoice_id' => \App\Models\VendorInvoice::factory()
+            'vendor_invoice_id' => \App\Models\VendorInvoice::factory(),
+            'transaction_type' => $this->faker->word()
         ];
     }
 }
