@@ -100,7 +100,7 @@ border-bottom: none !important;
 
 .fi-main {
   @apply dark:bg-gray-900/80 dark:border-gray-800 border-gray-300 border max-w-none px-5 mb-3 rounded-md;
-  @apply max-h-fit overflow-y-scroll;
+  @apply h-[calc(100vh-4rem-3.4rem)] overflow-y-scroll;
 }
 
 
