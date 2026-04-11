@@ -15,7 +15,6 @@ class TransactionFactory extends Factory
      * @var class-string<Transaction>
      */
     protected $model = Transaction::class;
-
     /**
      * Define the model's default state.
      *
@@ -25,6 +24,7 @@ class TransactionFactory extends Factory
     {
         return [
             'financial_account_id' => \App\Models\FinancialAccount::factory(),
+            'vendor_invoice_id' => \App\Models\VendorInvoice::factory()
         ];
     }
 }

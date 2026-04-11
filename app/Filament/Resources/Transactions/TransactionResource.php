@@ -12,7 +12,6 @@ use App\Filament\Resources\Transactions\Schemas\TransactionInfolist;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
 class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
@@ -36,9 +35,7 @@ class TransactionResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -47,16 +44,14 @@ class TransactionResource extends Resource
             'index' => Pages\ListTransactions::route('/'),
             'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
-            'view' => Pages\ViewTransaction::route('/{record}'),
+            'view' => Pages\ViewTransaction::route('/{record}')
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
 

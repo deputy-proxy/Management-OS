@@ -13,12 +13,15 @@ class Transaction extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'financial_account_id'
-    ];
+    protected $fillable = ['financial_account_id', 'vendor_invoice_id'];
 
     public function financialAccount(): BelongsTo
     {
         return $this->belongsTo(FinancialAccount::class);
+    }
+
+    public function vendorInvoice(): BelongsTo
+    {
+        return $this->belongsTo(VendorInvoice::class);
     }
 }
