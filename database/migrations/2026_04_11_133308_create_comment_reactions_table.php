@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('reaction');
             $table->timestamps();
 
-            $table->unique(['comment_id', 'commenter_id', 'commenter_type', 'reaction']);
+            $table->unique(['comment_id', 'commenter_id', 'commenter_type', 'reaction'], 'unique_comment_reactions');
         });
     }
 };
