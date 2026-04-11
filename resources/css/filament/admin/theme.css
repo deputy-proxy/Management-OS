@@ -1,0 +1,445 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+
+/* ============================================================
+  STACKED THEME — Light Mode
+  Replicates filamentthemes.com/themes/stacked
+  ============================================================ */
+
+/* ----- GLOBAL TYPOGRAPHY ----- */
+:root {
+  --font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply antialiased;
+  font-family: var(--font-family);
+  @apply h-screen max-h-screen pb-3 overflow-hidden dark:bg-black;
+}
+
+
+
+/* ============================================================
+  TOP NAVIGATION
+  ============================================================ */
+
+/* Topbar wrapper */
+.fi-topbar {
+  @apply dark:bg-black border-b-0;
+  box-shadow: none !important;
+border-bottom: none !important;
+}
+
+.fi-topbar-nav {
+  @apply h-14 px-5;
+}
+
+/* Brand logo area */
+.fi-logo {
+  @apply text-sm font-semibold ;
+}
+
+/* Navigation items */
+.fi-topbar-item {
+  @apply rounded-sm px-3 py-1.5 text-sm font-medium ;
+  @apply transition-colors duration-150;
+}
+
+
+/* Global search button */
+.fi-global-search-field {
+  @apply rounded-sm text-sm;
+}
+
+.fi-layout{
+    @apply border-t-0;
+}
+
+/* User menu avatar button */
+.fi-user-avatar {
+  @apply rounded-full;
+}
+
+
+.fi-simple-main{
+    @apply dark:border-gray-800 border;
+}
+/* ============================================================
+  SIDEBAR (disabled in stacked, but styled if used)
+  ============================================================ */
+.fi-sidebar,
+.fi-main-sidebar, 
+.fi-sidebar-open {
+  @apply dark:bg-black border-r-0; 
+}
+
+.fi-sidebar-group-items li.fi-active{
+    @apply dark:border-gray-900 border-gray-300 border rounded-sm;
+}
+
+.fi-sidebar-group-items li.fi-active .fi-sidebar-item-label{
+    @apply dark:text-white text-black;
+}
+
+.fi-sidebar-item-btn{
+  @apply rounded-sm px-3 py-1.5 text-sm font-medium ;
+  @apply transition-colors duration-50;
+}
+
+/* ============================================================
+  MAIN CONTENT WRAPPER
+  ============================================================ */
+.fi-main-ctn {
+  @apply px-3 mb-12 max-h-screen overflow-hidden;
+  
+}
+
+.fi-main {
+  @apply dark:bg-gray-900/80 dark:border-gray-800 border-gray-300 border max-w-none px-5 mb-3 rounded-md;
+  @apply max-h-fit overflow-y-scroll;
+}
+
+
+
+/* ============================================================
+  PAGE HEADER
+  ============================================================ */
+.fi-header {
+  @apply align-middle py-5 px-5;
+}
+
+.fi-header-heading {
+  @apply text-xl font-bold leading-tight;
+}
+
+.fi-header-subheading {
+  @apply text-sm mt-0.5;
+}
+
+/* ============================================================
+  BREADCRUMBS
+  ============================================================ */
+.fi-breadcrumbs {
+  @apply text-xs ;
+}
+
+.fi-breadcrumbs-item-active {
+  @apply font-medium;
+}
+
+.fi-page-header-main-ctn{
+    @apply pt-3;
+}
+
+/* ============================================================
+  WIDGETS / STAT CARDS
+  ============================================================ */
+.fi-wi-stats-overview-stat {
+  @apply rounded-xl p-4 shadow-none;
+  @apply transition-shadow duration-150;
+}
+
+.fi-wi-stats-overview-stat:hover {
+  @apply shadow-sm;
+}
+
+.fi-wi-stats-overview-stat-label {
+  @apply text-xs font-semibold uppercase tracking-wide mb-1.5;
+}
+
+.fi-wi-stats-overview-stat-value {
+  @apply text-2xl font-bold ;
+}
+
+.fi-wi-stats-overview-stat-description {
+  @apply text-xs mt-1;
+}
+
+/* Icon wrapper within stat */
+.fi-wi-stats-overview-stat-icon {
+  @apply rounded-sm p-2 mb-2;
+}
+
+/* ============================================================
+  TABLE / LIST
+  ============================================================ */
+
+/* Table card wrapper */
+.fi-ta-ctn {
+  @apply rounded-xl border-gray-800 shadow-none overflow-hidden;
+}
+
+/* Toolbar (search + filters) */
+.fi-ta-header-toolbar {
+  @apply px-4 py-3 pr-12 border-b flex items-center gap-2;
+}
+
+/* Search input */
+.fi-ta-search-input {
+  @apply rounded-sm border text-sm px-3 py-1.5;
+}
+
+/* Filter / action buttons on toolbar */
+.fi-ta-filters-form-components-ctn,
+.fi-button-size-sm.fi-ta-filter-trigger-action {
+  @apply rounded-sm border text-sm font-medium;
+  @apply hover:bg-gray-100 transition-colors duration-100;
+}
+
+/* Table head */
+.fi-ta-header-cell {
+  @apply text-xs font-semibold uppercase tracking-wide px-3.5 py-2.5;
+}
+
+/* Table rows */
+.fi-ta-row {
+  @apply border-b transition-colors duration-200 cursor-pointer;
+}
+
+.fi-ta-row:last-child {
+  @apply border-b-0;
+}
+
+.fi-ta-row:hover {
+  @apply dark:bg-gray-800/80;
+}
+
+/* Table cells */
+.fi-ta-cell {
+  @apply py-3 text-sm align-middle;
+}
+
+/* Checkbox column */
+.fi-ta-cell-checkbox {
+  @apply pl-4;
+}
+
+/* Row actions (appear on hover) */
+.fi-ta-row-actions {
+  @apply opacity-0 transition-opacity duration-100;
+}
+
+.fi-ta-row:hover .fi-ta-row-actions {
+  @apply opacity-100;
+}
+
+.fi-ta-row-actions .fi-icon-btn {
+  @apply rounded-md border w-7 h-7 ;
+  @apply hover:bg-gray-50;
+}
+
+/* Pagination */
+.fi-pagination {
+  @apply px-4 py-3 border-t dark:border-gray-800 flex items-center justify-between;
+}
+
+.fi-pagination-overview {
+  @apply text-xs ;
+}
+
+.fi-pagination-items {
+  @apply flex items-center gap-1;
+}
+
+.fi-pagination-item {
+  @apply w-8 h-8 rounded-sm flex items-center justify-center text-sm ;
+  @apply hover:bg-gray-100 transition-colors duration-100;
+}
+
+.fi-pagination-item-active {
+  @apply bg-primary-600 text-white font-semibold hover:bg-primary-600;
+}
+
+/* ============================================================
+  BADGES / STATUS INDICATORS
+  ============================================================ */
+.fi-badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+.fi-badge-size-sm {
+  @apply text-xs;
+}
+
+/* Color variants */
+.fi-badge-color-success {
+  @apply bg-emerald-50 text-emerald-700;
+}
+
+.fi-badge-color-warning {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.fi-badge-color-danger {
+  @apply bg-red-50 text-red-700;
+}
+
+.fi-badge-color-info {
+  @apply bg-blue-50 text-blue-700;
+}
+
+.fi-badge-color-gray {
+  @apply bg-gray-100 ;
+}
+
+.fi-badge-color-primary {
+  @apply bg-primary-50 text-primary-700;
+}
+
+/* ============================================================
+  BUTTONS
+  ============================================================ */
+
+/* Base */
+.fi-btn {
+  @apply rounded-sm font-medium transition-all duration-150;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-1;
+}
+
+/* Primary */
+.fi-btn-color-primary {
+  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+}
+
+/* Secondary / gray */
+.fi-btn-color-gray {
+  @apply text-gray-700 border shadow-sm;
+  @apply hover:focus:ring-gray-300;
+}
+
+/* Danger */
+.fi-btn-color-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Success */
+.fi-btn-color-success {
+  @apply bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500;
+}
+
+/* Icon buttons */
+.fi-icon-btn {
+  @apply rounded-sm transition-colors duration-100;
+  @apply hover:bg-gray-100 hover:text-gray-700;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-400;
+}
+
+/* ============================================================
+  FORMS / INPUTS
+  ============================================================ */
+.fi-input {
+  @apply rounded-sm dark:border-gray-800 text-sm shadow-none;
+  @apply placeholder-gray-400;
+  @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 focus:outline-none focus:rounded-sm;
+  @apply transition-colors duration-100;
+}
+
+.fi-select-input {
+  @apply border dark:border-gray-800 text-sm ;
+}
+
+.fi-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.fi-hint {
+  @apply text-xs mt-1;
+}
+
+/* ============================================================
+  SECTION / FIELDSET
+  ============================================================ */
+.fi-section {
+  @apply rounded-xl dark:border-gray-800 shadow-none overflow-hidden;
+}
+
+.fi-section-header {
+  @apply border-b dark:border-gray-800 border-gray-100 px-5 py-4;
+}
+
+.fi-section-header-heading {
+  @apply text-sm font-semibold ;
+}
+
+.fi-section-content {
+  @apply p-5;
+}
+
+/* ============================================================
+  MODALS
+  ============================================================ */
+.fi-modal-window {
+  @apply rounded-2xl shadow-xl dark:border-gray-800 border border-gray-300;
+}
+
+.fi-modal-header {
+  @apply px-5 py-4;
+}
+
+.fi-modal-heading {
+  @apply text-base font-semibold ;
+}
+
+.fi-modal-footer {
+  @apply border-t px-5 py-4 flex items-center justify-end gap-2;
+}
+
+/* ============================================================
+  NOTIFICATIONS (toasts)
+  ============================================================ */
+
+
+/* ============================================================
+  DROPDOWN MENUS
+  ============================================================ */
+.fi-dropdown-list {
+  @apply py-1.5 overflow-hidden;
+}
+
+.fi-dropdown-list-item-btn {
+  @apply w-full text-left px-3.5 py-2 text-sm font-medium;
+  @apply hover:transition-colors duration-100;
+  @apply flex items-center gap-2;
+}
+
+/* ============================================================
+  TABS
+  ============================================================ */
+.fi-tabs {
+  @apply flex items-center gap-1 border-b dark:border-gray-800;
+}
+
+.fi-tabs-tab {
+  @apply px-4 py-2.5 text-sm font-medium border-b-2 border-transparent;
+  @apply hover:text-gray-700 transition-colors duration-150;
+  @apply -mb-px;
+}
+
+.fi-tabs-tab-active {
+  @apply border-primary-600 text-primary-700;
+}
+
+/* ============================================================
+  LOADING / SPINNERS
+  ============================================================ */
+.fi-loading-indicator {
+  @apply text-primary-600;
+}
+
+/* ============================================================
+  EMPTY STATE
+  ============================================================ */
+.fi-ta-empty-state {
+  @apply py-12 text-center;
+}
+
+.fi-ta-empty-state-heading {
+  @apply text-sm font-semibold mb-1;
+}
+
+.fi-ta-empty-state-description {
+  @apply text-sm ;
+}

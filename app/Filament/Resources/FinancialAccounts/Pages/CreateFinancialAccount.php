@@ -1,0 +1,12 @@
+<?php
+
+namespace App\Filament\Resources\FinancialAccounts\Pages;
+
+use App\Filament\Resources\FinancialAccounts\FinancialAccountResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateFinancialAccount extends CreateRecord
+{
+    protected static string $resource = FinancialAccountResource::class;
+}
+
