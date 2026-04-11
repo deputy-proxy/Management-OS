@@ -23,6 +23,7 @@ use Hexters\HexaLite\HexaLite;
 use Usamamuneerchaudhary\CommandPalette\FilamentCommandPalettePlugin;
 use AlizHarb\ActivityLog\ActivityLogPlugin;
 use Relaticle\Comments\CommentsPlugin;
+use Hammadzafar05\MobileBottomNav\MobileBottomNav;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -73,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
+                MobileBottomNav::make(),
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
