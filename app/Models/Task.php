@@ -24,6 +24,11 @@ class Task extends Model
 
     public function projectPhase(): BelongsTo
     {
-        return $this->belongsTo(ProjectPhase::class);
+        return $this->belongsTo(Project::class);
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
