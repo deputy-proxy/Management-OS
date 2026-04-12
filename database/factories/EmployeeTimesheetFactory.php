@@ -15,7 +15,6 @@ class EmployeeTimesheetFactory extends Factory
      * @var class-string<EmployeeTimesheet>
      */
     protected $model = EmployeeTimesheet::class;
-
     /**
      * Define the model's default state.
      *
@@ -31,6 +30,7 @@ class EmployeeTimesheetFactory extends Factory
             'category' => $this->faker->word(),
             'number_of_hours' => $this->faker->randomNumber(),
             'session_id' => \App\Models\Session::factory(),
+            'group_session_id' => \App\Models\GroupSession::factory()
         ];
     }
 }

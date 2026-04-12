@@ -13,10 +13,10 @@ use App\Filament\Resources\EmployeeTimesheets\Tables\EmployeeTimesheetsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-
 class EmployeeTimesheetResource extends Resource
 {
     protected static ?string $model = EmployeeTimesheet::class;
+
     protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -38,9 +38,7 @@ class EmployeeTimesheetResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -49,16 +47,14 @@ class EmployeeTimesheetResource extends Resource
             'index' => Pages\ListEmployeeTimesheets::route('/'),
             'create' => Pages\CreateEmployeeTimesheet::route('/create'),
             'edit' => Pages\EditEmployeeTimesheet::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeeTimesheet::route('/{record}'),
+            'view' => Pages\ViewEmployeeTimesheet::route('/{record}')
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
 

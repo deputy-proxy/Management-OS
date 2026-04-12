@@ -8,8 +8,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
-
-
 class EmployeeTimesheetsTable
 {
     public static function configure(Table $table): Table
@@ -20,29 +18,32 @@ class EmployeeTimesheetsTable
                     ->label('Employee')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('date')->dateTime(),
-                Tables\Columns\TextColumn::make('time_start')->dateTime(),
-                Tables\Columns\TextColumn::make('time_end')->dateTime(),
+                Tables\Columns\TextColumn::make('date')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('time_start')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('time_end')
+                    ->dateTime(),
                 Tables\Columns\TextColumn::make('category'),
                 Tables\Columns\TextColumn::make('number_of_hours'),
-                Tables\Columns\TextColumn::make('session.id')
-                    ->label('Session')
+                Tables\Columns\TextColumn::make('groupSession.id')
+                    ->label('Group Session')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }
