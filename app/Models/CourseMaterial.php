@@ -21,4 +21,9 @@ class CourseMaterial extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    public function addedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
