@@ -75,6 +75,10 @@ border-bottom: none !important;
 .fi-main-sidebar, 
 .fi-sidebar-open {
   @apply dark:bg-black border-r-0; 
+  
+}
+
+.fi-sidebar{
   @apply h-[calc(100vh-4rem-4rem)] overflow-y-scroll;
 }
 

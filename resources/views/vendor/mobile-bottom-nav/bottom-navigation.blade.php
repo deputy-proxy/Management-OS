@@ -14,7 +14,7 @@
         display: flex;
         align-items: center;
         justify-content: space-around;
-        height: 3.5rem;
+        height: 4rem;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         background-color: #ffffff;
     }
