@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Filament\Resources\Events\Schemas;
+
+use Filament\Forms;
+use Filament\Schemas\Schema;
+class EventForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Forms\Components\TextInput::make('title')
+                    ->required(),
+                Forms\Components\Textarea::make('description')
+                    ->required(),
+                Forms\Components\DatePicker::make('start_date')
+                    ->required(),
+                Forms\Components\DatePicker::make('end_date')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('start_time')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('end_time')
+                    ->required(),
+                Forms\Components\Select::make('event_price_id')
+                    ->relationship('eventPrice', 'id')
+                    ->required(),
+                Forms\Components\TextInput::make('featured_image')
+                    ->required()
+            ]);
+    }
+}
