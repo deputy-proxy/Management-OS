@@ -17,5 +17,9 @@ class Test extends Model
         'title', 'description', 'topic', 'level', 'questions', 'created_by'
     ];
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
 }
