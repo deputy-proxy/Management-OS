@@ -15,7 +15,6 @@ class StudentFactory extends Factory
      * @var class-string<Student>
      */
     protected $model = Student::class;
-
     /**
      * Define the model's default state.
      *
@@ -33,6 +32,7 @@ class StudentFactory extends Factory
             'phone_number' => $this->faker->phoneNumber(),
             'email' => $this->faker->unique()->safeEmail(),
             'address' => $this->faker->address(),
+            'full_name' => $this->faker->sentence()
         ];
     }
 }

@@ -13,9 +13,7 @@ class Student extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'customer_id', 'phone_number', 'email', 'address'
-    ];
+    protected $fillable = ['first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'customer_id', 'phone_number', 'email', 'address', 'full_name'];
 
     public function customer(): BelongsTo
     {

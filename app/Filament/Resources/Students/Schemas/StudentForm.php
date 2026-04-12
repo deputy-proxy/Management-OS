@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Students\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class StudentForm
 {
     public static function configure(Schema $schema): Schema
@@ -16,6 +15,8 @@ class StudentForm
                 Forms\Components\TextInput::make('middle_name')
                     ->required(),
                 Forms\Components\TextInput::make('last_name')
+                    ->required(),
+                Forms\Components\TextInput::make('full_name')
                     ->required(),
                 Forms\Components\TextInput::make('gender')
                     ->required(),
@@ -29,7 +30,7 @@ class StudentForm
                 Forms\Components\TextInput::make('email')
                     ->required(),
                 Forms\Components\TextInput::make('address')
-                    ->required(),
+                    ->required()
             ]);
     }
 }
