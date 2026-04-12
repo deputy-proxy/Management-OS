@@ -15,7 +15,6 @@ class PotentialPartnerFactory extends Factory
      * @var class-string<PotentialPartner>
      */
     protected $model = PotentialPartner::class;
-
     /**
      * Define the model's default state.
      *
@@ -31,6 +30,8 @@ class PotentialPartnerFactory extends Factory
             'benefits_for_us' => $this->faker->paragraph(),
             'benefits_for_them' => $this->faker->paragraph(),
             'last_contact' => $this->faker->date(),
+            'contact_person_email' => $this->faker->unique()->safeEmail(),
+            'contact_person_phone' => $this->faker->phoneNumber()
         ];
     }
 }

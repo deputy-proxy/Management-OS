@@ -12,7 +12,6 @@ use App\Filament\Resources\PotentialPartners\Schemas\PotentialPartnerInfolist;
 use App\Filament\Resources\PotentialPartners\Tables\PotentialPartnersTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
 class PotentialPartnerResource extends Resource
 {
     protected static ?string $model = PotentialPartner::class;
@@ -36,9 +35,7 @@ class PotentialPartnerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -47,16 +44,14 @@ class PotentialPartnerResource extends Resource
             'index' => Pages\ListPotentialPartners::route('/'),
             'create' => Pages\CreatePotentialPartner::route('/create'),
             'edit' => Pages\EditPotentialPartner::route('/{record}/edit'),
-            'view' => Pages\ViewPotentialPartner::route('/{record}'),
+            'view' => Pages\ViewPotentialPartner::route('/{record}')
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
 

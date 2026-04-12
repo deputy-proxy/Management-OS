@@ -4,7 +4,6 @@ namespace App\Filament\Resources\PotentialPartners\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class PotentialPartnerForm
 {
     public static function configure(Schema $schema): Schema
@@ -15,8 +14,6 @@ class PotentialPartnerForm
                     ->required(),
                 Forms\Components\TextInput::make('site')
                     ->required(),
-                Forms\Components\TextInput::make('contact_person_name')
-                    ->required(),
                 Forms\Components\TextInput::make('type')
                     ->required(),
                 Forms\Components\Textarea::make('benefits_for_us')
@@ -25,6 +22,12 @@ class PotentialPartnerForm
                     ->required(),
                 Forms\Components\DatePicker::make('last_contact')
                     ->required(),
+                Forms\Components\TextInput::make('contact_person_name')
+                    ->required(),
+                Forms\Components\TextInput::make('contact_person_email')
+                    ->required(),
+                Forms\Components\TextInput::make('contact_person_phone')
+                    ->required()
             ]);
     }
 }

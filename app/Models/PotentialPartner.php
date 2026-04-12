@@ -12,9 +12,5 @@ class PotentialPartner extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'name', 'site', 'contact_person_name', 'type', 'benefits_for_us', 'benefits_for_them', 'last_contact'
-    ];
-
-
+    protected $fillable = ['name', 'site', 'contact_person_name', 'type', 'benefits_for_us', 'benefits_for_them', 'last_contact', 'contact_person_email', 'contact_person_phone'];
 }
