@@ -79,7 +79,7 @@ border-bottom: none !important;
 }
 
 .fi-sidebar{
-  @apply h-[calc(100vh-4rem-4rem)] overflow-y-scroll;
+  @apply h-[calc(100vh-4rem-4rem)] overflow-y-scroll top-5 rounded-sm;
 }
 
 .fi-sidebar-group-items li.fi-active{
