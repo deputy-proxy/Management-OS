@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Clusters\HumanResources;
+namespace App\Filament\Clusters\General;
 
 use BackedEnum;
 use Filament\Clusters\Cluster;
 use Filament\Support\Icons\Heroicon;
 use Filament\Pages\Enums\SubNavigationPosition;
 
-class HumanResourcesCluster extends Cluster
+class GeneralCluster extends Cluster
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
