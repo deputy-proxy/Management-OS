@@ -21,4 +21,9 @@ class WorkshopMaterial extends Model
     {
         return $this->belongsTo(Workshop::class);
     }
+
+    public function addedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
