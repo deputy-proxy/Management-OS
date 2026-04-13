@@ -46,9 +46,10 @@ class HolidaysWidget extends CalendarWidget
 
     public function getOptions(): array
     {
-        return [
+        return array_merge(parent::getOptions(), [
             'pointer' => true,
-        ];
+        ]);
+
     }
 
     protected function getEventClickContextMenuActions(): array
