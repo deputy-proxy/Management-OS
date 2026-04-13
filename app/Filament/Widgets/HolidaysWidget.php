@@ -39,10 +39,17 @@ class HolidaysWidget extends CalendarWidget
     }
 
     public function viewAction(): ViewAction
-{
-    return ViewAction::make()
-        ->model(GroupSession::class);
-}
+    {
+        return ViewAction::make()
+            ->model(GroupSession::class);
+    }
+
+    public function getOptions(): array
+    {
+        return [
+            'pointer' => true,
+        ];
+    }
 
     protected function getEventClickContextMenuActions(): array
     {
