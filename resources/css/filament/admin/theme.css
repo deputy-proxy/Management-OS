@@ -482,15 +482,11 @@ border-bottom: none !important;
 }
 
 .dark .ec-today {
-    background-color: #374151 !important;
+    @apply dark:bg-amber-600/20;
 }
 
 .ec-button {
-  @apply bg-primary-600 text-white border-primary-400;
-}
-
-.dark .ec-button:hover {
-    background-color: #4b5563;
+  @apply bg-primary-600 text-white border-primary-400 hover:bg-primary-700 focus:ring-primary-500;
 }
 
 .dark .ec-popup {
