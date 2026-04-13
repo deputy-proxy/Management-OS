@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-fit h-screen p-6 bg-black inline-flex flex-col justify-end items-start gap-2.5">
+<div class="w-fit h-screen p-6 bg-black inline-flex flex-col lg:justify-end items-start gap-2.5">
   <div class="inline-flex justify-start items-center gap-5">
     <div class="relative overflow-hidden">
       <div data-svg-wrapper class="">
