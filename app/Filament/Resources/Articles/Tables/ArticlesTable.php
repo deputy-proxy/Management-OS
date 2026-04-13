@@ -16,8 +16,10 @@ class ArticlesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
-                Tables\Columns\TextColumn::make('content'),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('content')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('published_in'),
                 Tables\Columns\TextColumn::make('scheduled_on')->dateTime(),
                 Tables\Columns\TextColumn::make('published_on')->dateTime(),
