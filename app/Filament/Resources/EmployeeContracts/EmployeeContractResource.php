@@ -23,8 +23,6 @@ class EmployeeContractResource extends Resource
 
     protected static ?string $model = EmployeeContract::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
-    protected static ?int $navigationSort = 3;
-
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
