@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Guava\Calendar\Contracts\Eventable;
+use Guava\Calendar\ValueObjects\CalendarEvent;
 
-class GroupSession extends Model
+class GroupSession extends Model implements Eventable
 {
     use HasFactory;
     use SoftDeletes;
@@ -16,6 +18,26 @@ class GroupSession extends Model
     protected $fillable = [
         'group_id', 'course_id', 'teacher_id', 'start_on', 'end_on', 'status'
     ];
+
+    protected $casts = [
+        'start_on' => 'datetime',
+        'end_on' => 'datetime',
+    ];
+
+
+
+    public function toCalendarEvent(): CalendarEvent
+    {
+        // For eloquent models, make sure to pass the model to the constructor
+        return CalendarEvent::make($this)
+            ->title($this->group->title . ' - ' . $this->course->title)
+            ->start($this->start_on)
+            ->end($this->end_on)
+            ->action('view'); // tells the event to mount 'view' on click
+
+    }
+
+
 
     public function group(): BelongsTo
     {

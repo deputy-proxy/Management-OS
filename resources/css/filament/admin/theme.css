@@ -5,6 +5,9 @@
 
 @source "../../../../vendor/relaticle/comments/resources/views/**/*.blade.php";
 
+@source '../../../../vendor/guava/calendar/resources/**/*';
+@import '../../../../vendor/guava/calendar/resources/css/theme.css';
+
 /* ============================================================
   STACKED THEME — Light Mode
   Replicates filamentthemes.com/themes/stacked
@@ -448,4 +451,30 @@ border-bottom: none !important;
 
 .fi-ta-empty-state-description {
   @apply text-sm ;
+}
+
+.dark {
+    /* Main calendar background & text */
+    --ec-bg-color: #1f2937;         /* gray-800 */
+    --ec-text-color: #f9fafb;       /* gray-50 */
+    --ec-border-color: #374151;     /* gray-700 */
+
+    /* Today highlight */
+    --ec-today-bg-color: #374151;   /* gray-700 */
+
+    /* Event defaults */
+    --ec-event-bg-color: #4f46e5;   /* indigo-600 */
+    --ec-event-text-color: #ffffff;
+
+    /* Toolbar / header */
+    --ec-toolbar-bg-color: #111827; /* gray-900 */
+
+    /* Popup (e.g. "+X more" overflow popup) */
+    --ec-popup-bg-color: #1f2937;
+
+    /* List view "no events" area */
+    --ec-list-day-bg-color: #111827;
+
+    /* Time grid */
+    --ec-time-bg-color: #1f2937;
 }

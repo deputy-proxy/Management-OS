@@ -22,6 +22,8 @@ use Lartisan\Architect\ArchitectPlugin;
 use Hexters\HexaLite\HexaLite;
 use Usamamuneerchaudhary\CommandPalette\FilamentCommandPalettePlugin;
 use AlizHarb\ActivityLog\ActivityLogPlugin;
+use App\Filament\Widgets\HolidaysWidget;
+use Guava\Calendar\Filament\CalendarWidget;
 use Relaticle\Comments\CommentsPlugin;
 use Hammadzafar05\MobileBottomNav\MobileBottomNav;
 
@@ -53,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
             //->darkMode(false)
             ->widgets([
                 //AccountWidget::class,
+                HolidaysWidget::class,
                 //FilamentInfoWidget::class,
             ])
             ->middleware([
