@@ -14,7 +14,7 @@ use Guava\Calendar\Filament\Actions\ViewAction;
 
 class HolidaysWidget extends CalendarWidget
 {
-    //protected CalendarViewType $calendarView = CalendarViewType::ListWeek;
+    //protected CalendarViewType $calendarView = CalendarViewType::TimeGridWeek;
     protected bool $eventClickEnabled = true;
     protected ?string $defaultEventClickAction = 'view';
 
