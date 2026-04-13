@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class EmployeeEvaluationFormResource extends Resource
 {
     use HasHexaLite;
@@ -28,6 +29,7 @@ class EmployeeEvaluationFormResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'employee_evaluation_form.index' => __('Allows viewing the employee evaluation form list'),
             'employee_evaluation_form.create' => __('Allows creating a new employee evaluation form'),
             'employee_evaluation_form.update' => __('Allows updating employee evaluation forms'),
@@ -106,4 +108,3 @@ class EmployeeEvaluationFormResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

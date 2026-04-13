@@ -16,6 +16,7 @@ use Hexters\HexaLite\HasHexaLite;
 
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 
 
 class CourseResource extends Resource
@@ -55,6 +56,7 @@ class CourseResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ActivitiesRelationManager::class,
             //
         ];
     }
@@ -115,4 +117,3 @@ class CourseResource extends Resource
             : Response::deny(__('You do not have permission to delete courses.'));
     }
 }
-

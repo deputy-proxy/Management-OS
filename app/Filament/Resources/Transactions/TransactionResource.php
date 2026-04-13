@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class TransactionResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class TransactionResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'transaction.index' => __('Allows viewing the transaction list'),
             'transaction.create' => __('Allows creating a new transaction'),
             'transaction.update' => __('Allows updating transactions'),
@@ -104,4 +106,3 @@ class TransactionResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class ProcessResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class ProcessResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'process.index' => __('Allows viewing the process list'),
             'process.create' => __('Allows creating a new process'),
             'process.update' => __('Allows updating processs'),
@@ -104,4 +106,3 @@ class ProcessResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

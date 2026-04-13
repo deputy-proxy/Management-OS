@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class EventResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class EventResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'event.index' => __('Allows viewing the event list'),
             'event.create' => __('Allows creating a new event'),
             'event.update' => __('Allows updating events'),
@@ -104,4 +106,3 @@ class EventResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

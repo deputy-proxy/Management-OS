@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 
 class CompetitionResource extends Resource
 {
@@ -52,6 +53,7 @@ class CompetitionResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ActivitiesRelationManager::class,
             //
         ];
     }
@@ -109,4 +111,3 @@ class CompetitionResource extends Resource
             ]);
     }
 }
-

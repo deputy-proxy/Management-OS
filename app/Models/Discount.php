@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Discount extends Model
 {
+    use LogsActivity;
+
     use HasFactory;
     use SoftDeletes;
 
@@ -16,5 +20,11 @@ class Discount extends Model
         'applies_to_type', 'applies_to_item', 'value', 'type', 'start_on', 'end_on'
     ];
 
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
 
 }

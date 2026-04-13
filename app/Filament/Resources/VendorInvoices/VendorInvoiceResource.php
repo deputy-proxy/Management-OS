@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class VendorInvoiceResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class VendorInvoiceResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'vendor_invoice.index' => __('Allows viewing the vendor invoice list'),
             'vendor_invoice.create' => __('Allows creating a new vendor invoice'),
             'vendor_invoice.update' => __('Allows updating vendor invoices'),
@@ -104,4 +106,3 @@ class VendorInvoiceResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

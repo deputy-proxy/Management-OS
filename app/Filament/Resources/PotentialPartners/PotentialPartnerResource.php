@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class PotentialPartnerResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class PotentialPartnerResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'potential_partner.index' => __('Allows viewing the potential partner list'),
             'potential_partner.create' => __('Allows creating a new potential partner'),
             'potential_partner.update' => __('Allows updating potential partners'),
@@ -104,4 +106,3 @@ class PotentialPartnerResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

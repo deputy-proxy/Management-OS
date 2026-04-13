@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class StudentResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class StudentResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'student.index' => __('Allows viewing the student list'),
             'student.create' => __('Allows creating a new student'),
             'student.update' => __('Allows updating students'),
@@ -104,4 +106,3 @@ class StudentResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

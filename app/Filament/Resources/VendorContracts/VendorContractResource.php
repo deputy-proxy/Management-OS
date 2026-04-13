@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class VendorContractResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class VendorContractResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'vendor_contract.index' => __('Allows viewing the vendor contract list'),
             'vendor_contract.create' => __('Allows creating a new vendor contract'),
             'vendor_contract.update' => __('Allows updating vendor contracts'),
@@ -104,4 +106,3 @@ class VendorContractResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

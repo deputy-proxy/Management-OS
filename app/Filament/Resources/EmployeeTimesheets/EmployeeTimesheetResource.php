@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class EmployeeTimesheetResource extends Resource
 {
     use HasHexaLite;
@@ -29,6 +30,7 @@ class EmployeeTimesheetResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'employee_timesheet.index' => __('Allows viewing the employee timesheet list'),
             'employee_timesheet.create' => __('Allows creating a new employee timesheet'),
             'employee_timesheet.update' => __('Allows updating employee timesheets'),
@@ -107,4 +109,3 @@ class EmployeeTimesheetResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

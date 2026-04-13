@@ -9,9 +9,13 @@ use Illuminate\Notifications\Notifiable;
 use Hexters\HexaLite\HexaLiteRolePermission;
 use Relaticle\Comments\Concerns\CanComment;
 use Relaticle\Comments\Contracts\Commentator;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable implements Commentator
 {
+    use LogsActivity;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
     use HexaLiteRolePermission;
@@ -50,4 +54,10 @@ class User extends Authenticatable implements Commentator
             'password' => 'hashed',
         ];
     }
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
+
 }

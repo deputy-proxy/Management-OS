@@ -8,9 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Guava\Calendar\Contracts\Eventable;
 use Guava\Calendar\ValueObjects\CalendarEvent;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class GroupSession extends Model implements Eventable
 {
+    use LogsActivity;
+
     use HasFactory;
     use SoftDeletes;
 
@@ -53,4 +57,10 @@ class GroupSession extends Model implements Eventable
     {
         return $this->belongsTo(Employee::class);
     }
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
+
 }

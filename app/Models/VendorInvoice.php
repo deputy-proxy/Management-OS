@@ -6,9 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class VendorInvoice extends Model
 {
+    use LogsActivity;
+
     use HasFactory;
     use SoftDeletes;
 
@@ -24,4 +28,10 @@ class VendorInvoice extends Model
     {
         return $this->belongsTo(VendorContract::class);
     }
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
+
 }

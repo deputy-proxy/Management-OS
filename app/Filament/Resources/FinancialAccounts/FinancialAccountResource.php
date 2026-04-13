@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class FinancialAccountResource extends Resource
 {
     use HasHexaLite;
@@ -26,6 +27,7 @@ class FinancialAccountResource extends Resource
     public function defineGates(): array
     {
         return [
+            ActivitiesRelationManager::class,
             'financial_account.index' => __('Allows viewing the financial account list'),
             'financial_account.create' => __('Allows creating a new financial account'),
             'financial_account.update' => __('Allows updating financial accounts'),
@@ -104,4 +106,3 @@ class FinancialAccountResource extends Resource
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
-

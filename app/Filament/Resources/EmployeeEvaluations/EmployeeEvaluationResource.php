@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 
 class EmployeeEvaluationResource extends Resource
 {
@@ -54,6 +55,7 @@ class EmployeeEvaluationResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ActivitiesRelationManager::class,
             //
         ];
     }
@@ -111,4 +113,3 @@ class EmployeeEvaluationResource extends Resource
             ]);
     }
 }
-
