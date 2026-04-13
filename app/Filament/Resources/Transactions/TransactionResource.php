@@ -12,11 +12,26 @@ use App\Filament\Resources\Transactions\Schemas\TransactionInfolist;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class TransactionResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Transaction::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'transaction.index' => __('Allows viewing the transaction list'),
+            'transaction.create' => __('Allows creating a new transaction'),
+            'transaction.update' => __('Allows updating transactions'),
+            'transaction.delete' => __('Allows deleting transactions'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class TransactionResource extends Resource
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
             'view' => Pages\ViewTransaction::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('transaction.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('transaction.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create transaction.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('transaction.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('transaction.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a transaction.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('transaction.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete transactions.'));
     }
 
     public static function getEloquentQuery(): Builder

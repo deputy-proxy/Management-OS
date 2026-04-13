@@ -12,14 +12,29 @@ use App\Filament\Resources\EmployeeHolidays\Schemas\EmployeeHolidayInfolist;
 use App\Filament\Resources\EmployeeHolidays\Tables\EmployeeHolidaysTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 
 class EmployeeHolidayResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = EmployeeHoliday::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'employee_holiday.index' => __('Allows viewing the employee holiday list'),
+            'employee_holiday.create' => __('Allows creating a new employee holiday'),
+            'employee_holiday.update' => __('Allows updating employee holidays'),
+            'employee_holiday.delete' => __('Allows deleting employee holidays'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -51,6 +66,41 @@ class EmployeeHolidayResource extends Resource
             'edit' => Pages\EditEmployeeHoliday::route('/{record}/edit'),
             'view' => Pages\ViewEmployeeHoliday::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_holiday.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_holiday.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create employee holiday.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_holiday.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_holiday.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a employee holiday.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_holiday.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete employee holidays.'));
     }
 
     public static function getEloquentQuery(): Builder

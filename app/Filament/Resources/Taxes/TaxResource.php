@@ -12,12 +12,27 @@ use App\Filament\Resources\Taxes\Schemas\TaxInfolist;
 use App\Filament\Resources\Taxes\Tables\TaxesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class TaxResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Tax::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'tax.index' => __('Allows viewing the tax list'),
+            'tax.create' => __('Allows creating a new tax'),
+            'tax.update' => __('Allows updating taxs'),
+            'tax.delete' => __('Allows deleting taxs'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class TaxResource extends Resource
             'edit' => Pages\EditTax::route('/{record}/edit'),
             'view' => Pages\ViewTax::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('tax.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('tax.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create tax.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('tax.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('tax.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a tax.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('tax.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete taxs.'));
     }
 
     public static function getEloquentQuery(): Builder

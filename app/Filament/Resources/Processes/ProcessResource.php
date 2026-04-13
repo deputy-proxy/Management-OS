@@ -12,11 +12,26 @@ use App\Filament\Resources\Processes\Schemas\ProcessInfolist;
 use App\Filament\Resources\Processes\Tables\ProcessesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class ProcessResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Process::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'process.index' => __('Allows viewing the process list'),
+            'process.create' => __('Allows creating a new process'),
+            'process.update' => __('Allows updating processs'),
+            'process.delete' => __('Allows deleting processs'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class ProcessResource extends Resource
             'edit' => Pages\EditProcess::route('/{record}/edit'),
             'view' => Pages\ViewProcess::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('process.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('process.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create process.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('process.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('process.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a process.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('process.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete processs.'));
     }
 
     public static function getEloquentQuery(): Builder

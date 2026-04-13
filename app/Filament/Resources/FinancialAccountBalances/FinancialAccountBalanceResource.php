@@ -12,12 +12,27 @@ use App\Filament\Resources\FinancialAccountBalances\Schemas\FinancialAccountBala
 use App\Filament\Resources\FinancialAccountBalances\Tables\FinancialAccountBalancesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class FinancialAccountBalanceResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = FinancialAccountBalance::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'financial_account_balance.index' => __('Allows viewing the financial account balance list'),
+            'financial_account_balance.create' => __('Allows creating a new financial account balance'),
+            'financial_account_balance.update' => __('Allows updating financial account balances'),
+            'financial_account_balance.delete' => __('Allows deleting financial account balances'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class FinancialAccountBalanceResource extends Resource
             'edit' => Pages\EditFinancialAccountBalance::route('/{record}/edit'),
             'view' => Pages\ViewFinancialAccountBalance::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('financial_account_balance.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('financial_account_balance.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create financial account balance.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('financial_account_balance.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('financial_account_balance.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a financial account balance.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('financial_account_balance.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete financial account balances.'));
     }
 
     public static function getEloquentQuery(): Builder

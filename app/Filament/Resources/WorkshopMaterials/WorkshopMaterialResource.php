@@ -12,12 +12,27 @@ use App\Filament\Resources\WorkshopMaterials\Schemas\WorkshopMaterialInfolist;
 use App\Filament\Resources\WorkshopMaterials\Tables\WorkshopMaterialsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class WorkshopMaterialResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = WorkshopMaterial::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'workshop_material.index' => __('Allows viewing the workshop material list'),
+            'workshop_material.create' => __('Allows creating a new workshop material'),
+            'workshop_material.update' => __('Allows updating workshop materials'),
+            'workshop_material.delete' => __('Allows deleting workshop materials'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class WorkshopMaterialResource extends Resource
             'edit' => Pages\EditWorkshopMaterial::route('/{record}/edit'),
             'view' => Pages\ViewWorkshopMaterial::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('workshop_material.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('workshop_material.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create workshop material.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('workshop_material.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('workshop_material.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a workshop material.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('workshop_material.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete workshop materials.'));
     }
 
     public static function getEloquentQuery(): Builder

@@ -12,16 +12,31 @@ use App\Filament\Resources\EmployeeContracts\Schemas\EmployeeContractInfolist;
 use App\Filament\Resources\EmployeeContracts\Tables\EmployeeContractsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 
 class EmployeeContractResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = EmployeeContract::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
     protected static ?int $navigationSort = 3;
 
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'employee_contract.index' => __('Allows viewing the employee contract list'),
+            'employee_contract.create' => __('Allows creating a new employee contract'),
+            'employee_contract.update' => __('Allows updating employee contracts'),
+            'employee_contract.delete' => __('Allows deleting employee contracts'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -53,6 +68,41 @@ class EmployeeContractResource extends Resource
             'edit' => Pages\EditEmployeeContract::route('/{record}/edit'),
             'view' => Pages\ViewEmployeeContract::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_contract.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_contract.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create employee contract.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_contract.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a employee contract.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete employee contracts.'));
     }
 
     public static function getEloquentQuery(): Builder

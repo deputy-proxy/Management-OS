@@ -12,12 +12,27 @@ use App\Filament\Resources\Vendors\Schemas\VendorInfolist;
 use App\Filament\Resources\Vendors\Tables\VendorsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 class VendorResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Vendor::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'vendor.index' => __('Allows viewing the vendor list'),
+            'vendor.create' => __('Allows creating a new vendor'),
+            'vendor.update' => __('Allows updating vendors'),
+            'vendor.delete' => __('Allows deleting vendors'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class VendorResource extends Resource
             'edit' => Pages\EditVendor::route('/{record}/edit'),
             'view' => Pages\ViewVendor::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create vendor.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('vendor.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('vendor.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a vendor.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete vendors.'));
     }
 
     public static function getEloquentQuery(): Builder

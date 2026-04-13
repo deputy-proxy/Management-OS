@@ -12,11 +12,26 @@ use App\Filament\Resources\VendorContracts\Schemas\VendorContractInfolist;
 use App\Filament\Resources\VendorContracts\Tables\VendorContractsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class VendorContractResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = VendorContract::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'vendor_contract.index' => __('Allows viewing the vendor contract list'),
+            'vendor_contract.create' => __('Allows creating a new vendor contract'),
+            'vendor_contract.update' => __('Allows updating vendor contracts'),
+            'vendor_contract.delete' => __('Allows deleting vendor contracts'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class VendorContractResource extends Resource
             'edit' => Pages\EditVendorContract::route('/{record}/edit'),
             'view' => Pages\ViewVendorContract::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor_contract.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor_contract.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create vendor contract.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('vendor_contract.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('vendor_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a vendor contract.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('vendor_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete vendor contracts.'));
     }
 
     public static function getEloquentQuery(): Builder

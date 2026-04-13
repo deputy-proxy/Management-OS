@@ -12,13 +12,28 @@ use App\Filament\Resources\EmployeeEvaluationForms\Schemas\EmployeeEvaluationFor
 use App\Filament\Resources\EmployeeEvaluationForms\Tables\EmployeeEvaluationFormsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 class EmployeeEvaluationFormResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = EmployeeEvaluationForm::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'employee_evaluation_form.index' => __('Allows viewing the employee evaluation form list'),
+            'employee_evaluation_form.create' => __('Allows creating a new employee evaluation form'),
+            'employee_evaluation_form.update' => __('Allows updating employee evaluation forms'),
+            'employee_evaluation_form.delete' => __('Allows deleting employee evaluation forms'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -48,6 +63,41 @@ class EmployeeEvaluationFormResource extends Resource
             'edit' => Pages\EditEmployeeEvaluationForm::route('/{record}/edit'),
             'view' => Pages\ViewEmployeeEvaluationForm::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation_form.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation_form.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create employee evaluation form.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_evaluation_form.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_evaluation_form.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a employee evaluation form.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation_form.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete employee evaluation forms.'));
     }
 
     public static function getEloquentQuery(): Builder

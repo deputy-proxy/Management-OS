@@ -12,11 +12,26 @@ use App\Filament\Resources\Events\Schemas\EventInfolist;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class EventResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Event::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'event.index' => __('Allows viewing the event list'),
+            'event.create' => __('Allows creating a new event'),
+            'event.update' => __('Allows updating events'),
+            'event.delete' => __('Allows deleting events'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class EventResource extends Resource
             'edit' => Pages\EditEvent::route('/{record}/edit'),
             'view' => Pages\ViewEvent::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('event.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('event.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create event.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('event.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('event.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a event.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('event.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete events.'));
     }
 
     public static function getEloquentQuery(): Builder

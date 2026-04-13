@@ -12,12 +12,27 @@ use App\Filament\Resources\TestQuestions\Schemas\TestQuestionInfolist;
 use App\Filament\Resources\TestQuestions\Tables\TestQuestionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class TestQuestionResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = TestQuestion::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'test_question.index' => __('Allows viewing the test question list'),
+            'test_question.create' => __('Allows creating a new test question'),
+            'test_question.update' => __('Allows updating test questions'),
+            'test_question.delete' => __('Allows deleting test questions'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class TestQuestionResource extends Resource
             'edit' => Pages\EditTestQuestion::route('/{record}/edit'),
             'view' => Pages\ViewTestQuestion::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_question.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_question.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create test question.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_question.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_question.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a test question.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_question.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete test questions.'));
     }
 
     public static function getEloquentQuery(): Builder

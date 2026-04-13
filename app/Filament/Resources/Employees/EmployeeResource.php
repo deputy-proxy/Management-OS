@@ -12,14 +12,29 @@ use App\Filament\Resources\Employees\Schemas\EmployeeInfolist;
 use App\Filament\Resources\Employees\Tables\EmployeesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 
 class EmployeeResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Employee::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'employee.index' => __('Allows viewing the employee list'),
+            'employee.create' => __('Allows creating a new employee'),
+            'employee.update' => __('Allows updating employees'),
+            'employee.delete' => __('Allows deleting employees'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -51,6 +66,41 @@ class EmployeeResource extends Resource
             'edit' => Pages\EditEmployee::route('/{record}/edit'),
             'view' => Pages\ViewEmployee::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create employee.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a employee.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete employees.'));
     }
 
     public static function getEloquentQuery(): Builder

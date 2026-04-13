@@ -12,12 +12,27 @@ use App\Filament\Resources\Groups\Schemas\GroupInfolist;
 use App\Filament\Resources\Groups\Tables\GroupsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class GroupResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Group::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'group.index' => __('Allows viewing the group list'),
+            'group.create' => __('Allows creating a new group'),
+            'group.update' => __('Allows updating groups'),
+            'group.delete' => __('Allows deleting groups'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class GroupResource extends Resource
             'edit' => Pages\EditGroup::route('/{record}/edit'),
             'view' => Pages\ViewGroup::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('group.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('group.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create group.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('group.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('group.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a group.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('group.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete groups.'));
     }
 
     public static function getEloquentQuery(): Builder

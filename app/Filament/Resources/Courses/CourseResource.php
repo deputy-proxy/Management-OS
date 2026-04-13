@@ -80,8 +80,7 @@ class CourseResource extends Resource
 
 // Authorization using HexaLite
 
-
-     public static function getViewAnyAuthorizationResponse(): Response
+    public static function getViewAnyAuthorizationResponse(): Response
     {
         return hexa()->can('course.index')
             ? Response::allow()
@@ -106,7 +105,7 @@ class CourseResource extends Resource
     {
         return hexa()->can('course.delete')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to delete course.'));
+            : Response::deny(__('You do not have permission to delete a course.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response

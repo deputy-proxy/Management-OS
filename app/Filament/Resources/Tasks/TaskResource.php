@@ -12,12 +12,27 @@ use App\Filament\Resources\Tasks\Schemas\TaskInfolist;
 use App\Filament\Resources\Tasks\Tables\TasksTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class TaskResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = Task::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'task.index' => __('Allows viewing the task list'),
+            'task.create' => __('Allows creating a new task'),
+            'task.update' => __('Allows updating tasks'),
+            'task.delete' => __('Allows deleting tasks'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class TaskResource extends Resource
             'edit' => Pages\EditTask::route('/{record}/edit'),
             'view' => Pages\ViewTask::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('task.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('task.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create task.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('task.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('task.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a task.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('task.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete tasks.'));
     }
 
     public static function getEloquentQuery(): Builder

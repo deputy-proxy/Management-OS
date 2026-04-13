@@ -12,12 +12,27 @@ use App\Filament\Resources\ProjectPhases\Schemas\ProjectPhaseInfolist;
 use App\Filament\Resources\ProjectPhases\Tables\ProjectPhasesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class ProjectPhaseResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = ProjectPhase::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'project_phase.index' => __('Allows viewing the project phase list'),
+            'project_phase.create' => __('Allows creating a new project phase'),
+            'project_phase.update' => __('Allows updating project phases'),
+            'project_phase.delete' => __('Allows deleting project phases'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class ProjectPhaseResource extends Resource
             'edit' => Pages\EditProjectPhase::route('/{record}/edit'),
             'view' => Pages\ViewProjectPhase::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('project_phase.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('project_phase.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create project phase.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('project_phase.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('project_phase.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a project phase.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('project_phase.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete project phases.'));
     }
 
     public static function getEloquentQuery(): Builder

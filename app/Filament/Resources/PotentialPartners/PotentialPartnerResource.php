@@ -12,11 +12,26 @@ use App\Filament\Resources\PotentialPartners\Schemas\PotentialPartnerInfolist;
 use App\Filament\Resources\PotentialPartners\Tables\PotentialPartnersTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class PotentialPartnerResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = PotentialPartner::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'potential_partner.index' => __('Allows viewing the potential partner list'),
+            'potential_partner.create' => __('Allows creating a new potential partner'),
+            'potential_partner.update' => __('Allows updating potential partners'),
+            'potential_partner.delete' => __('Allows deleting potential partners'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class PotentialPartnerResource extends Resource
             'edit' => Pages\EditPotentialPartner::route('/{record}/edit'),
             'view' => Pages\ViewPotentialPartner::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('potential_partner.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('potential_partner.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create potential partner.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('potential_partner.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('potential_partner.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a potential partner.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('potential_partner.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete potential partners.'));
     }
 
     public static function getEloquentQuery(): Builder

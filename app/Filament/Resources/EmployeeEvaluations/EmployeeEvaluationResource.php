@@ -12,14 +12,29 @@ use App\Filament\Resources\EmployeeEvaluations\Schemas\EmployeeEvaluationInfolis
 use App\Filament\Resources\EmployeeEvaluations\Tables\EmployeeEvaluationsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 
 class EmployeeEvaluationResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = EmployeeEvaluation::class;
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'employee_evaluation.index' => __('Allows viewing the employee evaluation list'),
+            'employee_evaluation.create' => __('Allows creating a new employee evaluation'),
+            'employee_evaluation.update' => __('Allows updating employee evaluations'),
+            'employee_evaluation.delete' => __('Allows deleting employee evaluations'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -51,6 +66,41 @@ class EmployeeEvaluationResource extends Resource
             'edit' => Pages\EditEmployeeEvaluation::route('/{record}/edit'),
             'view' => Pages\ViewEmployeeEvaluation::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create employee evaluation.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_evaluation.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_evaluation.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a employee evaluation.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_evaluation.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete employee evaluations.'));
     }
 
     public static function getEloquentQuery(): Builder

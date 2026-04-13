@@ -12,11 +12,26 @@ use App\Filament\Resources\CustomerInteractions\Schemas\CustomerInteractionInfol
 use App\Filament\Resources\CustomerInteractions\Tables\CustomerInteractionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 class CustomerInteractionResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = CustomerInteraction::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'customer_interaction.index' => __('Allows viewing the customer interaction list'),
+            'customer_interaction.create' => __('Allows creating a new customer interaction'),
+            'customer_interaction.update' => __('Allows updating customer interactions'),
+            'customer_interaction.delete' => __('Allows deleting customer interactions'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +61,41 @@ class CustomerInteractionResource extends Resource
             'edit' => Pages\EditCustomerInteraction::route('/{record}/edit'),
             'view' => Pages\ViewCustomerInteraction::route('/{record}')
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_interaction.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_interaction.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create customer interaction.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_interaction.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_interaction.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a customer interaction.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_interaction.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete customer interactions.'));
     }
 
     public static function getEloquentQuery(): Builder

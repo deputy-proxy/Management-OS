@@ -12,12 +12,27 @@ use App\Filament\Resources\CustomerContracts\Schemas\CustomerContractInfolist;
 use App\Filament\Resources\CustomerContracts\Tables\CustomerContractsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class CustomerContractResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = CustomerContract::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'customer_contract.index' => __('Allows viewing the customer contract list'),
+            'customer_contract.create' => __('Allows creating a new customer contract'),
+            'customer_contract.update' => __('Allows updating customer contracts'),
+            'customer_contract.delete' => __('Allows deleting customer contracts'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class CustomerContractResource extends Resource
             'edit' => Pages\EditCustomerContract::route('/{record}/edit'),
             'view' => Pages\ViewCustomerContract::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_contract.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_contract.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create customer contract.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_contract.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a customer contract.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_contract.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete customer contracts.'));
     }
 
     public static function getEloquentQuery(): Builder

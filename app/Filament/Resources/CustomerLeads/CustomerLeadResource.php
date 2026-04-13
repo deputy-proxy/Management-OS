@@ -12,12 +12,27 @@ use App\Filament\Resources\CustomerLeads\Schemas\CustomerLeadInfolist;
 use App\Filament\Resources\CustomerLeads\Tables\CustomerLeadsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class CustomerLeadResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = CustomerLead::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'customer_lead.index' => __('Allows viewing the customer lead list'),
+            'customer_lead.create' => __('Allows creating a new customer lead'),
+            'customer_lead.update' => __('Allows updating customer leads'),
+            'customer_lead.delete' => __('Allows deleting customer leads'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class CustomerLeadResource extends Resource
             'edit' => Pages\EditCustomerLead::route('/{record}/edit'),
             'view' => Pages\ViewCustomerLead::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_lead.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_lead.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create customer lead.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_lead.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('customer_lead.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a customer lead.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('customer_lead.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete customer leads.'));
     }
 
     public static function getEloquentQuery(): Builder

@@ -12,12 +12,27 @@ use App\Filament\Resources\CompetitorOffers\Schemas\CompetitorOfferInfolist;
 use App\Filament\Resources\CompetitorOffers\Tables\CompetitorOffersTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class CompetitorOfferResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?string $model = CompetitorOffer::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public function defineGates(): array
+    {
+        return [
+            'competitor_offer.index' => __('Allows viewing the competitor offer list'),
+            'competitor_offer.create' => __('Allows creating a new competitor offer'),
+            'competitor_offer.update' => __('Allows updating competitor offers'),
+            'competitor_offer.delete' => __('Allows deleting competitor offers'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -49,6 +64,41 @@ class CompetitorOfferResource extends Resource
             'edit' => Pages\EditCompetitorOffer::route('/{record}/edit'),
             'view' => Pages\ViewCompetitorOffer::route('/{record}'),
         ];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('competitor_offer.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('competitor_offer.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create competitor offer.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('competitor_offer.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('competitor_offer.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a competitor offer.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('competitor_offer.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete competitor offers.'));
     }
 
     public static function getEloquentQuery(): Builder
