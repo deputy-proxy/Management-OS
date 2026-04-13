@@ -393,7 +393,7 @@ border-bottom: none !important;
 }
 
 .fi-modal-footer {
-  @apply border-t px-5 py-4 flex items-center justify-end gap-2;
+  @apply border-t dark:border-gray-800 px-5 py-4 flex items-center justify-end gap-2;
 }
 
 /* ============================================================
@@ -453,28 +453,47 @@ border-bottom: none !important;
   @apply text-sm ;
 }
 
-.dark {
-    /* Main calendar background & text */
-    --ec-bg-color: #1f2937;         /* gray-800 */
-    --ec-text-color: #f9fafb;       /* gray-50 */
-    --ec-border-color: #374151;     /* gray-700 */
 
-    /* Today highlight */
-    --ec-today-bg-color: #374151;   /* gray-700 */
 
-    /* Event defaults */
-    --ec-event-bg-color: #4f46e5;   /* indigo-600 */
-    --ec-event-text-color: #ffffff;
 
-    /* Toolbar / header */
-    --ec-toolbar-bg-color: #111827; /* gray-900 */
 
-    /* Popup (e.g. "+X more" overflow popup) */
-    --ec-popup-bg-color: #1f2937;
 
-    /* List view "no events" area */
-    --ec-list-day-bg-color: #111827;
 
-    /* Time grid */
-    --ec-time-bg-color: #1f2937;
+
+.ec-toolbar,
+.ec-header,
+.ec-col-head{
+    @apply dark:bg-gray-900 dark:text-white;
+}
+
+.ec-sun, .ec-sat{
+  @apply text-red-500;
+}
+
+.ec-day, 
+.ec-body,
+.ec-days {
+  @apply dark:bg-transparent dark:border-gray-800;
+  
+}
+
+.ec-day-head {
+    @apply dark:bg-gray-900 dark:text-white;
+}
+
+.dark .ec-today {
+    background-color: #374151 !important;
+}
+
+.ec-button {
+  @apply bg-primary-600 text-white border-primary-400;
+}
+
+.dark .ec-button:hover {
+    background-color: #4b5563;
+}
+
+.dark .ec-popup {
+    background-color: #1f2937;
+    border-color: #374151;
 }
