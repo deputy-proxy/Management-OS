@@ -17,7 +17,7 @@ use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 class EmployeeSalaryResource extends Resource
 {
     protected static ?string $model = EmployeeSalary::class;
-    protected static ?string $cluster = HumanResourcesCluster::class;
+    //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 

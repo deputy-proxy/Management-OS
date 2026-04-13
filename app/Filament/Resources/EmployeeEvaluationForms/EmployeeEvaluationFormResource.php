@@ -16,7 +16,7 @@ use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 class EmployeeEvaluationFormResource extends Resource
 {
     protected static ?string $model = EmployeeEvaluationForm::class;
-    protected static ?string $cluster = HumanResourcesCluster::class;
+    //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 

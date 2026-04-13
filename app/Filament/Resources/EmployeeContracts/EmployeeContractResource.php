@@ -17,7 +17,7 @@ use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 class EmployeeContractResource extends Resource
 {
     protected static ?string $model = EmployeeContract::class;
-    protected static ?string $cluster = HumanResourcesCluster::class;
+    //protected static ?string $cluster = HumanResourcesCluster::class;
     protected static ?int $navigationSort = 3;
 
 
