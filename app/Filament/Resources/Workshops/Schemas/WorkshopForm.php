@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Workshops\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class WorkshopForm
 {
     public static function configure(Schema $schema): Schema
@@ -29,7 +28,6 @@ class WorkshopForm
                     ->required(),
                 Forms\Components\Select::make('workshop_price_id')
                     ->relationship('workshopPrice', 'id')
-                    ->required(),
             ]);
     }
 }

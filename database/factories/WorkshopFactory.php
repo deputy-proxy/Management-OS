@@ -15,7 +15,6 @@ class WorkshopFactory extends Factory
      * @var class-string<Workshop>
      */
     protected $model = Workshop::class;
-
     /**
      * Define the model's default state.
      *
@@ -32,7 +31,7 @@ class WorkshopFactory extends Factory
             'end_time' => $this->faker->dateTime(),
             'type' => $this->faker->word(),
             'location' => $this->faker->word(),
-            'workshop_price_id' => \App\Models\WorkshopPrice::factory(),
+            'workshop_price_id' => \App\Models\WorkshopPrice::factory()
         ];
     }
 }
