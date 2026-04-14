@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProgressUpdates\Pages;
 use App\Filament\Resources\ProgressUpdates\ProgressUpdateResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditProgressUpdate extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditProgressUpdate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

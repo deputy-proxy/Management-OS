@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PaidCampaigns\Pages;
 use App\Filament\Resources\PaidCampaigns\PaidCampaignResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditPaidCampaign extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditPaidCampaign extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CoursePrices\Pages;
 use App\Filament\Resources\CoursePrices\CoursePriceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditCoursePrice extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditCoursePrice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

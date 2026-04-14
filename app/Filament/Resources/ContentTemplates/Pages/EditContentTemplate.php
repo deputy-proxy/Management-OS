@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ContentTemplates\Pages;
 use App\Filament\Resources\ContentTemplates\ContentTemplateResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditContentTemplate extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditContentTemplate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

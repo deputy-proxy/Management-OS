@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Discounts\Pages;
 use App\Filament\Resources\Discounts\DiscountResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditDiscount extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditDiscount extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

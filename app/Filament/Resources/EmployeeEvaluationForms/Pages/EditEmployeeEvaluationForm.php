@@ -5,6 +5,7 @@ namespace App\Filament\Resources\EmployeeEvaluationForms\Pages;
 use App\Filament\Resources\EmployeeEvaluationForms\EmployeeEvaluationFormResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditEmployeeEvaluationForm extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditEmployeeEvaluationForm extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

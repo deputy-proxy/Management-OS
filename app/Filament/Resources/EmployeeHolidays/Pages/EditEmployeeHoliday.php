@@ -5,6 +5,7 @@ namespace App\Filament\Resources\EmployeeHolidays\Pages;
 use App\Filament\Resources\EmployeeHolidays\EmployeeHolidayResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditEmployeeHoliday extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditEmployeeHoliday extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

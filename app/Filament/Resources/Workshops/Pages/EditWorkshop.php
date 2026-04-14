@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Workshops\Pages;
 use App\Filament\Resources\Workshops\WorkshopResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditWorkshop extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditWorkshop extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

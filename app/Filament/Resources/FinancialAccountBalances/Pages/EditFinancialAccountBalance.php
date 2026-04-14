@@ -5,6 +5,7 @@ namespace App\Filament\Resources\FinancialAccountBalances\Pages;
 use App\Filament\Resources\FinancialAccountBalances\FinancialAccountBalanceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditFinancialAccountBalance extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditFinancialAccountBalance extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

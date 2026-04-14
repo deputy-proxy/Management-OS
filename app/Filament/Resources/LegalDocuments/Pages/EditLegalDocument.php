@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LegalDocuments\Pages;
 use App\Filament\Resources\LegalDocuments\LegalDocumentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditLegalDocument extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditLegalDocument extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

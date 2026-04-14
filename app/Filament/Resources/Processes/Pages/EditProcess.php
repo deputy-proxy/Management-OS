@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Processes\Pages;
 use App\Filament\Resources\Processes\ProcessResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditProcess extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditProcess extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

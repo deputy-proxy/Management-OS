@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PlacementTests\Pages;
 use App\Filament\Resources\PlacementTests\PlacementTestResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditPlacementTest extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditPlacementTest extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

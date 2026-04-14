@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Transactions\Pages;
 use App\Filament\Resources\Transactions\TransactionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditTransaction extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditTransaction extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

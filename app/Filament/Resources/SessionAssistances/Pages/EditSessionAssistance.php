@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SessionAssistances\Pages;
 use App\Filament\Resources\SessionAssistances\SessionAssistanceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditSessionAssistance extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditSessionAssistance extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

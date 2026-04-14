@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TestResults\Pages;
 use App\Filament\Resources\TestResults\TestResultResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditTestResult extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditTestResult extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

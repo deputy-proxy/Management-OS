@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SessionAttendances\Pages;
 use App\Filament\Resources\SessionAttendances\SessionAttendanceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditSessionAttendance extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditSessionAttendance extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

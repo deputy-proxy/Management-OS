@@ -5,6 +5,7 @@ namespace App\Filament\Resources\EmployeeTimesheets\Pages;
 use App\Filament\Resources\EmployeeTimesheets\EmployeeTimesheetResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditEmployeeTimesheet extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditEmployeeTimesheet extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

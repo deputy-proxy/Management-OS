@@ -5,6 +5,7 @@ namespace App\Filament\Resources\VendorContracts\Pages;
 use App\Filament\Resources\VendorContracts\VendorContractResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditVendorContract extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditVendorContract extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

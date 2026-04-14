@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CustomerInteractions\Pages;
 use App\Filament\Resources\CustomerInteractions\CustomerInteractionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditCustomerInteraction extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditCustomerInteraction extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }

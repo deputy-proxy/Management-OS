@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Competitions\Pages;
 use App\Filament\Resources\Competitions\CompetitionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditCompetition extends EditRecord
 {
@@ -13,7 +14,9 @@ class EditCompetition extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            
+            CommentsAction::make(),
+
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\VendorInvoices\Pages;
 use App\Filament\Resources\VendorInvoices\VendorInvoiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditVendorInvoice extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditVendorInvoice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),            CommentsAction::make(),
+
         ];
     }
 }
