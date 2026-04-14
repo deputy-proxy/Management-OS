@@ -9,8 +9,7 @@ use Relaticle\Comments\Events\CommentCreated; // Ensure this matches your packag
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Event;
 use App\Models\User;
-use Filament\Support\Facades\FilamentView;
-use Illuminate\Support\Facades\Blade;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**

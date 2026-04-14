@@ -88,12 +88,12 @@ class AdminPanelProvider extends PanelProvider
                     ->pluralLabel('Logs')
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
-            ])
-            ->renderHook(
+            ]);
+/*            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                     fn(): \Illuminate\Contracts\View\View => view('filament.admin.head-meta'),
                 );
 
-
+*/
     }
 }
