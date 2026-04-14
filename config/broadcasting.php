@@ -37,9 +37,10 @@ return [
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
                 'host' => env('REVERB_HOST'),
-                'port' => env('REVERB_PORT', 443),
-                'scheme' => env('REVERB_SCHEME', 'https'),
-                'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
+                'port' => env('REVERB_PORT'),
+                'scheme' => env('REVERB_SCHEME'),
+                'useTLS' => false,         // Set to false for internal 127.0.0.1
+                'verify_peer' => false,    // Tells Laravel "don't worry about SSL certs"
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
