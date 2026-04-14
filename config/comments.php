@@ -88,11 +88,11 @@ return [
     ],
 
     'broadcasting' => [
-        'enabled' => false,
+        'enabled' => true,
         'channel_prefix' => 'comments',
     ],
 
     'polling' => [
-        'interval' => '10s',
+        'interval' => '1s',
     ],
 ];
