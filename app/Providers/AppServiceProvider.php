@@ -9,7 +9,8 @@ use Relaticle\Comments\Events\CommentCreated; // Ensure this matches your packag
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Event;
 use App\Models\User;
-
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Support\Facades\Blade;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -39,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
         // 2. This is the magic command that talks to the Filament Bell
         Notification::make()
             ->title('New Comment on Course')
-            ->body($event->comment->body)
+            ->body($event->comment->content) // Assuming your comment model has a 'content' attribute
             ->success()
             ->sendToDatabase($recipient) // Saves to the 'notifications' table
             ->broadcast($recipient);    // Sends the WSS signal to Laravel Cloud

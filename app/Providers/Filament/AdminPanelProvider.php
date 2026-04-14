@@ -26,7 +26,8 @@ use App\Filament\Widgets\HolidaysWidget;
 use Guava\Calendar\Filament\CalendarWidget;
 use Relaticle\Comments\CommentsPlugin;
 use Hammadzafar05\MobileBottomNav\MobileBottomNav;
-
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -87,6 +88,12 @@ class AdminPanelProvider extends PanelProvider
                     ->pluralLabel('Logs')
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                    fn(): \Illuminate\Contracts\View\View => view('filament.admin.head-meta'),
+                );
+
+
     }
 }

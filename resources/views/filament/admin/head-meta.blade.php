@@ -1,0 +1,1 @@
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.laravel.cloud wss://*.laravel.cloud;">
