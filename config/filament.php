@@ -18,12 +18,13 @@ return [
         'echo' => [
             'broadcaster' => 'reverb',
             'key' => env('VITE_REVERB_APP_KEY'),
-            'wsHost' => env('VITE_REVERB_HOST', 'localhost'),
-            'wsPort' => env('VITE_REVERB_PORT', 8080),
-            'wssPort' => env('VITE_REVERB_PORT', 8080),
-            'forceTLS' => false,          // ← must be false locally
+            'wsHost' => env('VITE_REVERB_HOST'),
+            'wsPort' => 443,
+            'wssPort' => 443,
+            'forceTLS' => true, // Must be true for Laravel Cloud
             'disableStats' => true,
-            'enabledTransports' => ['ws'], // ← only ws, not wss
+            'enabledTransports' => ['ws', 'wss'],
+            'authEndpoint' => '/broadcasting/auth', // Important for private channels
         ],
     ],
 
