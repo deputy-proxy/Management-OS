@@ -9,6 +9,7 @@ use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Broadcasting\PrivateChannel;
 
 class Course extends Model implements Commentable
 {
@@ -23,6 +24,11 @@ class Course extends Model implements Commentable
     {
         return LogOptions::defaults()
             ->logAll();
+    }
+    public function broadcastsOn($event)
+    {
+        // Replace backslashes with dots or dashes
+        return new PrivateChannel('comments.course.' . $this->id);
     }
 
 }
