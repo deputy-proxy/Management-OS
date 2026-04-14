@@ -12,23 +12,19 @@ use Spatie\Activitylog\LogOptions;
 class Workshop extends Model
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'type', 'location', 'workshop_price_id'
-    ];
+    protected $fillable = ['title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'type', 'location', 'workshop_price_id'];
 
     public function workshopPrice(): BelongsTo
     {
         return $this->belongsTo(WorkshopPrice::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }

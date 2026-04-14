@@ -16,7 +16,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-
 class WorkshopResource extends Resource
 {
     use HasHexaLite;
@@ -24,15 +23,9 @@ class WorkshopResource extends Resource
     protected static ?string $model = Workshop::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'workshop.index' => __('Allows viewing the workshop list'),
-            'workshop.create' => __('Allows creating a new workshop'),
-            'workshop.update' => __('Allows updating workshops'),
-            'workshop.delete' => __('Allows deleting workshops'),
-        ];
+        return ['workshop.index' => __('Allows viewing the workshop list'), 'workshop.create' => __('Allows creating a new workshop'), 'workshop.update' => __('Allows updating workshops'), 'workshop.delete' => __('Allows deleting workshops')];
     }
 
     public static function form(Schema $schema): Schema
@@ -52,10 +45,7 @@ class WorkshopResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -64,50 +54,38 @@ class WorkshopResource extends Resource
             'index' => Pages\ListWorkshops::route('/'),
             'create' => Pages\CreateWorkshop::route('/create'),
             'edit' => Pages\EditWorkshop::route('/{record}/edit'),
-            'view' => Pages\ViewWorkshop::route('/{record}'),
+            'view' => Pages\ViewWorkshop::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('workshop.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('workshop.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('workshop.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create workshop.'));
+        return hexa()->can('workshop.create') ? Response::allow() : Response::deny(__('You do not have permission to create workshop.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('workshop.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('workshop.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('workshop.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a workshop.'));
+        return hexa()->can('workshop.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a workshop.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('workshop.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete workshops.'));
+        return hexa()->can('workshop.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete workshops.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
