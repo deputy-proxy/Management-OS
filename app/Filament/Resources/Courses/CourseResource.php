@@ -13,7 +13,6 @@ use App\Filament\Resources\Courses\Tables\CoursesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Hexters\HexaLite\HasHexaLite;
-
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
