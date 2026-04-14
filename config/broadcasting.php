@@ -36,7 +36,7 @@ return [
             'secret' => env('REVERB_APP_SECRET'),
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
-                'host' => '127.0.0.1',             // Hardcode this for a test
+                'host' => '0.0.0.0',             // Hardcode this for a test
                 'port' => 8080,                    // Hardcode this for a test
                 'scheme' => 'http',                // Hardcode this for a test
                 'useTLS' => false,                 // MUST be false for the queue to work
