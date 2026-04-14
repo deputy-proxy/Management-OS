@@ -54,7 +54,6 @@ class ProgressUpdateResource extends Resource
     {
         return [
             ActivitiesRelationManager::class,
-            //
         ];
     }
 
