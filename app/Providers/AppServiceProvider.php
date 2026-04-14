@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Filament\Notifications\Livewire\DatabaseNotifications;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,9 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /*
+        DatabaseNotifications::trigger('filament.notifications.database-notifications-updated');
         Relation::enforceMorphMap([
             'course' => \App\Models\Course::class,
             'user' => \App\Models\User::class,
         ]);
+        */
     }
 }

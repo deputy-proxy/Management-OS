@@ -20,7 +20,6 @@ class User extends Authenticatable implements Commentator
     use HasFactory, Notifiable;
     use HexaLiteRolePermission;
     use CanComment;
-
     /**
      * The attributes that are mass assignable.
      *
