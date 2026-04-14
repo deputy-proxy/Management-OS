@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f757318472e5740f50f04a4f9986005",
+    "content-hash": "545670547dc613b7d18e8c72da66c26b",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
@@ -6403,16 +6403,16 @@
         },
         {
             "name": "relaticle/comments",
-            "version": "v1.0.0-alpha.3",
+            "version": "v1.0.0-alpha.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/relaticle/comments.git",
-                "reference": "6a26396f0de2a977adb9928731cc9c3bb1b39e83"
+                "reference": "6cdca9b2b54d2aa148318780bc82de5d6ffc96fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/relaticle/comments/zipball/6a26396f0de2a977adb9928731cc9c3bb1b39e83",
-                "reference": "6a26396f0de2a977adb9928731cc9c3bb1b39e83",
+                "url": "https://api.github.com/repos/relaticle/comments/zipball/6cdca9b2b54d2aa148318780bc82de5d6ffc96fd",
+                "reference": "6cdca9b2b54d2aa148318780bc82de5d6ffc96fd",
                 "shasum": ""
             },
             "require": {
@@ -6454,7 +6454,7 @@
             "description": "A full-featured commenting system for Filament panels",
             "support": {
                 "issues": "https://github.com/relaticle/comments/issues",
-                "source": "https://github.com/relaticle/comments/tree/v1.0.0-alpha.3"
+                "source": "https://github.com/relaticle/comments/tree/v1.0.0-alpha.5"
             },
             "funding": [
                 {
@@ -6462,7 +6462,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-27T17:32:05+00:00"
+            "time": "2026-04-13T19:46:23+00:00"
         },
         {
             "name": "ryangjchandler/blade-capture-directive",
