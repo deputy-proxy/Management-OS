@@ -25,9 +25,14 @@ class Course extends Model implements Commentable
         return LogOptions::defaults()
             ->logAll();
     }
+    public function getMorphClass()
+    {
+        return 'course';
+    }
+    
+    // Keep your broadcastsOn as well
     public function broadcastsOn($event)
     {
-        // Replace backslashes with dots or dashes
         return new PrivateChannel('comments.course.' . $this->id);
     }
 
