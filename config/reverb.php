@@ -78,10 +78,10 @@ return [
                 'secret' => env('REVERB_APP_SECRET'),
                 'app_id' => env('REVERB_APP_ID'),
                 'options' => [
-                    'host' => '127.0.0.1', 
-                    'port' => 8080,        // Internal port
-                    'scheme' => 'http',    // Internal scheme
-                    'useTLS' => false,
+                    'host' => 'edv.scl.ro', 
+                    'port' => 443,        // Internal port
+                    'scheme' => 'https',    // Internal scheme
+                    'useTLS' => true,
                 ],
                 'allowed_origins' => ['*'], // Simplest for debugging
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
