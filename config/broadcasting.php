@@ -40,7 +40,7 @@ return [
                 'port' => env('REVERB_PORT'),
                 'scheme' => env('REVERB_SCHEME'),
                 'useTLS' => false,         // Set to false for internal 127.0.0.1
-                'verify_peer' => false,    // Tells Laravel "don't worry about SSL certs"
+                'verify_peer' => false,    // Crucial for Hostinger internal traffic
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
