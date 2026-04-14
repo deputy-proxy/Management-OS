@@ -74,6 +74,7 @@ return [
         'apps' => [
             [
                 'key' => env('REVERB_APP_KEY'),
+                'allowed_origins' => ['edv.scl.ro', '*.edv.scl.ro.ro'], // Ensure your domain is here
                 'secret' => env('REVERB_APP_SECRET'),
                 'app_id' => env('REVERB_APP_ID'),
                 'options' => [
