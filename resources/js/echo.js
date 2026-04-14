@@ -13,7 +13,11 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],    
     auth: {
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        options: {
+            withCredentials: true, // Forces Safari to send cookies
         }
     }
 });
