@@ -4,10 +4,10 @@ window.Pusher = Pusher;
 
 window.Echo = new Echo({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY, // This must not be undefined
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    key: 'sydzorffaggsw8tzmexo', // Hardcode for one test
+    wsHost: 'edv.scl.ro',
+    wsPort: 443,
+    wssPort: 443,
+    forceTLS: true,
     enabledTransports: ['ws', 'wss'],
 });
