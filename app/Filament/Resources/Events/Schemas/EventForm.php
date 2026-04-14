@@ -23,8 +23,7 @@ class EventForm
                 Forms\Components\DateTimePicker::make('end_time')
                     ->required(),
                 Forms\Components\Select::make('event_price_id')
-                    ->relationship('eventPrice', 'id')
-                    ->required(),
+                    ->relationship('eventPrice', 'id'),
                 Forms\Components\TextInput::make('featured_image')
                     ->required()
             ]);
