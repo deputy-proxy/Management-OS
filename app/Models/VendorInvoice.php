@@ -5,16 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Relaticle\Comments\Concerns\HasComments;
+use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class VendorInvoice extends Model
+class VendorInvoice extends Model implements Commentable
 {
     use LogsActivity;
 
     use HasFactory;
     use SoftDeletes;
+    use HasComments;
 
     /** @var array<int, string> */
     protected $fillable = ['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'month', 'status', 'invoice'];

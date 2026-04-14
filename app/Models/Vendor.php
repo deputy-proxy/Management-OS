@@ -6,14 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Relaticle\Comments\Concerns\HasComments;
+use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 
-class Vendor extends Model
+class Vendor extends Model implements Commentable
 {
     use HasFactory;
     use SoftDeletes;
+    use HasComments;
     use LogsActivity;
 
     public function getActivitylogOptions(): LogOptions

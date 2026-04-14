@@ -13,7 +13,6 @@ use Spatie\Activitylog\LogOptions;
 class Course extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;

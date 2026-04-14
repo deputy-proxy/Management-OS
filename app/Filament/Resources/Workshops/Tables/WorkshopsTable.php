@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 class WorkshopsTable
 {
     public static function configure(Table $table): Table
@@ -34,9 +35,9 @@ class WorkshopsTable
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([
-                EditAction::make(),
-                DeleteAction::make()
+            ->recordActions([EditAction::make(),
+                DeleteAction::make(),
+                CommentsAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

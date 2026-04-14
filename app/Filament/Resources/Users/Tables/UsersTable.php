@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class UsersTable
 {
@@ -35,9 +36,9 @@ class UsersTable
             ->filters([
                 //
             ])
-            ->recordActions([
-                ViewAction::make(),
+            ->recordActions([ViewAction::make(),
                 EditAction::make(),
+                CommentsAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

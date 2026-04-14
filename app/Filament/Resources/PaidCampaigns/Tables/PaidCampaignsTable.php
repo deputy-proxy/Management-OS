@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 
 class PaidCampaignsTable
@@ -29,9 +30,9 @@ class PaidCampaignsTable
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->recordActions([EditAction::make(),
                 DeleteAction::make(),
+                CommentsAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
