@@ -306,6 +306,7 @@ border-bottom: none !important;
 .fi-btn {
   @apply rounded-sm font-medium transition-all duration-150;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-1;
+  @apply w-fit;
 }
 
 /* Primary */
