@@ -67,37 +67,37 @@ class ProductReviewResource extends Resource
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('progress_update.index')
+        return hexa()->can('product_review.index')
             ? Response::allow()
             : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('progress_update.create')
+        return hexa()->can('product_review.create')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to create progress update.'));
+            : Response::deny(__('You do not have permission to create a product review.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('progress_update.update')
+        return hexa()->can('product_review.update')
             ? Response::allow()
             : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('progress_update.delete')
+        return hexa()->can('product_review.delete')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a progress update.'));
+            : Response::deny(__('You do not have permission to delete a product review.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('progress_update.delete')
+        return hexa()->can('product_review.delete')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to delete progress updates.'));
+            : Response::deny(__('You do not have permission to delete product reviews.'));
     }
 
     public static function getEloquentQuery(): Builder
