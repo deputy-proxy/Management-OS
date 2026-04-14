@@ -59,4 +59,9 @@ class User extends Authenticatable implements Commentator
             ->logAll();
     }
 
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        // Filament expects this exact format
+        return 'App.Models.User.' . $this->id;
+    }
 }
