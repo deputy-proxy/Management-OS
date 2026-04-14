@@ -11,4 +11,9 @@ window.Echo = new Echo({
     wssPort: 443,
     forceTLS: true,
     enabledTransports: ['ws', 'wss'],
+    auth: {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        }
+    }
 });
