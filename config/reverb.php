@@ -86,6 +86,8 @@ return [
                 'allowed_origins' => ['*'], // Simplest for debugging
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
+                'max_message_size' => 10000,
+                'max_request_size' => 10000,
             ],
         ],
 
