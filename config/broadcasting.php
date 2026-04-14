@@ -36,14 +36,15 @@ return [
             'secret' => env('REVERB_APP_SECRET'),
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
-                'host' => env('REVERB_HOST'),
-                'port' => env('REVERB_PORT'),
-                'scheme' => env('REVERB_SCHEME'),
-                'useTLS' => false,         // Set to false for internal 127.0.0.1
-                'verify_peer' => false,    // Crucial for Hostinger internal traffic
-            ],
-            'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                'host' => '127.0.0.1',             // Hardcode this for a test
+                'port' => 8080,                    // Hardcode this for a test
+                'scheme' => 'http',                // Hardcode this for a test
+                'useTLS' => false,                 // MUST be false for the queue to work
+                'verify_peer' => false,            // Ignore Hostinger SSL issues
+                'curl_options' => [                // Add this to bypass low-level SSL checks
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                ],
             ],
         ],
 
