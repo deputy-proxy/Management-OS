@@ -78,7 +78,7 @@ return [
                 'secret' => env('REVERB_APP_SECRET'),
                 'app_id' => env('REVERB_APP_ID'),
                 'options' => [
-                    'host' => 'edv.scl.ro', 
+                    'host' => env('REVERB_HOST'),
                     'port' => 443,        // Internal port
                     'scheme' => 'https',    // Internal scheme
                     'useTLS' => true,
@@ -90,10 +90,6 @@ return [
                 'max_request_size' => 10000,
             ],
         ],
-
-
-        
-
     ],
 
 ];

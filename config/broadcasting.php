@@ -36,15 +36,10 @@ return [
             'secret' => env('REVERB_APP_SECRET'),
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
-                'host' => '0.0.0.0',             // Hardcode this for a test
-                'port' => 8080,                    // Hardcode this for a test
-                'scheme' => 'http',                // Hardcode this for a test
-                'useTLS' => false,                 // MUST be false for the queue to work
-                'verify_peer' => false,            // Ignore Hostinger SSL issues
-                'curl_options' => [                // Add this to bypass low-level SSL checks
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => false,
-                ],
+                'host' => env('REVERB_HOST'),
+                'port' => env('REVERB_PORT', 443),
+                'scheme' => env('REVERB_SCHEME', 'https'),
+                'useTLS' => true,
             ],
         ],
 
