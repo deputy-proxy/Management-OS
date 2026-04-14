@@ -74,18 +74,16 @@ return [
 
         'apps' => [
             [
-                'key' => env('REVERB_APP_KEY'),
-                'secret' => env('REVERB_APP_SECRET'),
-                'app_id' => env('REVERB_APP_ID'),
+                'key' => 'sydzorffaggsw8tzmexo',
+                'secret' => 'your-secret',
+                'app_id' => 'myID',
                 'options' => [
-                    'host' => 'edv.scl.ro', 
-                    'port' => 443,        // Internal port
-                    'scheme' => 'https',    // Internal scheme
+                    'host' => 'edv.scl.ro', // The public host
+                    'port' => 443,         // The public port
+                    'scheme' => 'https',
                     'useTLS' => true,
                 ],
-                'allowed_origins' => ['*'], // Simplest for debugging
-                'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
-                'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
+                'allowed_origins' => ['*'], // Allow all origins for now
                 'max_message_size' => 10000,
                 'max_request_size' => 10000,
             ],
