@@ -65,7 +65,7 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
                 return;
             }
 
-            $title = 'New comment on '.class_basename($commentable);
+            $title = 'New comment on '.class_basename($commentable).': '.$event->commentable->title; ;
             $body = $comment->body;
 
             foreach ($recipients as $recipient) {
