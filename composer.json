@@ -19,7 +19,7 @@
         "laravel/reverb": "^1.0",
         "laravel/tinker": "^2.10.1",
         "lartisan/filament-architect": "^1.0",
-        "relaticle/comments": "v1.0.0-alpha.5",
+        "relaticle/comments": "v1.0.0-alpha.3",
         "usamamuneerchaudhary/filament-command-palette": "^1.2"
     },
     "require-dev": {
