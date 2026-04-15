@@ -36,7 +36,8 @@ class AppServiceProvider extends ServiceProvider
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
             $commentable = $event->commentable;
             $comment = $event->comment;
-
+            $title = 'New comment on '.class_basename($commentable).': '.$event->commentable->title; ;
+            $body = $comment->body;
             $owner = null;
             foreach (['owner', 'user', 'author', 'createdBy'] as $relation) {
                 if (method_exists($commentable, $relation)) {
@@ -47,11 +48,9 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
                     }
                 }
             }
-
             $subscribers = Subscription::subscribersFor($commentable)
                 ->filter(fn ($subscriber) => $subscriber instanceof Model)
                 ->values();
-
             $recipients = collect()
                 ->when($owner instanceof Model, fn ($collection) => $collection->push($owner))
                 ->merge($subscribers)
@@ -64,10 +63,6 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
             if ($recipients->isEmpty()) {
                 return;
             }
-
-            $title = 'New comment on '.class_basename($commentable).': '.$event->commentable->title; ;
-            $body = $comment->body;
-
             foreach ($recipients as $recipient) {
                 Notification::make()
                     ->title($title)
@@ -77,6 +72,5 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
                     ->broadcast($recipient);
             }
         });
-
     }
 }
