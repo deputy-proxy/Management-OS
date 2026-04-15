@@ -10,7 +10,8 @@ use Relaticle\Comments\Events\CommentCreated; // Ensure this matches your packag
 use Relaticle\Comments\Models\Subscription;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Event;
-use App\Models\User;
+use Filament\Actions\Action;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -69,7 +70,13 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
                     ->success()
                     ->body($body)
                     ->sendToDatabase($recipient)
-                    ->broadcast($recipient);
+                    ->broadcast($recipient)
+                    ->actions([
+                        Action::make('edit')
+                            ->button('sda'),
+                        Action::make('undo')
+                            ->color('gray'),
+                    ]); 
             }
         });
     }
