@@ -19,6 +19,9 @@ class EmployeeEvaluationFormForm
                 Forms\Components\Select::make('job_description_id')
                     ->relationship('jobDescription', 'job_title')
                     ->required(),
+                Forms\Components\Select::make('employee_id')
+                    ->relationship('employee', 'full_name')
+                    ->required(),    
                 Builder::make('criteria')
                     ->blocks([
                         Block::make('heading')
