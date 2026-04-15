@@ -39,8 +39,8 @@ class AppServiceProvider extends ServiceProvider
         // 2. This is the magic command that talks to the Filament Bell
         Notification::make()
             ->title('New Comment on Course'.$event->comment->commentable->title) // Assuming your comment model has a relationship to the commented model
-            ->body($event->comment->commentable->body) // Assuming your comment model has a 'content' attribute
             ->success()
+            ->body($event->comment->commentable->body) // Assuming your comment model has a 'content' attribute
             ->sendToDatabase($recipient) // Saves to the 'notifications' table
             ->broadcast($recipient);    // Sends the WSS signal to Laravel Cloud
     });
