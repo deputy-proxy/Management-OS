@@ -70,13 +70,7 @@ Event::listen(CommentCreated::class, function (CommentCreated $event) {
                     ->success()
                     ->body($body)
                     ->sendToDatabase($recipient)
-                    ->broadcast($recipient)
-                    ->actions([
-                        Action::make('edit')
-                            ->button('sda'),
-                        Action::make('undo')
-                            ->color('gray'),
-                    ]); 
+                    ->broadcast($recipient);
             }
         });
     }
