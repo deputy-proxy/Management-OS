@@ -12,7 +12,7 @@
     </div>
     <div class="relative">
       <div class="justify-center items-center gap-2.5">
-        <div class="self-stretch justify-start text-white text-4xl font-bold font-['Arial']"><a href="/admin">EdVenture</a></div>
+        <div class="self-stretch justify-start text-white text-4xl font-bold font-['Arial']"><a href="/admin">EdVenture </a></div>
       </div>
       <div class=" justify-center items-center gap-2.5">
         <div class="self-stretch justify-start text-[#ff6600] text-xl font-normal font-['Arial']">Speak the Future</div>
