@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
+    ->withBroadcasting(
+    __DIR__.'/../routes/channels.php',
+        [
+            'prefix' => 'api',
+            'middleware' => ['web', 'auth'], // Ensure 'web' is first!
+        ],
+    )
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
