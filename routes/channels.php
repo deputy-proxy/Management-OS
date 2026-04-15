@@ -7,6 +7,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('comments.course.{id}', function ($user, $id) {
-    // Return true if user can view the course
+    return true; 
+});
+
+Broadcast::channel('comments.job_description.{id}', function ($user, $id) {
     return true; 
 });
