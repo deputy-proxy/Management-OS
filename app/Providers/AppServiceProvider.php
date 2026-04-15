@@ -32,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'course' => \App\Models\Course::class,
             'user' => \App\Models\User::class,
+            'article' => \App\Models\Article::class,
+            'job_description' => \App\Models\JobDescription::class,
+            
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
