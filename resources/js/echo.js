@@ -10,14 +10,5 @@ window.Echo = new Echo({
     wsPort: 443,
     wssPort: 443,
     forceTLS: true,
-    enabledTransports: ['ws', 'wss'],    
-    auth: {
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        options: {
-            withCredentials: true, // Forces Safari to send cookies
-        }
-    }
+    enabledTransports: ['ws', 'wss'],
 });
