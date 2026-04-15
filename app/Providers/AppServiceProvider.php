@@ -32,14 +32,14 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         Event::listen(CommentCreated::class, function ($event) {
-        // 1. Identify who should get the notification. 
+        // 1. Identify who should get the notification.
         // For testing, we'll use User ID 2 since that's who you are logged in as.
         $recipient = User::find(2); 
 
         // 2. This is the magic command that talks to the Filament Bell
         Notification::make()
-            ->title('New Comment on Course')
-            ->body($event->comment->content) // Assuming your comment model has a 'content' attribute
+            ->title('New Comment on Course'.$event->comment->commentable->title) // Assuming your comment model has a relationship to the commented model
+            ->body($event->comment->commentable->content) // Assuming your comment model has a 'content' attribute
             ->success()
             ->sendToDatabase($recipient) // Saves to the 'notifications' table
             ->broadcast($recipient);    // Sends the WSS signal to Laravel Cloud
