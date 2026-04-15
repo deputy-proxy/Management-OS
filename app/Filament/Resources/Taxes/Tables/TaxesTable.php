@@ -17,7 +17,9 @@ class TaxesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('category'),
+                Tables\Columns\TextColumn::make('category')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('month'),
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('status'),

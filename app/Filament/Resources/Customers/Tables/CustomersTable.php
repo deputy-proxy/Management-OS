@@ -17,7 +17,9 @@ class CustomersTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('customer_type'),
                 Tables\Columns\TextColumn::make('cnp_cui'),
                 Tables\Columns\TextColumn::make('address'),

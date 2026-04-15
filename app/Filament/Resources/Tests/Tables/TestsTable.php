@@ -17,7 +17,9 @@ class TestsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('description'),
                 Tables\Columns\TextColumn::make('topic'),
                 Tables\Columns\TextColumn::make('level'),

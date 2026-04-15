@@ -17,7 +17,9 @@ class JobDescriptionsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('job_title'),
+                Tables\Columns\TextColumn::make('job_title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('job_level'),
                 Tables\Columns\TextColumn::make('job_role'),
                 //Tables\Columns\TextColumn::make('relevant_indicators'),

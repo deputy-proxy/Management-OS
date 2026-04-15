@@ -35,7 +35,26 @@ class AppServiceProvider extends ServiceProvider
             'article' => \App\Models\Article::class,
             'job_description' => \App\Models\JobDescription::class,
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,
-
+            'competition' => \App\Models\Competition::class,
+            'competition_entry' => \App\Models\CompetitionEntry::class,
+            'content_template' => \App\Models\ContentTemplate::class,
+            'customer' => \App\Models\Customer::class,
+            'competitor' => \App\Models\Competitor::class,
+            'employee' => \App\Models\Employee::class,
+            'employee_contract' => \App\Models\EmployeeContract::class,
+            'event' => \App\Models\Event::class,
+            'event_participant' => \App\Models\EventParticipant::class,
+            'group' => \App\Models\Group::class,
+            'group_session' => \App\Models\GroupSession::class,
+            'project' => \App\Models\Project::class,
+            'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
+            'product_review' => \App\Models\ProductReview::class,
+            'quarterly_objective' => \App\Models\QuarterlyObjective::class,
+            'vendor_category' => \App\Models\VendorCategory::class,
+            'vendor_contract' => \App\Models\VendorContract::class,
+            'vendor' => \App\Models\Vendor::class,
+            'workshop_participant' => \App\Models\WorkshopParticipant::class,
+            'workshop' => \App\Models\Workshop::class,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {

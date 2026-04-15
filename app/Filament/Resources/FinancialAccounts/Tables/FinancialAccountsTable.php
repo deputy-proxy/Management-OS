@@ -15,7 +15,9 @@ class FinancialAccountsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('bank'),
                 Tables\Columns\TextColumn::make('currency'),

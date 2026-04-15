@@ -15,7 +15,9 @@ class PotentialPartnersTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('site'),
                 Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('benefits_for_us'),

@@ -17,7 +17,9 @@ class CompetitorsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('site'),
                 Tables\Columns\TextColumn::make('instagram'),
                 Tables\Columns\TextColumn::make('facebook'),

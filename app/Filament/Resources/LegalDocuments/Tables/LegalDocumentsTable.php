@@ -17,7 +17,9 @@ class LegalDocumentsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('category'),
                 Tables\Columns\TextColumn::make('expiration_date')->dateTime(),
                 Tables\Columns\TextColumn::make('physical_location'),

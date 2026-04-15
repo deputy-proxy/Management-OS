@@ -17,7 +17,9 @@ class TestQuestionsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('question'),
+                Tables\Columns\TextColumn::make('question')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('question_type'),
                 Tables\Columns\TextColumn::make('description'),
                 Tables\Columns\TextColumn::make('correct_answer'),

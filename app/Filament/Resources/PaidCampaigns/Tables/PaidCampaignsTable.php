@@ -17,7 +17,9 @@ class PaidCampaignsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('description'),
                 Tables\Columns\TextColumn::make('network'),
                 Tables\Columns\TextColumn::make('scheduled_to_start_on')->dateTime(),

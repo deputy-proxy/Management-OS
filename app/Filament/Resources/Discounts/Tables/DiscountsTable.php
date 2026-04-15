@@ -20,7 +20,9 @@ class DiscountsTable
                 Tables\Columns\TextColumn::make('applies_to_type'),
                 Tables\Columns\TextColumn::make('applies_to_item'),
                 Tables\Columns\TextColumn::make('value'),
-                Tables\Columns\TextColumn::make('type'),
+                Tables\Columns\TextColumn::make('type')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('start_on')->dateTime(),
                 Tables\Columns\TextColumn::make('end_on')->dateTime(),
             ])

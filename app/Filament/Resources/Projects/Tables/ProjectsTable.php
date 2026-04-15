@@ -17,7 +17,10 @@ class ProjectsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Title')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('description'),
                 Tables\Columns\TextColumn::make('projectManager.name')
                     ->label('Project Manager'),

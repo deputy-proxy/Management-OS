@@ -19,7 +19,9 @@ class NewsletterSubscribersTable
             ->columns([
                 Tables\Columns\TextColumn::make('first_name'),
                 Tables\Columns\TextColumn::make('last_name'),
-                Tables\Columns\TextColumn::make('email'),
+                Tables\Columns\TextColumn::make('email')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('customer.name')
                     ->label('Customer')
                     ->sortable()

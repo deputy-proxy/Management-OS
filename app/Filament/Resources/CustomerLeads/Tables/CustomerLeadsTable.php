@@ -17,10 +17,18 @@ class CustomerLeadsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('first_name'),
-                Tables\Columns\TextColumn::make('middle_name'),
-                Tables\Columns\TextColumn::make('last_name'),
-                Tables\Columns\TextColumn::make('full_name'),
+                Tables\Columns\TextColumn::make('first_name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('middle_name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('last_name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('email'),
                 Tables\Columns\TextColumn::make('phone'),
                 Tables\Columns\TextColumn::make('source'),

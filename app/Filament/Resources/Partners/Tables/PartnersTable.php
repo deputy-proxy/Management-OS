@@ -17,11 +17,19 @@ class PartnersTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('site'),
-                Tables\Columns\TextColumn::make('contact_person_name'),
-                Tables\Columns\TextColumn::make('contact_person_email'),
-                Tables\Columns\TextColumn::make('contact_person_phone'),
+                Tables\Columns\TextColumn::make('contact_person_name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('contact_person_email')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('contact_person_phone')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('collaborations'),
             ])
             ->filters([
