@@ -33,6 +33,32 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" id="favicon" type="image/x-icon" href="favicon.ico" />
+    <link rel="manifest" id="manifest" href="/manifest.json">
+
+    <script>
+        const usesDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const favicon = document.getElementById('favicon');
+        const manifest = document.getElementById('manifest');
+
+        function switchIcon(usesDarkMode) {
+            if (usesDarkMode) { 
+                favicon.href = 'favicon-light.ico?v=<?php echo filemtime('favicon-light.ico') ?>';
+                manifest.href='manifest-dark.json' 
+            } else {
+                favicon.href = 'favicon-dark.ico?v=<?php echo filemtime('favicon-dark.ico') ?>';
+                manifest.href='manifest-light.json' 
+            }
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener( "change", (e) => switchIcon(e.matches));
+        switchIcon(usesDarkMode);
+    </script>
     @stack('meta')
     @stack('styles')
 </head>
