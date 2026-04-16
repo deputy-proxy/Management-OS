@@ -42,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
             'content_template' => \App\Models\ContentTemplate::class,
             'customer' => \App\Models\Customer::class,
             'customer_contract' => \App\Models\CustomerContract::class,
+            'customer_interaction' => \App\Models\CustomerInteraction::class,
             'competitor' => \App\Models\Competitor::class,
             'employee' => \App\Models\Employee::class,
             'employee_contract' => \App\Models\EmployeeContract::class,
