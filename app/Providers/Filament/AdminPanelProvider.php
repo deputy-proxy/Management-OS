@@ -22,12 +22,20 @@ use Lartisan\Architect\ArchitectPlugin;
 use Hexters\HexaLite\HexaLite;
 use Usamamuneerchaudhary\CommandPalette\FilamentCommandPalettePlugin;
 use AlizHarb\ActivityLog\ActivityLogPlugin;
+use App\Filament\Resources\EmployeeHolidays\Pages\CreateEmployeeHoliday;
+use App\Filament\Resources\EmployeeMedicalLeaves\Pages\CreateEmployeeMedicalLeave;
 use App\Filament\Widgets\HolidaysWidget;
+use App\Models\EmployeeMedicalLeave;
 use Guava\Calendar\Filament\CalendarWidget;
 use Relaticle\Comments\CommentsPlugin;
 use Hammadzafar05\MobileBottomNav\MobileBottomNav;
-use Filament\View\PanelsRenderHook;
-use Illuminate\Support\Facades\Blade;
+use Filament\Enums\UserMenuPosition;
+use Filament\Actions\Action;
+use App\Filament\Resources\EmployeeHolidays\EmployeeHolidayResource;
+use App\Filament\Resources\EmployeeMedicalLeaves\EmployeeMedicalLeaveResource;
+use Filament\Actions\CreateAction;
+
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -77,6 +85,26 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\Filament\Clusters')
             ->spa()
+            ->userMenuItems([
+                CreateAction::make('medical_leave')
+                    ->model(\App\Models\EmployeeMedicalLeave::class)
+                    ->modalHeading('Request Medical Leave')
+                        ->schema(fn (\Filament\Schemas\Schema $schema) => 
+                            EmployeeMedicalLeaveResource::form($schema)
+                        )
+                    ->label('Request Medical Leave')
+                    ->icon('heroicon-c-plus-circle'),
+                
+                CreateAction::make('holiday')
+                    ->model(\App\Models\EmployeeHoliday::class)
+                    ->modalHeading('Request Holiday')
+                     ->schema(fn (\Filament\Schemas\Schema $schema) => 
+                        EmployeeHolidayResource::form($schema)
+                    )
+                    ->label('Request Holiday')
+                    ->icon('heroicon-c-sun'),
+            ])
+            ->userMenu(position: UserMenuPosition::Sidebar)
             ->plugins([
                 ArchitectPlugin::make(),
                 HexaLite::make(),
