@@ -20,4 +20,9 @@ class FinanceDashboard extends Page
             'finance-dashboard.view' => __('Allows viewing the finance dashboard'),
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        return hexa()->can('finance-dashboard.view');
+    }
 }
