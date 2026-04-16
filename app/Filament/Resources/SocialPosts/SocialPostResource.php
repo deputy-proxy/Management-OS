@@ -16,7 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-use Enum;
+use UnitEnum;
 
 class SocialPostResource extends Resource
 {
