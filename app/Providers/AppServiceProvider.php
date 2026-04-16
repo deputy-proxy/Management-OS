@@ -45,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
             'employee_salary' => \App\Models\EmployeeSalary::class,
             'employee_contract' => \App\Models\EmployeeContract::class,
             'employee_medical_leave' => \App\Models\EmployeeMedicalLeave::class,
+            'employee_timesheet' => \App\Models\EmployeeTimesheet::class,
 
             'job_description' => \App\Models\JobDescription::class,
 
