@@ -23,6 +23,13 @@ class EmployeeSalary extends Model implements Commentable
     protected $fillable = [
         'employee_id', 'month', 'items', 'amount', 'due_on', 'paid_on'
     ];
+    
+    protected function casts(): array
+    {
+        return [
+            'items' => 'array',
+        ];
+    }
 
     public function employee(): BelongsTo
     {
