@@ -45,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
             'customer_interaction' => \App\Models\CustomerInteraction::class,
             'customer_invoice' => \App\Models\CustomerInvoice::class,
             'customer_lead' => \App\Models\CustomerLead::class,
+            'discount' => \App\Models\Discount::class,
             'competitor' => \App\Models\Competitor::class,
             'employee' => \App\Models\Employee::class,
             'employee_contract' => \App\Models\EmployeeContract::class,
