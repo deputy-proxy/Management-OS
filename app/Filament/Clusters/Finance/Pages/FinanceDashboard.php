@@ -11,6 +11,9 @@ class FinanceDashboard extends Page
     protected string $view = 'filament.clusters.finance.pages.finance-dashboard';
 
     protected static ?string $cluster = FinanceCluster::class;
+    
+    use HasHexaLite;
+
     public function defineGates(): array
     {
         return [
