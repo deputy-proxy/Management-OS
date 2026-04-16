@@ -30,8 +30,10 @@ class AppServiceProvider extends ServiceProvider
     {
 
         Relation::enforceMorphMap([
-            'course' => \App\Models\Course::class,
             'user' => \App\Models\User::class,
+            'course' => \App\Models\Course::class,
+            'course_material' => \App\Models\CourseMaterial::class,
+            'course_price' => \App\Models\CoursePrice::class,
             'article' => \App\Models\Article::class,
             'job_description' => \App\Models\JobDescription::class,
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,

@@ -24,6 +24,13 @@ class CourseMaterial extends Model implements Commentable
         'title', 'course_id', 'description', 'content', 'added_by'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'content' => 'array',
+        ];
+    }
+
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
