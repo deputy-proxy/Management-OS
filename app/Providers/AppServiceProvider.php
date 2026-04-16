@@ -36,7 +36,12 @@ class AppServiceProvider extends ServiceProvider
             'course_price' => \App\Models\CoursePrice::class,
             'article' => \App\Models\Article::class,
             'job_description' => \App\Models\JobDescription::class,
+            
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,
+            'employee_holiday' => \App\Models\EmployeeHoliday::class,
+            'employee_evaluation' => \App\Models\EmployeeEvaluation::class,
+            'employee_salary' => \App\Models\EmployeeSalary::class,
+
             'competition' => \App\Models\Competition::class,
             'competition_entry' => \App\Models\CompetitionEntry::class,
             'content_template' => \App\Models\ContentTemplate::class,
@@ -63,8 +68,7 @@ class AppServiceProvider extends ServiceProvider
             'vendor' => \App\Models\Vendor::class,
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop' => \App\Models\Workshop::class,
-            'employee_evaluation' => \App\Models\EmployeeEvaluation::class,
-            'employee_salary' => \App\Models\EmployeeSalary::class,
+            
             'competitor_offer' => \App\Models\CompetitorOffer::class,
             'social_post' => \App\Models\SocialPost::class,
         ]);
