@@ -33,6 +33,7 @@ use Filament\Enums\UserMenuPosition;
 use Filament\Actions\Action;
 use App\Filament\Resources\EmployeeHolidays\EmployeeHolidayResource;
 use App\Filament\Resources\EmployeeMedicalLeaves\EmployeeMedicalLeaveResource;
+use App\Filament\Resources\Tasks\TaskResource;
 use Filament\Actions\CreateAction;
 
 
@@ -103,6 +104,15 @@ class AdminPanelProvider extends PanelProvider
                     )
                     ->label('Request Holiday')
                     ->icon('heroicon-c-sun'),
+
+                CreateAction::make('task')
+                    ->model(\App\Models\Task::class)
+                    ->modalHeading('Create a new task')
+                     ->schema(fn (\Filament\Schemas\Schema $schema) => 
+                        TaskResource::form($schema)
+                    )
+                    ->label('Create a new task')
+                    ->icon('heroicon-m-check-circle'),
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->plugins([
