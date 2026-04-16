@@ -21,7 +21,7 @@ class CompetitionEntry extends Model implements Commentable
 
     /** @var array<int, string> */
     protected $fillable = [
-        'competition_id', 'first_name', 'last_name', 'full_name', 'email', 'content'
+        'competition_id', 'first_name', 'last_name', 'full_name', 'email', 'attachment', 'content'
     ];
 
     public function competition(): BelongsTo
