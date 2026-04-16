@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-
 class EmployeeEvaluationResource extends Resource
 {
     use HasHexaLite;
@@ -26,15 +25,9 @@ class EmployeeEvaluationResource extends Resource
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'employee_evaluation.index' => __('Allows viewing the employee evaluation list'),
-            'employee_evaluation.create' => __('Allows creating a new employee evaluation'),
-            'employee_evaluation.update' => __('Allows updating employee evaluations'),
-            'employee_evaluation.delete' => __('Allows deleting employee evaluations'),
-        ];
+        return ['employee_evaluation.index' => __('Allows viewing the employee evaluation list'), 'employee_evaluation.create' => __('Allows creating a new employee evaluation'), 'employee_evaluation.update' => __('Allows updating employee evaluations'), 'employee_evaluation.delete' => __('Allows deleting employee evaluations')];
     }
 
     public static function form(Schema $schema): Schema
@@ -54,10 +47,7 @@ class EmployeeEvaluationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -66,50 +56,38 @@ class EmployeeEvaluationResource extends Resource
             'index' => Pages\ListEmployeeEvaluations::route('/'),
             'create' => Pages\CreateEmployeeEvaluation::route('/create'),
             'edit' => Pages\EditEmployeeEvaluation::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeeEvaluation::route('/{record}'),
+            'view' => Pages\ViewEmployeeEvaluation::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_evaluation.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('employee_evaluation.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_evaluation.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create employee evaluation.'));
+        return hexa()->can('employee_evaluation.create') ? Response::allow() : Response::deny(__('You do not have permission to create employee evaluation.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee_evaluation.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('employee_evaluation.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee_evaluation.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a employee evaluation.'));
+        return hexa()->can('employee_evaluation.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a employee evaluation.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_evaluation.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete employee evaluations.'));
+        return hexa()->can('employee_evaluation.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employee evaluations.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

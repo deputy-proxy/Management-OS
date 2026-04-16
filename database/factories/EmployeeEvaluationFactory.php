@@ -15,7 +15,6 @@ class EmployeeEvaluationFactory extends Factory
      * @var class-string<EmployeeEvaluation>
      */
     protected $model = EmployeeEvaluation::class;
-
     /**
      * Define the model's default state.
      *
@@ -26,6 +25,9 @@ class EmployeeEvaluationFactory extends Factory
         return [
             'employee_id' => \App\Models\Employee::factory(),
             'criteria' => $this->faker->word(),
+            'due_by' => $this->faker->date(),
+            'performed_on' => $this->faker->date(),
+            'performed_by' => \App\Models\Employee::factory()
         ];
     }
 }

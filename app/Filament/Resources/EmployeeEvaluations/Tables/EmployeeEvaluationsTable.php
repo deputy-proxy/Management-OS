@@ -9,8 +9,6 @@ use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-
-
 class EmployeeEvaluationsTable
 {
     public static function configure(Table $table): Table
@@ -22,20 +20,27 @@ class EmployeeEvaluationsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('criteria'),
+                Tables\Columns\TextColumn::make('due_by')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('performed_on')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('performedBy.full_name')
+                    ->label('Performed By')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }
