@@ -17,10 +17,7 @@ class FinanceDashboard extends Page
     public function defineGates(): array
     {
         return [
-            'finance-dashboard.index' => __('Allows viewing the competition list'),
-            'finance-dashboard.create' => __('Allows creating a new competition'),
-            'finance-dashboard.update' => __('Allows updating competitions'),
-            'finance-dashboard.delete' => __('Allows deleting competitions'),
+            'finance-dashboard.view' => __('Allows viewing the finance dashboard'),
         ];
     }
 }
