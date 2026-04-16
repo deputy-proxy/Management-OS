@@ -16,14 +16,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
 
 class ArticleResource extends Resource
 {
+	use HasHexaLite;
+    
     protected static ?string $model = Article::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
-    use HasHexaLite;
+	
+    protected static string | UnitEnum | null $navigationGroup = 'Content Management';
 
     public function defineGates(): array
     {
