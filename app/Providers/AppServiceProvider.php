@@ -58,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
             'employee_evaluation' => \App\Models\EmployeeEvaluation::class,
             'employee_salary' => \App\Models\EmployeeSalary::class,
             'competitor_offer' => \App\Models\CompetitorOffer::class,
+            'social_post' => \App\Models\SocialPost::class,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
