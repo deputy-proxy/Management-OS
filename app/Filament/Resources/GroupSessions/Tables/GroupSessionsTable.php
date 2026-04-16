@@ -9,8 +9,6 @@ use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-
-
 class GroupSessionsTable
 {
     public static function configure(Table $table): Table
@@ -29,23 +27,27 @@ class GroupSessionsTable
                     ->label('Teacher')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('start_on')->dateTime(),
-                Tables\Columns\TextColumn::make('end_on')->dateTime(),
+                Tables\Columns\TextColumn::make('start_on')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('end_on')
+                    ->dateTime(),
                 Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('identifier')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }

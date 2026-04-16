@@ -16,7 +16,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-
 class GroupSessionResource extends Resource
 {
     use HasHexaLite;
@@ -24,15 +23,9 @@ class GroupSessionResource extends Resource
     protected static ?string $model = GroupSession::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'group_session.index' => __('Allows viewing the group session list'),
-            'group_session.create' => __('Allows creating a new group session'),
-            'group_session.update' => __('Allows updating group sessions'),
-            'group_session.delete' => __('Allows deleting group sessions'),
-        ];
+        return ['group_session.index' => __('Allows viewing the group session list'), 'group_session.create' => __('Allows creating a new group session'), 'group_session.update' => __('Allows updating group sessions'), 'group_session.delete' => __('Allows deleting group sessions')];
     }
 
     public static function form(Schema $schema): Schema
@@ -52,10 +45,7 @@ class GroupSessionResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -64,50 +54,38 @@ class GroupSessionResource extends Resource
             'index' => Pages\ListGroupSessions::route('/'),
             'create' => Pages\CreateGroupSession::route('/create'),
             'edit' => Pages\EditGroupSession::route('/{record}/edit'),
-            'view' => Pages\ViewGroupSession::route('/{record}'),
+            'view' => Pages\ViewGroupSession::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('group_session.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('group_session.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('group_session.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create group session.'));
+        return hexa()->can('group_session.create') ? Response::allow() : Response::deny(__('You do not have permission to create group session.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('group_session.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('group_session.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('group_session.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a group session.'));
+        return hexa()->can('group_session.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a group session.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('group_session.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete group sessions.'));
+        return hexa()->can('group_session.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete group sessions.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

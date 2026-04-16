@@ -15,7 +15,6 @@ class GroupSessionFactory extends Factory
      * @var class-string<GroupSession>
      */
     protected $model = GroupSession::class;
-
     /**
      * Define the model's default state.
      *
@@ -30,6 +29,7 @@ class GroupSessionFactory extends Factory
             'start_on' => $this->faker->dateTime(),
             'end_on' => $this->faker->dateTime(),
             'status' => $this->faker->word(),
+            'identifier' => $this->faker->word()
         ];
     }
 }
