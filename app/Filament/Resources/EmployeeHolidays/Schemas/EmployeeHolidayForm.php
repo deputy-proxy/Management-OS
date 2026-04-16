@@ -13,6 +13,11 @@ class EmployeeHolidayForm
             ->components([
                 Forms\Components\Select::make('employee_id')
                     ->relationship('employee', 'full_name')
+                    ->default(
+                        fn () => \App\Models\Employee::where('user_id', auth()->id())->value('id')
+                    )
+                    ->disabled()
+                    ->dehydrated()
                     ->required(),
                 Forms\Components\DatePicker::make('start_date')
                     ->required(),
