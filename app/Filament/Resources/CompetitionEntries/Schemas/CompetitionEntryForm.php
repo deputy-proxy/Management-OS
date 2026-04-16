@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CompetitionEntries\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Textarea;
 
 class CompetitionEntryForm
 {
