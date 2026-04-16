@@ -22,20 +22,12 @@ class EmployeeTimesheetResource extends Resource
     use HasHexaLite;
 
     protected static ?string $model = EmployeeTimesheet::class;
-
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            'employee_timesheet.index' => __('Allows viewing the employee timesheet list'),
-            'employee_timesheet.create' => __('Allows creating a new employee timesheet'),
-            'employee_timesheet.update' => __('Allows updating employee timesheets'),
-            'employee_timesheet.delete' => __('Allows deleting employee timesheets'),
-        ];
+        return [ActivitiesRelationManager::class, 'employee_timesheet.index' => __('Allows viewing the employee timesheet list'), 'employee_timesheet.create' => __('Allows creating a new employee timesheet'), 'employee_timesheet.update' => __('Allows updating employee timesheets'), 'employee_timesheet.delete' => __('Allows deleting employee timesheets')];
     }
 
     public static function form(Schema $schema): Schema
@@ -70,37 +62,27 @@ class EmployeeTimesheetResource extends Resource
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_timesheet.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('employee_timesheet.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_timesheet.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create employee timesheet.'));
+        return hexa()->can('employee_timesheet.create') ? Response::allow() : Response::deny(__('You do not have permission to create employee timesheet.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee_timesheet.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('employee_timesheet.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee_timesheet.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a employee timesheet.'));
+        return hexa()->can('employee_timesheet.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a employee timesheet.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_timesheet.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete employee timesheets.'));
+        return hexa()->can('employee_timesheet.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employee timesheets.'));
     }
 
     public static function getEloquentQuery(): Builder

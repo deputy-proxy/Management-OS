@@ -35,9 +35,10 @@ class EmployeeTimesheetsTable
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

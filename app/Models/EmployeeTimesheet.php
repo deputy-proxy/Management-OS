@@ -14,7 +14,6 @@ use Spatie\Activitylog\LogOptions;
 class EmployeeTimesheet extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -31,10 +30,9 @@ class EmployeeTimesheet extends Model implements Commentable
     {
         return $this->belongsTo(GroupSession::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }
