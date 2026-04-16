@@ -55,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
             'vendor' => \App\Models\Vendor::class,
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop' => \App\Models\Workshop::class,
-            'employee_evaluation" => \App\Models\EmployeeEvaluation::clas,
+            'employee_evaluation' => \App\Models\EmployeeEvaluation::clas,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
