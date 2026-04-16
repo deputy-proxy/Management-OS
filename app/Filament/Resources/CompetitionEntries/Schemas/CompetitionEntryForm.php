@@ -22,7 +22,9 @@ class CompetitionEntryForm
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->required(),
-                Forms\Components\KeyValue::make('content')
+                Forms\Components\TextArea::make('content')
+                    ->required(),
+                Forms\Components\TextInput::make('attachment')
                     ->required(),
             ]);
     }
