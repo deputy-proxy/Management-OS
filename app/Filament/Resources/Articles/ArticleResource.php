@@ -34,6 +34,11 @@ class ArticleResource extends Resource
             'article.delete' => __('Allows deleting articles'),
         ];
     }
+    
+    public static function getNavigationBadge(): ?string
+	{
+ 	   return static::getModel()::count();
+	}
 
     public static function form(Schema $schema): Schema
     {
