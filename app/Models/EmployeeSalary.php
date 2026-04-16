@@ -14,7 +14,6 @@ use Spatie\Activitylog\LogOptions;
 class EmployeeSalary extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -37,8 +36,7 @@ class EmployeeSalary extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
 }
