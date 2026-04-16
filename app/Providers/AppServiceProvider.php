@@ -34,8 +34,9 @@ class AppServiceProvider extends ServiceProvider
             'course' => \App\Models\Course::class,
             'course_material' => \App\Models\CourseMaterial::class,
             'course_price' => \App\Models\CoursePrice::class,
+
             'article' => \App\Models\Article::class,
-            'job_description' => \App\Models\JobDescription::class,
+            
             
             'employee' => \App\Models\Employee::class,
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,
@@ -45,23 +46,29 @@ class AppServiceProvider extends ServiceProvider
             'employee_contract' => \App\Models\EmployeeContract::class,
             'employee_medical_leave' => \App\Models\EmployeeMedicalLeave::class,
 
+            'job_description' => \App\Models\JobDescription::class,
 
             'competition' => \App\Models\Competition::class,
             'competition_entry' => \App\Models\CompetitionEntry::class,
             'content_template' => \App\Models\ContentTemplate::class,
+
             'customer' => \App\Models\Customer::class,
             'customer_contract' => \App\Models\CustomerContract::class,
             'customer_interaction' => \App\Models\CustomerInteraction::class,
             'customer_invoice' => \App\Models\CustomerInvoice::class,
             'customer_lead' => \App\Models\CustomerLead::class,
-            'discount' => \App\Models\Discount::class,
-            'competitor' => \App\Models\Competitor::class,
             
+            'discount' => \App\Models\Discount::class,
+            
+            'competitor' => \App\Models\Competitor::class,
+            'competitor_offer' => \App\Models\CompetitorOffer::class,
             
             'event' => \App\Models\Event::class,
             'event_participant' => \App\Models\EventParticipant::class,
+            
             'group' => \App\Models\Group::class,
             'group_session' => \App\Models\GroupSession::class,
+            
             'project' => \App\Models\Project::class,
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
@@ -73,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop' => \App\Models\Workshop::class,
             
-            'competitor_offer' => \App\Models\CompetitorOffer::class,
+            
             'social_post' => \App\Models\SocialPost::class,
         ]);
 
