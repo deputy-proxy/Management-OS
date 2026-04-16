@@ -71,6 +71,8 @@ class AppServiceProvider extends ServiceProvider
             'group' => \App\Models\Group::class,
             'group_session' => \App\Models\GroupSession::class,
             
+            'process' => \App\Models\Process::class,
+
             'project' => \App\Models\Project::class,
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,

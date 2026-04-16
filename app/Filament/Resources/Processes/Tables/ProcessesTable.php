@@ -23,14 +23,16 @@ class ProcessesTable
                     ->searchable(),
                 Tables\Columns\TextColumn::make('steps'),
                 Tables\Columns\TextColumn::make('owner.full_name')
-                    ->label('Owner')
+                    ->label('Owner'),
+                Tables\Columns\TextColumn::make('main_topic')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

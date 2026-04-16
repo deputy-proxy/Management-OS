@@ -18,6 +18,8 @@ class ProcessForm
                     ->required(),
                 Forms\Components\Select::make('owner_id')
                     ->relationship('owner', 'full_name')
+                    ->required(),
+                Forms\Components\TextInput::make('main_topic')
                     ->required()
             ]);
     }

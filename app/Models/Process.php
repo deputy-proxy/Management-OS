@@ -14,13 +14,12 @@ use Spatie\Activitylog\LogOptions;
 class Process extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
 
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id'];
+    protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id', 'main_topic'];
     protected function casts(): array
     {
         return ['steps' => 'array'];
@@ -30,10 +29,9 @@ class Process extends Model implements Commentable
     {
         return $this->belongsTo(Employee::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }

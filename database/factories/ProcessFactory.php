@@ -27,7 +27,8 @@ class ProcessFactory extends Factory
             'description' => $this->faker->paragraphs(3, true),
             'steps' => $this->faker->word(),
             'owner' => \App\Models\Employee::factory(),
-            'owner_id' => \App\Models\Employee::factory()
+            'owner_id' => \App\Models\Employee::factory(),
+            'main_topic' => $this->faker->word()
         ];
     }
 }
