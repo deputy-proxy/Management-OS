@@ -66,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
             
             'event' => \App\Models\Event::class,
             'event_participant' => \App\Models\EventParticipant::class,
+            'event_price' => \App\Models\EventPrice::class,
             
             'group' => \App\Models\Group::class,
             'group_session' => \App\Models\GroupSession::class,
