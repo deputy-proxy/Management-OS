@@ -22,6 +22,13 @@ class Competition extends Model implements Commentable
     protected $fillable = [
         'title', 'description', 'start_on', 'end_on', 'maximum_entries', 'rules'
     ];
+    
+    protected function casts(): array
+    {
+        return [
+            'rules' => 'array',
+        ];
+    }
 
 
     public function getActivitylogOptions(): LogOptions
