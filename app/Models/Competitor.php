@@ -22,7 +22,13 @@ class Competitor extends Model implements Commentable
     protected $fillable = [
         'name', 'site', 'instagram', 'facebook', 'linkedin', 'tiktok', 'locations'
     ];
-
+    
+    protected function casts(): array
+    {
+        return [
+            'locations' => 'array',
+        ];
+    }
 
     public function getActivitylogOptions(): LogOptions
     {
