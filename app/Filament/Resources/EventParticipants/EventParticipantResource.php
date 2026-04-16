@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
 
 class EventParticipantResource extends Resource
 {
@@ -23,6 +24,9 @@ class EventParticipantResource extends Resource
     protected static ?string $model = EventParticipant::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Event Management';
+    
     public function defineGates(): array
     {
         return [
