@@ -15,7 +15,6 @@ class CompetitionEntryFactory extends Factory
      * @var class-string<CompetitionEntry>
      */
     protected $model = CompetitionEntry::class;
-
     /**
      * Define the model's default state.
      *
@@ -30,6 +29,7 @@ class CompetitionEntryFactory extends Factory
             'full_name' => $this->faker->sentence(),
             'email' => $this->faker->unique()->safeEmail(),
             'content' => $this->faker->paragraphs(3, true),
+            'attachment' => $this->faker->word()
         ];
     }
 }

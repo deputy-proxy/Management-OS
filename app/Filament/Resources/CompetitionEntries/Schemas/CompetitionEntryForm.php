@@ -5,7 +5,6 @@ namespace App\Filament\Resources\CompetitionEntries\Schemas;
 use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Textarea;
-
 class CompetitionEntryForm
 {
     public static function configure(Schema $schema): Schema
@@ -26,7 +25,7 @@ class CompetitionEntryForm
                 Forms\Components\Textarea::make('content')
                     ->required(),
                 Forms\Components\TextInput::make('attachment')
-                    ->required(),
+                    ->required()
             ]);
     }
 }

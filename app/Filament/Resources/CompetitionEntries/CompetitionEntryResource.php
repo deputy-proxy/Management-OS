@@ -16,7 +16,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-
 class CompetitionEntryResource extends Resource
 {
     use HasHexaLite;
@@ -24,15 +23,9 @@ class CompetitionEntryResource extends Resource
     protected static ?string $model = CompetitionEntry::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'competition_entry.index' => __('Allows viewing the competition entry list'),
-            'competition_entry.create' => __('Allows creating a new competition entry'),
-            'competition_entry.update' => __('Allows updating competition entrys'),
-            'competition_entry.delete' => __('Allows deleting competition entrys'),
-        ];
+        return ['competition_entry.index' => __('Allows viewing the competition entry list'), 'competition_entry.create' => __('Allows creating a new competition entry'), 'competition_entry.update' => __('Allows updating competition entrys'), 'competition_entry.delete' => __('Allows deleting competition entrys')];
     }
 
     public static function form(Schema $schema): Schema
@@ -52,10 +45,7 @@ class CompetitionEntryResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -64,50 +54,38 @@ class CompetitionEntryResource extends Resource
             'index' => Pages\ListCompetitionEntries::route('/'),
             'create' => Pages\CreateCompetitionEntry::route('/create'),
             'edit' => Pages\EditCompetitionEntry::route('/{record}/edit'),
-            'view' => Pages\ViewCompetitionEntry::route('/{record}'),
+            'view' => Pages\ViewCompetitionEntry::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('competition_entry.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('competition_entry.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('competition_entry.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create competition entry.'));
+        return hexa()->can('competition_entry.create') ? Response::allow() : Response::deny(__('You do not have permission to create competition entry.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('competition_entry.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('competition_entry.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('competition_entry.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a competition entry.'));
+        return hexa()->can('competition_entry.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a competition entry.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('competition_entry.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete competition entrys.'));
+        return hexa()->can('competition_entry.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete competition entrys.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

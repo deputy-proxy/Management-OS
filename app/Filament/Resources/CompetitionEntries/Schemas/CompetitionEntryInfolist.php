@@ -4,7 +4,6 @@ namespace App\Filament\Resources\CompetitionEntries\Schemas;
 
 use Filament\Infolists;
 use Filament\Schemas\Schema;
-
 class CompetitionEntryInfolist
 {
     public static function configure(Schema $schema): Schema
@@ -16,7 +15,8 @@ class CompetitionEntryInfolist
                 \Filament\Infolists\Components\TextEntry::make('last_name'),
                 \Filament\Infolists\Components\TextEntry::make('full_name'),
                 \Filament\Infolists\Components\TextEntry::make('email'),
-                \Filament\Infolists\Components\KeyValueEntry::make('content'),
+                \Filament\Infolists\Components\TextEntry::make('content'),
+                \Filament\Infolists\Components\TextEntry::make('attachment')
             ]);
     }
 }

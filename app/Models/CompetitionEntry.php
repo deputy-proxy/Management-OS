@@ -14,24 +14,20 @@ use Spatie\Activitylog\LogOptions;
 class CompetitionEntry extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'competition_id', 'first_name', 'last_name', 'full_name', 'email', 'attachment', 'content'
-    ];
+    protected $fillable = ['competition_id', 'first_name', 'last_name', 'full_name', 'email', 'attachment', 'content'];
 
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }
