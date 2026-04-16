@@ -21,6 +21,10 @@ class Process extends Model implements Commentable
 
     /** @var array<int, string> */
     protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id'];
+    protected function casts(): array
+    {
+        return ['steps' => 'array'];
+    }
 
     public function owner(): BelongsTo
     {
