@@ -5,7 +5,7 @@ namespace App\Filament\Resources\EmployeeMedicalLeaves\Schemas;
 use Filament\Infolists;
 use Filament\Schemas\Schema;
 
-class EmployeeMedicalLeafeInfolist
+class EmployeeMedicalLeaveInfolist
 {
     public static function configure(Schema $schema): Schema
     {

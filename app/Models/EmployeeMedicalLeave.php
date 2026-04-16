@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class EmployeeMedicalLeafe extends Model implements Commentable
+class EmployeeMedicalLeave extends Model implements Commentable
 {
     use LogsActivity;
 

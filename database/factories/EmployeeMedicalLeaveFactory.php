@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class EmployeeMedicalLeafeFactory extends Factory
+class EmployeeMedicalLeaveFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<EmployeeMedicalLeafe>
+     * @var class-string<EmployeeMedicalLeave>
      */
-    protected $model = EmployeeMedicalLeafe::class;
+    protected $model = EmployeeMedicalLeave::class;
 
     /**
      * Define the model's default state.

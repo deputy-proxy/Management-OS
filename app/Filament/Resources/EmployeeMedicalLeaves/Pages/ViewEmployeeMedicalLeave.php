@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\EmployeeMedicalLeaves\Pages;
 
-use App\Filament\Resources\EmployeeMedicalLeaves\EmployeeMedicalLeafeResource;
+use App\Filament\Resources\EmployeeMedicalLeaves\EmployeeMedicalLeaveResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
-class ViewEmployeeMedicalLeafe extends ViewRecord
+class ViewEmployeeMedicalLeave extends ViewRecord
 {
-    protected static string $resource = EmployeeMedicalLeafeResource::class;
+    protected static string $resource = EmployeeMedicalLeaveResource::class;
 
     protected function getHeaderActions(): array
     {

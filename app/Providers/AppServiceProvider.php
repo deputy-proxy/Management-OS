@@ -37,10 +37,14 @@ class AppServiceProvider extends ServiceProvider
             'article' => \App\Models\Article::class,
             'job_description' => \App\Models\JobDescription::class,
             
+            'employee' => \App\Models\Employee::class,
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,
             'employee_holiday' => \App\Models\EmployeeHoliday::class,
             'employee_evaluation' => \App\Models\EmployeeEvaluation::class,
             'employee_salary' => \App\Models\EmployeeSalary::class,
+            'employee_contract' => \App\Models\EmployeeContract::class,
+            'employee_medical_leave' => \App\Models\EmployeeMedicalLeave::class,
+
 
             'competition' => \App\Models\Competition::class,
             'competition_entry' => \App\Models\CompetitionEntry::class,
@@ -52,8 +56,8 @@ class AppServiceProvider extends ServiceProvider
             'customer_lead' => \App\Models\CustomerLead::class,
             'discount' => \App\Models\Discount::class,
             'competitor' => \App\Models\Competitor::class,
-            'employee' => \App\Models\Employee::class,
-            'employee_contract' => \App\Models\EmployeeContract::class,
+            
+            
             'event' => \App\Models\Event::class,
             'event_participant' => \App\Models\EventParticipant::class,
             'group' => \App\Models\Group::class,

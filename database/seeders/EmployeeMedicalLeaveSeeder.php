@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\EmployeeMedicalLeafe;
+use App\Models\EmployeeMedicalLeave;
 use Illuminate\Database\Seeder;
 
-class EmployeeMedicalLeafeSeeder extends Seeder
+class EmployeeMedicalLeaveSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -13,7 +13,7 @@ class EmployeeMedicalLeafeSeeder extends Seeder
     public function run(): void
     {
         // <architect:seed>
-        EmployeeMedicalLeafe::factory()->count(10)->create();
+        EmployeeMedicalLeave::factory()->count(10)->create();
         // </architect:seed>
     }
 }

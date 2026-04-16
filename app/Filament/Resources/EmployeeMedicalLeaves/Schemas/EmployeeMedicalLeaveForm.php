@@ -5,7 +5,7 @@ namespace App\Filament\Resources\EmployeeMedicalLeaves\Schemas;
 use Filament\Forms;
 use Filament\Schemas\Schema;
 
-class EmployeeMedicalLeafeForm
+class EmployeeMedicalLeaveForm
 {
     public static function configure(Schema $schema): Schema
     {
