@@ -4,17 +4,37 @@ namespace App\Filament\Resources\Processes\Schemas;
 
 use Filament\Infolists;
 use Filament\Schemas\Schema;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+
 class ProcessInfolist
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('title'),
-                \Filament\Infolists\Components\TextEntry::make('description'),
-                \Filament\Infolists\Components\KeyValueEntry::make('steps'),
-                \Filament\Infolists\Components\TextEntry::make('owner_id'),
-                \Filament\Infolists\Components\TextEntry::make('main_topic')
-            ]);
+                TextEntry::make('title'),
+                TextEntry::make('description'),
+                TextEntry::make('owner_id'),
+                TextEntry::make('main_topic'),
+                RepeatableEntry::make('steps')
+                    ->schema([
+                        Grid::make(5)
+                            ->schema([
+                                TextEntry::make('data.title')
+                                    ->label('Title'),
+                                TextEntry::make('data.actor')
+                                    ->label('Actor'),
+                                TextEntry::make('data.content')
+                                ->label('Description'),
+                            TextEntry::make('data.input')
+                                ->label('Input'),
+                            TextEntry::make('data.output')
+                                ->label('Output'),
+                            ])
+                    ])
+                    ->columnSpanFull(),
+                ]);
     }
 }

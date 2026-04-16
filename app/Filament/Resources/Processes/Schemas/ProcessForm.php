@@ -20,6 +20,12 @@ class ProcessForm
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required(),
+                Forms\Components\Select::make('owner_id')
+                    ->relationship('owner', 'full_name')
+                    ->required(),
+                Forms\Components\TextInput::make('main_topic')
+                    ->required(),
+                
                 Builder::make('steps')
                     ->blocks([
                         Block::make('step')
@@ -55,11 +61,7 @@ class ProcessForm
                                     ->required(),
                             ]),
                     ]),
-                Forms\Components\Select::make('owner_id')
-                    ->relationship('owner', 'full_name')
-                    ->required(),
-                Forms\Components\TextInput::make('main_topic')
-                    ->required()
+                
             ]);
     }
 }
