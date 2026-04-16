@@ -27,7 +27,6 @@ class FinancialAccountResource extends Resource
     public function defineGates(): array
     {
         return [
-            ActivitiesRelationManager::class,
             'financial_account.index' => __('Allows viewing the financial account list'),
             'financial_account.create' => __('Allows creating a new financial account'),
             'financial_account.update' => __('Allows updating financial accounts'),
