@@ -41,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
             'competition_entry' => \App\Models\CompetitionEntry::class,
             'content_template' => \App\Models\ContentTemplate::class,
             'customer' => \App\Models\Customer::class,
+            'customer_contract' => \App\Models\CustomerContract::class,
             'competitor' => \App\Models\Competitor::class,
             'employee' => \App\Models\Employee::class,
             'employee_contract' => \App\Models\EmployeeContract::class,
