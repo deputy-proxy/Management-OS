@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
 
 class NewsletterResource extends Resource
 {
@@ -24,6 +25,8 @@ class NewsletterResource extends Resource
     protected static ?string $model = Newsletter::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+    
+        protected static string | UnitEnum | null $navigationGroup = 'Content Management';
 
     public function defineGates(): array
     {
