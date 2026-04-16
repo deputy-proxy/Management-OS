@@ -23,6 +23,13 @@ class EmployeeEvaluation extends Model implements Commentable
     protected $fillable = [
         'employee_id', 'criteria'
     ];
+    
+    protected function casts(): array
+    {
+        return [
+            'criteria' => 'array',
+        ];
+    }
 
     public function employee(): BelongsTo
     {
