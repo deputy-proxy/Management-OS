@@ -17,10 +17,10 @@ class FinanceDashboard extends Page
     public function defineGates(): array
     {
         return [
-            'FinanceDashboard.index' => __('Allows viewing the competition list'),
-            'FinanceDashboard.create' => __('Allows creating a new competition'),
-            'FinanceDashboard.update' => __('Allows updating competitions'),
-            'FinanceDashboard.delete' => __('Allows deleting competitions'),
+            'finance-dashboard.index' => __('Allows viewing the competition list'),
+            'finance-dashboard.create' => __('Allows creating a new competition'),
+            'finance-dashboard.update' => __('Allows updating competitions'),
+            'finance-dashboard.delete' => __('Allows deleting competitions'),
         ];
     }
 }
