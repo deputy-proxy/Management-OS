@@ -37,6 +37,6 @@ class EmployeeEvaluation extends Model implements Commentable
 
     public function performedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class, 'performed_by');
     }
 }
