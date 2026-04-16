@@ -20,16 +20,11 @@ class EmployeeTimesheet extends Model implements Commentable
     use HasComments;
 
     /** @var array<int, string> */
-    protected $fillable = ['employee_id', 'date', 'time_start', 'time_end', 'category', 'number_of_hours', 'session_id', 'group_session_id'];
+    protected $fillable = ['employee_id', 'date', 'time_start', 'time_end', 'category', 'number_of_hours', 'group_session_id'];
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
-    }
-
-    public function session(): BelongsTo
-    {
-        return $this->belongsTo(Session::class);
     }
 
     public function groupSession(): BelongsTo
