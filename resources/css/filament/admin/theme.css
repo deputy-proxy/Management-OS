@@ -394,7 +394,7 @@ border-bottom: none !important;
 }
 
 .fi-modal-footer {
-  @apply border-t dark:border-gray-800 px-5 py-4 flex items-center justify-end gap-2;
+  @apply border-t dark:border-gray-800 border-gray-300 px-5 py-4 flex items-center justify-end gap-2;
 }
 
 /* ============================================================
