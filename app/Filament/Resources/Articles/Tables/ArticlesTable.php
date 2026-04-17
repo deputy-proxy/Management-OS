@@ -10,6 +10,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
+use Filament\Actions\ActionGroup;
 
 
 class ArticlesTable
@@ -30,10 +31,13 @@ class ArticlesTable
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->recordActions([EditAction::make(),
-                DeleteAction::make(),
+            ->recordActions([                
                 TasksAction::make(),
                 CommentsAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
