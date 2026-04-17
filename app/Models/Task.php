@@ -36,7 +36,7 @@ class Task extends Model implements Commentable
 
     public function assignedTo(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'assigned_to');
     }
     public function getActivitylogOptions(): LogOptions
     {
