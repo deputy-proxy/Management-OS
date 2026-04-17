@@ -99,9 +99,10 @@ class AppServiceProvider extends ServiceProvider
             'product_review' => \App\Models\ProductReview::class,
             'quarterly_objective' => \App\Models\QuarterlyObjective::class,
 
+            'vendor' => \App\Models\Vendor::class,
             'vendor_category' => \App\Models\VendorCategory::class,
             'vendor_contract' => \App\Models\VendorContract::class,
-            'vendor' => \App\Models\Vendor::class,
+            'vendor_invoice' => \App\Models\VendorInvoice::class,
 
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop' => \App\Models\Workshop::class,
