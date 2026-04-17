@@ -116,12 +116,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->plugins([
-                app()->environment('local') ? ArchitectPlugin::make() : MobileBottomNav::make(),                
-                //ArchitectPlugin::make(),
+                //app()->environment('local') ? ArchitectPlugin::make() : MobileBottomNav::make(),                
+                ArchitectPlugin::make(),
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
-                //MobileBottomNav::make(),
+                MobileBottomNav::make(),
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
