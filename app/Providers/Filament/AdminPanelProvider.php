@@ -116,7 +116,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->plugins([
-                ArchitectPlugin::make(),
+                app()->environment('local') ? ArchitectPlugin::make() : null,                
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
@@ -129,3 +129,4 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 }
+
