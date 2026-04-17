@@ -10,6 +10,7 @@ use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Broadcasting\PrivateChannel;
+use App\Models\Concerns\HasTasks;
 
 class Course extends Model implements Commentable
 {
@@ -17,6 +18,12 @@ class Course extends Model implements Commentable
     use HasFactory;
     use SoftDeletes;
     use HasComments;
+    use HasTasks;
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
 
     /** @var array<int, string> */
     protected $fillable = ['title', 'description', 'support'];

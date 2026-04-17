@@ -11,6 +11,12 @@ class TaskForm
     {
         return $schema
             ->components([
+                Forms\Components\TextInput::make('taskable_type')
+                    ->label('Taskable Type')
+                    ->disabled(),
+                Forms\Components\TextInput::make('taskable_id')
+                    ->label('Taskable ID')
+                    ->disabled(),
                 Forms\Components\TextInput::make('action')
                     ->required(),
                 Forms\Components\Textarea::make('description')

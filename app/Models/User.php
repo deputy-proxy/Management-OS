@@ -11,6 +11,7 @@ use Relaticle\Comments\Concerns\CanComment;
 use Relaticle\Comments\Contracts\Commentator;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Models\Concerns\HasTasks;
 
 class User extends Authenticatable implements Commentator
 {
@@ -59,9 +60,13 @@ class User extends Authenticatable implements Commentator
             ->logAll();
     }
 
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
     public function receivesBroadcastNotificationsOn(): string
     {
-        // Filament expects this exact format
         return 'App.Models.User.' . $this->id;
     }
 }

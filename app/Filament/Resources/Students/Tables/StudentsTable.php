@@ -9,6 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 class StudentsTable
 {
     public static function configure(Table $table): Table
@@ -35,6 +36,7 @@ class StudentsTable
             ])
             ->recordActions([EditAction::make(),
                 DeleteAction::make(),
+                TasksAction::make(),
                 CommentsAction::make(),
             ])
             ->toolbarActions([

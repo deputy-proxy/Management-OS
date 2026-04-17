@@ -10,14 +10,20 @@ use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Models\Concerns\HasTasks;
 
 class Project extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
+    use HasTasks;
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
 
     /** @var array<int, string> */
     protected $fillable = [
@@ -26,7 +32,7 @@ class Project extends Model implements Commentable
 
     public function ProjectManager(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'project_manager');
     }
 
     public function getActivitylogOptions(): LogOptions

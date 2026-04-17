@@ -10,6 +10,7 @@ use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Models\Concerns\HasTasks;
 
 class Student extends Model implements Commentable
 {
@@ -18,6 +19,12 @@ class Student extends Model implements Commentable
     use HasFactory;
     use SoftDeletes;
     use HasComments;
+    use HasTasks;
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
 
     /** @var array<int, string> */
     protected $fillable = ['first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'customer_id', 'phone_number', 'email', 'address', 'full_name'];

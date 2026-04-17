@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Articles\Pages;
 
 use App\Filament\Resources\Articles\ArticleResource;
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
@@ -16,7 +17,7 @@ class EditArticle extends EditRecord
         return [
             Actions\DeleteAction::make(),            
             CommentsAction::make(),
-
+            TasksAction::make(),
         ];
     }
 }
