@@ -61,6 +61,9 @@ class AppServiceProvider extends ServiceProvider
             
             'financial_account' => \App\Models\FinancialAccount::class,
             'financial_account_balance' => \App\Models\FinancialAccountBalance::class,
+
+            'tax' => \App\Models\Tax::class,
+            'transaction' => \App\Models\Transaction::class,
             
             'discount' => \App\Models\Discount::class,
             
