@@ -19,16 +19,6 @@ class JobDescription extends Model implements Commentable
     use HasTasks;
     use LogsActivity;
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
-    {
-        return $this->morphMany(Task::class, 'taskable');
-    }
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll();
-    }
     protected function casts(): array
     {
         return [
@@ -40,6 +30,16 @@ class JobDescription extends Model implements Commentable
     protected $fillable = [
         'job_title', 'job_level', 'job_role', 'relevant_indicators', 'document_code', 'document'
     ];
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll();
+    }
 
 
 }
