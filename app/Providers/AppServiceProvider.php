@@ -86,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
             'progress_update' => \App\Models\ProgressUpdate::class,
 
             'session_assistance' => \App\Models\SessionAssistance::class,
+            'session_attendance' => \App\Models\SessionAttendance::class,
 
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
