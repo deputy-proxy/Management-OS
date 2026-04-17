@@ -24,7 +24,6 @@ class TasksAction extends Action
             ->icon('heroicon-m-check-circle')
             ->slideOver()
             ->modalHeading(__('Tasks'))
-            ->modalWidth('lg')
             ->color('primary')
             ->schema(fn (Schema $schema, ?Model $record) => $schema->components([
                 Tabs::make()
