@@ -15,7 +15,6 @@ class WorkshopMaterialFactory extends Factory
      * @var class-string<WorkshopMaterial>
      */
     protected $model = WorkshopMaterial::class;
-
     /**
      * Define the model's default state.
      *
@@ -29,6 +28,7 @@ class WorkshopMaterialFactory extends Factory
             'description' => $this->faker->paragraphs(3, true),
             'content' => $this->faker->paragraphs(3, true),
             'added_by' => \App\Models\User::factory(),
+            'attachment' => $this->faker->word()
         ];
     }
 }

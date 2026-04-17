@@ -15,7 +15,6 @@ use App\Models\Concerns\HasTasks;
 class CourseMaterial extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,17 +24,11 @@ class CourseMaterial extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'title', 'course_id', 'description', 'content', 'added_by'
-    ];
-
+    protected $fillable = ['title', 'course_id', 'description', 'content', 'added_by', 'attachment'];
     protected function casts(): array
     {
-        return [
-            'content' => 'array',
-        ];
+        return ['content' => 'array'];
     }
 
     public function course(): BelongsTo
@@ -47,10 +40,9 @@ class CourseMaterial extends Model implements Commentable
     {
         return $this->belongsTo(User::class, 'added_by');
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }

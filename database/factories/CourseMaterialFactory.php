@@ -15,7 +15,6 @@ class CourseMaterialFactory extends Factory
      * @var class-string<CourseMaterial>
      */
     protected $model = CourseMaterial::class;
-
     /**
      * Define the model's default state.
      *
@@ -29,6 +28,7 @@ class CourseMaterialFactory extends Factory
             'description' => $this->faker->paragraphs(3, true),
             'content' => $this->faker->paragraphs(3, true),
             'added_by' => \App\Models\User::factory(),
+            'attachment' => $this->faker->word()
         ];
     }
 }

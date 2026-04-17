@@ -10,8 +10,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-
-
 class WorkshopMaterialsTable
 {
     public static function configure(Table $table): Table
@@ -24,24 +22,25 @@ class WorkshopMaterialsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description'),
-                Tables\Columns\TextColumn::make('content'),
+                Tables\Columns\TextColumn::make('attachment'),
                 Tables\Columns\TextColumn::make('addedBy.name')
-                    ->label('Added By'),
+                    ->label('Added By')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }

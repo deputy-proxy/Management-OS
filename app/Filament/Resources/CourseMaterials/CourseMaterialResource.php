@@ -16,7 +16,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-
 class CourseMaterialResource extends Resource
 {
     use HasHexaLite;
@@ -24,15 +23,9 @@ class CourseMaterialResource extends Resource
     protected static ?string $model = CourseMaterial::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'course_material.index' => __('Allows viewing the course material list'),
-            'course_material.create' => __('Allows creating a new course material'),
-            'course_material.update' => __('Allows updating course materials'),
-            'course_material.delete' => __('Allows deleting course materials'),
-        ];
+        return ['course_material.index' => __('Allows viewing the course material list'), 'course_material.create' => __('Allows creating a new course material'), 'course_material.update' => __('Allows updating course materials'), 'course_material.delete' => __('Allows deleting course materials')];
     }
 
     public static function form(Schema $schema): Schema
@@ -52,10 +45,7 @@ class CourseMaterialResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -64,50 +54,38 @@ class CourseMaterialResource extends Resource
             'index' => Pages\ListCourseMaterials::route('/'),
             'create' => Pages\CreateCourseMaterial::route('/create'),
             'edit' => Pages\EditCourseMaterial::route('/{record}/edit'),
-            'view' => Pages\ViewCourseMaterial::route('/{record}'),
+            'view' => Pages\ViewCourseMaterial::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('course_material.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('course_material.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('course_material.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create course material.'));
+        return hexa()->can('course_material.create') ? Response::allow() : Response::deny(__('You do not have permission to create course material.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('course_material.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('course_material.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('course_material.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a course material.'));
+        return hexa()->can('course_material.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a course material.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('course_material.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete course materials.'));
+        return hexa()->can('course_material.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete course materials.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

@@ -4,6 +4,12 @@ namespace App\Filament\Resources\Competitions\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\Builder\Block;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 
 class CompetitionForm
 {
@@ -21,7 +27,17 @@ class CompetitionForm
                     ->required(),
                 Forms\Components\TextInput::make('maximum_entries')->numeric()
                     ->required(),
-                Forms\Components\KeyValue::make('rules')
+                Builder::make('rules')
+                    ->blocks([
+                        Block::make('rule')
+                            ->schema([
+                                TextInput::make('rule')
+                                    ->label('Rule')
+                                    ->required()
+                                    ->columnSpan(1),
+                            ])
+                    ])
+                    ->columns(1)
                     ->required(),
             ]);
     }

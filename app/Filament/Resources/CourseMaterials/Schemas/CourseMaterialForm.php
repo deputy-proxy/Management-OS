@@ -4,7 +4,6 @@ namespace App\Filament\Resources\CourseMaterials\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class CourseMaterialForm
 {
     public static function configure(Schema $schema): Schema
@@ -18,11 +17,11 @@ class CourseMaterialForm
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required(),
-                Forms\Components\KeyValue::make('content')
+                Forms\Components\TextInput::make('attachment')
                     ->required(),
                 Forms\Components\Select::make('added_by')
                     ->relationship('addedBy', 'name')
-                    ->required(),
+                    ->required()
             ]);
     }
 }
