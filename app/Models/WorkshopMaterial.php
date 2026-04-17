@@ -37,7 +37,7 @@ class WorkshopMaterial extends Model implements Commentable
 
     public function addedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class), 'added_by');
     }
     public function getActivitylogOptions(): LogOptions
     {
