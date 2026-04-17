@@ -106,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
 
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop_price' => \App\Models\WorkshopPrice::class,
+            'workshop_material' => \App\Models\WorkshopMaterial::class,
             'workshop' => \App\Models\Workshop::class,
             
             'social_post' => \App\Models\SocialPost::class,
