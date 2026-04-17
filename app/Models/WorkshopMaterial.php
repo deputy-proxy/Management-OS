@@ -26,7 +26,7 @@ class WorkshopMaterial extends Model implements Commentable
     protected function casts(): array
     {
         return [
-            'collaborations' => 'content',
+            'content' => 'array',
         ];
     }
 
