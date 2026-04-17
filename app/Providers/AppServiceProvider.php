@@ -38,7 +38,6 @@ class AppServiceProvider extends ServiceProvider
 
             'article' => \App\Models\Article::class,
             
-            
             'employee' => \App\Models\Employee::class,
             'employee_evaluation_form' => \App\Models\EmployeeEvaluationForm::class,
             'employee_holiday' => \App\Models\EmployeeHoliday::class,
@@ -85,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
 
             'student' => \App\Models\Student::class,
             'progress_update' => \App\Models\ProgressUpdate::class,
+
+            'session_assistance' => \App\Models\SessionAssistance::class,
 
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
