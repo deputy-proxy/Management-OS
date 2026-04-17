@@ -14,7 +14,6 @@ use Spatie\Activitylog\LogOptions;
 class WorkshopMaterial extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -23,6 +22,13 @@ class WorkshopMaterial extends Model implements Commentable
     protected $fillable = [
         'title', 'workshop_id', 'description', 'content', 'added_by'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'collaborations' => 'content',
+        ];
+    }
 
     public function workshop(): BelongsTo
     {
