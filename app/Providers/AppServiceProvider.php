@@ -59,6 +59,9 @@ class AppServiceProvider extends ServiceProvider
             'customer_invoice' => \App\Models\CustomerInvoice::class,
             'customer_lead' => \App\Models\CustomerLead::class,
             
+            'financial_account' => \App\Models\FinancialAccount::class,
+            'financial_account_balance' => \App\Models\FinancialAccountBalance::class,
+            
             'discount' => \App\Models\Discount::class,
             
             'competitor' => \App\Models\Competitor::class,
