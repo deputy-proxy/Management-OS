@@ -20,16 +20,16 @@ class Process extends Model implements Commentable
     use HasComments;
     use HasTasks;
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
-    {
-        return $this->morphMany(Task::class, 'taskable');
-    }
-
     /** @var array<int, string> */
     protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id', 'main_topic'];
     protected function casts(): array
     {
         return ['steps' => 'array'];
+    }
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
     }
 
     public function owner(): BelongsTo
