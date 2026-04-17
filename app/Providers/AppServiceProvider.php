@@ -78,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
             'process' => \App\Models\Process::class,
 
             'project' => \App\Models\Project::class,
+            'project_phase' => \App\Models\ProjectPhase::class,
 
             'partner' => \App\Models\Partner::class,
             'potential_partner' => \App\Models\PotentialPartner::class,
