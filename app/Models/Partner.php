@@ -13,7 +13,6 @@ use Spatie\Activitylog\LogOptions;
 class Partner extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -23,11 +22,16 @@ class Partner extends Model implements Commentable
         'name', 'site', 'contact_person_name', 'contact_person_email', 'contact_person_phone', 'collaborations'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'collaborations' => 'array',
+        ];
+    }
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
 }
