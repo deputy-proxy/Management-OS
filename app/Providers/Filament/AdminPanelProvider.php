@@ -116,7 +116,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->plugins([
-                app()->environment('local') ? ArchitectPlugin::make() : null,                
+                app()->environment('local') ? ArchitectPlugin::make() : '',                
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
