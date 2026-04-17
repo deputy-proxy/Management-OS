@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Schemas\Components\RenderHook;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -35,6 +36,8 @@ use App\Filament\Resources\EmployeeHolidays\EmployeeHolidayResource;
 use App\Filament\Resources\EmployeeMedicalLeaves\EmployeeMedicalLeaveResource;
 use App\Filament\Resources\Tasks\TaskResource;
 use Filament\Actions\CreateAction;
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Support\Facades\Blade;
 
 
 
@@ -128,6 +131,14 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
             ]);
+    }
+
+    public function boot(): void
+    {
+        FilamentView::registerRenderHook(
+            'panels::head.end', // Hook at the start of <head>
+            fn (): string => Blade::render('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">')
+        );
     }
 }
 
