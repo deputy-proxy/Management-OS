@@ -24,6 +24,12 @@ class SessionAssistance extends Model implements Commentable
         'group_session_id', 'teacher_id', 'assistance_date', 'status', 'review'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'review' => 'array',
+        ];
+    }
     public function groupSession(): BelongsTo
     {
         return $this->belongsTo(GroupSession::class);
