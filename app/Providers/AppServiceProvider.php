@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             'user' => \App\Models\User::class,
+
             'course' => \App\Models\Course::class,
             'course_material' => \App\Models\CourseMaterial::class,
             'course_price' => \App\Models\CoursePrice::class,
@@ -77,18 +78,22 @@ class AppServiceProvider extends ServiceProvider
             'process' => \App\Models\Process::class,
 
             'project' => \App\Models\Project::class,
+
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
+
             'product_review' => \App\Models\ProductReview::class,
             'quarterly_objective' => \App\Models\QuarterlyObjective::class,
+
             'vendor_category' => \App\Models\VendorCategory::class,
             'vendor_contract' => \App\Models\VendorContract::class,
             'vendor' => \App\Models\Vendor::class,
+
             'workshop_participant' => \App\Models\WorkshopParticipant::class,
             'workshop' => \App\Models\Workshop::class,
             
-            
             'social_post' => \App\Models\SocialPost::class,
+            'paid_campaign' => \App\Models\PaidCampaign::class,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
