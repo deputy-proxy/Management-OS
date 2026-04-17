@@ -83,6 +83,7 @@ class AppServiceProvider extends ServiceProvider
             'potential_partner' => \App\Models\PotentialPartner::class,
 
             'student' => \App\Models\Student::class,
+            'progress_update' => \App\Models\ProgressUpdate::class,
 
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
