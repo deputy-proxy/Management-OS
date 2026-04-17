@@ -52,7 +52,9 @@ class StudentResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            ActivitiesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
