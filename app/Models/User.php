@@ -12,6 +12,8 @@ use Relaticle\Comments\Contracts\Commentator;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
 class User extends Authenticatable implements Commentator
 {
@@ -68,5 +70,10 @@ class User extends Authenticatable implements Commentator
     public function receivesBroadcastNotificationsOn(): string
     {
         return 'App.Models.User.' . $this->id;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return str_ends_with($this->email, '@edventure.ro');
     }
 }
