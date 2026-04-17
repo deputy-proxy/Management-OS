@@ -80,6 +80,7 @@ class AppServiceProvider extends ServiceProvider
             'project' => \App\Models\Project::class,
 
             'partner' => \App\Models\Partner::class,
+            'potential_partner' => \App\Models\PotentialPartner::class,
 
             'newsletter' => \App\Models\Newsletter::class,
             'newsletter_subscriber' => \App\Models\NewsletterSubscriber::class,
