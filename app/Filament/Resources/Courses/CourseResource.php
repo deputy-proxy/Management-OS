@@ -16,10 +16,14 @@ use Hexters\HexaLite\HasHexaLite;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\Products\ProductsCluster;
 
 
 class CourseResource extends Resource
 {
+    protected static ?string $cluster = ProductsCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Course Management';
     protected static ?string $model = Course::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

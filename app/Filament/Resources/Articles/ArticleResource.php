@@ -17,9 +17,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
+use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class ArticleResource extends Resource
 {
+    protected static ?string $cluster = MarketingCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Content Management';
 	use HasHexaLite;
     
     protected static ?string $model = Article::class;

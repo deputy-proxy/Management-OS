@@ -12,6 +12,8 @@ use UnitEnum;
 
 class NavigationSettings extends Page
 {
+    protected static ?string $cluster = null;
+    protected static string|UnitEnum|null $navigationGroup = 'System';
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Navigation Settings';
     //protected static ?string $navigationGroup = 'Settings';

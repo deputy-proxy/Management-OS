@@ -5,11 +5,12 @@ namespace App\Filament\Clusters\Finance\Pages;
 use App\Filament\Clusters\Finance\FinanceCluster;
 use Filament\Pages\Page;
 use Hexters\HexaLite\HasHexaLite;
+use UnitEnum;
 
 class FinanceDashboard extends Page
 {
+    protected static string|UnitEnum|null $navigationGroup = 'All';
     protected string $view = 'filament.clusters.finance.pages.finance-dashboard';
-
     protected static ?string $cluster = FinanceCluster::class;
     
     use HasHexaLite;

@@ -17,9 +17,12 @@ use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
+use App\Filament\Clusters\Products\ProductsCluster;
 
 class CompetitionResource extends Resource
 {
+    protected static ?string $cluster = ProductsCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Competition Management';
     use HasHexaLite;
 
     protected static ?string $model = Competition::class;

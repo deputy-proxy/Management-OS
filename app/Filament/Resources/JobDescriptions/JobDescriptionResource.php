@@ -17,9 +17,13 @@ use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use UnitEnum;
+use App\Filament\Clusters\General\GeneralCluster;
 
 class JobDescriptionResource extends Resource
 {
+    protected static ?string $cluster = GeneralCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;
 
     protected static ?string $model = JobDescription::class;

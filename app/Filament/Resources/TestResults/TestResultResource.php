@@ -16,9 +16,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\Academic\AcademicCluster;
 
 class TestResultResource extends Resource
 {
+    protected static ?string $cluster = AcademicCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     use HasHexaLite;
 
     protected static ?string $model = TestResult::class;

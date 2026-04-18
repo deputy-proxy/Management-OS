@@ -16,9 +16,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\Finance\FinanceCluster;
 
 class CustomerContractResource extends Resource
 {
+    protected static ?string $cluster = FinanceCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
     use HasHexaLite;
 
     protected static ?string $model = CustomerContract::class;

@@ -16,9 +16,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class PaidCampaignResource extends Resource
 {
+    protected static ?string $cluster = MarketingCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Content Management';
     use HasHexaLite;
 
     protected static ?string $model = PaidCampaign::class;

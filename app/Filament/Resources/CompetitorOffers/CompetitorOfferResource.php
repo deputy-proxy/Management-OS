@@ -16,9 +16,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class CompetitorOfferResource extends Resource
 {
+    protected static ?string $cluster = MarketingCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Market Analysis';
     use HasHexaLite;
 
     protected static ?string $model = CompetitorOffer::class;

@@ -16,9 +16,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use UnitEnum;
+use App\Filament\Clusters\General\GeneralCluster;
 
 class LegalDocumentResource extends Resource
 {
+    protected static ?string $cluster = GeneralCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
     use HasHexaLite;
 
     protected static ?string $model = LegalDocument::class;
