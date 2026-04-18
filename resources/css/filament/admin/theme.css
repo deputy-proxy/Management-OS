@@ -102,12 +102,12 @@ border-bottom: none !important;
   MAIN CONTENT WRAPPER
   ============================================================ */
 .fi-main-ctn {
-  @apply px-3 mb-12 max-h-screen overflow-hidden;
+  @apply px-2 max-h-screen overflow-hidden;
   
 }
 
 .fi-main {
-  @apply dark:bg-gray-900/80 dark:border-gray-800 border-gray-300 border max-w-none px-5 mb-3 rounded-md;
+  @apply dark:bg-gray-900/80 dark:border-gray-800 border-gray-300 border max-w-none px-4 py-2 rounded-md;
   @apply h-[calc(100vh-4rem-4rem)] overflow-y-scroll;
 }
 
@@ -497,4 +497,17 @@ border-bottom: none !important;
 .dark .ec-popup {
     background-color: #1f2937;
     border-color: #374151;
+}
+
+
+.fi-page-sub-navigation-sidebar-ctn{
+    @apply border border-gray-300 dark:bg-black/20 dark:border-gray-800 rounded-lg p-3;
+}
+
+.fi-page-sub-navigation-tabs{
+  @apply w-full rounded-md dark:bg-gray-900/80;
+}
+
+.fi-tabs-item{
+  @apply rounded-sm;
 }
