@@ -128,7 +128,7 @@ class AdminPanelProvider extends PanelProvider
             //->defaultAvatarProvider(GetAvatarProvider::class)
             ->plugins([
                 //app()->environment('local') ? ArchitectPlugin::make() : MobileBottomNav::make(),                
-                //ArchitectPlugin::make(),
+                ArchitectPlugin::make(),
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
