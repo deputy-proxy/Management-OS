@@ -12,9 +12,14 @@ use App\Filament\Resources\CampPrices\Schemas\CampPriceInfolist;
 use App\Filament\Resources\CampPrices\Tables\CampPricesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class CampPriceResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 2;
+    protected static string|UnitEnum|null $navigationGroup = 'Camp Management';
     protected static ?string $model = CampPrice::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

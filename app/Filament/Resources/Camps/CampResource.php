@@ -12,8 +12,13 @@ use App\Filament\Resources\Camps\Schemas\CampInfolist;
 use App\Filament\Resources\Camps\Tables\CampsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class CampResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 0;
+    protected static string|UnitEnum|null $navigationGroup = 'Camp Management';
     protected static ?string $model = Camp::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
