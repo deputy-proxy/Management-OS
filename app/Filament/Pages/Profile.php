@@ -17,6 +17,8 @@ use Illuminate\Validation\Rules\Password;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Auth\Pages\EditProfile;
+use Filament\Schemas\Components\Flex;
+
 
 
 class Profile extends EditProfile
@@ -65,27 +67,36 @@ class Profile extends EditProfile
                     ->icon('heroicon-o-user')
                     ->columns(2)
                     ->schema([
-                        FileUpload::make('avatar')
-                            ->label('Avatar')
-                            ->image()
-                            ->avatar()
-                            ->imageEditor()
-                            ->disk('public')
-                            ->directory('avatars')
-                            ->columnSpanFull(),
+                        Flex::make([
+                            Section::make()
+                                ->schema([  
+                                    FileUpload::make('avatar')
+                                        ->label('Avatar')
+                                        ->hiddenLabel()
+                                        ->image()
+                                        ->avatar()
+                                        ->imageEditor()
+                                        ->disk('public')
+                                        ->directory('avatars')
+                                        ->columnSpanFull(),
+                                ])
+                                ->grow(false),
+                            Section::make()
+                                ->schema([
+                                    TextInput::make('name')
+                                        ->label('Full Name')
+                                        ->required()
+                                        ->maxLength(255),
 
-                        TextInput::make('name')
-                            ->label('Full Name')
-                            ->required()
-                            ->maxLength(255),
-
-                        TextInput::make('email')
-                            ->label('Email Address')
-                            ->email()
-                            ->required()
-                            ->unique(User::class, 'email', Auth::user())
-                            ->maxLength(255),
-                    ]),
+                                    TextInput::make('email')
+                                        ->label('Email Address')
+                                        ->email()
+                                        ->required()
+                                        ->unique(User::class, 'email', Auth::user())
+                                        ->maxLength(255),
+                                ])
+                        ])->columnSpanFull(),
+                    ])
             ])
             ->statePath('profileData');
     }
