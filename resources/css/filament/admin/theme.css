@@ -456,9 +456,13 @@ border-bottom: none !important;
 
 
 
+.fi-dropdown-panel{
+  @apply z-30 overflow-auto h-max max-h-96;
+}
 
-
-
+.fi-dropdown-header span{
+  @apply dark:bg-gray-900 dark:text-gray-400;
+}
 
 
 .ec-toolbar,
