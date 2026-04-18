@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Filament\Clusters\Portfolio\Pages;
+
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Filament\Pages\Page;
+use UnitEnum;
+
+class PortfolioOverview extends Page
+{
+    protected static ?int $navigationSort = 2;
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
+    protected string $view = 'filament.clusters.products.pages.portfolio-overview';
+    protected static ?string $cluster = PortfolioCluster::class;
+}
