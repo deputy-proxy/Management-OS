@@ -44,19 +44,19 @@ class NavigationSettingsManager
 
     public function getResourceMap(): array
     {
-        $map = [];
+        $map      = [];
         $settings = $this->get();
 
         foreach ($settings['clusters'] ?? [] as $clusterSort => $cluster) {
             foreach ($cluster['groups'] ?? [] as $groupSort => $group) {
                 foreach ($group['resources'] ?? [] as $resourceSort => $resource) {
                     $map[$resource['class']] = [
-                        'cluster'      => $cluster['class'] ?? null,
-                        'cluster_label'=> $cluster['label'],
-                        'group'        => $group['label'],
-                        'sort'         => $resourceSort,
-                        'cluster_sort' => $clusterSort,
-                        'group_sort'   => $groupSort,
+                        'cluster'       => $cluster['class'] ?? null,
+                        'cluster_label' => $cluster['label'],
+                        'group'         => $group['label'],
+                        'sort'          => $resourceSort,
+                        'cluster_sort'  => $clusterSort,
+                        'group_sort'    => $groupSort,
                     ];
                 }
             }
@@ -108,7 +108,7 @@ class NavigationSettingsManager
                         if (! $isPage) {
                             try {
                                 $item->badge(fn () => $class::getNavigationBadge())
-                                    ->badgeColor(fn () => $class::getNavigationBadgeColor());
+                                     ->badgeColor(fn () => $class::getNavigationBadgeColor());
                             } catch (\Throwable) {}
                         }
 
@@ -143,7 +143,6 @@ class NavigationSettingsManager
 
         $grouped = [];
 
-        // Seed all known clusters first
         foreach ($clusters as $clusterClass) {
             $label = $clusterClass::getNavigationLabel();
             if (! isset($grouped[$label])) {
@@ -154,7 +153,6 @@ class NavigationSettingsManager
             }
         }
 
-        // Ensure the no-cluster bucket exists
         if (! isset($grouped['__none__'])) {
             $grouped['__none__'] = [
                 'class'  => null,
@@ -162,7 +160,6 @@ class NavigationSettingsManager
             ];
         }
 
-        // Add resources
         foreach ($resources as $resourceClass) {
             $clusterClass = $resourceClass::getCluster();
             $clusterKey   = $clusterClass
@@ -186,7 +183,6 @@ class NavigationSettingsManager
             ];
         }
 
-        // Add pages that appear in navigation
         foreach ($pages as $pageClass) {
             try {
                 if (! $pageClass::shouldRegisterNavigation()) {
@@ -278,13 +274,11 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        // Only update files inside the app/ directory
                         $realFilePath = realpath($filePath);
                         if (! $realFilePath || ! str_starts_with($realFilePath, $appPath)) {
                             continue;
                         }
 
-                        // Skip cluster classes themselves
                         if (is_subclass_of($class, \Filament\Clusters\Cluster::class)) {
                             continue;
                         }
@@ -292,7 +286,6 @@ class NavigationSettingsManager
                         $original = file_get_contents($filePath);
                         $contents = $original;
 
-                        // Sync $navigationGroup
                         $contents = $this->syncProperty(
                             $contents,
                             'navigationGroup',
@@ -300,20 +293,17 @@ class NavigationSettingsManager
                             $type
                         );
 
-                        // Sync $navigationSort based on position in group
                         $contents = $this->syncIntProperty(
                             $contents,
                             'navigationSort',
                             $sortIndex
                         );
 
-                        // Sync $cluster with use statement
                         $contents = $this->syncCluster(
                             $contents,
                             $isGeneral ? null : $clusterClass
                         );
 
-                        // Validate syntax before writing
                         if (! $this->isValidPhp($contents)) {
                             \Illuminate\Support\Facades\Log::error(
                                 "NavigationSync: syntax error after modification, skipping {$class}"
@@ -321,7 +311,6 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        // Only write if something actually changed
                         if ($contents !== $original) {
                             file_put_contents($filePath, $contents);
                         }
@@ -342,12 +331,10 @@ class NavigationSettingsManager
         if ($clusterClass === null) {
             $newLine = "    protected static {$typeHint} \${$property} = null;";
         } else {
-            // Extract short class name e.g. FinanceCluster
             $shortName = class_basename($clusterClass);
             $newLine   = "    protected static {$typeHint} \${$property} = {$shortName}::class;";
         }
 
-        // Replace or insert the property
         $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
 
         if (preg_match($pattern, $contents)) {
@@ -361,33 +348,12 @@ class NavigationSettingsManager
             );
         }
 
-        // Add use statement if cluster is set
         if ($clusterClass !== null) {
             $useStatement = "use {$clusterClass};";
-
-            // Only add if not already present
             if (! str_contains($contents, $useStatement)) {
-                // Insert after the last existing use statement
-                if (preg_match('/^use\s+[^;]+;/m', $contents)) {
-                    $contents = preg_replace(
-                        '/((?:^use\s+[^;]+;\n)+)/m',
-                        "$1{$useStatement}\n",
-                        $contents,
-                        1
-                    );
-                } else {
-                    // No use statements yet — insert after namespace declaration
-                    $contents = preg_replace(
-                        '/(^namespace\s+[^;]+;)/m',
-                        "$1\n\n{$useStatement}",
-                        $contents,
-                        1
-                    );
-                }
+                $contents = $this->insertUseStatement($contents, $useStatement);
             }
         } else {
-            // If cluster is null, remove any previously added cluster use statements
-            // We only remove use statements for classes that look like cluster classes
             $contents = preg_replace('/^use\s+\S+Cluster[^;]*;\n/m', '', $contents);
         }
 
@@ -397,8 +363,7 @@ class NavigationSettingsManager
     protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
     {
         $isCluster = $property === 'cluster';
-
-        $typeHint = $isCluster ? '?string' : 'string|UnitEnum|null';
+        $typeHint  = $isCluster ? '?string' : 'string|UnitEnum|null';
 
         $newLine = $value === null
             ? "    protected static {$typeHint} \${$property} = null;"
@@ -417,44 +382,17 @@ class NavigationSettingsManager
             );
         }
 
-        // Inject "use UnitEnum;" if the type hint needs it and it's not already present
         if (! $isCluster && str_contains($typeHint, 'UnitEnum')) {
             $useStatement = 'use UnitEnum;';
-
             if (! str_contains($contents, $useStatement)) {
-                if (preg_match('/^use\s+[^;]+;/m', $contents)) {
-                    // Insert after the last existing use statement block
-                    $contents = preg_replace(
-                        '/((?:^use\s+[^;]+;\n)+)/m',
-                        "$1{$useStatement}\n",
-                        $contents,
-                        1
-                    );
-                } else {
-                    // No use statements — insert after namespace
-                    $contents = preg_replace(
-                        '/(^namespace\s+[^;]+;)/m',
-                        "$1\n\n{$useStatement}",
-                        $contents,
-                        1
-                    );
-                }
+                $contents = $this->insertUseStatement($contents, $useStatement);
             }
         }
 
         return $contents;
     }
 
-    protected function isValidPhp(string $contents): bool
-    {
-        $tmp = tempnam(sys_get_temp_dir(), 'nav_sync_');
-        file_put_contents($tmp, $contents);
-        exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $returnCode);
-        unlink($tmp);
-        return $returnCode === 0;
-    }
-
-  protected function syncIntProperty(string $contents, string $property, int $value): string
+    protected function syncIntProperty(string $contents, string $property, int $value): string
     {
         $newLine = "    protected static ?int \${$property} = {$value};";
 
@@ -464,12 +402,41 @@ class NavigationSettingsManager
             return preg_replace($pattern, $newLine, $contents);
         }
 
-        // Property doesn't exist — insert after opening class brace
         return preg_replace(
             '/(class\s+\w+[^{]*\{)/',
             "$1\n{$newLine}",
             $contents,
             1
         );
+    }
+
+    protected function insertUseStatement(string $contents, string $useStatement): string
+    {
+        // Find the last use statement and insert after it
+        if (preg_match_all('/^use\s+[^;]+;/m', $contents, $matches, PREG_OFFSET_CAPTURE)) {
+            $lastMatch      = end($matches[0]);
+            $insertPosition = $lastMatch[1] + strlen($lastMatch[0]);
+
+            return substr($contents, 0, $insertPosition)
+                . "\n" . $useStatement
+                . substr($contents, $insertPosition);
+        }
+
+        // No use statements — insert after namespace
+        return preg_replace(
+            '/(^namespace\s+[^;]+;)/m',
+            "$1\n\n{$useStatement}",
+            $contents,
+            1
+        );
+    }
+
+    protected function isValidPhp(string $contents): bool
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'nav_sync_');
+        file_put_contents($tmp, $contents);
+        exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $returnCode);
+        unlink($tmp);
+        return $returnCode === 0;
     }
 }
