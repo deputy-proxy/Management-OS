@@ -17,12 +17,12 @@ use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
-use App\Filament\Clusters\Products\ProductsCluster;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class EventParticipantResource extends Resource
 {
     protected static ?int $navigationSort = 0;
-    protected static ?string $cluster = ProductsCluster::class;
+    protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Event Management';
     use HasHexaLite;
     protected static ?string $model = EventParticipant::class;

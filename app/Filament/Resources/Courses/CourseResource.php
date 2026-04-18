@@ -17,13 +17,13 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
-use App\Filament\Clusters\Products\ProductsCluster;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 
 class CourseResource extends Resource
 {
     protected static ?int $navigationSort = 2;
-    protected static ?string $cluster = ProductsCluster::class;
+    protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Course Management';
     protected static ?string $model = Course::class;
 
