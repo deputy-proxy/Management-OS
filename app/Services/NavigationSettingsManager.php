@@ -284,15 +284,8 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        // Skip cluster classes themselves
+                        // Skip cluster classes themselves — they manage their own properties
                         if (is_subclass_of($class, \Filament\Clusters\Cluster::class)) {
-                            continue;
-                        }
-
-                        // Skip any other non-resource/non-page Filament classes
-                        $isResource = is_subclass_of($class, \Filament\Resources\Resource::class);
-                        $isPage     = is_subclass_of($class, \Filament\Pages\Page::class);
-                        if (! $isResource && ! $isPage) {
                             continue;
                         }
 
