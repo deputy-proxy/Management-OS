@@ -262,7 +262,7 @@ class NavigationSettingsManager
                 $groupLabel  = $group['label'];
                 $isUngrouped = $groupLabel === 'Ungrouped';
 
-                foreach ($group['resources'] ?? [] as $resource) {
+                foreach ($group['resources'] ?? [] as $sortIndex => $resource) {
                     $class = $resource['class'] ?? null;
                     $type  = $resource['type'] ?? 'resource';
 
@@ -284,7 +284,7 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        // Skip cluster classes themselves — they manage their own properties
+                        // Skip cluster classes themselves
                         if (is_subclass_of($class, \Filament\Clusters\Cluster::class)) {
                             continue;
                         }
@@ -298,6 +298,13 @@ class NavigationSettingsManager
                             'navigationGroup',
                             $isUngrouped ? null : $groupLabel,
                             $type
+                        );
+
+                        // Sync $navigationSort based on position in group
+                        $contents = $this->syncIntProperty(
+                            $contents,
+                            'navigationSort',
+                            $sortIndex
                         );
 
                         // Sync $cluster with use statement
@@ -438,64 +445,31 @@ class NavigationSettingsManager
         return $contents;
     }
 
-protected function isValidPhp(string $contents): bool
-{
-    $tmp = tempnam(sys_get_temp_dir(), 'nav_sync_');
-    file_put_contents($tmp, $contents);
-    exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $returnCode);
-    unlink($tmp);
-    return $returnCode === 0;
-}
-
-    public function debugSync(): void
-{
-    $appPath  = realpath(app_path());
-    $structure = $this->get();
-
-    foreach ($structure['clusters'] ?? [] as $cluster) {
-        $clusterClass = $cluster['class'] ?? null;
-        $isGeneral    = $clusterClass === null;
-
-        foreach ($cluster['groups'] ?? [] as $group) {
-            $groupLabel  = $group['label'];
-            $isUngrouped = $groupLabel === 'Ungrouped';
-
-            foreach ($group['resources'] ?? [] as $resource) {
-                $class = $resource['class'] ?? null;
-
-                if (! $class || ! class_exists($class)) {
-                    dump("SKIP — class not found: {$class}");
-                    continue;
-                }
-
-                $reflection   = new \ReflectionClass($class);
-                $filePath     = $reflection->getFileName();
-                $realFilePath = realpath($filePath);
-
-                dump([
-                    'class'         => $class,
-                    'filePath'      => $filePath,
-                    'realFilePath'  => $realFilePath,
-                    'inAppPath'     => str_starts_with($realFilePath, $appPath),
-                    'isCluster'     => is_subclass_of($class, \Filament\Clusters\Cluster::class),
-                    'clusterClass'  => $clusterClass,
-                    'groupLabel'    => $groupLabel,
-                    'isGeneral'     => $isGeneral,
-                    'isUngrouped'   => $isUngrouped,
-                ]);
-
-                $original = file_get_contents($filePath);
-                $contents = $original;
-
-                $contents = $this->syncProperty($contents, 'navigationGroup', $isUngrouped ? null : $groupLabel, $resource['type'] ?? 'resource');
-                $contents = $this->syncCluster($contents, $isGeneral ? null : $clusterClass);
-
-                dump([
-                    'changed'      => $contents !== $original,
-                    'phpValid'     => $this->isValidPhp($contents),
-                ]);
-            }
-        }
+    protected function isValidPhp(string $contents): bool
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'nav_sync_');
+        file_put_contents($tmp, $contents);
+        exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $returnCode);
+        unlink($tmp);
+        return $returnCode === 0;
     }
-}
+
+  protected function syncIntProperty(string $contents, string $property, int $value): string
+    {
+        $newLine = "    protected static ?int \${$property} = {$value};";
+
+        $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+
+        if (preg_match($pattern, $contents)) {
+            return preg_replace($pattern, $newLine, $contents);
+        }
+
+        // Property doesn't exist — insert after opening class brace
+        return preg_replace(
+            '/(class\s+\w+[^{]*\{)/',
+            "$1\n{$newLine}",
+            $contents,
+            1
+        );
+    }
 }
