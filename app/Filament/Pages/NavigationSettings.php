@@ -10,7 +10,7 @@ use UnitEnum;
 class NavigationSettings extends Page
 {
     protected static ?string $cluster = null;
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
     protected static string|UnitEnum|null $navigationGroup = 'System';
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Navigation Settings';
