@@ -461,7 +461,7 @@ border-bottom: none !important;
 }
 
 .fi-dropdown-header span{
-  @apply dark:bg-gray-900 dark:text-gray-400;
+  @apply dark:bg-gray-900 dark:text-gray-500;
 }
 
 
