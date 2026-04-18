@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Workshop extends Model implements Commentable
 {
@@ -37,4 +38,10 @@ class Workshop extends Model implements Commentable
     {
         return LogOptions::defaults()->logAll();
     }
+
+    public function product(): MorphOne
+    {
+        return $this->morphOne(Product::class, 'productable');
+    }
+
 }

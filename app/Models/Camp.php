@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Camp extends Model
 {
@@ -19,4 +20,10 @@ class Camp extends Model
     {
         return $this->belongsTo(CampPrice::class);
     }
+
+    public function product(): MorphOne
+    {
+        return $this->morphOne(Product::class, 'productable');
+    }
+
 }
