@@ -15,7 +15,6 @@ use App\Models\Concerns\HasTasks;
 class Test extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,21 +24,28 @@ class Test extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'title', 'description', 'topic', 'level', 'questions', 'created_by'
-    ];
+    protected $fillable = ['title', 'description', 'topic', 'level', 'questions', 'created_by', 'test_type_id', 'time_limit', 'passing_score'];
+
+    protected function casts(): array
+    {
+        return [
+            'questions' => 'array',
+        ];
+    }
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
+    public function testType(): BelongsTo
+    {
+        return $this->belongsTo(TestType::class);
+    }
 }

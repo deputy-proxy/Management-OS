@@ -10,8 +10,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-
-
 class TestsTable
 {
     public static function configure(Table $table): Table
@@ -22,26 +20,33 @@ class TestsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description'),
+                Tables\Columns\TextColumn::make('testType.title')
+                    ->label('Test Type')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('topic'),
                 Tables\Columns\TextColumn::make('level'),
                 Tables\Columns\TextColumn::make('questions'),
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->label('Created By'),
+                Tables\Columns\TextColumn::make('time_limit'),
+                Tables\Columns\TextColumn::make('passing_score')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }

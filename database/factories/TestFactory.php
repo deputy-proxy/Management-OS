@@ -15,7 +15,6 @@ class TestFactory extends Factory
      * @var class-string<Test>
      */
     protected $model = Test::class;
-
     /**
      * Define the model's default state.
      *
@@ -30,6 +29,9 @@ class TestFactory extends Factory
             'level' => $this->faker->word(),
             'questions' => $this->faker->word(),
             'created_by' => \App\Models\User::factory(),
+            'test_type_id' => \App\Models\TestType::factory(),
+            'time_limit' => $this->faker->randomNumber(),
+            'passing_score' => $this->faker->randomNumber()
         ];
     }
 }

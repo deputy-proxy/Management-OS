@@ -18,26 +18,21 @@ use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
-
 class TestResource extends Resource
 {
     protected static ?int $navigationSort = 4;
+
     protected static ?string $cluster = AcademicCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     use HasHexaLite;
 
     protected static ?string $model = Test::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'test.index' => __('Allows viewing the test list'),
-            'test.create' => __('Allows creating a new test'),
-            'test.update' => __('Allows updating tests'),
-            'test.delete' => __('Allows deleting tests'),
-        ];
+        return ['test.index' => __('Allows viewing the test list'), 'test.create' => __('Allows creating a new test'), 'test.update' => __('Allows updating tests'), 'test.delete' => __('Allows deleting tests')];
     }
 
     public static function form(Schema $schema): Schema
@@ -57,10 +52,7 @@ class TestResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -69,50 +61,38 @@ class TestResource extends Resource
             'index' => Pages\ListTests::route('/'),
             'create' => Pages\CreateTest::route('/create'),
             'edit' => Pages\EditTest::route('/{record}/edit'),
-            'view' => Pages\ViewTest::route('/{record}'),
+            'view' => Pages\ViewTest::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('test.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('test.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('test.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create test.'));
+        return hexa()->can('test.create') ? Response::allow() : Response::deny(__('You do not have permission to create test.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('test.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('test.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('test.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a test.'));
+        return hexa()->can('test.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a test.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('test.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete tests.'));
+        return hexa()->can('test.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete tests.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

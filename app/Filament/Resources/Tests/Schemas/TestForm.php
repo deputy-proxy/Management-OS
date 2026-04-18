@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Tests\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class TestForm
 {
     public static function configure(Schema $schema): Schema
@@ -15,6 +14,9 @@ class TestForm
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required(),
+                Forms\Components\Select::make('test_type_id')
+                    ->relationship('testType', 'title')
+                    ->required(),
                 Forms\Components\TextInput::make('topic')
                     ->required(),
                 Forms\Components\TextInput::make('level')
@@ -24,6 +26,12 @@ class TestForm
                 Forms\Components\Select::make('created_by')
                     ->relationship('createdBy', 'name')
                     ->required(),
+                Forms\Components\TextInput::make('time_limit')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('passing_score')
+                    ->numeric()
+                    ->required()
             ]);
     }
 }

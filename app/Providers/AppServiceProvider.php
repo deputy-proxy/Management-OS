@@ -111,6 +111,8 @@ class AppServiceProvider extends ServiceProvider
             
             'social_post' => \App\Models\SocialPost::class,
             'paid_campaign' => \App\Models\PaidCampaign::class,
+
+            'test' => \App\Models\Test::class,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {
