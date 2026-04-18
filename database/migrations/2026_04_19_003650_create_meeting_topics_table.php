@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // New table
-        Schema::create('meeting_topcis', function (Blueprint $table) {
+        Schema::create('meeting_topics', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->foreignId('meeting_id');
@@ -23,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('meeting_topcis');
+        Schema::dropIfExists('meeting_topics');
     }
 };

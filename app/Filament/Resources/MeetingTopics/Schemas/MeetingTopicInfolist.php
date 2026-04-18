@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Filament\Resources\MeetingTopcis\Schemas;
+namespace App\Filament\Resources\MeetingTopics\Schemas;
 
 use Filament\Infolists;
 use Filament\Schemas\Schema;
 
-class MeetingTopciInfolist
+class MeetingTopicInfolist
 {
     public static function configure(Schema $schema): Schema
     {

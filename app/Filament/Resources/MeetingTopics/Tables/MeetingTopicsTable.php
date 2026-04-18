@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\MeetingTopcis\Tables;
+namespace App\Filament\Resources\MeetingTopics\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -10,7 +10,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 
 
-class MeetingTopcisTable
+class MeetingTopicsTable
 {
     public static function configure(Table $table): Table
     {

@@ -1,37 +1,37 @@
 <?php
 
-namespace App\Filament\Resources\MeetingTopcis;
+namespace App\Filament\Resources\MeetingTopics;
 
-use App\Models\MeetingTopci;
+use App\Models\MeetingTopic;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\MeetingTopcis\Pages;
-use App\Filament\Resources\MeetingTopcis\Schemas\MeetingTopciForm;
-use App\Filament\Resources\MeetingTopcis\Schemas\MeetingTopciInfolist;
-use App\Filament\Resources\MeetingTopcis\Tables\MeetingTopcisTable;
+use App\Filament\Resources\MeetingTopics\Pages;
+use App\Filament\Resources\MeetingTopics\Schemas\MeetingTopicForm;
+use App\Filament\Resources\MeetingTopics\Schemas\MeetingTopicInfolist;
+use App\Filament\Resources\MeetingTopics\Tables\MeetingTopicsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class MeetingTopciResource extends Resource
+class MeetingTopicResource extends Resource
 {
-    protected static ?string $model = MeetingTopci::class;
+    protected static ?string $model = MeetingTopic::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Schema $schema): Schema
     {
-        return MeetingTopciForm::configure($schema);
+        return MeetingTopicForm::configure($schema);
     }
 
     public static function infolist(Schema $schema): Schema
     {
-        return MeetingTopciInfolist::configure($schema);
+        return MeetingTopicInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return MeetingTopcisTable::configure($table);
+        return MeetingTopicsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -44,10 +44,10 @@ class MeetingTopciResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListMeetingTopcis::route('/'),
-            'create' => Pages\CreateMeetingTopci::route('/create'),
-            'edit' => Pages\EditMeetingTopci::route('/{record}/edit'),
-            'view' => Pages\ViewMeetingTopci::route('/{record}'),
+            'index' => Pages\ListMeetingTopics::route('/'),
+            'create' => Pages\CreateMeetingTopic::route('/create'),
+            'edit' => Pages\EditMeetingTopic::route('/{record}/edit'),
+            'view' => Pages\ViewMeetingTopic::route('/{record}'),
         ];
     }
 

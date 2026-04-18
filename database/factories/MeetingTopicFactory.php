@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class MeetingTopciFactory extends Factory
+class MeetingTopicFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<MeetingTopci>
+     * @var class-string<MeetingTopic>
      */
-    protected $model = MeetingTopci::class;
+    protected $model = MeetingTopic::class;
 
     /**
      * Define the model's default state.
