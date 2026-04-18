@@ -223,7 +223,7 @@
                 const target = ri + dir;
                 if (target < 0 || target >= resources.length) return;
                 [resources[ri], resources[target]] = [resources[target], resources[ri]];
-                @this.reorderResources(ci, gi, resources.map((_, i) => i));
+                @this.swapResources(ci, gi, ri, target);
             },
 
             moveResource(fromCi, fromGi, ri, destination) {
