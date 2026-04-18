@@ -372,21 +372,9 @@ protected function syncCluster(string $contents, ?string $clusterClass): string
 
 protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
 {
-    $isPage   = $classType === 'page';
     $isCluster = $property === 'cluster';
 
-    // Match exactly what Filament's base classes declare:
-    // Resource::$navigationGroup  → string|UnitEnum|null
-    // Resource::$cluster          → ?string
-    // Page::$navigationGroup      → \BackedEnum|string|null  (UnitEnum|string|null)
-    // Page::$cluster              → ?string
-    if ($isCluster) {
-        $typeHint = '?string';
-    } elseif ($isPage) {
-        $typeHint = 'string|UnitEnum|null';
-    } else {
-        $typeHint = 'string|UnitEnum|null';
-    }
+    $typeHint = $isCluster ? '?string' : 'string|UnitEnum|null';
 
     $newLine = $value === null
         ? "    protected static {$typeHint} \${$property} = null;"
@@ -395,15 +383,42 @@ protected function syncProperty(string $contents, string $property, ?string $val
     $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
 
     if (preg_match($pattern, $contents)) {
-        return preg_replace($pattern, $newLine, $contents);
+        $contents = preg_replace($pattern, $newLine, $contents);
+    } else {
+        $contents = preg_replace(
+            '/(class\s+\w+[^{]*\{)/',
+            "$1\n{$newLine}",
+            $contents,
+            1
+        );
     }
 
-    return preg_replace(
-        '/(class\s+\w+[^{]*\{)/',
-        "$1\n{$newLine}",
-        $contents,
-        1
-    );
+    // Inject "use UnitEnum;" if the type hint needs it and it's not already present
+    if (! $isCluster && str_contains($typeHint, 'UnitEnum')) {
+        $useStatement = 'use UnitEnum;';
+
+        if (! str_contains($contents, $useStatement)) {
+            if (preg_match('/^use\s+[^;]+;/m', $contents)) {
+                // Insert after the last existing use statement block
+                $contents = preg_replace(
+                    '/((?:^use\s+[^;]+;\n)+)/m',
+                    "$1{$useStatement}\n",
+                    $contents,
+                    1
+                );
+            } else {
+                // No use statements — insert after namespace
+                $contents = preg_replace(
+                    '/(^namespace\s+[^;]+;)/m',
+                    "$1\n\n{$useStatement}",
+                    $contents,
+                    1
+                );
+            }
+        }
+    }
+
+    return $contents;
 }
 
 }
