@@ -39,6 +39,10 @@ use App\Filament\Resources\Tasks\TaskResource;
 use Filament\Actions\CreateAction;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\Facades\Blade;
+use App\Services\NavigationSettingsManager;
+use Filament\Navigation\NavigationBuilder;
+
+
 
 
 
@@ -134,7 +138,12 @@ class AdminPanelProvider extends PanelProvider
                     ->pluralLabel('Logs')
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
-            ]);
+            ])
+            ->navigation(function (NavigationBuilder $nav) {
+                return app(NavigationSettingsManager::class)->applyToBuilder($nav);
+            });
+            
+
     }
 
     public function boot(): void
