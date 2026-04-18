@@ -22,7 +22,7 @@ use App\Filament\Clusters\General\GeneralCluster;
 
 class EmployeeHolidayResource extends Resource
 {
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;

@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Finance\FinanceCluster;
 class FinancialAccountResource extends Resource
 {
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = FinanceCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Treasurery & Tax';
     use HasHexaLite;
