@@ -86,6 +86,12 @@
                                         {{-- Drag handle --}}
                                         <x-filament::icon icon="heroicon-o-bars-2" class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 shrink-0" />
 
+                                        {{-- Sort index badge --}}
+                                        <span
+                                            x-text="ri"
+                                            class="text-[10px] w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-mono shrink-0"
+                                        ></span>
+
                                         {{-- Icon: different for page vs resource --}}
                                         <template x-if="resource.type === 'page'">
                                             <x-filament::icon icon="heroicon-o-document-text" class="w-3.5 h-3.5 text-blue-400 shrink-0" />
