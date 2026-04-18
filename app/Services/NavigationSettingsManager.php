@@ -308,16 +308,17 @@ protected function syncProperty(string $contents, string $property, ?string $val
 
     // Build the new property line
     if ($value === null) {
-        $newLine = "    protected static ?string \${$property} = null;";
+        $newLine = $isCluster
+            ? "    protected static string | UnitEnum | null \${$property} = null;"
+            : "    protected static string | UnitEnum | null \${$property} = null;";
     } else {
         $newLine = $isCluster
-            ? "    protected static ?string \${$property} = {$value}::class;"
-            : "    protected static ?string \${$property} = '{$value}';";
+            ? "    protected static string | UnitEnum | null \${$property} = {$value}::class;"
+            : "    protected static string | UnitEnum | null \${$property} = '{$value}';";
     }
 
-    // Match any type hint variant:
-    // ?string, UnitEnum|string|null, \BackedEnum|string|null, etc.
-    $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+    // If property already exists — replace it
+    $pattern = '/^(\s*)protected\s+static\s+string\s+\|\s+UnitEnum\s+\|\s+null\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
 
     if (preg_match($pattern, $contents)) {
         return preg_replace($pattern, $newLine, $contents);
