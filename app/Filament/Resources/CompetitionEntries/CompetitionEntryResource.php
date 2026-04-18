@@ -24,7 +24,6 @@ class CompetitionEntryResource extends Resource
     protected static ?string $model = CompetitionEntry::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static string | UnitEnum | null $navigationGroup = 'Competition Management';
     public function defineGates(): array
     {
         return ['competition_entry.index' => __('Allows viewing the competition entry list'), 'competition_entry.create' => __('Allows creating a new competition entry'), 'competition_entry.update' => __('Allows updating competition entrys'), 'competition_entry.delete' => __('Allows deleting competition entrys')];

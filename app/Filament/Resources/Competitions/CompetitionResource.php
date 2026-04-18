@@ -25,7 +25,6 @@ class CompetitionResource extends Resource
     protected static ?string $model = Competition::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static string | UnitEnum | null $navigationGroup = 'Competition Management';
 
     public function defineGates(): array
     {

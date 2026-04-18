@@ -25,8 +25,6 @@ class EventResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Event Management';
-
     public function defineGates(): array
     {
         return [

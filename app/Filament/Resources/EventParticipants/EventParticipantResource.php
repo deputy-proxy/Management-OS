@@ -24,8 +24,6 @@ class EventParticipantResource extends Resource
     protected static ?string $model = EventParticipant::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
-    protected static string | UnitEnum | null $navigationGroup = 'Event Management';
     
     public function defineGates(): array
     {

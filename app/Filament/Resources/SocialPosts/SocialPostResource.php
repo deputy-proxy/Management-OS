@@ -25,8 +25,6 @@ class SocialPostResource extends Resource
     protected static ?string $model = SocialPost::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-    
-    protected static string | UnitEnum | null $navigationGroup = 'Content Management';
 
     public function defineGates(): array
     {
