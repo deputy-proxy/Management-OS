@@ -18,7 +18,7 @@ return new class extends Migration
             $table->dateTime('starts_at');
             $table->dateTime('ends_at');
             $table->string('location');
-            $table->foreignId('organizer');
+            $table->foreignId('organizer_id');
             $table->json('participants');
             $table->timestamps();
             $table->softDeletes();

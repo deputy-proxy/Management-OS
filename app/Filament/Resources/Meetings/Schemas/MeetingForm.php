@@ -25,7 +25,7 @@ class MeetingForm
                     ->required(),
                 Forms\Components\TextInput::make('location')
                     ->required(),
-                Forms\Components\Select::make('organizer')
+                Forms\Components\Select::make('organizer_id')
                     ->relationship('organizer', 'full_name')
                     ->required(),
                 Forms\Components\KeyValue::make('participants')

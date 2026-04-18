@@ -17,6 +17,13 @@ class MeetingTopic extends Model
         'title', 'meeting_id', 'description', 'attachment', 'outcome'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'outcome' => 'array',
+        ];
+    }
+
     public function meeting(): BelongsTo
     {
         return $this->belongsTo(Meeting::class);

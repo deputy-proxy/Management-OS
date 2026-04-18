@@ -14,8 +14,19 @@ class Meeting extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'subject', 'description', 'type', 'status', 'starts_at', 'ends_at', 'location', 'organizer', 'participants'
+        'subject', 'description', 'type', 'status', 'starts_at', 'ends_at', 'location', 'organizer_id', 'participants'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'participants' => 'array',
+        ];
+    }
+
+    public function organizer(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'organizer_id');
+    }
 
 }
