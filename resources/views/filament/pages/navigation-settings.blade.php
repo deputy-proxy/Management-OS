@@ -104,6 +104,24 @@
                                                 : 'text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 shrink-0'"
                                         ></span>
 
+                                        {{-- Up/down within group --}}
+                                        <div class="flex gap-0.5 shrink-0">
+                                            <button
+                                                @click.stop="moveItem(ci, gi, ri, -1)"
+                                                :disabled="ri === 0"
+                                                class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30"
+                                            >
+                                                <x-filament::icon icon="heroicon-o-chevron-up" class="w-3 h-3" />
+                                            </button>
+                                            <button
+                                                @click.stop="moveItem(ci, gi, ri, 1)"
+                                                :disabled="ri === group.resources.length - 1"
+                                                class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30"
+                                            >
+                                                <x-filament::icon icon="heroicon-o-chevron-down" class="w-3 h-3" />
+                                            </button>
+                                        </div>
+
                                         {{-- Move to select — pre-selected to current position --}}
                                         <select
                                             :value="`${ci}:${gi}`"
@@ -192,6 +210,14 @@
                 if (target < 0 || target >= groups.length) return;
                 [groups[gi], groups[target]] = [groups[target], groups[gi]];
                 @this.reorderGroups(ci, groups.map((_, i) => i));
+            },
+
+            moveItem(ci, gi, ri, dir) {
+                const resources = this.structure.clusters[ci].groups[gi].resources;
+                const target = ri + dir;
+                if (target < 0 || target >= resources.length) return;
+                [resources[ri], resources[target]] = [resources[target], resources[ri]];
+                @this.reorderResources(ci, gi, resources.map((_, i) => i));
             },
 
             moveResource(fromCi, fromGi, ri, destination) {

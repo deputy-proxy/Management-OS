@@ -101,6 +101,15 @@ class NavigationSettings extends Page
         array_splice($this->structure['clusters'][$clusterIndex]['groups'], $groupIndex, 1);
     }
 
+    public function reorderResources(int $clusterIndex, int $groupIndex, array $order): void
+{
+    $reordered = [];
+    foreach ($order as $index) {
+        $reordered[] = $this->structure['clusters'][$clusterIndex]['groups'][$groupIndex]['resources'][$index];
+    }
+    $this->structure['clusters'][$clusterIndex]['groups'][$groupIndex]['resources'] = $reordered;
+}
+
     protected function buildStructureFromPanel(): array
 {
     $panel     = filament()->getCurrentPanel();

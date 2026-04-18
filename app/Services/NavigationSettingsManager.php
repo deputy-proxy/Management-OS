@@ -252,17 +252,19 @@ class NavigationSettingsManager
 
 public function syncToPhpFiles(array $structure): void
 {
+    $appPath = realpath(app_path());
+
     foreach ($structure['clusters'] ?? [] as $cluster) {
         $clusterClass = $cluster['class'] ?? null;
-        $clusterLabel = $cluster['label'];
         $isGeneral    = $clusterClass === null;
 
         foreach ($cluster['groups'] ?? [] as $group) {
-            $groupLabel = $group['label'];
+            $groupLabel  = $group['label'];
             $isUngrouped = $groupLabel === 'Ungrouped';
 
             foreach ($group['resources'] ?? [] as $resource) {
                 $class = $resource['class'] ?? null;
+                $type  = $resource['type'] ?? 'resource';
 
                 if (! $class || ! class_exists($class)) {
                     continue;
@@ -276,19 +278,25 @@ public function syncToPhpFiles(array $structure): void
                         continue;
                     }
 
+                    // Only update files inside the app/ directory
+                    $realFilePath = realpath($filePath);
+                    if (! $realFilePath || ! str_starts_with($realFilePath, $appPath)) {
+                        continue;
+                    }
+
                     $contents = file_get_contents($filePath);
 
-                    // Update or insert $navigationGroup
+                    // Sync $navigationGroup
                     $contents = $this->syncProperty(
                         $contents,
                         'navigationGroup',
-                        $isUngrouped ? null : $groupLabel
+                        $isUngrouped ? null : $groupLabel,
+                        $type
                     );
 
-                    // Update or insert $cluster
-                    $contents = $this->syncProperty(
+                    // Sync $cluster with use statement
+                    $contents = $this->syncCluster(
                         $contents,
-                        'cluster',
                         $isGeneral ? null : $clusterClass
                     );
 
@@ -302,29 +310,84 @@ public function syncToPhpFiles(array $structure): void
     }
 }
 
-protected function syncProperty(string $contents, string $property, ?string $value): string
+protected function syncCluster(string $contents, ?string $clusterClass): string
 {
-    $isCluster = $property === 'cluster';
+    $property = 'cluster';
+    $typeHint = '?string';
 
-    // Build the new property line
-    if ($value === null) {
-        $newLine = $isCluster
-            ? "    protected static string | UnitEnum | null \${$property} = null;"
-            : "    protected static string | UnitEnum | null \${$property} = null;";
+    if ($clusterClass === null) {
+        $newLine = "    protected static {$typeHint} \${$property} = null;";
     } else {
-        $newLine = $isCluster
-            ? "    protected static string | UnitEnum | null \${$property} = {$value}::class;"
-            : "    protected static string | UnitEnum | null \${$property} = '{$value}';";
+        // Extract short class name e.g. FinanceCluster
+        $shortName = class_basename($clusterClass);
+        $newLine   = "    protected static {$typeHint} \${$property} = {$shortName}::class;";
     }
 
-    // If property already exists — replace it
-    $pattern = '/^(\s*)protected\s+static\s+string\s+\|\s+UnitEnum\s+\|\s+null\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+    // Replace or insert the property
+    $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+
+    if (preg_match($pattern, $contents)) {
+        $contents = preg_replace($pattern, $newLine, $contents);
+    } else {
+        $contents = preg_replace(
+            '/(class\s+\w+[^{]*\{)/',
+            "$1\n{$newLine}",
+            $contents,
+            1
+        );
+    }
+
+    // Add use statement if cluster is set
+    if ($clusterClass !== null) {
+        $useStatement = "use {$clusterClass};";
+
+        // Only add if not already present
+        if (! str_contains($contents, $useStatement)) {
+            // Insert after the last existing use statement
+            if (preg_match('/^use\s+[^;]+;/m', $contents)) {
+                $contents = preg_replace(
+                    '/((?:^use\s+[^;]+;\n)+)/m',
+                    "$1{$useStatement}\n",
+                    $contents,
+                    1
+                );
+            } else {
+                // No use statements yet — insert after namespace declaration
+                $contents = preg_replace(
+                    '/(^namespace\s+[^;]+;)/m',
+                    "$1\n\n{$useStatement}",
+                    $contents,
+                    1
+                );
+            }
+        }
+    } else {
+        // If cluster is null, remove any previously added cluster use statements
+        // We only remove use statements for classes that look like cluster classes
+        $contents = preg_replace('/^use\s+\S+Cluster[^;]*;\n/m', '', $contents);
+    }
+
+    return $contents;
+}
+
+protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
+{
+    $isPage = $classType === 'page';
+
+    $typeHint = (! $isPage || $property === 'cluster')
+        ? '?string'
+        : '\BackedEnum|string|null';
+
+    $newLine = $value === null
+        ? "    protected static {$typeHint} \${$property} = null;"
+        : "    protected static {$typeHint} \${$property} = '{$value}';";
+
+    $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
 
     if (preg_match($pattern, $contents)) {
         return preg_replace($pattern, $newLine, $contents);
     }
 
-    // Property doesn't exist — insert after the opening brace of the class
     return preg_replace(
         '/(class\s+\w+[^{]*\{)/',
         "$1\n{$newLine}",
