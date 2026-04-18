@@ -139,6 +139,10 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
             ]);
+           /* ->navigation(function (NavigationBuilder $nav) {
+                return app(NavigationSettingsManager::class)->applyToBuilder($nav);
+            });
+            */
             
 
     }
