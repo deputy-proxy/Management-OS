@@ -12,8 +12,13 @@ use App\Filament\Resources\IndividualSessions\Schemas\IndividualSessionInfolist;
 use App\Filament\Resources\IndividualSessions\Tables\IndividualSessionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Academic\AcademicCluster;
 class IndividualSessionResource extends Resource
 {
+    protected static ?string $cluster = AcademicCluster::class;
+    protected static ?int $navigationSort = 6;
+    protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     protected static ?string $model = IndividualSession::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

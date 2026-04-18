@@ -12,9 +12,14 @@ use App\Filament\Resources\MeetingTopics\Schemas\MeetingTopicInfolist;
 use App\Filament\Resources\MeetingTopics\Tables\MeetingTopicsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Operations\OperationsCluster;
 
 class MeetingTopicResource extends Resource
 {
+    protected static ?string $cluster = OperationsCluster::class;
+    protected static ?int $navigationSort = 0;
+    protected static string|UnitEnum|null $navigationGroup = 'Meetings';
     protected static ?string $model = MeetingTopic::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

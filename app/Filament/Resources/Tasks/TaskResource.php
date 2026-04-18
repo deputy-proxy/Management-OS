@@ -23,7 +23,7 @@ class TaskResource extends Resource
 {
     protected static ?int $navigationSort = 0;
     protected static ?string $cluster = OperationsCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'All';
+    protected static string|UnitEnum|null $navigationGroup = 'Project Management';
     use HasHexaLite;
 
     protected static ?string $model = Task::class;
