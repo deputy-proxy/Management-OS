@@ -372,11 +372,21 @@ protected function syncCluster(string $contents, ?string $clusterClass): string
 
 protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
 {
-    $isPage = $classType === 'page';
+    $isPage   = $classType === 'page';
+    $isCluster = $property === 'cluster';
 
-    $typeHint = (! $isPage || $property === 'cluster')
-        ? '?string'
-        : '\BackedEnum|string|null';
+    // Match exactly what Filament's base classes declare:
+    // Resource::$navigationGroup  → string|UnitEnum|null
+    // Resource::$cluster          → ?string
+    // Page::$navigationGroup      → \BackedEnum|string|null  (UnitEnum|string|null)
+    // Page::$cluster              → ?string
+    if ($isCluster) {
+        $typeHint = '?string';
+    } elseif ($isPage) {
+        $typeHint = 'string|UnitEnum|null';
+    } else {
+        $typeHint = 'string|UnitEnum|null';
+    }
 
     $newLine = $value === null
         ? "    protected static {$typeHint} \${$property} = null;"
