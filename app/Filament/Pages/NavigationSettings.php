@@ -5,9 +5,13 @@ namespace App\Filament\Pages;
 use App\Services\NavigationSettingsManager;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use UnitEnum;
 
 class NavigationSettings extends Page
 {
+    protected static ?string $cluster = null;
+    protected static ?int $navigationSort = 2;
+    protected static string|UnitEnum|null $navigationGroup = 'System';
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Navigation Settings';
     protected string $view = 'filament.pages.navigation-settings';

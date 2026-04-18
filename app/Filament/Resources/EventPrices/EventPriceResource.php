@@ -21,6 +21,7 @@ use App\Filament\Clusters\Products\ProductsCluster;
 
 class EventPriceResource extends Resource
 {
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = ProductsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Event Management';
     use HasHexaLite;

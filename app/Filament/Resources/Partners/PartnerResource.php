@@ -21,6 +21,7 @@ use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class PartnerResource extends Resource
 {
+    protected static ?int $navigationSort = 2;
     protected static ?string $cluster = MarketingCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Market Analysis';
     use HasHexaLite;

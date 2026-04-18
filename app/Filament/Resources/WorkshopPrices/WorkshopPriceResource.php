@@ -21,6 +21,7 @@ use App\Filament\Clusters\Products\ProductsCluster;
 
 class WorkshopPriceResource extends Resource
 {
+    protected static ?int $navigationSort = 2;
     protected static ?string $cluster = ProductsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Workshop Management';
     use HasHexaLite;

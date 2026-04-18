@@ -9,6 +9,7 @@ use UnitEnum;
 
 class FinanceDashboard extends Page
 {
+    protected static ?int $navigationSort = 0;
     protected static string|UnitEnum|null $navigationGroup = 'All';
     protected string $view = 'filament.clusters.finance.pages.finance-dashboard';
     protected static ?string $cluster = FinanceCluster::class;

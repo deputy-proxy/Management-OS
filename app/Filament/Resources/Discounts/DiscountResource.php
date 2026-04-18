@@ -21,6 +21,7 @@ use App\Filament\Clusters\Products\ProductsCluster;
 
 class DiscountResource extends Resource
 {
+    protected static ?int $navigationSort = 0;
     protected static ?string $cluster = ProductsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     use HasHexaLite;

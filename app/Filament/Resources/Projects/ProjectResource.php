@@ -21,6 +21,7 @@ use App\Filament\Clusters\Operations\OperationsCluster;
 
 class ProjectResource extends Resource
 {
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = OperationsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Project Management';
     use HasHexaLite;
