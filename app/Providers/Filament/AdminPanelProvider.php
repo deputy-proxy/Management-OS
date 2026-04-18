@@ -7,6 +7,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
+use App\Filament\Pages\Profile;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Schemas\Components\RenderHook;
@@ -116,8 +117,11 @@ class AdminPanelProvider extends PanelProvider
                     )
                     ->label('Create a new task')
                     ->icon('heroicon-m-check-circle'),
+                    
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
+            ->profile(Profile::class, isSimple: false)
+            //->defaultAvatarProvider(GetAvatarProvider::class)
             ->plugins([
                 //app()->environment('local') ? ArchitectPlugin::make() : MobileBottomNav::make(),                
                 ArchitectPlugin::make(),

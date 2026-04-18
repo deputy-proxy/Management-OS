@@ -13,9 +13,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable implements Commentator
+class User extends Authenticatable implements Commentator, HasAvatar, FilamentUser
 {
     use LogsActivity;
 
@@ -32,6 +34,7 @@ class User extends Authenticatable implements Commentator
         'name',
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -76,5 +79,10 @@ class User extends Authenticatable implements Commentator
     {
         //return str_ends_with($this->email, '@edventure.ro');
         return true;
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar ? Storage::url($this->avatar) : null;
     }
 }
