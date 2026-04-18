@@ -66,73 +66,73 @@ class NavigationSettingsManager
     }
 
     public function applyToBuilder(NavigationBuilder $nav): NavigationBuilder
-{
-    if (! $this->hasSettings()) {
-        $structure = $this->buildStructureFromPanel();
-        $this->save($structure);
-    }
+    {
+        if (! $this->hasSettings()) {
+            $structure = $this->buildStructureFromPanel();
+            $this->save($structure);
+        }
 
-    $structure = $this->get();
-    $allGroups = [];
+        $structure = $this->get();
+        $allGroups = [];
 
-    foreach ($structure['clusters'] ?? [] as $cluster) {
-        $clusterLabel = $cluster['label'];
+        foreach ($structure['clusters'] ?? [] as $cluster) {
+            $clusterLabel = $cluster['label'];
 
-        foreach ($cluster['groups'] ?? [] as $group) {
-            $items = [];
+            foreach ($cluster['groups'] ?? [] as $group) {
+                $items = [];
 
-            foreach ($group['resources'] ?? [] as $resource) {
-                $class = $resource['class'] ?? null;
+                foreach ($group['resources'] ?? [] as $resource) {
+                    $class = $resource['class'] ?? null;
 
-                if (! $class || ! class_exists($class)) {
-                    continue;
-                }
-
-                try {
-                    $isPage = ($resource['type'] ?? 'resource') === 'page';
-                    $label  = $resource['label'] ?? (method_exists($class, 'getNavigationLabel') ? $class::getNavigationLabel() : $class);
-                    $url    = $class::getUrl();
-
-                    $icon = $resource['icon'] ?? null;
-                    if (! $icon || ! str_starts_with($icon, 'heroicon-')) {
-                        try { $icon = $class::getNavigationIcon(); } catch (\Throwable) {}
-                    }
-                    $icon = (is_string($icon) && str_starts_with($icon, 'heroicon-'))
-                        ? $icon
-                        : 'heroicon-o-squares-2x2';
-
-                    $item = NavigationItem::make($label)
-                        ->url($url)
-                        ->icon($icon);
-
-                    if (! $isPage) {
-                        try {
-                            $item->badge(fn () => $class::getNavigationBadge())
-                                 ->badgeColor(fn () => $class::getNavigationBadgeColor());
-                        } catch (\Throwable) {}
+                    if (! $class || ! class_exists($class)) {
+                        continue;
                     }
 
-                    $items[] = $item;
+                    try {
+                        $isPage = ($resource['type'] ?? 'resource') === 'page';
+                        $label  = $resource['label'] ?? (method_exists($class, 'getNavigationLabel') ? $class::getNavigationLabel() : $class);
+                        $url    = $class::getUrl();
 
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("NavigationBuilder: skipped {$class} — " . $e->getMessage());
-                    continue;
+                        $icon = $resource['icon'] ?? null;
+                        if (! $icon || ! str_starts_with($icon, 'heroicon-')) {
+                            try { $icon = $class::getNavigationIcon(); } catch (\Throwable) {}
+                        }
+                        $icon = (is_string($icon) && str_starts_with($icon, 'heroicon-'))
+                            ? $icon
+                            : 'heroicon-o-squares-2x2';
+
+                        $item = NavigationItem::make($label)
+                            ->url($url)
+                            ->icon($icon);
+
+                        if (! $isPage) {
+                            try {
+                                $item->badge(fn () => $class::getNavigationBadge())
+                                    ->badgeColor(fn () => $class::getNavigationBadgeColor());
+                            } catch (\Throwable) {}
+                        }
+
+                        $items[] = $item;
+
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("NavigationBuilder: skipped {$class} — " . $e->getMessage());
+                        continue;
+                    }
                 }
-            }
 
-            if (! empty($items)) {
-                $isGeneral     = $clusterLabel === 'General' && $cluster['class'] === null;
-                $navGroupLabel = $isGeneral
-                    ? $group['label']
-                    : $clusterLabel . ' › ' . $group['label'];
+                if (! empty($items)) {
+                    $isGeneral     = $clusterLabel === 'General' && $cluster['class'] === null;
+                    $navGroupLabel = $isGeneral
+                        ? $group['label']
+                        : $clusterLabel . ' › ' . $group['label'];
 
-                $allGroups[] = NavigationGroup::make($navGroupLabel)->items($items);
+                    $allGroups[] = NavigationGroup::make($navGroupLabel)->items($items);
+                }
             }
         }
-    }
 
-    return $nav->groups($allGroups);
-}
+        return $nav->groups($allGroups);
+    }
 
     public function buildStructureFromPanel(): array
     {
@@ -250,175 +250,199 @@ class NavigationSettingsManager
         return $structure;
     }
 
-public function syncToPhpFiles(array $structure): void
-{
-    $appPath = realpath(app_path());
+    public function syncToPhpFiles(array $structure): void
+    {
+        $appPath = realpath(app_path());
 
-    foreach ($structure['clusters'] ?? [] as $cluster) {
-        $clusterClass = $cluster['class'] ?? null;
-        $isGeneral    = $clusterClass === null;
+        foreach ($structure['clusters'] ?? [] as $cluster) {
+            $clusterClass = $cluster['class'] ?? null;
+            $isGeneral    = $clusterClass === null;
 
-        foreach ($cluster['groups'] ?? [] as $group) {
-            $groupLabel  = $group['label'];
-            $isUngrouped = $groupLabel === 'Ungrouped';
+            foreach ($cluster['groups'] ?? [] as $group) {
+                $groupLabel  = $group['label'];
+                $isUngrouped = $groupLabel === 'Ungrouped';
 
-            foreach ($group['resources'] ?? [] as $resource) {
-                $class = $resource['class'] ?? null;
-                $type  = $resource['type'] ?? 'resource';
+                foreach ($group['resources'] ?? [] as $resource) {
+                    $class = $resource['class'] ?? null;
+                    $type  = $resource['type'] ?? 'resource';
 
-                if (! $class || ! class_exists($class)) {
-                    continue;
-                }
-
-                try {
-                    $reflection = new \ReflectionClass($class);
-                    $filePath   = $reflection->getFileName();
-
-                    if (! $filePath || ! file_exists($filePath)) {
+                    if (! $class || ! class_exists($class)) {
                         continue;
                     }
 
-                    // Only update files inside the app/ directory
-                    $realFilePath = realpath($filePath);
-                    if (! $realFilePath || ! str_starts_with($realFilePath, $appPath)) {
-                        continue;
+                    try {
+                        $reflection = new \ReflectionClass($class);
+                        $filePath   = $reflection->getFileName();
+
+                        if (! $filePath || ! file_exists($filePath)) {
+                            continue;
+                        }
+
+                        // Only update files inside the app/ directory
+                        $realFilePath = realpath($filePath);
+                        if (! $realFilePath || ! str_starts_with($realFilePath, $appPath)) {
+                            continue;
+                        }
+
+                        // Skip cluster classes themselves
+                        if (is_subclass_of($class, \Filament\Clusters\Cluster::class)) {
+                            continue;
+                        }
+
+                        // Skip any other non-resource/non-page Filament classes
+                        $isResource = is_subclass_of($class, \Filament\Resources\Resource::class);
+                        $isPage     = is_subclass_of($class, \Filament\Pages\Page::class);
+                        if (! $isResource && ! $isPage) {
+                            continue;
+                        }
+
+                        $original = file_get_contents($filePath);
+                        $contents = $original;
+
+                        // Sync $navigationGroup
+                        $contents = $this->syncProperty(
+                            $contents,
+                            'navigationGroup',
+                            $isUngrouped ? null : $groupLabel,
+                            $type
+                        );
+
+                        // Sync $cluster with use statement
+                        $contents = $this->syncCluster(
+                            $contents,
+                            $isGeneral ? null : $clusterClass
+                        );
+
+                        // Validate syntax before writing
+                        if (! $this->isValidPhp($contents)) {
+                            \Illuminate\Support\Facades\Log::error(
+                                "NavigationSync: syntax error after modification, skipping {$class}"
+                            );
+                            continue;
+                        }
+
+                        // Only write if something actually changed
+                        if ($contents !== $original) {
+                            file_put_contents($filePath, $contents);
+                        }
+
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("NavigationSync: could not update {$class} — " . $e->getMessage());
                     }
-
-                    $contents = file_get_contents($filePath);
-
-                    // Sync $navigationGroup
-                    $contents = $this->syncProperty(
-                        $contents,
-                        'navigationGroup',
-                        $isUngrouped ? null : $groupLabel,
-                        $type
-                    );
-
-                    // Sync $cluster with use statement
-                    $contents = $this->syncCluster(
-                        $contents,
-                        $isGeneral ? null : $clusterClass
-                    );
-
-                    file_put_contents($filePath, $contents);
-
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("NavigationSync: could not update {$class} — " . $e->getMessage());
                 }
             }
         }
     }
-}
 
-protected function syncCluster(string $contents, ?string $clusterClass): string
-{
-    $property = 'cluster';
-    $typeHint = '?string';
+    protected function syncCluster(string $contents, ?string $clusterClass): string
+    {
+        $property = 'cluster';
+        $typeHint = '?string';
 
-    if ($clusterClass === null) {
-        $newLine = "    protected static {$typeHint} \${$property} = null;";
-    } else {
-        // Extract short class name e.g. FinanceCluster
-        $shortName = class_basename($clusterClass);
-        $newLine   = "    protected static {$typeHint} \${$property} = {$shortName}::class;";
+        if ($clusterClass === null) {
+            $newLine = "    protected static {$typeHint} \${$property} = null;";
+        } else {
+            // Extract short class name e.g. FinanceCluster
+            $shortName = class_basename($clusterClass);
+            $newLine   = "    protected static {$typeHint} \${$property} = {$shortName}::class;";
+        }
+
+        // Replace or insert the property
+        $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+
+        if (preg_match($pattern, $contents)) {
+            $contents = preg_replace($pattern, $newLine, $contents);
+        } else {
+            $contents = preg_replace(
+                '/(class\s+\w+[^{]*\{)/',
+                "$1\n{$newLine}",
+                $contents,
+                1
+            );
+        }
+
+        // Add use statement if cluster is set
+        if ($clusterClass !== null) {
+            $useStatement = "use {$clusterClass};";
+
+            // Only add if not already present
+            if (! str_contains($contents, $useStatement)) {
+                // Insert after the last existing use statement
+                if (preg_match('/^use\s+[^;]+;/m', $contents)) {
+                    $contents = preg_replace(
+                        '/((?:^use\s+[^;]+;\n)+)/m',
+                        "$1{$useStatement}\n",
+                        $contents,
+                        1
+                    );
+                } else {
+                    // No use statements yet — insert after namespace declaration
+                    $contents = preg_replace(
+                        '/(^namespace\s+[^;]+;)/m',
+                        "$1\n\n{$useStatement}",
+                        $contents,
+                        1
+                    );
+                }
+            }
+        } else {
+            // If cluster is null, remove any previously added cluster use statements
+            // We only remove use statements for classes that look like cluster classes
+            $contents = preg_replace('/^use\s+\S+Cluster[^;]*;\n/m', '', $contents);
+        }
+
+        return $contents;
     }
 
-    // Replace or insert the property
-    $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+    protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
+    {
+        $isCluster = $property === 'cluster';
 
-    if (preg_match($pattern, $contents)) {
-        $contents = preg_replace($pattern, $newLine, $contents);
-    } else {
-        $contents = preg_replace(
-            '/(class\s+\w+[^{]*\{)/',
-            "$1\n{$newLine}",
-            $contents,
-            1
-        );
-    }
+        $typeHint = $isCluster ? '?string' : 'string|UnitEnum|null';
 
-    // Add use statement if cluster is set
-    if ($clusterClass !== null) {
-        $useStatement = "use {$clusterClass};";
+        $newLine = $value === null
+            ? "    protected static {$typeHint} \${$property} = null;"
+            : "    protected static {$typeHint} \${$property} = '{$value}';";
 
-        // Only add if not already present
-        if (! str_contains($contents, $useStatement)) {
-            // Insert after the last existing use statement
-            if (preg_match('/^use\s+[^;]+;/m', $contents)) {
-                $contents = preg_replace(
-                    '/((?:^use\s+[^;]+;\n)+)/m',
-                    "$1{$useStatement}\n",
-                    $contents,
-                    1
-                );
-            } else {
-                // No use statements yet — insert after namespace declaration
-                $contents = preg_replace(
-                    '/(^namespace\s+[^;]+;)/m',
-                    "$1\n\n{$useStatement}",
-                    $contents,
-                    1
-                );
+        $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
+
+        if (preg_match($pattern, $contents)) {
+            $contents = preg_replace($pattern, $newLine, $contents);
+        } else {
+            $contents = preg_replace(
+                '/(class\s+\w+[^{]*\{)/',
+                "$1\n{$newLine}",
+                $contents,
+                1
+            );
+        }
+
+        // Inject "use UnitEnum;" if the type hint needs it and it's not already present
+        if (! $isCluster && str_contains($typeHint, 'UnitEnum')) {
+            $useStatement = 'use UnitEnum;';
+
+            if (! str_contains($contents, $useStatement)) {
+                if (preg_match('/^use\s+[^;]+;/m', $contents)) {
+                    // Insert after the last existing use statement block
+                    $contents = preg_replace(
+                        '/((?:^use\s+[^;]+;\n)+)/m',
+                        "$1{$useStatement}\n",
+                        $contents,
+                        1
+                    );
+                } else {
+                    // No use statements — insert after namespace
+                    $contents = preg_replace(
+                        '/(^namespace\s+[^;]+;)/m',
+                        "$1\n\n{$useStatement}",
+                        $contents,
+                        1
+                    );
+                }
             }
         }
-    } else {
-        // If cluster is null, remove any previously added cluster use statements
-        // We only remove use statements for classes that look like cluster classes
-        $contents = preg_replace('/^use\s+\S+Cluster[^;]*;\n/m', '', $contents);
+
+        return $contents;
     }
-
-    return $contents;
-}
-
-protected function syncProperty(string $contents, string $property, ?string $value, string $classType = 'resource'): string
-{
-    $isCluster = $property === 'cluster';
-
-    $typeHint = $isCluster ? '?string' : 'string|UnitEnum|null';
-
-    $newLine = $value === null
-        ? "    protected static {$typeHint} \${$property} = null;"
-        : "    protected static {$typeHint} \${$property} = '{$value}';";
-
-    $pattern = '/^(\s*)protected\s+static\s+[\w\\\\|?]+\s+\$' . preg_quote($property, '/') . '\s*=.*?;/m';
-
-    if (preg_match($pattern, $contents)) {
-        $contents = preg_replace($pattern, $newLine, $contents);
-    } else {
-        $contents = preg_replace(
-            '/(class\s+\w+[^{]*\{)/',
-            "$1\n{$newLine}",
-            $contents,
-            1
-        );
-    }
-
-    // Inject "use UnitEnum;" if the type hint needs it and it's not already present
-    if (! $isCluster && str_contains($typeHint, 'UnitEnum')) {
-        $useStatement = 'use UnitEnum;';
-
-        if (! str_contains($contents, $useStatement)) {
-            if (preg_match('/^use\s+[^;]+;/m', $contents)) {
-                // Insert after the last existing use statement block
-                $contents = preg_replace(
-                    '/((?:^use\s+[^;]+;\n)+)/m',
-                    "$1{$useStatement}\n",
-                    $contents,
-                    1
-                );
-            } else {
-                // No use statements — insert after namespace
-                $contents = preg_replace(
-                    '/(^namespace\s+[^;]+;)/m',
-                    "$1\n\n{$useStatement}",
-                    $contents,
-                    1
-                );
-            }
-        }
-    }
-
-    return $contents;
-}
 
 }
