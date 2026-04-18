@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Products\ProductsCluster;
 class EventResource extends Resource
 {
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 0;
     protected static ?string $cluster = ProductsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Event Management';
     use HasHexaLite;

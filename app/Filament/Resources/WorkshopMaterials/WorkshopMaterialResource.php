@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Products\ProductsCluster;
 class WorkshopMaterialResource extends Resource
 {
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = ProductsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Workshop Management';
     use HasHexaLite;
