@@ -438,4 +438,64 @@ class NavigationSettingsManager
         return $contents;
     }
 
+protected function isValidPhp(string $contents): bool
+{
+    $tmp = tempnam(sys_get_temp_dir(), 'nav_sync_');
+    file_put_contents($tmp, $contents);
+    exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $output, $returnCode);
+    unlink($tmp);
+    return $returnCode === 0;
+}
+
+    public function debugSync(): void
+{
+    $appPath  = realpath(app_path());
+    $structure = $this->get();
+
+    foreach ($structure['clusters'] ?? [] as $cluster) {
+        $clusterClass = $cluster['class'] ?? null;
+        $isGeneral    = $clusterClass === null;
+
+        foreach ($cluster['groups'] ?? [] as $group) {
+            $groupLabel  = $group['label'];
+            $isUngrouped = $groupLabel === 'Ungrouped';
+
+            foreach ($group['resources'] ?? [] as $resource) {
+                $class = $resource['class'] ?? null;
+
+                if (! $class || ! class_exists($class)) {
+                    dump("SKIP — class not found: {$class}");
+                    continue;
+                }
+
+                $reflection   = new \ReflectionClass($class);
+                $filePath     = $reflection->getFileName();
+                $realFilePath = realpath($filePath);
+
+                dump([
+                    'class'         => $class,
+                    'filePath'      => $filePath,
+                    'realFilePath'  => $realFilePath,
+                    'inAppPath'     => str_starts_with($realFilePath, $appPath),
+                    'isCluster'     => is_subclass_of($class, \Filament\Clusters\Cluster::class),
+                    'clusterClass'  => $clusterClass,
+                    'groupLabel'    => $groupLabel,
+                    'isGeneral'     => $isGeneral,
+                    'isUngrouped'   => $isUngrouped,
+                ]);
+
+                $original = file_get_contents($filePath);
+                $contents = $original;
+
+                $contents = $this->syncProperty($contents, 'navigationGroup', $isUngrouped ? null : $groupLabel, $resource['type'] ?? 'resource');
+                $contents = $this->syncCluster($contents, $isGeneral ? null : $clusterClass);
+
+                dump([
+                    'changed'      => $contents !== $original,
+                    'phpValid'     => $this->isValidPhp($contents),
+                ]);
+            }
+        }
+    }
+}
 }
