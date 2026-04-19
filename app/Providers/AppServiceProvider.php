@@ -84,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
             'group_session' => \App\Models\GroupSession::class,
             
             'process' => \App\Models\Process::class,
+            'legal_document' => \App\Models\LegalDocument::class,
 
             'project' => \App\Models\Project::class,
             'project_phase' => \App\Models\ProjectPhase::class,
