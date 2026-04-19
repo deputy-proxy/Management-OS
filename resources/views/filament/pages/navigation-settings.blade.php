@@ -172,6 +172,7 @@
     </div>
 
     <script>
+    // @ts-nocheck
     function navigationSettings(initialStructure) {
         return {
             structure: initialStructure,
