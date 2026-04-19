@@ -211,7 +211,7 @@ return [
          * Example: fn($user) => $user->hasRole('super_admin')
          * Example: 'App\Support\ActivityLogAuthorization' (class with __invoke method)
          */
-        'custom_authorization' => null,
+        'custom_authorization' => fn($user) => $user->id === 1,
 
         'view_any' => 'view_any_activity',
         'view' => 'view_activity',
