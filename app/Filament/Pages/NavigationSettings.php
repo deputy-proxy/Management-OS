@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Services\NavigationSettingsManager;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Hexters\HexaLite\HasHexaLite;
 use UnitEnum;
 
 class NavigationSettings extends Page
@@ -17,6 +18,20 @@ class NavigationSettings extends Page
     protected string $view = 'filament.pages.navigation-settings';
 
     public array $structure = [];
+
+    use HasHexaLite;
+
+    public function defineGates(): array
+    {
+        return [
+            'navigation-settings.view' => __('Allows viewing the navigation settings'),
+        ];
+    }
+
+    public static function canAccess(): bool
+    {
+        return hexa()->can('navigation-settings.view');
+    }
 
     public function mount(): void
     {
