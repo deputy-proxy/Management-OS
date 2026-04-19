@@ -13,7 +13,7 @@ class IndividualSession extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['identifier', 'customer_id', 'course_id', 'teacher_id', 'starts_at', 'ends_at', 'status', 'teacher_id'];
+    protected $fillable = ['identifier', 'customer_id', 'course_id', 'teacher_id', 'starts_at', 'ends_at', 'status'];
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
 
     public function customer(): BelongsTo
