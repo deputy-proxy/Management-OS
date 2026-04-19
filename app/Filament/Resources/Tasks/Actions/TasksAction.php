@@ -30,7 +30,7 @@ class TasksAction extends Action
                     ->tabs([
                         Tabs\Tab::make('Current Tasks')
                             ->icon('heroicon-m-check-circle')
-                            ->visible(fn () => $record?->tasks()->exists() ?? false)
+                            ->visible(fn () => $record !== null && $record->tasks()->exists())
                             ->schema([
                                 View::make('filament.tasks.task-list')
                                     ->viewData([
