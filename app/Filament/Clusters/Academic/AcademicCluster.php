@@ -12,8 +12,6 @@ use UnitEnum;
 class AcademicCluster extends Cluster
 {
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
-
-    
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
+    protected static ?int $navigationSort = 4;
 }

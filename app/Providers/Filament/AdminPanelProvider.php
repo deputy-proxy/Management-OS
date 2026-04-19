@@ -42,10 +42,6 @@ use Illuminate\Support\Facades\Blade;
 use App\Services\NavigationSettingsManager;
 use Filament\Navigation\NavigationBuilder;
 
-
-
-
-
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -138,11 +134,18 @@ class AdminPanelProvider extends PanelProvider
                     ->pluralLabel('Logs')
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
-            ]);
+            ])
            /* ->navigation(function (NavigationBuilder $nav) {
                 return app(NavigationSettingsManager::class)->applyToBuilder($nav);
             });
             */
+
+            ->navigationGroups([
+                'All',
+                'Human Resources',
+                'Inventory Management',
+                'Compliance Overview',
+            ]);
             
 
     }
