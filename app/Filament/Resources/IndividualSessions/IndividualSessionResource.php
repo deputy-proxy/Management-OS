@@ -17,7 +17,7 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 class IndividualSessionResource extends Resource
 {
     protected static ?string $cluster = AcademicCluster::class;
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     protected static ?string $model = IndividualSession::class;
 

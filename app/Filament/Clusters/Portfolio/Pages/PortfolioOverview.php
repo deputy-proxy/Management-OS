@@ -8,7 +8,7 @@ use UnitEnum;
 
 class PortfolioOverview extends Page
 {
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 0;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.portfolio.pages.portfolio-overview';
     protected static ?string $cluster = PortfolioCluster::class;
