@@ -12,7 +12,7 @@ class SessionAttendanceForm
         return $schema
             ->components([
                 Forms\Components\Select::make('group_session_id')
-                    ->relationship('groupSession', 'id')
+                    ->relationship('groupSession', 'identifier')
                     ->required(),
                 Forms\Components\Select::make('student_id')
                     ->relationship('student', 'full_name')

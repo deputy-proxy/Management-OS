@@ -18,7 +18,7 @@ class SessionAttendancesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('groupSession.id')
+                Tables\Columns\TextColumn::make('groupSession.identifier')
                     ->label('Group Session')
                     ->sortable()
                     ->searchable(),
