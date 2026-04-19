@@ -12,7 +12,6 @@ use App\Filament\Resources\ProductResources\Schemas\ProductResourceInfolist;
 use App\Filament\Resources\ProductResources\Tables\ProductResourcesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
 class ProductResourceResource extends Resource
 {
     protected static ?string $model = ProductResource::class;
@@ -36,9 +35,7 @@ class ProductResourceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -47,16 +44,14 @@ class ProductResourceResource extends Resource
             'index' => Pages\ListProductResources::route('/'),
             'create' => Pages\CreateProductResource::route('/create'),
             'edit' => Pages\EditProductResource::route('/{record}/edit'),
-            'view' => Pages\ViewProductResource::route('/{record}'),
+            'view' => Pages\ViewProductResource::route('/{record}')
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
 

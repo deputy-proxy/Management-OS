@@ -30,7 +30,10 @@ class VendorInvoiceFactory extends Factory
             'currency' => $this->faker->word(),
             'month' => $this->faker->word(),
             'status' => $this->faker->word(),
-            'invoice' => $this->faker->word()
+            'invoice' => $this->faker->word(),
+            'amount' => $this->faker->randomFloat(2, 10, 1000),
+            'invoice_number' => $this->faker->word(),
+            'identifier' => $this->faker->word()
         ];
     }
 }

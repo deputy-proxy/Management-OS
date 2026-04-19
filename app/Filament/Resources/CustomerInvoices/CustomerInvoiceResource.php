@@ -18,26 +18,21 @@ use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Finance\FinanceCluster;
-
 class CustomerInvoiceResource extends Resource
 {
     protected static ?int $navigationSort = 2;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
     use HasHexaLite;
 
     protected static ?string $model = CustomerInvoice::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'customer_invoice.index' => __('Allows viewing the customer invoice list'),
-            'customer_invoice.create' => __('Allows creating a new customer invoice'),
-            'customer_invoice.update' => __('Allows updating customer invoices'),
-            'customer_invoice.delete' => __('Allows deleting customer invoices'),
-        ];
+        return ['customer_invoice.index' => __('Allows viewing the customer invoice list'), 'customer_invoice.create' => __('Allows creating a new customer invoice'), 'customer_invoice.update' => __('Allows updating customer invoices'), 'customer_invoice.delete' => __('Allows deleting customer invoices')];
     }
 
     public static function form(Schema $schema): Schema
@@ -57,10 +52,7 @@ class CustomerInvoiceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -69,50 +61,38 @@ class CustomerInvoiceResource extends Resource
             'index' => Pages\ListCustomerInvoices::route('/'),
             'create' => Pages\CreateCustomerInvoice::route('/create'),
             'edit' => Pages\EditCustomerInvoice::route('/{record}/edit'),
-            'view' => Pages\ViewCustomerInvoice::route('/{record}'),
+            'view' => Pages\ViewCustomerInvoice::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('customer_invoice.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('customer_invoice.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('customer_invoice.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create customer invoice.'));
+        return hexa()->can('customer_invoice.create') ? Response::allow() : Response::deny(__('You do not have permission to create customer invoice.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('customer_invoice.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('customer_invoice.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('customer_invoice.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a customer invoice.'));
+        return hexa()->can('customer_invoice.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a customer invoice.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('customer_invoice.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete customer invoices.'));
+        return hexa()->can('customer_invoice.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete customer invoices.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

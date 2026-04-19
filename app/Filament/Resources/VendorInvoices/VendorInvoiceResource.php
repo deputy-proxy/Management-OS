@@ -18,26 +18,22 @@ use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Finance\FinanceCluster;
+
 class VendorInvoiceResource extends Resource
 {
     protected static ?int $navigationSort = 2;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Vendor Management';
     use HasHexaLite;
 
     protected static ?string $model = VendorInvoice::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            'vendor_invoice.index' => __('Allows viewing the vendor invoice list'),
-            'vendor_invoice.create' => __('Allows creating a new vendor invoice'),
-            'vendor_invoice.update' => __('Allows updating vendor invoices'),
-            'vendor_invoice.delete' => __('Allows deleting vendor invoices'),
-        ];
+        return [ActivitiesRelationManager::class, 'vendor_invoice.index' => __('Allows viewing the vendor invoice list'), 'vendor_invoice.create' => __('Allows creating a new vendor invoice'), 'vendor_invoice.update' => __('Allows updating vendor invoices'), 'vendor_invoice.delete' => __('Allows deleting vendor invoices')];
     }
 
     public static function form(Schema $schema): Schema
@@ -57,9 +53,7 @@ class VendorInvoiceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -74,37 +68,27 @@ class VendorInvoiceResource extends Resource
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('vendor_invoice.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('vendor_invoice.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('vendor_invoice.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create vendor invoice.'));
+        return hexa()->can('vendor_invoice.create') ? Response::allow() : Response::deny(__('You do not have permission to create vendor invoice.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('vendor_invoice.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('vendor_invoice.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('vendor_invoice.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a vendor invoice.'));
+        return hexa()->can('vendor_invoice.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a vendor invoice.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('vendor_invoice.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete vendor invoices.'));
+        return hexa()->can('vendor_invoice.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete vendor invoices.'));
     }
 
     public static function getEloquentQuery(): Builder

@@ -15,7 +15,6 @@ class CustomerInvoiceFactory extends Factory
      * @var class-string<CustomerInvoice>
      */
     protected $model = CustomerInvoice::class;
-
     /**
      * Define the model's default state.
      *
@@ -31,6 +30,7 @@ class CustomerInvoiceFactory extends Factory
             'month' => $this->faker->word(),
             'status' => $this->faker->word(),
             'invoice' => $this->faker->word(),
+            'identifier' => $this->faker->word()
         ];
     }
 }

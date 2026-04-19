@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -14,7 +15,7 @@ class Product extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'title', 'status', 'productable_type', 'productable_id'
+        'title', 'status', 'productable_type', 'productable_id',
     ];
 
     public function productable(): MorphTo
@@ -22,6 +23,18 @@ class Product extends Model
         return $this->morphTo();
     }
 
+    public function resourceAllocations(): HasMany
+    {
+        return $this->hasMany(ProductResourceAllocation::class);
+    }
 
+    public function costs(): HasMany
+    {
+        return $this->hasMany(ProductCost::class);
+    }
 
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(ProductRevenue::class);
+    }
 }

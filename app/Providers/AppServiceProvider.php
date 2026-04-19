@@ -11,6 +11,10 @@ use Relaticle\Comments\Models\Subscription;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Event;
 use Filament\Actions\Action;
+use App\Models\ProductResource;
+use App\Models\ProductResourceAllocation;
+use App\Observers\ProductResourceObserver;
+use App\Observers\ProductResourceAllocationObserver;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        ProductResource::observe(ProductResourceObserver::class);
+        ProductResourceAllocation::observe(ProductResourceAllocationObserver::class);
 
         Relation::enforceMorphMap([
             'user' => \App\Models\User::class,

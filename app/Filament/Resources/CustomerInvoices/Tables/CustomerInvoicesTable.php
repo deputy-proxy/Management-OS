@@ -10,7 +10,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-
+use App\Filament\Resources\ProductRevenues\Actions\ManageProductRevenueAction;
 
 class CustomerInvoicesTable
 {
@@ -31,21 +31,25 @@ class CustomerInvoicesTable
                 Tables\Columns\TextColumn::make('month'),
                 Tables\Columns\TextColumn::make('status'),
                 Tables\Columns\TextColumn::make('invoice'),
+                Tables\Columns\TextColumn::make('identifier')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
                 CommentsAction::make(),
+                ManageProductRevenueAction::make(),
+
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }

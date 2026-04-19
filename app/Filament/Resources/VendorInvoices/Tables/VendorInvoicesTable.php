@@ -10,6 +10,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
+use App\Filament\Resources\ProductResources\Actions\ManageProductResourceAction;
+
 class VendorInvoicesTable
 {
     public static function configure(Table $table): Table
@@ -24,20 +26,25 @@ class VendorInvoicesTable
                     ->label('Vendor Contract')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('amount_without_vat'),
+                Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('vat'),
                 Tables\Columns\TextColumn::make('currency'),
                 Tables\Columns\TextColumn::make('month'),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('invoice')
+                Tables\Columns\TextColumn::make('invoice'),
+                Tables\Columns\TextColumn::make('invoice_number'),
+                Tables\Columns\TextColumn::make('identifier')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
                 CommentsAction::make(),
+                ManageProductResourceAction::make()
+                    ->amountField('amount'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

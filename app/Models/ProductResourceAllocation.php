@@ -14,8 +14,15 @@ class ProductResourceAllocation extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'product_id', 'product_resource_id', 'allocation_percent', 'month'
+        'product_id', 'product_resource_id', 'allocation_percent', 'month',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'month' => 'date',
+        ];
+    }
 
     public function product(): BelongsTo
     {

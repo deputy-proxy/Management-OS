@@ -14,8 +14,16 @@ class ProductCost extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'product_id', 'product_resource_id', 'month', 'allocation_percent', 'resource_amount', 'allocated_amount'
+        'product_id', 'product_resource_id', 'month',
+        'allocation_percent', 'resource_amount', 'allocated_amount',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'month' => 'date',
+        ];
+    }
 
     public function product(): BelongsTo
     {

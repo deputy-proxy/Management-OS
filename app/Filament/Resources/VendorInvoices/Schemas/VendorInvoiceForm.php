@@ -16,7 +16,7 @@ class VendorInvoiceForm
                 Forms\Components\Select::make('vendor_contract_id')
                     ->relationship('vendorContract', 'contract_code')
                     ->required(),
-                Forms\Components\TextInput::make('amount_without_vat')
+                Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->required(),
                 Forms\Components\TextInput::make('vat')
@@ -24,11 +24,15 @@ class VendorInvoiceForm
                     ->required(),
                 Forms\Components\TextInput::make('currency')
                     ->required(),
-                Forms\Components\TextInput::make('month')
+                Forms\Components\DatePicker::make('month')
                     ->required(),
                 Forms\Components\TextInput::make('status')
                     ->required(),
                 Forms\Components\TextInput::make('invoice')
+                    ->required(),
+                Forms\Components\TextInput::make('invoice_number')
+                    ->required(),
+                Forms\Components\TextInput::make('identifier')
                     ->required()
             ]);
     }

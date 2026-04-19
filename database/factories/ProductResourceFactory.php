@@ -15,7 +15,6 @@ class ProductResourceFactory extends Factory
      * @var class-string<ProductResource>
      */
     protected $model = ProductResource::class;
-
     /**
      * Define the model's default state.
      *
@@ -27,6 +26,7 @@ class ProductResourceFactory extends Factory
             'name' => $this->faker->sentence(),
             'amount' => $this->faker->randomFloat(2, 10, 1000),
             'month' => $this->faker->date(),
+            'allocated_percentage' => $this->faker->randomNumber()
         ];
     }
 }

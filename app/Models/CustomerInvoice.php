@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
 
 class CustomerInvoice extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,11 +26,8 @@ class CustomerInvoice extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'customer_id', 'customer_contract_id', 'amount_without_vat', 'vat', 'month', 'status', 'invoice'
-    ];
+    protected $fillable = ['customer_id', 'customer_contract_id', 'amount_without_vat', 'vat', 'month', 'status', 'invoice', 'identifier'];
 
     public function customer(): BelongsTo
     {
@@ -40,10 +38,14 @@ class CustomerInvoice extends Model implements Commentable
     {
         return $this->belongsTo(CustomerContract::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
+    public function productRevenue(): HasOne
+    {
+        return $this->hasOne(ProductRevenue::class);
+    }
 }
