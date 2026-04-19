@@ -96,7 +96,7 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->userMenuItems([
                 CreateAction::make('medical_leave')
-                    ->model(\App\Models\EmployeeMedicalLeave::class)
+                    ->model(EmployeeMedicalLeave::class)
                     ->modalHeading('Request Medical Leave')
                         ->schema(fn (\Filament\Schemas\Schema $schema) => 
                             EmployeeMedicalLeaveResource::form($schema)
