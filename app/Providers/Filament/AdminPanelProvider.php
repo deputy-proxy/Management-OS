@@ -53,6 +53,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->brandName('Management OS')
+            ->sidebarWidth('18rem')
             ->favicon(asset('images/logo.png'))
             ->brandLogo(fn () => view('filament.admin.logo'))    
             ->colors([
