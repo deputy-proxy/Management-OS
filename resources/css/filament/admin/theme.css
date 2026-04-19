@@ -502,6 +502,7 @@ border-bottom: none !important;
 
 .fi-page-sub-navigation-sidebar-ctn{
     @apply border border-gray-300 dark:bg-black/20 dark:border-gray-800 rounded-lg p-3;
+    @apply sticky top-3 h-[calc(100vh-10.3rem)] overflow-y-auto;
 }
 
 .fi-page-sub-navigation-tabs{
