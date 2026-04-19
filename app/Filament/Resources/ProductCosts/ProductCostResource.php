@@ -12,9 +12,14 @@ use App\Filament\Resources\ProductCosts\Schemas\ProductCostInfolist;
 use App\Filament\Resources\ProductCosts\Tables\ProductCostsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductCostResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 4;
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = ProductCost::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

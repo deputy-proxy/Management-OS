@@ -12,8 +12,13 @@ use App\Filament\Resources\ProductResources\Schemas\ProductResourceInfolist;
 use App\Filament\Resources\ProductResources\Tables\ProductResourcesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class ProductResourceResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 6;
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = ProductResource::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

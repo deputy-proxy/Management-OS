@@ -12,9 +12,14 @@ use App\Filament\Resources\ProductRevenues\Schemas\ProductRevenueInfolist;
 use App\Filament\Resources\ProductRevenues\Tables\ProductRevenuesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductRevenueResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 7;
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = ProductRevenue::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

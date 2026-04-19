@@ -18,7 +18,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class ProductResource extends Resource
 {
     protected static ?string $cluster = PortfolioCluster::class;
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = Product::class;
 

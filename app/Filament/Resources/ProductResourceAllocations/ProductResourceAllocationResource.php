@@ -12,9 +12,14 @@ use App\Filament\Resources\ProductResourceAllocations\Schemas\ProductResourceAll
 use App\Filament\Resources\ProductResourceAllocations\Tables\ProductResourceAllocationsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductResourceAllocationResource extends Resource
 {
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static ?int $navigationSort = 5;
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = ProductResourceAllocation::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 class StudentResource extends Resource
 {
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     use HasHexaLite;

@@ -12,9 +12,14 @@ use App\Filament\Resources\TestSubmissionAnswers\Schemas\TestSubmissionAnswerInf
 use App\Filament\Resources\TestSubmissionAnswers\Tables\TestSubmissionAnswersTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Academic\AcademicCluster;
 
 class TestSubmissionAnswerResource extends Resource
 {
+    protected static ?string $cluster = AcademicCluster::class;
+    protected static ?int $navigationSort = 6;
+    protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     protected static ?string $model = TestSubmissionAnswer::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
