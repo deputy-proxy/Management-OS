@@ -34,7 +34,7 @@ class TasksAction extends Action
                             ->schema([
                                 View::make('filament.tasks.task-list')
                                     ->viewData([
-                                        'tasks' => $record?->tasks()->with('assignedTo')->get() ?? collect(),
+                                        'tasks' => $record !== null ? $record->tasks()->with('assignedTo')->get() : collect(),
                                     ]),
                             ]),
                         Tabs\Tab::make('Add Task')
