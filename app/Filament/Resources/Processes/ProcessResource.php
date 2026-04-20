@@ -21,7 +21,9 @@ use App\Filament\Clusters\General\GeneralCluster;
 class ProcessResource extends Resource
 {
     protected static ?int $navigationSort = 1;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
     use HasHexaLite;
 
@@ -50,9 +52,7 @@ class ProcessResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
