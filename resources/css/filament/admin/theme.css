@@ -512,3 +512,7 @@ border-bottom: none !important;
 .fi-tabs-item{
   @apply rounded-sm;
 }
+
+.fi-select-input-btn, .fi-select-input{
+  @apply rounded-md border-0;
+}
