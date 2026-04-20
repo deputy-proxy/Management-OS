@@ -15,7 +15,6 @@ class GroupFactory extends Factory
      * @var class-string<Group>
      */
     protected $model = Group::class;
-
     /**
      * Define the model's default state.
      *
@@ -27,6 +26,12 @@ class GroupFactory extends Factory
             'title' => $this->faker->sentence(),
             'course_id' => \App\Models\Course::factory(),
             'teacher_id' => \App\Models\Employee::factory(),
+            'location' => $this->faker->word(),
+            'status' => $this->faker->word(),
+            'initiated_on' => $this->faker->date(),
+            'formed_on' => $this->faker->date(),
+            'started_on' => $this->faker->date(),
+            'ended_on' => $this->faker->date()
         ];
     }
 }
