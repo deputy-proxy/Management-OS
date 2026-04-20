@@ -24,9 +24,8 @@ class CompetitionEntry extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = ['competition_id', 'first_name', 'last_name', 'full_name', 'email', 'attachment', 'content'];
+    protected $fillable = ['competition_id', 'first_name', 'last_name', 'full_name', 'email', 'attachment', 'content', 'title'];
 
     public function competition(): BelongsTo
     {
