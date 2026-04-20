@@ -28,7 +28,8 @@ class ProcessFactory extends Factory
             'steps' => $this->faker->word(),
             'owner' => \App\Models\Employee::factory(),
             'owner_id' => \App\Models\Employee::factory(),
-            'main_topic' => $this->faker->word()
+            'main_topic' => $this->faker->word(),
+            'visibile_to' => $this->faker->word()
         ];
     }
 }
