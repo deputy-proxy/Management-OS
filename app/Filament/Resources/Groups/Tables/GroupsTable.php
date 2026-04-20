@@ -10,8 +10,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-
-
 class GroupsTable
 {
     public static function configure(Table $table): Table
@@ -27,21 +25,32 @@ class GroupsTable
                     ->label('Teacher')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('location'),
+                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('initiated_on')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('formed_on')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('started_on')
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('ended_on')
+                    ->dateTime()
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }
