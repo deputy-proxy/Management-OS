@@ -25,7 +25,8 @@ class ProcessesTable
                 Tables\Columns\TextColumn::make('steps'),
                 Tables\Columns\TextColumn::make('owner.full_name')
                     ->label('Owner'),
-                Tables\Columns\TextColumn::make('main_topic')
+                Tables\Columns\TextColumn::make('main_topic'),
+                Tables\Columns\TextColumn::make('visibile_to')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
