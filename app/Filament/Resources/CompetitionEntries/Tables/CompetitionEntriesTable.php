@@ -24,6 +24,7 @@ class CompetitionEntriesTable
                 Tables\Columns\TextColumn::make('last_name'),
                 Tables\Columns\TextColumn::make('full_name'),
                 Tables\Columns\TextColumn::make('email'),
+                Tables\Columns\TextColumn::make('title'),
                 Tables\Columns\TextColumn::make('content'),
                 Tables\Columns\TextColumn::make('attachment')
             ])
