@@ -15,7 +15,6 @@ class TaskFactory extends Factory
      * @var class-string<Task>
      */
     protected $model = Task::class;
-
     /**
      * Define the model's default state.
      *
@@ -31,6 +30,7 @@ class TaskFactory extends Factory
             'project_phase_id' => \App\Models\ProjectPhase::factory(),
             'status' => $this->faker->word(),
             'due_date' => $this->faker->date(),
+            'created_by' => \App\Models\User::factory()
         ];
     }
 }

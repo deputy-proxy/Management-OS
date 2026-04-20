@@ -15,18 +15,13 @@ use Spatie\Activitylog\LogOptions;
 class Task extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
 
     /** @var array<int, string> */
-    protected $fillable = [
-        'action', 'description', 'assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type'
-    ];
-    protected $casts = [
-        'due_date' => 'date',
-    ];
+    protected $fillable = ['action', 'description', 'assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type', 'created_by'];
+    protected $casts = ['due_date' => 'date'];
 
     public function taskable(): MorphTo
     {
@@ -47,10 +42,14 @@ class Task extends Model implements Commentable
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

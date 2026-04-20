@@ -2,38 +2,86 @@
 
 namespace App\Filament\Resources\Tasks\Schemas;
 
-use Filament\Forms;
+use App\Models\User;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class TaskForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Forms\Components\TextInput::make('taskable_type')
-                    ->label('Taskable Type')
-                    ->disabled(),
-                Forms\Components\TextInput::make('taskable_id')
-                    ->label('Taskable ID')
-                    ->disabled(),
-                Forms\Components\TextInput::make('action')
-                    ->required(),
-                Forms\Components\Textarea::make('description')
-                    ->required(),
-                Forms\Components\Select::make('assigned_to')
-                    ->relationship('assignedTo', 'name')
-                    ->required(),
-                Forms\Components\Select::make('project_id')
-                    ->relationship('project', 'title')
-                    ->required(),
-                Forms\Components\Select::make('project_phase_id')
-                    ->relationship('projectPhase', 'title')
-                    ->required(),
-                Forms\Components\TextInput::make('status')
-                    ->required(),
-                Forms\Components\DatePicker::make('due_date')
-                    ->required(),
-            ]);
+        $user = auth()->user();
+        $canAssign = hexa()->can('task.assign');
+        $canViewAll = hexa()->can('task.view_all');
+
+        return $schema->components([
+
+            TextInput::make('action')
+                ->label('Task Title')
+                ->required(),
+
+            Textarea::make('description')
+                ->columnSpanFull(),
+
+            // ── Assigned To ──────────────────────────────────────────────
+            // Roles WITH task.assign: full searchable select of users
+            Select::make('assigned_to')
+                ->label('Assigned To')
+                ->options(function () use ($canViewAll) {
+                    // "All" roles (Admin/Owner/Director) can assign to anyone
+                    if ($canViewAll) {
+                        return User::orderBy('name')->pluck('name', 'id');
+                    }
+
+                    // AcademicDirector has task.assign but NOT task.view_all
+                    return User::whereHas('roles', fn ($q) =>
+                        $q->whereIn('name', ['Academician', 'Teacher', 'Marketer', 'Coordinator'])
+                    )->orderBy('name')->pluck('name', 'id');
+                })
+                ->searchable()
+                ->preload()
+                ->visible($canAssign),
+
+            // Roles WITHOUT task.assign: locked to themselves, value forced server-side
+            Select::make('assigned_to')
+                ->label('Assigned To')
+                ->options([$user->id => $user->name])
+                ->default($user->id)
+                ->disabled()   // renders as read-only
+                ->dehydrated() // still submits the value
+                ->visible(! $canAssign),
+
+            // ── Hidden fields ─────────────────────────────────────────────
+            Hidden::make('created_by')
+                ->default($user->id),
+
+            // ── Other fields ──────────────────────────────────────────────
+            Select::make('status')
+                ->options([
+                    'pending'     => 'Pending',
+                    'in_progress' => 'In Progress',
+                    'done'        => 'Done',
+                ])
+                ->default('pending')
+                ->required(),
+
+            DatePicker::make('due_date'),
+
+            Select::make('project_id')
+                ->label('Project')
+                ->relationship('project', 'title')
+                ->searchable()
+                ->preload(),
+
+            Select::make('project_phase_id')
+                ->label('Project Phase')
+                ->relationship('projectPhase', 'title')
+                ->searchable()
+                ->preload(),
+        ]);
     }
 }

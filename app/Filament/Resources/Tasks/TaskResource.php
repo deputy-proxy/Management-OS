@@ -21,22 +21,23 @@ use App\Filament\Clusters\Operations\OperationsCluster;
 
 class TaskResource extends Resource
 {
+    use HasHexaLite;
+
     protected static ?int $navigationSort = 2;
     protected static ?string $cluster = OperationsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Project Management';
-    use HasHexaLite;
-
     protected static ?string $model = Task::class;
-
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public function defineGates(): array
     {
         return [
-            'task.index' => __('Allows viewing the task list'),
-            'task.create' => __('Allows creating a new task'),
-            'task.update' => __('Allows updating tasks'),
-            'task.delete' => __('Allows deleting tasks'),
+            'task.index'    => __('Allows viewing the task list'),
+            'task.view_all' => __('Allows viewing ALL tasks, not just own'),
+            'task.create'   => __('Allows creating a new task'),
+            'task.update'   => __('Allows updating tasks'),
+            'task.delete'   => __('Allows deleting tasks'),
+            'task.assign'   => __('Allows assigning tasks to other users'),
         ];
     }
 
@@ -57,21 +58,22 @@ class TaskResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTasks::route('/'),
+            'index'  => Pages\ListTasks::route('/'),
             'create' => Pages\CreateTask::route('/create'),
-            'edit' => Pages\EditTask::route('/{record}/edit'),
-            'view' => Pages\ViewTask::route('/{record}'),
+            'edit'   => Pages\EditTask::route('/{record}/edit'),
+            'view'   => Pages\ViewTask::route('/{record}'),
         ];
     }
+
+    // ──────────────────────────────────────────────
+    // Authorization
+    // ──────────────────────────────────────────────
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
@@ -84,35 +86,74 @@ class TaskResource extends Resource
     {
         return hexa()->can('task.create')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to create task.'));
+            : Response::deny(__('You do not have permission to create a task.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('task.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        if (! hexa()->can('task.update')) {
+            return Response::deny(__('You do not have permission to edit tasks.'));
+        }
+
+        // "All" roles can edit any task
+        if (hexa()->can('task.view_all')) {
+            return Response::allow();
+        }
+
+        // "Own" roles can only edit tasks assigned to them
+        $user = auth()->user();
+        if ((int) $record->assigned_to === $user->id || (int) $record->created_by === $user->id) {
+            return Response::allow();
+        }
+
+        return Response::deny(__('You can only edit your own tasks.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('task.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a task.'));
+        if (! hexa()->can('task.delete')) {
+            return Response::deny(__('You do not have permission to delete tasks.'));
+        }
+
+        if (hexa()->can('task.view_all')) {
+            return Response::allow();
+        }
+
+        $user = auth()->user();
+        if ((int) $record->assigned_to === $user->id || (int) $record->created_by === $user->id) {
+            return Response::allow();
+        }
+
+        return Response::deny(__('You can only delete your own tasks.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('task.delete')
+        // Bulk delete only for "all" roles
+        return hexa()->can('task.delete') && hexa()->can('task.view_all')
             ? Response::allow()
-            : Response::deny(__('You do not have permission to delete tasks.'));
+            : Response::deny(__('You do not have permission to bulk-delete tasks.'));
     }
+
+    // ──────────────────────────────────────────────
+    // Query scoping: own vs all
+    // ──────────────────────────────────────────────
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        // Roles with task.view_all see everything
+        if (hexa()->can('task.view_all')) {
+            return $query;
+        }
+
+        // Everyone else sees only tasks where they are the assignee or creator
+        $user = auth()->user();
+
+        return $query->where(function (Builder $q) use ($user) {
+            $q->where('assigned_to', $user->id)
+              ->orWhere('created_by', $user->id);
+        });
     }
 }
