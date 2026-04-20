@@ -15,6 +15,7 @@ class CompetitionEntryInfolist
                 \Filament\Infolists\Components\TextEntry::make('last_name'),
                 \Filament\Infolists\Components\TextEntry::make('full_name'),
                 \Filament\Infolists\Components\TextEntry::make('email'),
+                \Filament\Infolists\Components\TextEntry::make('title'),
                 \Filament\Infolists\Components\TextEntry::make('content'),
                 \Filament\Infolists\Components\TextEntry::make('attachment')
             ]);
