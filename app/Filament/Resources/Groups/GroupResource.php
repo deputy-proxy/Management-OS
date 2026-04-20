@@ -18,26 +18,21 @@ use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
-
 class GroupResource extends Resource
 {
     protected static ?int $navigationSort = 1;
+
     protected static ?string $cluster = AcademicCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     use HasHexaLite;
 
     protected static ?string $model = Group::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'group.index' => __('Allows viewing the group list'),
-            'group.create' => __('Allows creating a new group'),
-            'group.update' => __('Allows updating groups'),
-            'group.delete' => __('Allows deleting groups'),
-        ];
+        return ['group.index' => __('Allows viewing the group list'), 'group.create' => __('Allows creating a new group'), 'group.update' => __('Allows updating groups'), 'group.delete' => __('Allows deleting groups')];
     }
 
     public static function form(Schema $schema): Schema
@@ -57,10 +52,7 @@ class GroupResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -69,50 +61,38 @@ class GroupResource extends Resource
             'index' => Pages\ListGroups::route('/'),
             'create' => Pages\CreateGroup::route('/create'),
             'edit' => Pages\EditGroup::route('/{record}/edit'),
-            'view' => Pages\ViewGroup::route('/{record}'),
+            'view' => Pages\ViewGroup::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('group.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('group.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('group.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create group.'));
+        return hexa()->can('group.create') ? Response::allow() : Response::deny(__('You do not have permission to create group.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('group.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('group.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('group.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a group.'));
+        return hexa()->can('group.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a group.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('group.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete groups.'));
+        return hexa()->can('group.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete groups.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
