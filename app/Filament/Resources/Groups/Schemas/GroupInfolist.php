@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Groups\Schemas;
 
 use Filament\Infolists;
 use Filament\Schemas\Schema;
-
 class GroupInfolist
 {
     public static function configure(Schema $schema): Schema
@@ -14,6 +13,16 @@ class GroupInfolist
                 \Filament\Infolists\Components\TextEntry::make('title'),
                 \Filament\Infolists\Components\TextEntry::make('course_id'),
                 \Filament\Infolists\Components\TextEntry::make('teacher_id'),
+                \Filament\Infolists\Components\TextEntry::make('location'),
+                \Filament\Infolists\Components\TextEntry::make('status'),
+                \Filament\Infolists\Components\TextEntry::make('initiated_on')
+                    ->dateTime(),
+                \Filament\Infolists\Components\TextEntry::make('formed_on')
+                    ->dateTime(),
+                \Filament\Infolists\Components\TextEntry::make('started_on')
+                    ->dateTime(),
+                \Filament\Infolists\Components\TextEntry::make('ended_on')
+                    ->dateTime()
             ]);
     }
 }
