@@ -15,7 +15,6 @@ use App\Models\Concerns\HasTasks;
 class Group extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,11 +24,8 @@ class Group extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'title', 'course_id', 'teacher_id'
-    ];
+    protected $fillable = ['title', 'course_id', 'teacher_id', 'location', 'status', 'initiated_on', 'formed_on', 'started_on', 'ended_on'];
 
     public function course(): BelongsTo
     {
@@ -40,10 +36,9 @@ class Group extends Model implements Commentable
     {
         return $this->belongsTo(Employee::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }
