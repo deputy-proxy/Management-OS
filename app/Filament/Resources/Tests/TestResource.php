@@ -16,6 +16,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Resources\TestResource\RelationManagers\QuestionsRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 class TestResource extends Resource
@@ -50,7 +51,10 @@ class TestResource extends Resource
 
     public static function getRelations(): array
     {
-        return [ActivitiesRelationManager::class];
+        return [
+            ActivitiesRelationManager::class,
+            QuestionsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

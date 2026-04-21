@@ -12,11 +12,16 @@ use App\Filament\Resources\TestTypes\Schemas\TestTypeInfolist;
 use App\Filament\Resources\TestTypes\Tables\TestTypesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 
 class TestTypeResource extends Resource
 {
+    use HasHexaLite;
     protected static ?string $cluster = AcademicCluster::class;
     protected static ?int $navigationSort = 1;
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
@@ -41,9 +46,7 @@ class TestTypeResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array

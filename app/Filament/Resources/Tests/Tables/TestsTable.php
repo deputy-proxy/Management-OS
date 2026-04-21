@@ -10,30 +10,67 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+
 class TestsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
+ 
+                TextColumn::make('testType.title')
+                    ->label('Type')
+                    ->badge()
+                    ->sortable(),
+ 
+                TextColumn::make('level')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'beginner'     => 'success',
+                        'intermediate' => 'warning',
+                        'advanced'     => 'danger',
+                        default        => 'gray',
+                    })
+                    ->sortable(),
+ 
+                TextColumn::make('topic')
+                    ->searchable()
+                    ->toggleable(),
+ 
+                TextColumn::make('time_limit')
+                    ->label('Time Limit')
+                    ->suffix(' min')
+                    ->sortable(),
+ 
+                TextColumn::make('passing_score')
+                    ->label('Passing Score')
+                    ->suffix('%')
+                    ->sortable(),
+ 
+                TextColumn::make('questions_count')
+                    ->counts('questions')
+                    ->label('Questions')
+                    ->sortable(),
+ 
+                TextColumn::make('createdBy.name')
+                    ->label('Created By')
+                    ->toggleable(),
+ 
+                TextColumn::make('created_at')
+                    ->dateTime()
                     ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('description'),
-                Tables\Columns\TextColumn::make('testType.title')
-                    ->label('Test Type')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('topic'),
-                Tables\Columns\TextColumn::make('level'),
-                Tables\Columns\TextColumn::make('questions'),
-                Tables\Columns\TextColumn::make('createdBy.name')
-                    ->label('Created By'),
-                Tables\Columns\TextColumn::make('time_limit'),
-                Tables\Columns\TextColumn::make('passing_score')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make()
+                Tables\Filters\TrashedFilter::make(),
+                SelectFilter::make('test_type_id')
+                    ->label('Test Type')
+                    ->relationship('testType', 'title'),
             ])
             ->recordActions([
                 EditAction::make(),

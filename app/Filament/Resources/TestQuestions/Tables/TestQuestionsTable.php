@@ -10,6 +10,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 
 
 class TestQuestionsTable
@@ -18,15 +20,51 @@ class TestQuestionsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('question')
+                TextColumn::make('question')
+                    ->limit(80)
+                    ->searchable()
+                    ->wrap(),
+ 
+                TextColumn::make('question_type')
+                    ->label('Type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'short_answer'    => 'info',
+                        'long_answer'     => 'info',
+                        'multiple_choice' => 'success',
+                        'multiple_select' => 'success',
+                        'true_false'      => 'warning',
+                        default           => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'short_answer'    => 'Short Answer',
+                        'long_answer'     => 'Long Answer',
+                        'multiple_choice' => 'Multiple Choice',
+                        'multiple_select' => 'Multiple Select',
+                        'true_false'      => 'True / False',
+                        default           => $state,
+                    })
+                    ->sortable(),
+ 
+                TextColumn::make('tests_count')
+                    ->counts('tests')
+                    ->label('Used in Tests')
+                    ->sortable(),
+ 
+                TextColumn::make('created_at')
+                    ->dateTime()
                     ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('question_type'),
-                Tables\Columns\TextColumn::make('description'),
-                Tables\Columns\TextColumn::make('correct_answer'),
-                Tables\Columns\TextColumn::make('data'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('question_type')
+                    ->options([
+                        'short_answer'    => 'Short Answer',
+                        'long_answer'     => 'Long Answer',
+                        'multiple_choice' => 'Multiple Choice',
+                        'multiple_select' => 'Multiple Select',
+                        'true_false'      => 'True / False',
+                    ]),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([EditAction::make(),
