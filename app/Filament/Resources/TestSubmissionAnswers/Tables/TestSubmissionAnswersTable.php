@@ -8,8 +8,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
-
-
 class TestSubmissionAnswersTable
 {
     public static function configure(Table $table): Table
@@ -28,20 +26,21 @@ class TestSubmissionAnswersTable
                 Tables\Columns\TextColumn::make('points'),
                 Tables\Columns\TextColumn::make('gradedBy.full_name')
                     ->label('Graded By'),
+                Tables\Columns\TextColumn::make('metadata')
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }
