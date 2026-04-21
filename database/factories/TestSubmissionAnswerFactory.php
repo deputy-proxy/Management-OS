@@ -15,7 +15,6 @@ class TestSubmissionAnswerFactory extends Factory
      * @var class-string<TestSubmissionAnswer>
      */
     protected $model = TestSubmissionAnswer::class;
-
     /**
      * Define the model's default state.
      *
@@ -29,6 +28,7 @@ class TestSubmissionAnswerFactory extends Factory
             'answer' => $this->faker->paragraph(),
             'points' => $this->faker->randomNumber(),
             'graded_by' => \App\Models\Employee::factory(),
+            'metadata' => $this->faker->word()
         ];
     }
 }

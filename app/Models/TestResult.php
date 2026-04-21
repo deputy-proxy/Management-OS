@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
@@ -15,21 +16,41 @@ use App\Models\Concerns\HasTasks;
 class TestResult extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
     use HasTasks;
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
-    {
-        return $this->morphMany(Task::class, 'taskable');
-    }
-
     /** @var array<int, string> */
     protected $fillable = [
-        'test_submission_id', 'student_id', 'results', 'teacher_id'
+        'test_submission_id',
+        'student_id',
+        'teacher_id',
+        'results',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'results' => 'array',
+            // suggested results structure:
+            // {
+            //   "total_points":    100,
+            //   "earned_points":   82,
+            //   "percentage":      82.0,
+            //   "passed":          true,
+            //   "feedback":        "Good work overall.",
+            //   "per_question": [
+            //     { "test_question_id": 1, "points_awarded": 10, "feedback": "..." },
+            //     ...
+            //   ]
+            // }
+        ];
+    }
+
+    // -----------------------------------------------------------------------
+    // Relationships
+    // -----------------------------------------------------------------------
 
     public function testSubmission(): BelongsTo
     {
@@ -43,12 +64,36 @@ class TestResult extends Model implements Commentable
 
     public function teacher(): BelongsTo
     {
-        return $this->belongsTo(Employee::class);
-    }
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll();
+        return $this->belongsTo(Employee::class, 'teacher_id');
     }
 
+    public function answers(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            TestSubmissionAnswer::class,
+            TestSubmission::class,
+            'id',                  // foreign key on test_submissions
+            'test_submission_id',  // foreign key on test_submission_answers
+            'test_submission_id',  // local key on test_results
+            'id'                   // local key on test_submissions
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Tasks (morphMany)
+    // -----------------------------------------------------------------------
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
+    // -----------------------------------------------------------------------
+    // Activity log
+    // -----------------------------------------------------------------------
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll();
+    }
 }

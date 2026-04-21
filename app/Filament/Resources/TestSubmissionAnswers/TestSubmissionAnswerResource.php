@@ -14,12 +14,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
-
 class TestSubmissionAnswerResource extends Resource
 {
     protected static ?string $cluster = AcademicCluster::class;
+
     protected static ?int $navigationSort = 5;
+
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
+
     protected static ?string $model = TestSubmissionAnswer::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -41,9 +43,7 @@ class TestSubmissionAnswerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -52,16 +52,14 @@ class TestSubmissionAnswerResource extends Resource
             'index' => Pages\ListTestSubmissionAnswers::route('/'),
             'create' => Pages\CreateTestSubmissionAnswer::route('/create'),
             'edit' => Pages\EditTestSubmissionAnswer::route('/{record}/edit'),
-            'view' => Pages\ViewTestSubmissionAnswer::route('/{record}'),
+            'view' => Pages\ViewTestSubmissionAnswer::route('/{record}')
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
 

@@ -15,7 +15,6 @@ class TestSubmissionFactory extends Factory
      * @var class-string<TestSubmission>
      */
     protected $model = TestSubmission::class;
-
     /**
      * Define the model's default state.
      *
@@ -28,6 +27,8 @@ class TestSubmissionFactory extends Factory
             'student_id' => \App\Models\Student::factory(),
             'answers' => $this->faker->word(),
             'submission_timestamp' => $this->faker->dateTime(),
+            'status' => $this->faker->word(),
+            'score' => $this->faker->randomNumber()
         ];
     }
 }

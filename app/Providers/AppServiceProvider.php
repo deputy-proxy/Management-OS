@@ -120,6 +120,10 @@ class AppServiceProvider extends ServiceProvider
             'paid_campaign' => \App\Models\PaidCampaign::class,
 
             'test' => \App\Models\Test::class,
+            'test_question' => \App\Models\TestQuestion::class,
+            'test_submission' => \App\Models\TestSubmission::class,
+            'test_result' => \App\Models\TestResult::class,
+            'test_type' => \App\Models\TestType::class,
         ]);
 
 Event::listen(CommentCreated::class, function (CommentCreated $event) {

@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
@@ -20,32 +23,65 @@ class Test extends Model implements Commentable
     use HasComments;
     use HasTasks;
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
-    {
-        return $this->morphMany(Task::class, 'taskable');
-    }
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'topic', 'level', 'questions', 'created_by', 'test_type_id', 'time_limit', 'passing_score'];
+    protected $fillable = [
+        'title',
+        'description',
+        'topic',
+        'level',
+        'created_by',
+        'test_type_id',
+        'time_limit',
+        'passing_score',
+    ];
 
-    protected function casts(): array
-    {
-        return [
-            'questions' => 'array',
-        ];
-    }
+    // -----------------------------------------------------------------------
+    // Relationships
+    // -----------------------------------------------------------------------
 
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()->logAll();
-    }
-
     public function testType(): BelongsTo
     {
         return $this->belongsTo(TestType::class);
+    }
+
+    public function questions(): BelongsToMany
+    {
+        return $this->belongsToMany(TestQuestion::class, 'test_question_pivot')
+            ->withPivot('points', 'order')
+            ->orderByPivot('order')
+            ->withTimestamps();
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(TestSubmission::class);
+    }
+
+    public function results(): HasManyThrough
+    {
+        return $this->hasManyThrough(TestResult::class, TestSubmission::class);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tasks (morphMany)
+    // -----------------------------------------------------------------------
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
+    // -----------------------------------------------------------------------
+    // Activity log
+    // -----------------------------------------------------------------------
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll();
     }
 }
