@@ -16,7 +16,26 @@ class EmployeeSalaryForm
                     ->required(),
                 Forms\Components\TextInput::make('month')
                     ->required(),
-                Forms\Components\KeyValue::make('items')
+                Builder::make('items')
+                    ->blocks([
+                        Block::make('item')
+                            ->schema([
+                                TextInput::make('date')
+                                    ->label('Date')
+                                    ->required()
+                                    ->columnSpan(1),
+                                TextInput::make('activity')
+                                    ->label('Activity')
+                                    ->required()
+                                    ->columnSpan(1),
+                                TextInput::make('duration')
+                                    ->label('Duration')
+                                    ->required()
+                                    ->columnSpan(1),
+                            ])
+                            ->columns(2)
+                    ]),
+                    
                     ->required(),
                 Forms\Components\TextInput::make('amount')->numeric()
                     ->required(),
