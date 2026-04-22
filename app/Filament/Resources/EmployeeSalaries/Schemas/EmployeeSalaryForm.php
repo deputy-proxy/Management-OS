@@ -4,6 +4,8 @@ namespace App\Filament\Resources\EmployeeSalaries\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+use Filament\Schema\Components\Builder;
+use Filament\Schema\Components\Builder\Block;
 
 class EmployeeSalaryForm
 {
@@ -20,15 +22,15 @@ class EmployeeSalaryForm
                     ->blocks([
                         Block::make('item')
                             ->schema([
-                                TextInput::make('date')
+                                Forms\Components\TextInput::make('date')
                                     ->label('Date')
                                     ->required()
                                     ->columnSpan(1),
-                                TextInput::make('activity')
+                                Forms\Components\TextInput::make('activity')
                                     ->label('Activity')
                                     ->required()
                                     ->columnSpan(1),
-                                TextInput::make('duration')
+                                Forms\Components\TextInput::make('duration')
                                     ->label('Duration')
                                     ->required()
                                     ->columnSpan(1),
