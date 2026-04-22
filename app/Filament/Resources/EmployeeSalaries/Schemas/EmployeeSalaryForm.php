@@ -4,8 +4,8 @@ namespace App\Filament\Resources\EmployeeSalaries\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-use Filament\Schema\Components\Builder;
-use Filament\Schema\Components\Builder\Block;
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\Builder\Block;
 
 class EmployeeSalaryForm
 {
