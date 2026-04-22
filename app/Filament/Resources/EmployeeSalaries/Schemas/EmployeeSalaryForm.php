@@ -35,8 +35,6 @@ class EmployeeSalaryForm
                             ])
                             ->columns(2)
                     ]),
-                    
-                    ->required(),
                 Forms\Components\TextInput::make('amount')->numeric()
                     ->required(),
                 Forms\Components\DatePicker::make('due_on')
