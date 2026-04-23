@@ -16,7 +16,9 @@ class EmployeeEvaluationInfolist
                     ->dateTime(),
                 \Filament\Infolists\Components\TextEntry::make('performed_on')
                     ->dateTime(),
-                \Filament\Infolists\Components\TextEntry::make('performed_by')
+                \Filament\Infolists\Components\TextEntry::make('performed_by'),
+                \Filament\Infolists\Components\TextEntry::make('employee_evaluation_form_id'),
+                \Filament\Infolists\Components\TextEntry::make('status')
             ]);
     }
 }

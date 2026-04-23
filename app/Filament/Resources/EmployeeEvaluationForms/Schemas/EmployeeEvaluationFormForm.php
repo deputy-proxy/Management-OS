@@ -6,10 +6,11 @@ use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Radio;
+
 class EmployeeEvaluationFormForm
 {
     public static function configure(Schema $schema): Schema
@@ -18,46 +19,68 @@ class EmployeeEvaluationFormForm
             ->components([
                 Forms\Components\Select::make('job_description_id')
                     ->relationship('jobDescription', 'job_title')
+                    ->searchable()
+                    ->preload()
                     ->required(),
-                Forms\Components\Select::make('employee_id')
-                    ->relationship('employee', 'full_name')
-                    ->required(),    
+
                 Builder::make('criteria')
+                    ->label('Evaluation Criteria')
                     ->blocks([
-                        Block::make('heading')
+
+                        Block::make('rated_criterion')
+                            ->label('Rated Criterion (1–5 scale)')
+                            ->icon('heroicon-o-star')
                             ->schema([
-                                TextInput::make('content')
-                                    ->label('Heading')
+                                TextInput::make('label')
+                                    ->label('Criterion Label')
+                                    ->placeholder('e.g. Communication Skills')
                                     ->required(),
-                                Select::make('level')
-                                    ->options([
-                                        'h1' => 'Heading 1',
-                                        'h2' => 'Heading 2',
-                                        'h3' => 'Heading 3',
-                                        'h4' => 'Heading 4',
-                                        'h5' => 'Heading 5',
-                                        'h6' => 'Heading 6',
-                                    ])
-                                    ->required(),
+                                Textarea::make('description')
+                                    ->label('Description / Guidance')
+                                    ->placeholder('Describe what is being evaluated...')
+                                    ->rows(2),
+                                TextInput::make('weight')
+                                    ->label('Weight (%)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->suffix('%'),
                             ])
                             ->columns(2),
-                        Block::make('paragraph')
+
+                        Block::make('text_feedback')
+                            ->label('Text Feedback (Open-ended)')
+                            ->icon('heroicon-o-chat-bubble-left-ellipsis')
                             ->schema([
-                                Textarea::make('content')
-                                    ->label('Paragraph')
+                                TextInput::make('question')
+                                    ->label('Question')
+                                    ->placeholder('e.g. What are this employee\'s key strengths?')
                                     ->required(),
+                                Textarea::make('description')
+                                    ->label('Description / Guidance')
+                                    ->placeholder('Optional guidance for the evaluator...')
+                                    ->rows(2),
                             ]),
-                        Block::make('image')
+
+                        Block::make('yes_no')
+                            ->label('Yes / No Question')
+                            ->icon('heroicon-o-check-circle')
                             ->schema([
-                                FileUpload::make('url')
-                                    ->label('Image')
-                                    ->image()
+                                TextInput::make('question')
+                                    ->label('Question')
+                                    ->placeholder('e.g. Did the employee meet all deadlines?')
                                     ->required(),
-                                TextInput::make('alt')
-                                    ->label('Alt text')
-                                    ->required(),
+                                Textarea::make('description')
+                                    ->label('Description / Guidance')
+                                    ->placeholder('Optional guidance for the evaluator...')
+                                    ->rows(2),
                             ]),
+
                     ])
+                    ->addActionLabel('Add Criterion')
+                    ->reorderable()
+                    ->collapsible()
+                    ->required(),
             ]);
     }
 }

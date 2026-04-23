@@ -25,8 +25,13 @@ class EmployeeEvaluationsTable
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('performed_on')
                     ->dateTime(),
-                Tables\Columns\TextColumn::make('performedBy.full_name')
-                    ->label('Performed By')
+                Tables\Columns\TextColumn::make('performedBy.name')
+                    ->label('Performed By'),
+                Tables\Columns\TextColumn::make('employeeEvaluationForm.job_description_id')
+                    ->label('Employee Evaluation Form')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('status')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()

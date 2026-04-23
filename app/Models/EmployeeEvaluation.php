@@ -24,9 +24,8 @@ class EmployeeEvaluation extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = ['employee_id', 'criteria', 'due_by', 'performed_on', 'performed_by'];
+    protected $fillable = ['employee_id', 'criteria', 'due_by', 'performed_on', 'performed_by', 'employee_evaluation_form_id', 'status'];
     protected function casts(): array
     {
         return ['criteria' => 'array'];
@@ -44,6 +43,11 @@ class EmployeeEvaluation extends Model implements Commentable
 
     public function performedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'performed_by');
+        return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function employeeEvaluationForm(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeEvaluationForm::class);
     }
 }
