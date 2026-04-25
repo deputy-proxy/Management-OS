@@ -20,6 +20,11 @@ class EmployeeContract extends Model implements Commentable
     use HasComments;
     use HasTasks;
 
+    protected function casts(): array
+    {
+        return ['clauses' => 'array'];
+    }
+
     public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Task::class, 'taskable');
