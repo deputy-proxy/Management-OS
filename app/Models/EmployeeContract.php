@@ -15,7 +15,6 @@ use App\Models\Concerns\HasTasks;
 class EmployeeContract extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,20 +24,16 @@ class EmployeeContract extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'employee_id', 'start_date', 'end_date', 'contract_type', 'base_salary', 'hourly_rate'
-    ];
+    protected $fillable = ['employee_id', 'start_date', 'end_date', 'contract_type', 'base_salary', 'hourly_rate', 'clauses'];
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }

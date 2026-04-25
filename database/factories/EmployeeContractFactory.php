@@ -15,7 +15,6 @@ class EmployeeContractFactory extends Factory
      * @var class-string<EmployeeContract>
      */
     protected $model = EmployeeContract::class;
-
     /**
      * Define the model's default state.
      *
@@ -30,6 +29,7 @@ class EmployeeContractFactory extends Factory
             'contract_type' => $this->faker->word(),
             'base_salary' => $this->faker->randomNumber(),
             'hourly_rate' => $this->faker->url(),
+            'clauses' => $this->faker->word()
         ];
     }
 }
