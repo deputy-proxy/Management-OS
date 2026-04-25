@@ -22,6 +22,7 @@ use App\Filament\Clusters\General\GeneralCluster;
 
 class JobDescriptionResource extends Resource
 {
+    protected static ?int $navigationSort = 10;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;

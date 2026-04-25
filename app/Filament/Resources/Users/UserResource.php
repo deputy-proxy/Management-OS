@@ -23,6 +23,7 @@ use UnitEnum;
 
 class UserResource extends Resource
 {
+    protected static ?int $navigationSort = 0;
     protected static ?string $cluster = null;
     protected static string|UnitEnum|null $navigationGroup = 'System';
     use HasHexaLite;

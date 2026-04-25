@@ -16,6 +16,7 @@ use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 class TestSubmissionAnswerResource extends Resource
 {
+    protected static ?int $navigationSort = 9;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
 

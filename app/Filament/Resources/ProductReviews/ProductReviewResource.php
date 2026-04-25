@@ -21,6 +21,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductReviewResource extends Resource
 {
+    protected static ?int $navigationSort = 13;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     use HasHexaLite;

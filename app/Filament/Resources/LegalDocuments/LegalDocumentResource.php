@@ -21,6 +21,7 @@ use App\Filament\Clusters\General\GeneralCluster;
 
 class LegalDocumentResource extends Resource
 {
+    protected static ?int $navigationSort = 12;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
     use HasHexaLite;

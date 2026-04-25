@@ -21,6 +21,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class CompetitionResource extends Resource
 {
+    protected static ?int $navigationSort = 4;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Competition Management';
     use HasHexaLite;

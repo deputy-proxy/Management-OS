@@ -21,6 +21,7 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 
 class TestTypeResource extends Resource
 {
+    protected static ?int $navigationSort = 11;
     use HasHexaLite;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';

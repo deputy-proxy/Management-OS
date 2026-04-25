@@ -20,6 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 class GroupSessionResource extends Resource
 {
+    protected static ?int $navigationSort = 0;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     use HasHexaLite;

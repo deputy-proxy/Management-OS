@@ -21,6 +21,7 @@ use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class SocialPostResource extends Resource
 {
+    protected static ?int $navigationSort = 5;
     protected static ?string $cluster = MarketingCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Content Management';
     use HasHexaLite;

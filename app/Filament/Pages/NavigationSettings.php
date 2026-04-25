@@ -9,6 +9,7 @@ use Hexters\HexaLite\HasHexaLite;
 use UnitEnum;
 class NavigationSettings extends Page
 {
+    protected static ?int $navigationSort = 2;
     protected static ?string $cluster = null;
     protected static string|UnitEnum|null $navigationGroup = 'System';
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';

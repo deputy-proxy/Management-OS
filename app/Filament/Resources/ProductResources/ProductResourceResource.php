@@ -16,6 +16,7 @@ use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class ProductResourceResource extends Resource
 {
+    protected static ?int $navigationSort = 11;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected static ?string $model = ProductResource::class;

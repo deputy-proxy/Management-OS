@@ -21,6 +21,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class WorkshopParticipantResource extends Resource
 {
+    protected static ?int $navigationSort = 19;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Workshop Management';
     use HasHexaLite;
