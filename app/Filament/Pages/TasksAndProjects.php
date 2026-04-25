@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Clusters\Operations\Pages;
+namespace App\Filament\Pages;
 
 use App\Filament\Clusters\Operations\OperationsCluster;
 use Filament\Pages\Page;

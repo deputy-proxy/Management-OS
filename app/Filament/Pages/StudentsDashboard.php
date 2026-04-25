@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Clusters\Academic\Pages;
+namespace App\Filament\Pages;
 
 use App\Filament\Clusters\Academic\AcademicCluster;
 use Filament\Pages\Page;

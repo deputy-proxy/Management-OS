@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Clusters\Finance\Pages;
+namespace App\Filament\Pages;
 
 use App\Filament\Clusters\Finance\FinanceCluster;
 use Filament\Pages\Page;
