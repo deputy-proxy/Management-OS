@@ -15,7 +15,6 @@ class EmployeeFactory extends Factory
      * @var class-string<Employee>
      */
     protected $model = Employee::class;
-
     /**
      * Define the model's default state.
      *
@@ -28,6 +27,7 @@ class EmployeeFactory extends Factory
             'first_name' => $this->faker->sentence(),
             'last_name' => $this->faker->sentence(),
             'user_id' => \App\Models\User::factory(),
+            'date_of_birth' => $this->faker->date()
         ];
     }
 }

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Employees\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
-
 class EmployeeForm
 {
     public static function configure(Schema $schema): Schema
@@ -17,9 +16,10 @@ class EmployeeForm
                     ->required(),
                 Forms\Components\TextInput::make('last_name')
                     ->required(),
+                Forms\Components\DatePicker::make('date_of_birth'),
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
-                    ->required(),
+                    ->required()
             ]);
     }
 }

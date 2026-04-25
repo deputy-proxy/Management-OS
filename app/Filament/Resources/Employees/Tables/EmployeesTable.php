@@ -10,8 +10,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-
-
 class EmployeesTable
 {
     public static function configure(Table $table): Table
@@ -21,25 +19,28 @@ class EmployeesTable
                 Tables\Columns\TextColumn::make('full_name'),
                 Tables\Columns\TextColumn::make('first_name'),
                 Tables\Columns\TextColumn::make('last_name'),
+                Tables\Columns\TextColumn::make('date_of_birth')
+                    ->dateTime(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('User')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
-                ]),
+                    \Filament\Actions\RestoreBulkAction::make()
+                ])
             ]);
     }
 }

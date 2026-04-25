@@ -15,7 +15,6 @@ use App\Models\Concerns\HasTasks;
 class Employee extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -25,20 +24,16 @@ class Employee extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-
     /** @var array<int, string> */
-    protected $fillable = [
-        'full_name', 'first_name', 'last_name', 'user_id'
-    ];
+    protected $fillable = ['full_name', 'first_name', 'last_name', 'user_id', 'date_of_birth'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }

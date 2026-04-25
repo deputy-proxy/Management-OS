@@ -19,11 +19,12 @@ use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
-
 class EmployeeResource extends Resource
 {
     protected static ?int $navigationSort = 0;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;
 
@@ -31,15 +32,9 @@ class EmployeeResource extends Resource
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            'employee.index' => __('Allows viewing the employee list'),
-            'employee.create' => __('Allows creating a new employee'),
-            'employee.update' => __('Allows updating employees'),
-            'employee.delete' => __('Allows deleting employees'),
-        ];
+        return ['employee.index' => __('Allows viewing the employee list'), 'employee.create' => __('Allows creating a new employee'), 'employee.update' => __('Allows updating employees'), 'employee.delete' => __('Allows deleting employees')];
     }
 
     public static function form(Schema $schema): Schema
@@ -59,10 +54,7 @@ class EmployeeResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            //
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -71,50 +63,38 @@ class EmployeeResource extends Resource
             'index' => Pages\ListEmployees::route('/'),
             'create' => Pages\CreateEmployee::route('/create'),
             'edit' => Pages\EditEmployee::route('/{record}/edit'),
-            'view' => Pages\ViewEmployee::route('/{record}'),
+            'view' => Pages\ViewEmployee::route('/{record}')
         ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('employee.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('employee.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create employee.'));
+        return hexa()->can('employee.create') ? Response::allow() : Response::deny(__('You do not have permission to create employee.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('employee.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('employee.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a employee.'));
+        return hexa()->can('employee.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a employee.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete employees.'));
+        return hexa()->can('employee.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employees.'));
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }
