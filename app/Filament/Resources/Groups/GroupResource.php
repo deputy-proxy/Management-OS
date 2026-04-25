@@ -21,9 +21,7 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 class GroupResource extends Resource
 {
     protected static ?int $navigationSort = 1;
-
     protected static ?string $cluster = AcademicCluster::class;
-
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     use HasHexaLite;
 
