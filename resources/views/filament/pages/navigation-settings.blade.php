@@ -69,7 +69,7 @@
 
                             {{-- Resources (drag and drop zone) --}}
                             <div
-                                class="ml-6 space-y-1 min-h-8 rounded-lg transition-colors"
+                                class="ml-6 space-y-1 min-h-[2rem] rounded-lg transition-colors"
                                 :class="dragTarget === `${ci}:${gi}` ? 'bg-primary-50 dark:bg-primary-900/20 ring-2 ring-primary-400' : ''"
                                 @dragover.prevent="dragTarget = `${ci}:${gi}`"
                                 @dragleave="dragTarget = null"
@@ -86,9 +86,9 @@
                                         {{-- Drag handle --}}
                                         <x-filament::icon icon="heroicon-o-bars-2" class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 shrink-0" />
 
-                                        {{-- Sort index badge --}}
+                                        {{-- Cluster-wide sort index badge --}}
                                         <span
-                                            x-text="ri"
+                                            x-text="clusterResourceIndex(ci, gi, ri)"
                                             class="text-[10px] w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-mono shrink-0"
                                         ></span>
 
@@ -132,7 +132,7 @@
                                         <select
                                             :value="`${ci}:${gi}`"
                                             @change="moveResource(ci, gi, ri, $event.target.value); $event.target.value = `${ci}:${gi}`"
-                                            class="text-xs bg-transparent border-none focus:ring-0 text-gray-400 cursor-pointer max-w-30"
+                                            class="text-xs bg-transparent border-none focus:ring-0 text-gray-400 cursor-pointer max-w-[120px]"
                                         >
                                             <template x-for="(tc, tci) in structure.clusters" :key="tci">
                                                 <template x-for="(tg, tgi) in tc.groups" :key="tgi">
@@ -172,12 +172,19 @@
     </div>
 
     <script>
-    // @ts-nocheck
     function navigationSettings(initialStructure) {
         return {
             structure: initialStructure,
             dragging: null,
             dragTarget: null,
+
+            clusterResourceIndex(ci, gi, ri) {
+                let count = 0;
+                for (let g = 0; g < gi; g++) {
+                    count += this.structure.clusters[ci].groups[g].resources.length;
+                }
+                return count + ri;
+            },
 
             renameCluster(ci, label) {
                 @this.renameCluster(ci, label);
