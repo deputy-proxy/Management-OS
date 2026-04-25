@@ -9,7 +9,7 @@ use UnitEnum;
 class TasksAndProjects extends Page
 {
     protected static ?int $navigationSort = 5;
-    protected static string|UnitEnum|null $navigationGroup = 'All';
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.projects.pages.tasks-and-projects';
     protected static ?string $cluster = OperationsCluster::class;
 }

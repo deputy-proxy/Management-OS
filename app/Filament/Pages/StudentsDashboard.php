@@ -9,7 +9,7 @@ use UnitEnum;
 class StudentsDashboard extends Page
 {
     protected static ?int $navigationSort = 13;
-    protected static string|UnitEnum|null $navigationGroup = 'Dashboards';
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.academic.pages.students-dashboard';
     protected static ?string $cluster = AcademicCluster::class;
 }

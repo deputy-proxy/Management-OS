@@ -19,7 +19,7 @@ class MeetingTopicResource extends Resource
 {
     protected static ?int $navigationSort = 0;
     protected static ?string $cluster = OperationsCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'Overview';
+    protected static string|UnitEnum|null $navigationGroup = 'Meetings';
     protected static ?string $model = MeetingTopic::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

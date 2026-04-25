@@ -9,7 +9,7 @@ use UnitEnum;
 class MarketAnalysis extends Page
 {
     protected static ?int $navigationSort = 7;
-    protected static string|UnitEnum|null $navigationGroup = 'Market Analysis';
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.marketing.pages.market-analysis';
     protected static ?string $cluster = MarketingCluster::class;
 }

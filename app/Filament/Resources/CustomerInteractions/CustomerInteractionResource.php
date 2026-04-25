@@ -22,7 +22,7 @@ class CustomerInteractionResource extends Resource
 {
     protected static ?int $navigationSort = 1;
     protected static ?string $cluster = FinanceCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'Overview';
+    protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
     use HasHexaLite;
 
     protected static ?string $model = CustomerInteraction::class;
