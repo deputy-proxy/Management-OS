@@ -69,7 +69,6 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->databaseNotifications()
             ->databaseNotificationsPolling('10s')
-            //->darkMode(false)
             ->widgets([
                 //AccountWidget::class,
                 HolidaysWidget::class,
@@ -100,7 +99,6 @@ class AdminPanelProvider extends PanelProvider
                         )
                     ->label('Request Medical Leave')
                     ->icon('heroicon-c-plus-circle'),
-                
                 CreateAction::make('holiday')
                     ->model(\App\Models\EmployeeHoliday::class)
                     ->modalHeading('Request Holiday')
@@ -109,7 +107,6 @@ class AdminPanelProvider extends PanelProvider
                     )
                     ->label('Request Holiday')
                     ->icon('heroicon-c-sun'),
-
                 CreateAction::make('task')
                     ->model(\App\Models\Task::class)
                     ->modalHeading('Create a new task')
@@ -118,13 +115,11 @@ class AdminPanelProvider extends PanelProvider
                     )
                     ->label('Create a new task')
                     ->icon('heroicon-m-check-circle'),
-                    
             ])
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->profile(Profile::class, isSimple: false)
             //->defaultAvatarProvider(GetAvatarProvider::class)
             ->plugins([
-                //app()->environment('local') ? ArchitectPlugin::make() : MobileBottomNav::make(),                
                 ArchitectPlugin::make(),
                 HexaLite::make(),
                 FilamentCommandPalettePlugin::make(),
@@ -135,20 +130,7 @@ class AdminPanelProvider extends PanelProvider
                     ->pluralLabel('Logs')
                     ->navigationGroup('System')
                     //->cluster('System'), // Optional: Group inside a cluster
-            ])
-           /* ->navigation(function (NavigationBuilder $nav) {
-                return app(NavigationSettingsManager::class)->applyToBuilder($nav);
-            });
-            */
-
-            ->navigationGroups([
-                'All',
-                'Human Resources',
-                'Inventory Management',
-                'Compliance Overview',
-            ]);
-            
-
+            ]);            
     }
 
     public function boot(): void
