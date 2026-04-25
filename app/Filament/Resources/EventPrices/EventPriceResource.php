@@ -21,7 +21,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class EventPriceResource extends Resource
 {
-    protected static ?int $navigationSort = 16;
+    protected static ?int $navigationSort = 17;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Event Management';
     use HasHexaLite;

@@ -22,7 +22,7 @@ class CustomerInvoiceResource extends Resource
 {
     protected static ?int $navigationSort = 2;
     protected static ?string $cluster = FinanceCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
+    protected static string|UnitEnum|null $navigationGroup = 'Overview';
     use HasHexaLite;
 
     protected static ?string $model = CustomerInvoice::class;
