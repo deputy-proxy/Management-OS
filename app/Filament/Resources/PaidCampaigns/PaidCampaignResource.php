@@ -21,7 +21,6 @@ use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class PaidCampaignResource extends Resource
 {
-    protected static ?int $navigationSort = 4;
     protected static ?string $cluster = MarketingCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Content Management';
     use HasHexaLite;

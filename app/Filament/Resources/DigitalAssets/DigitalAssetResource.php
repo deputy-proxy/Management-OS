@@ -18,7 +18,6 @@ use App\Filament\Clusters\General\GeneralCluster;
 class DigitalAssetResource extends Resource
 {
     protected static ?string $cluster = GeneralCluster::class;
-    protected static ?int $navigationSort = 1;
     protected static string|UnitEnum|null $navigationGroup = 'Inventory Management';
     protected static ?string $model = DigitalAsset::class;
 

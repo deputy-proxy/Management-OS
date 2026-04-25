@@ -7,11 +7,9 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Hexters\HexaLite\HasHexaLite;
 use UnitEnum;
-
 class NavigationSettings extends Page
 {
     protected static ?string $cluster = null;
-    protected static ?int $navigationSort = 2;
     protected static string|UnitEnum|null $navigationGroup = 'System';
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Navigation Settings';
@@ -19,142 +17,16 @@ class NavigationSettings extends Page
 
     public array $structure = [];
 
-    use HasHexaLite;
-
-    public function defineGates(): array
-    {
-        return [
-            'navigation-settings.view' => __('Allows viewing the navigation settings'),
-        ];
-    }
-
-    public static function canAccess(): bool
-    {
-        return hexa()->can('navigation-settings.view');
-    }
-
     public function mount(): void
     {
         $manager = app(NavigationSettingsManager::class);
-        $saved   = $manager->get();
 
-        if (! empty($saved)) {
-            $this->structure = $saved;
+        if ($manager->hasSettings()) {
+            $this->structure = $manager->get();
         } else {
-            $this->structure = $this->buildStructureFromPanel();
+            $this->structure = $manager->buildStructureFromPanel();
+            $manager->save($this->structure);
         }
-    }
-
-    protected function buildStructureFromPanel(): array
-    {
-        $panel     = filament()->getCurrentPanel();
-        $resources = $panel->getResources();
-        $pages     = $panel->getPages();
-        $clusters  = $panel->getClusters();
-
-        $grouped = [];
-
-        foreach ($clusters as $clusterClass) {
-            $label = $clusterClass::getNavigationLabel();
-            if (! isset($grouped[$label])) {
-                $grouped[$label] = [
-                    'class'  => $clusterClass,
-                    'groups' => [],
-                ];
-            }
-        }
-
-        if (! isset($grouped['__none__'])) {
-            $grouped['__none__'] = [
-                'class'  => null,
-                'groups' => [],
-            ];
-        }
-
-        foreach ($resources as $resourceClass) {
-            $clusterClass = $resourceClass::getCluster();
-            $clusterKey   = $clusterClass
-                ? $clusterClass::getNavigationLabel()
-                : '__none__';
-
-            $groupLabel = $resourceClass::getNavigationGroup() ?? '__ungrouped__';
-
-            $rawIcon = null;
-            try { $rawIcon = $resourceClass::getNavigationIcon(); } catch (\Throwable) {}
-
-            $icon = (is_string($rawIcon) && str_starts_with($rawIcon, 'heroicon-'))
-                ? $rawIcon
-                : 'heroicon-o-squares-2x2';
-
-            $grouped[$clusterKey]['groups'][$groupLabel][] = [
-                'class' => $resourceClass,
-                'label' => $resourceClass::getNavigationLabel(),
-                'icon'  => $icon,
-                'type'  => 'resource',
-            ];
-        }
-
-        foreach ($pages as $pageClass) {
-            try {
-                if (! $pageClass::shouldRegisterNavigation()) {
-                    continue;
-                }
-            } catch (\Throwable) {
-                continue;
-            }
-
-            $clusterClass = null;
-            try { $clusterClass = $pageClass::getCluster(); } catch (\Throwable) {}
-
-            $clusterKey = $clusterClass
-                ? $clusterClass::getNavigationLabel()
-                : '__none__';
-
-            $groupLabel = null;
-            try { $groupLabel = $pageClass::getNavigationGroup(); } catch (\Throwable) {}
-            $groupLabel = $groupLabel ?? '__ungrouped__';
-
-            $rawIcon = null;
-            try { $rawIcon = $pageClass::getNavigationIcon(); } catch (\Throwable) {}
-
-            $icon = (is_string($rawIcon) && str_starts_with($rawIcon, 'heroicon-'))
-                ? $rawIcon
-                : 'heroicon-o-squares-2x2';
-
-            $label = null;
-            try { $label = $pageClass::getNavigationLabel(); } catch (\Throwable) {}
-            $label = $label ?? $pageClass;
-
-            $grouped[$clusterKey]['groups'][$groupLabel][] = [
-                'class' => $pageClass,
-                'label' => $label,
-                'icon'  => $icon,
-                'type'  => 'page',
-            ];
-        }
-
-        $structure = ['clusters' => []];
-
-        foreach ($grouped as $clusterKey => $clusterData) {
-            $clusterEntry = [
-                'label'  => $clusterKey === '__none__' ? 'General' : $clusterKey,
-                'class'  => $clusterData['class'],
-                'groups' => [],
-            ];
-
-            foreach ($clusterData['groups'] as $groupLabel => $resources) {
-                $clusterEntry['groups'][] = [
-                    'label'     => $groupLabel === '__ungrouped__' ? 'Ungrouped' : $groupLabel,
-                    'resources' => $resources,
-                ];
-            }
-
-            if (! empty($clusterEntry['groups']) || $clusterData['class'] !== null) {
-                $structure['clusters'][] = $clusterEntry;
-            }
-        }
-
-        return $structure;
     }
 
     public function save(): void

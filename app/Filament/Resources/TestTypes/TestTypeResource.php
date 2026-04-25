@@ -23,7 +23,6 @@ class TestTypeResource extends Resource
 {
     use HasHexaLite;
     protected static ?string $cluster = AcademicCluster::class;
-    protected static ?int $navigationSort = 1;
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     protected static ?string $model = TestType::class;
 

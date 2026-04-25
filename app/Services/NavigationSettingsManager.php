@@ -2,9 +2,6 @@
 
 namespace App\Services;
 
-use Filament\Navigation\NavigationBuilder;
-use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Illuminate\Support\Facades\File;
 
 class NavigationSettingsManager
@@ -40,98 +37,6 @@ class NavigationSettingsManager
         if (File::exists($this->path)) {
             File::delete($this->path);
         }
-    }
-
-    public function getResourceMap(): array
-    {
-        $map      = [];
-        $settings = $this->get();
-
-        foreach ($settings['clusters'] ?? [] as $clusterSort => $cluster) {
-            foreach ($cluster['groups'] ?? [] as $groupSort => $group) {
-                foreach ($group['resources'] ?? [] as $resourceSort => $resource) {
-                    $map[$resource['class']] = [
-                        'cluster'       => $cluster['class'] ?? null,
-                        'cluster_label' => $cluster['label'],
-                        'group'         => $group['label'],
-                        'sort'          => $resourceSort,
-                        'cluster_sort'  => $clusterSort,
-                        'group_sort'    => $groupSort,
-                    ];
-                }
-            }
-        }
-
-        return $map;
-    }
-
-    public function applyToBuilder(NavigationBuilder $nav): NavigationBuilder
-    {
-        if (! $this->hasSettings()) {
-            $structure = $this->buildStructureFromPanel();
-            $this->save($structure);
-        }
-
-        $structure = $this->get();
-        $allGroups = [];
-
-        foreach ($structure['clusters'] ?? [] as $cluster) {
-            $clusterLabel = $cluster['label'];
-
-            foreach ($cluster['groups'] ?? [] as $group) {
-                $items = [];
-
-                foreach ($group['resources'] ?? [] as $resource) {
-                    $class = $resource['class'] ?? null;
-
-                    if (! $class || ! class_exists($class)) {
-                        continue;
-                    }
-
-                    try {
-                        $isPage = ($resource['type'] ?? 'resource') === 'page';
-                        $label  = $resource['label'] ?? (method_exists($class, 'getNavigationLabel') ? $class::getNavigationLabel() : $class);
-                        $url    = $class::getUrl();
-
-                        $icon = $resource['icon'] ?? null;
-                        if (! $icon || ! str_starts_with($icon, 'heroicon-')) {
-                            try { $icon = $class::getNavigationIcon(); } catch (\Throwable) {}
-                        }
-                        $icon = (is_string($icon) && str_starts_with($icon, 'heroicon-'))
-                            ? $icon
-                            : 'heroicon-o-squares-2x2';
-
-                        $item = NavigationItem::make($label)
-                            ->url($url)
-                            ->icon($icon);
-
-                        if (! $isPage) {
-                            try {
-                                $item->badge(fn () => $class::getNavigationBadge())
-                                     ->badgeColor(fn () => $class::getNavigationBadgeColor());
-                            } catch (\Throwable) {}
-                        }
-
-                        $items[] = $item;
-
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning("NavigationBuilder: skipped {$class} — " . $e->getMessage());
-                        continue;
-                    }
-                }
-
-                if (! empty($items)) {
-                    $isGeneral     = $clusterLabel === 'General' && $cluster['class'] === null;
-                    $navGroupLabel = $isGeneral
-                        ? $group['label']
-                        : $clusterLabel . ' › ' . $group['label'];
-
-                    $allGroups[] = NavigationGroup::make($navGroupLabel)->items($items);
-                }
-            }
-        }
-
-        return $nav->groups($allGroups);
     }
 
     public function buildStructureFromPanel(): array
@@ -251,18 +156,20 @@ class NavigationSettingsManager
         $appPath = realpath(app_path());
 
         foreach ($structure['clusters'] ?? [] as $cluster) {
-            $clusterClass = $cluster['class'] ?? null;
-            $isGeneral    = $clusterClass === null;
+            $clusterClass     = $cluster['class'] ?? null;
+            $isGeneral        = $clusterClass === null;
+            $clusterSortIndex = 0;
 
             foreach ($cluster['groups'] ?? [] as $group) {
                 $groupLabel  = $group['label'];
                 $isUngrouped = $groupLabel === 'Ungrouped';
 
-                foreach ($group['resources'] ?? [] as $sortIndex => $resource) {
+                foreach ($group['resources'] ?? [] as $resource) {
                     $class = $resource['class'] ?? null;
                     $type  = $resource['type'] ?? 'resource';
 
                     if (! $class || ! class_exists($class)) {
+                        $clusterSortIndex++;
                         continue;
                     }
 
@@ -271,11 +178,13 @@ class NavigationSettingsManager
                         $filePath   = $reflection->getFileName();
 
                         if (! $filePath || ! file_exists($filePath)) {
+                            $clusterSortIndex++;
                             continue;
                         }
 
                         $realFilePath = realpath($filePath);
                         if (! $realFilePath || ! str_starts_with($realFilePath, $appPath)) {
+                            $clusterSortIndex++;
                             continue;
                         }
 
@@ -296,7 +205,7 @@ class NavigationSettingsManager
                         $contents = $this->syncIntProperty(
                             $contents,
                             'navigationSort',
-                            $sortIndex
+                            $clusterSortIndex
                         );
 
                         $contents = $this->syncCluster(
@@ -304,20 +213,26 @@ class NavigationSettingsManager
                             $isGeneral ? null : $clusterClass
                         );
 
-                        if (! $this->isValidPhp($contents)) {
+                        $valid   = $this->isValidPhp($contents);
+                        $changed = $contents !== $original;
+
+                        if (! $valid) {
                             \Illuminate\Support\Facades\Log::error(
                                 "NavigationSync: syntax error after modification, skipping {$class}"
                             );
+                            $clusterSortIndex++;
                             continue;
                         }
 
-                        if ($contents !== $original) {
+                        if ($changed) {
                             file_put_contents($filePath, $contents);
                         }
 
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning("NavigationSync: could not update {$class} — " . $e->getMessage());
                     }
+
+                    $clusterSortIndex++;
                 }
             }
         }
@@ -412,7 +327,6 @@ class NavigationSettingsManager
 
     protected function insertUseStatement(string $contents, string $useStatement): string
     {
-        // Find the last use statement and insert after it
         if (preg_match_all('/^use\s+[^;]+;/m', $contents, $matches, PREG_OFFSET_CAPTURE)) {
             $lastMatch      = end($matches[0]);
             $insertPosition = $lastMatch[1] + strlen($lastMatch[0]);
@@ -422,7 +336,6 @@ class NavigationSettingsManager
                 . substr($contents, $insertPosition);
         }
 
-        // No use statements — insert after namespace
         return preg_replace(
             '/(^namespace\s+[^;]+;)/m',
             "$1\n\n{$useStatement}",

@@ -30,7 +30,6 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Users;
-    protected static ?int $navigationSort = 0;
 
     protected static ?string $recordTitleAttribute = 'name';
 

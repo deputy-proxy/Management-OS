@@ -20,7 +20,6 @@ use UnitEnum;
 use App\Filament\Clusters\Finance\FinanceCluster;
 class CustomerInteractionResource extends Resource
 {
-    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = FinanceCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
     use HasHexaLite;

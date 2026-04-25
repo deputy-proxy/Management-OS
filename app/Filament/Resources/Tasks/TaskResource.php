@@ -22,8 +22,6 @@ use App\Filament\Clusters\Operations\OperationsCluster;
 class TaskResource extends Resource
 {
     use HasHexaLite;
-
-    protected static ?int $navigationSort = 2;
     protected static ?string $cluster = OperationsCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Project Management';
     protected static ?string $model = Task::class;

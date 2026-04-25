@@ -21,10 +21,7 @@ use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
 class EmployeeContractResource extends Resource
 {
-    protected static ?int $navigationSort = 1;
-
     protected static ?string $cluster = GeneralCluster::class;
-
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;
 

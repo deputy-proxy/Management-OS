@@ -18,7 +18,6 @@ use App\Filament\Clusters\Operations\OperationsCluster;
 class MeetingResource extends Resource
 {
     protected static ?string $cluster = OperationsCluster::class;
-    protected static ?int $navigationSort = 0;
     protected static string|UnitEnum|null $navigationGroup = 'Meetings';
     protected static ?string $model = Meeting::class;
 

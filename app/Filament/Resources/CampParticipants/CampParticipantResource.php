@@ -18,7 +18,6 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class CampParticipantResource extends Resource
 {
     protected static ?string $cluster = PortfolioCluster::class;
-    protected static ?int $navigationSort = 1;
     protected static string|UnitEnum|null $navigationGroup = 'Camp Management';
     protected static ?string $model = CampParticipant::class;
 

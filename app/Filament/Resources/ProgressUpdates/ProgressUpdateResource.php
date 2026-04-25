@@ -21,7 +21,6 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 
 class ProgressUpdateResource extends Resource
 {
-    protected static ?int $navigationSort = 4;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Students Management';
     use HasHexaLite;
