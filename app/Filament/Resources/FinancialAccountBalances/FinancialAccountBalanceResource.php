@@ -21,7 +21,7 @@ use App\Filament\Clusters\Finance\FinanceCluster;
 
 class FinancialAccountBalanceResource extends Resource
 {
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
     protected static ?string $cluster = FinanceCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Treasurery & Tax';
     use HasHexaLite;

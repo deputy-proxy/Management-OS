@@ -6,39 +6,6 @@ use Illuminate\Support\Facades\File;
 
 class NavigationSettingsManager
 {
-    protected string $path;
-
-    public function __construct()
-    {
-        $this->path = storage_path('app/navigation.json');
-    }
-
-    public function get(): array
-    {
-        if (! File::exists($this->path)) {
-            return [];
-        }
-
-        return json_decode(File::get($this->path), true) ?? [];
-    }
-
-    public function save(array $settings): void
-    {
-        File::put($this->path, json_encode($settings, JSON_PRETTY_PRINT));
-    }
-
-    public function hasSettings(): bool
-    {
-        return File::exists($this->path) && ! empty($this->get());
-    }
-
-    public function reset(): void
-    {
-        if (File::exists($this->path)) {
-            File::delete($this->path);
-        }
-    }
-
     public function buildStructureFromPanel(): array
     {
         $panel     = filament()->getCurrentPanel();
@@ -66,6 +33,10 @@ class NavigationSettingsManager
         }
 
         foreach ($resources as $resourceClass) {
+            if (is_subclass_of($resourceClass, \Filament\Clusters\Cluster::class)) {
+                continue;
+            }
+
             $clusterClass = $resourceClass::getCluster();
             $clusterKey   = $clusterClass
                 ? $clusterClass::getNavigationLabel()
@@ -75,20 +46,27 @@ class NavigationSettingsManager
 
             $rawIcon = null;
             try { $rawIcon = $resourceClass::getNavigationIcon(); } catch (\Throwable) {}
-
             $icon = (is_string($rawIcon) && str_starts_with($rawIcon, 'heroicon-'))
                 ? $rawIcon
                 : 'heroicon-o-squares-2x2';
+
+            $sort = 0;
+            try { $sort = $resourceClass::getNavigationSort() ?? 0; } catch (\Throwable) {}
 
             $grouped[$clusterKey]['groups'][$groupLabel][] = [
                 'class' => $resourceClass,
                 'label' => $resourceClass::getNavigationLabel(),
                 'icon'  => $icon,
                 'type'  => 'resource',
+                'sort'  => $sort,
             ];
         }
 
         foreach ($pages as $pageClass) {
+            if (is_subclass_of($pageClass, \Filament\Clusters\Cluster::class)) {
+                continue;
+            }
+
             try {
                 if (! $pageClass::shouldRegisterNavigation()) {
                     continue;
@@ -110,7 +88,6 @@ class NavigationSettingsManager
 
             $rawIcon = null;
             try { $rawIcon = $pageClass::getNavigationIcon(); } catch (\Throwable) {}
-
             $icon = (is_string($rawIcon) && str_starts_with($rawIcon, 'heroicon-'))
                 ? $rawIcon
                 : 'heroicon-o-squares-2x2';
@@ -119,11 +96,15 @@ class NavigationSettingsManager
             try { $label = $pageClass::getNavigationLabel(); } catch (\Throwable) {}
             $label = $label ?? $pageClass;
 
+            $sort = 0;
+            try { $sort = $pageClass::getNavigationSort() ?? 0; } catch (\Throwable) {}
+
             $grouped[$clusterKey]['groups'][$groupLabel][] = [
                 'class' => $pageClass,
                 'label' => $label,
                 'icon'  => $icon,
                 'type'  => 'page',
+                'sort'  => $sort,
             ];
         }
 
@@ -137,6 +118,9 @@ class NavigationSettingsManager
             ];
 
             foreach ($clusterData['groups'] as $groupLabel => $resources) {
+                // Sort resources by their navigationSort value
+                usort($resources, fn ($a, $b) => $a['sort'] <=> $b['sort']);
+
                 $clusterEntry['groups'][] = [
                     'label'     => $groupLabel === '__ungrouped__' ? 'Ungrouped' : $groupLabel,
                     'resources' => $resources,
@@ -213,10 +197,7 @@ class NavigationSettingsManager
                             $isGeneral ? null : $clusterClass
                         );
 
-                        $valid   = $this->isValidPhp($contents);
-                        $changed = $contents !== $original;
-
-                        if (! $valid) {
+                        if (! $this->isValidPhp($contents)) {
                             \Illuminate\Support\Facades\Log::error(
                                 "NavigationSync: syntax error after modification, skipping {$class}"
                             );
@@ -224,7 +205,7 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        if ($changed) {
+                        if ($contents !== $original) {
                             file_put_contents($filePath, $contents);
                         }
 

@@ -8,7 +8,7 @@ use UnitEnum;
 
 class ContentManagement extends Page
 {
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 10;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.marketing.pages.content-management';
     protected static ?string $cluster = MarketingCluster::class;

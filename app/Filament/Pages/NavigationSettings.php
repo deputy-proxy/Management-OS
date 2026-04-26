@@ -20,21 +20,16 @@ class NavigationSettings extends Page
 
     public function mount(): void
     {
-        $manager = app(NavigationSettingsManager::class);
-
-        if ($manager->hasSettings()) {
-            $this->structure = $manager->get();
-        } else {
-            $this->structure = $manager->buildStructureFromPanel();
-            $manager->save($this->structure);
-        }
+        $this->structure = app(NavigationSettingsManager::class)->buildStructureFromPanel();
     }
 
     public function save(): void
     {
         $manager = app(NavigationSettingsManager::class);
-        $manager->save($this->structure);
         $manager->syncToPhpFiles($this->structure);
+
+        // Reload from panel so UI reflects what was actually written
+        $this->structure = $manager->buildStructureFromPanel();
 
         Notification::make()
             ->title('Navigation settings saved')
