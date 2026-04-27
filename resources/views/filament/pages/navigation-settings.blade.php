@@ -69,7 +69,7 @@
 
                             {{-- Resources (drag and drop zone) --}}
                             <div
-                                class="ml-6 space-y-1 min-h-[2rem] rounded-lg transition-colors"
+                                class="ml-6 space-y-1 min-h-8 rounded-lg transition-colors"
                                 :class="dragTarget === `${ci}:${gi}` ? 'bg-primary-50 dark:bg-primary-900/20 ring-2 ring-primary-400' : ''"
                                 @dragover.prevent="dragTarget = `${ci}:${gi}`"
                                 @dragleave="dragTarget = null"
@@ -132,7 +132,7 @@
                                         <select
                                             :value="`${ci}:${gi}`"
                                             @change="moveResource(ci, gi, ri, $event.target.value); $event.target.value = `${ci}:${gi}`"
-                                            class="text-xs bg-transparent border-none focus:ring-0 text-gray-400 cursor-pointer max-w-[120px]"
+                                            class="text-xs bg-transparent border-none focus:ring-0 text-gray-400 cursor-pointer max-w-30"
                                         >
                                             <template x-for="(tc, tci) in structure.clusters" :key="tci">
                                                 <template x-for="(tg, tgi) in tc.groups" :key="tgi">
