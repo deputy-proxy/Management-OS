@@ -22,7 +22,7 @@ use App\Filament\Resources\TestSubmissionResource\RelationManagers\AnswersRelati
 
 class TestSubmissionResource extends Resource
 {
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 14;
     protected static ?string $cluster = AcademicCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     use HasHexaLite;
