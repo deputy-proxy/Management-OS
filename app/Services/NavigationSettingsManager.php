@@ -232,18 +232,7 @@ class NavigationSettingsManager
                             $isGeneral ? null : $clusterClass
                         );
 
-                        $valid   = $this->isValidPhp($contents);
-                        $changed = $contents !== $original;
-
-                        \Illuminate\Support\Facades\Log::info("NavigationSync: processed {$class}", [
-                            'sortIndex' => $clusterSortIndex,
-                            'group'     => $groupLabel,
-                            'cluster'   => $clusterClass,
-                            'changed'   => $changed,
-                            'valid'     => $valid,
-                        ]);
-
-                        if (! $valid) {
+                        if (! $this->isValidPhp($contents)) {
                             \Illuminate\Support\Facades\Log::error(
                                 "NavigationSync: syntax error after modification, skipping {$class}"
                             );
@@ -251,16 +240,8 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        if ($changed) {
-                            \Illuminate\Support\Facades\Log::info("NavigationSync: WRITING {$class}", [
-                                'sortIndex' => $clusterSortIndex,
-                                'path'      => $filePath,
-                            ]);
+                        if ($contents !== $original) {
                             file_put_contents($filePath, $contents);
-                        } else {
-                            \Illuminate\Support\Facades\Log::info("NavigationSync: NO CHANGE {$class}", [
-                                'sortIndex' => $clusterSortIndex,
-                            ]);
                         }
 
                     } catch (\Throwable $e) {

@@ -33,12 +33,6 @@ class NavigationSettings extends Page
 
     public function save(): void
     {
-        \Illuminate\Support\Facades\Log::info('Structure on save - first cluster first group resources:', [
-            'resources' => collect($this->structure['clusters'][0]['groups'][0]['resources'] ?? [])
-                ->map(fn ($r) => ['label' => $r['label']])
-                ->toArray(),
-        ]);
-
         $manager = app(NavigationSettingsManager::class);
         $manager->syncToPhpFiles($this->structure);
         $manager->saveUiCache($this->structure);
