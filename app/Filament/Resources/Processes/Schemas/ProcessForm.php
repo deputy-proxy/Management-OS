@@ -10,7 +10,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Hexters\HexaLite\Models\HexaRole; // <-- Hexa Lite's Role model
+use Hexters\HexaLite\Models\HexaRole;
 
 class ProcessForm
 {
@@ -21,8 +21,6 @@ class ProcessForm
                 Forms\Components\TextInput::make('title')
                     ->required(),
                 Forms\Components\Textarea::make('description')
-                    ->required(),
-                Forms\Components\KeyValue::make('steps')
                     ->required(),
                 Forms\Components\Select::make('owner_id')
                     ->relationship('owner', 'full_name')
