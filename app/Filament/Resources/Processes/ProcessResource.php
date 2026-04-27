@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
 class ProcessResource extends Resource
 {
-    protected static ?int $navigationSort = 13;
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
     use HasHexaLite;

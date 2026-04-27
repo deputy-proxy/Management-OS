@@ -21,6 +21,7 @@ return [
     'navigation' => [
         'label' => 'Role & Permissions',
         'group' => 'System',
+        'order'  => '4'
     ],
 
 ];

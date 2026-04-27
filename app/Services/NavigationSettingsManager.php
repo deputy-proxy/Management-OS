@@ -6,6 +6,34 @@ use Illuminate\Support\Facades\File;
 
 class NavigationSettingsManager
 {
+    protected string $uiCachePath;
+
+    public function __construct()
+    {
+        $this->uiCachePath = storage_path('app/navigation-ui-cache.json');
+    }
+
+    public function getUiCache(): array
+    {
+        if (! File::exists($this->uiCachePath)) {
+            return [];
+        }
+
+        return json_decode(File::get($this->uiCachePath), true) ?? [];
+    }
+
+    public function saveUiCache(array $structure): void
+    {
+        File::put($this->uiCachePath, json_encode($structure, JSON_PRETTY_PRINT));
+    }
+
+    public function clearUiCache(): void
+    {
+        if (File::exists($this->uiCachePath)) {
+            File::delete($this->uiCachePath);
+        }
+    }
+
     public function buildStructureFromPanel(): array
     {
         $panel     = filament()->getCurrentPanel();
@@ -51,14 +79,17 @@ class NavigationSettingsManager
                 : 'heroicon-o-squares-2x2';
 
             $sort = 0;
-            try { $sort = $resourceClass::getNavigationSort() ?? 0; } catch (\Throwable) {}
+            try {
+                $ref  = new \ReflectionClass($resourceClass);
+                $sort = $ref->getStaticPropertyValue('navigationSort') ?? 0;
+            } catch (\Throwable) {}
 
             $grouped[$clusterKey]['groups'][$groupLabel][] = [
                 'class' => $resourceClass,
                 'label' => $resourceClass::getNavigationLabel(),
                 'icon'  => $icon,
                 'type'  => 'resource',
-                'sort'  => $sort,
+                'sort'  => (int) $sort,
             ];
         }
 
@@ -97,14 +128,17 @@ class NavigationSettingsManager
             $label = $label ?? $pageClass;
 
             $sort = 0;
-            try { $sort = $pageClass::getNavigationSort() ?? 0; } catch (\Throwable) {}
+            try {
+                $ref  = new \ReflectionClass($pageClass);
+                $sort = $ref->getStaticPropertyValue('navigationSort') ?? 0;
+            } catch (\Throwable) {}
 
             $grouped[$clusterKey]['groups'][$groupLabel][] = [
                 'class' => $pageClass,
                 'label' => $label,
                 'icon'  => $icon,
                 'type'  => 'page',
-                'sort'  => $sort,
+                'sort'  => (int) $sort,
             ];
         }
 
@@ -118,12 +152,13 @@ class NavigationSettingsManager
             ];
 
             foreach ($clusterData['groups'] as $groupLabel => $resources) {
-                // Sort resources by their navigationSort value
-                usort($resources, fn ($a, $b) => $a['sort'] <=> $b['sort']);
+                $indexed = array_map(null, $resources, array_keys($resources));
+                usort($indexed, fn ($a, $b) => ($a[0]['sort'] ?? 0) <=> ($b[0]['sort'] ?? 0));
+                $sorted = array_column($indexed, 0);
 
                 $clusterEntry['groups'][] = [
                     'label'     => $groupLabel === '__ungrouped__' ? 'Ungrouped' : $groupLabel,
-                    'resources' => $resources,
+                    'resources' => $sorted,
                 ];
             }
 
@@ -197,7 +232,18 @@ class NavigationSettingsManager
                             $isGeneral ? null : $clusterClass
                         );
 
-                        if (! $this->isValidPhp($contents)) {
+                        $valid   = $this->isValidPhp($contents);
+                        $changed = $contents !== $original;
+
+                        \Illuminate\Support\Facades\Log::info("NavigationSync: processed {$class}", [
+                            'sortIndex' => $clusterSortIndex,
+                            'group'     => $groupLabel,
+                            'cluster'   => $clusterClass,
+                            'changed'   => $changed,
+                            'valid'     => $valid,
+                        ]);
+
+                        if (! $valid) {
                             \Illuminate\Support\Facades\Log::error(
                                 "NavigationSync: syntax error after modification, skipping {$class}"
                             );
@@ -205,8 +251,16 @@ class NavigationSettingsManager
                             continue;
                         }
 
-                        if ($contents !== $original) {
+                        if ($changed) {
+                            \Illuminate\Support\Facades\Log::info("NavigationSync: WRITING {$class}", [
+                                'sortIndex' => $clusterSortIndex,
+                                'path'      => $filePath,
+                            ]);
                             file_put_contents($filePath, $contents);
+                        } else {
+                            \Illuminate\Support\Facades\Log::info("NavigationSync: NO CHANGE {$class}", [
+                                'sortIndex' => $clusterSortIndex,
+                            ]);
                         }
 
                     } catch (\Throwable $e) {

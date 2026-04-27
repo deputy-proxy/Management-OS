@@ -4,13 +4,15 @@
         class="space-y-6"
     >
         {{-- Save button --}}
-        <div class="flex justify-end">
-            <x-filament::button
-                wire:click="save"
-                icon="heroicon-o-check"
-            >
-                Save Navigation
-            </x-filament::button>
+        <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2">
+                <x-filament::button
+                    icon="heroicon-o-check"
+                    @click.prevent="$wire.set('structure', structure).then(() => $wire.call('save'))"
+                >
+                    Save Navigation
+                </x-filament::button>
+            </div>
         </div>
 
         {{-- Cluster list --}}
@@ -24,7 +26,6 @@
                     <input
                         type="text"
                         x-model="cluster.label"
-                        @change="renameCluster(ci, cluster.label)"
                         class="flex-1 bg-transparent font-semibold text-gray-800 dark:text-gray-100 border-none focus:ring-0 focus:outline-none text-sm"
                     />
 
@@ -50,7 +51,6 @@
                                 <input
                                     type="text"
                                     x-model="group.label"
-                                    @change="renameGroup(ci, gi, group.label)"
                                     class="flex-1 bg-transparent text-sm font-medium text-gray-600 dark:text-gray-300 border-none focus:ring-0 focus:outline-none"
                                 />
 
@@ -187,18 +187,17 @@
             },
 
             renameCluster(ci, label) {
-                @this.renameCluster(ci, label);
+                this.structure.clusters[ci].label = label;
             },
 
             renameGroup(ci, gi, label) {
-                @this.renameGroup(ci, gi, label);
+                this.structure.clusters[ci].groups[gi].label = label;
             },
 
             addGroup(ci) {
                 const label = prompt('Group name:', 'New Group');
                 if (! label) return;
                 this.structure.clusters[ci].groups.push({ label, resources: [] });
-                @this.addGroup(ci, label);
             },
 
             removeGroup(ci, gi) {
@@ -207,7 +206,6 @@
                     if (! confirm(`"${group.label}" still has ${group.resources.length} item(s). Remove anyway? Items will be lost.`)) return;
                 }
                 this.structure.clusters[ci].groups.splice(gi, 1);
-                @this.removeGroup(ci, gi);
             },
 
             moveClusters(ci, dir) {
@@ -215,7 +213,6 @@
                 const target = ci + dir;
                 if (target < 0 || target >= clusters.length) return;
                 [clusters[ci], clusters[target]] = [clusters[target], clusters[ci]];
-                @this.reorderClusters(clusters.map((_, i) => i));
             },
 
             moveGroup(ci, gi, dir) {
@@ -223,7 +220,6 @@
                 const target = gi + dir;
                 if (target < 0 || target >= groups.length) return;
                 [groups[gi], groups[target]] = [groups[target], groups[gi]];
-                @this.reorderGroups(ci, groups.map((_, i) => i));
             },
 
             moveItem(ci, gi, ri, dir) {
@@ -231,7 +227,6 @@
                 const target = ri + dir;
                 if (target < 0 || target >= resources.length) return;
                 [resources[ri], resources[target]] = [resources[target], resources[ri]];
-                @this.swapResources(ci, gi, ri, target);
             },
 
             moveResource(fromCi, fromGi, ri, destination) {
@@ -241,7 +236,6 @@
                 const resource = this.structure.clusters[fromCi].groups[fromGi].resources[ri];
                 this.structure.clusters[fromCi].groups[fromGi].resources.splice(ri, 1);
                 this.structure.clusters[tci].groups[tgi].resources.push(resource);
-                @this.moveResource(fromCi, fromGi, ri, tci, tgi);
             },
 
             onDragStart(ci, gi, ri, event) {
@@ -262,7 +256,6 @@
                 const resource = this.structure.clusters[ci].groups[gi].resources[ri];
                 this.structure.clusters[ci].groups[gi].resources.splice(ri, 1);
                 this.structure.clusters[tci].groups[tgi].resources.push(resource);
-                @this.moveResource(ci, gi, ri, tci, tgi);
                 this.dragging = null;
             },
         }

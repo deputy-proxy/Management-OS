@@ -17,9 +17,9 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductResourceAllocationResource extends Resource
 {
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 19;
     protected static ?string $cluster = PortfolioCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'Overview';
+    protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductResourceAllocation::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

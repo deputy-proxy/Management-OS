@@ -21,9 +21,9 @@ use App\Filament\Clusters\Finance\FinanceCluster;
 
 class CustomerResource extends Resource
 {
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
     protected static ?string $cluster = FinanceCluster::class;
-    protected static string|UnitEnum|null $navigationGroup = 'Overview';
+    protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
     use HasHexaLite;
 
     protected static ?string $model = Customer::class;
