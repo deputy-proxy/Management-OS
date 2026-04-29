@@ -34,6 +34,10 @@ class EmployeeResource extends Resource
     {
         return ['employee.index' => __('Allows viewing the employee list'), 'employee.create' => __('Allows creating a new employee'), 'employee.update' => __('Allows updating employees'), 'employee.delete' => __('Allows deleting employees')];
     }
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Schema $schema): Schema
     {

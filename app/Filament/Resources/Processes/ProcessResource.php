@@ -32,6 +32,10 @@ class ProcessResource extends Resource
     {
         return [ActivitiesRelationManager::class, 'process.index' => __('Allows viewing the process list'), 'process.create' => __('Allows creating a new process'), 'process.update' => __('Allows updating processs'), 'process.delete' => __('Allows deleting processs')];
     }
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Schema $schema): Schema
     {
