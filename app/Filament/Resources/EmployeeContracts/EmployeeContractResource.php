@@ -19,6 +19,8 @@ use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Support\Carbon;
+
 class EmployeeContractResource extends Resource
 {
     protected static ?int $navigationSort = 6;
@@ -33,6 +35,47 @@ class EmployeeContractResource extends Resource
     public function defineGates(): array
     {
         return ['employee_contract.index' => __('Allows viewing the employee contract list'), 'employee_contract.create' => __('Allows creating a new employee contract'), 'employee_contract.update' => __('Allows updating employee contracts'), 'employee_contract.delete' => __('Allows deleting employee contracts')];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::query()
+            ->whereBetween('end_date', [
+                Carbon::today(),
+                Carbon::today()->addMonths(3),
+            ])
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $count = static::getModel()::query()
+            ->whereBetween('end_date', [
+                Carbon::today(),
+                Carbon::today()->addMonths(3),
+            ])
+            ->count();
+
+        // Red if expiring within 1 month, orange if within 3 months
+        $expiringWithinMonth = static::getModel()::query()
+            ->whereBetween('end_date', [
+                Carbon::today(),
+                Carbon::today()->addMonth(),
+            ])
+            ->count();
+
+        if ($expiringWithinMonth > 0) {
+            return 'danger';
+        }
+
+        return $count > 0 ? 'warning' : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Contracts expiring in the next 3 months';
     }
 
     public static function form(Schema $schema): Schema
