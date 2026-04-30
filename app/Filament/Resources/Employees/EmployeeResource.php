@@ -44,6 +44,11 @@ class EmployeeResource extends Resource
         return 'success';
     }
 
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of employees';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return EmployeeForm::configure($schema);
