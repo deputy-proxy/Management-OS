@@ -12,9 +12,14 @@ use App\Filament\Resources\ProductPrices\Schemas\ProductPriceInfolist;
 use App\Filament\Resources\ProductPrices\Tables\ProductPricesTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
+use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductPriceResource extends Resource
 {
+    protected static ?int $navigationSort = 17;
+    protected static ?string $cluster = PortfolioCluster::class;
+    protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductPrice::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
