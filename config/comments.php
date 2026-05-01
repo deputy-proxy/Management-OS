@@ -63,7 +63,7 @@ return [
     ],
 
     'notifications' => [
-        'channels' => ['database, mail'],
+        'channels' => ['database'],
         'enabled' => true,
     ],
 
