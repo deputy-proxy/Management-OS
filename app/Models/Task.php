@@ -11,6 +11,8 @@ use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Support\Facades\Auth;
+
 
 class Task extends Model implements Commentable
 {
@@ -23,6 +25,15 @@ class Task extends Model implements Commentable
     protected $fillable = ['action', 'description', 'assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type', 'created_by'];
     protected $casts = ['due_date' => 'date'];
 
+    public static function boot()
+ 	{
+ 	 	parent::boot();
+ 
+ 	 	static::creating(function($model)
+ 	 	{
+ 	 	 	$model->created_by=Auth::id();
+ 	 	});
+ 	}
     public function taskable(): MorphTo
     {
         return $this->morphTo();
