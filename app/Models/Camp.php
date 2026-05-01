@@ -14,12 +14,7 @@ class Camp extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'location', 'start_on', 'end_on', 'camp_price', 'camp_price_id'];
-
-    public function campPrice(): BelongsTo
-    {
-        return $this->belongsTo(CampPrice::class);
-    }
+    protected $fillable = ['title', 'description', 'location', 'start_on', 'end_on'];
 
     public function product(): MorphOne
     {

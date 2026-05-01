@@ -20,9 +20,6 @@ class CampForm
                     ->required(),
                 Forms\Components\DatePicker::make('end_on')
                     ->required(),
-                Forms\Components\Select::make('camp_price_id')
-                    ->relationship('campPrice', 'id')
-                    ->required()
             ]);
     }
 }
