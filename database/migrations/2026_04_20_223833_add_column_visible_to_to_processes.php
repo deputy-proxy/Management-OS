@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('processes', function (Blueprint $table) {
-            $table->json('visibile_to')->after('main_topic');
+            $table->json('visible_to')->after('main_topic');
         });
     }
 
     public function down(): void
     {
         Schema::table('processes', function (Blueprint $table) {
-            $table->dropColumn('visibile_to');
+            $table->dropColumn('visible_to');
         });
     }
 };

@@ -21,7 +21,7 @@ class Process extends Model implements Commentable
     use HasTasks;
 
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id', 'main_topic', 'visibile_to'];
+    protected $fillable = ['title', 'description', 'steps', 'owner', 'owner_id', 'main_topic', 'visible_to'];
     protected function casts(): array
     {
         return [
