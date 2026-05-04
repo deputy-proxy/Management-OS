@@ -20,19 +20,24 @@ class LegalDocumentForm
                     ->required()
                     ->options([
                         'Third party permission' => [
-                            'authorization' => 'Authorization',
+                            'Authorization' => 'Authorization',
                         ],
                         'Proof of fact or status' => [
-                            'certificate' => 'Certificate',
+                            'Certificate' => 'Certificate',
                         ],
                         'Legal permission for a specific activity' => [
-                            'permit' => 'Permit',
+                            'Permit' => 'Permit',
                         ],
                     ]),
                 Forms\Components\DatePicker::make('expiration_date')
                     ->required(),
-                Forms\Components\TextInput::make('physical_location')
-                    ->required(),
+                Select::make('physical_location')
+                    ->required()
+                    ->options([
+                        'Office' => 'Office',
+                        'Warehouse' => 'Warehouse',
+                        'Other' => 'Other location',
+                    ]),
                 FileUpload::make('document')
                     ->preserveFilenames()
                     ->downloadable()
