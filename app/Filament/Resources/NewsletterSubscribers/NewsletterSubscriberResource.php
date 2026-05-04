@@ -21,7 +21,7 @@ use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class NewsletterSubscriberResource extends Resource
 {
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 2;
     protected static ?string $cluster = MarketingCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Content Management';
     use HasHexaLite;

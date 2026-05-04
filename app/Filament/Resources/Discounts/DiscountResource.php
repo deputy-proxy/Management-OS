@@ -21,7 +21,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class DiscountResource extends Resource
 {
-    protected static ?int $navigationSort = 17;
+    protected static ?int $navigationSort = 8;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     use HasHexaLite;

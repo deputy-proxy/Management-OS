@@ -17,7 +17,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductPriceResource extends Resource
 {
-    protected static ?int $navigationSort = 17;
+    protected static ?int $navigationSort = 9;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductPrice::class;

@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
 
 class EmployeeContractResource extends Resource
 {
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 5;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;
