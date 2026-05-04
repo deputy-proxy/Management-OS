@@ -29,6 +29,21 @@ class PhysicalAssetResource extends Resource
         return PhysicalAssetForm::configure($schema);
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'success';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of physical assets';
+    }
+
     public static function infolist(Schema $schema): Schema
     {
         return PhysicalAssetInfolist::configure($schema);
