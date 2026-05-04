@@ -21,7 +21,7 @@ use App\Filament\Clusters\General\GeneralCluster;
 
 class QuarterlyObjectiveResource extends Resource
 {
-    protected static ?int $navigationSort = 13;
+    protected static ?int $navigationSort = 14;
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;

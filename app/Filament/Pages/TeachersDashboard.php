@@ -8,7 +8,7 @@ use UnitEnum;
 
 class TeachersDashboard extends Page
 {
-    protected static ?int $navigationSort = 14;
+    protected static ?int $navigationSort = 1;
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
     protected string $view = 'filament.clusters.academic.pages.teachers-dashboard';
     protected static ?string $cluster = AcademicCluster::class;

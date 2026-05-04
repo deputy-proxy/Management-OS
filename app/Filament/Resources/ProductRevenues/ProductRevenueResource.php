@@ -17,7 +17,7 @@ use App\Filament\Clusters\Portfolio\PortfolioCluster;
 
 class ProductRevenueResource extends Resource
 {
-    protected static ?int $navigationSort = 13;
+    protected static ?int $navigationSort = 14;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductRevenue::class;

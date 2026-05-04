@@ -20,7 +20,7 @@ use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
 class CourseMaterialResource extends Resource
 {
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Course Management';
     use HasHexaLite;

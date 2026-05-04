@@ -21,7 +21,7 @@ use App\Filament\Clusters\Marketing\MarketingCluster;
 
 class ContentTemplateResource extends Resource
 {
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
     protected static ?string $cluster = MarketingCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Content Management';
     use HasHexaLite;
