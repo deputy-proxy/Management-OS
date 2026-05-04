@@ -18,6 +18,7 @@ use Hexters\HexaLite\HasHexaLite;
 use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Support\Carbon;
 
 class LegalDocumentResource extends Resource
 {
@@ -38,6 +39,47 @@ class LegalDocumentResource extends Resource
             'legal_document.update' => __('Allows updating legal documents'),
             'legal_document.delete' => __('Allows deleting legal documents'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::query()
+            ->whereBetween('expiration_date', [
+                Carbon::today(),
+                Carbon::today()->addMonths(3),
+            ])
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $count = static::getModel()::query()
+            ->whereBetween('expiration_date', [
+                Carbon::today(),
+                Carbon::today()->addMonths(3),
+            ])
+            ->count();
+
+        // Red if expiring within 1 month, orange if within 3 months
+        $expiringWithinMonth = static::getModel()::query()
+            ->whereBetween('expiration_date', [
+                Carbon::today(),
+                Carbon::today()->addMonth(),
+            ])
+            ->count();
+
+        if ($expiringWithinMonth > 0) {
+            return 'danger';
+        }
+
+        return $count > 0 ? 'warning' : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of legal documents expiring in the next 3 months';
     }
 
     public static function form(Schema $schema): Schema
