@@ -37,6 +37,16 @@ class ProcessResource extends Resource
         return static::getModel()::count();
     }
 
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'success';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of defined processes';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ProcessForm::configure($schema);
