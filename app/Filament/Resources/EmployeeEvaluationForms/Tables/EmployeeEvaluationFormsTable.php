@@ -21,6 +21,9 @@ class EmployeeEvaluationFormsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('criteria')
+                    ->label('Criteria')
+                    ->getStateUsing(fn ($record) => count($record->criteria ?? []))
+                    ->formatStateUsing(fn ($state) => $state . ' ' . ($state === 1 ? 'criterion' : 'criteria')),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
