@@ -12,6 +12,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use App\Models\EmployeeEvaluationForm as EvaluationFormModel;
+use Filament\Schemas\Components\Section;
 
 class EmployeeEvaluationForm
 {
@@ -20,138 +21,151 @@ class EmployeeEvaluationForm
         return $schema
             ->components([
 
-                Forms\Components\Select::make('employee_id')
-                    ->relationship('employee', 'full_name')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
+                Section::make('Evaluation Setup')
+                    ->description('Who is being evaluated, by whom, and using which template.')
+                    ->schema([
+                        Forms\Components\Select::make('employee_id')
+                            ->relationship('employee', 'full_name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
 
-                Forms\Components\Select::make('performed_by')
-                    ->relationship('performedBy', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->label('Performed By')
-                    ->required(),
+                        Forms\Components\Select::make('performed_by')
+                            ->relationship('performedBy', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->label('Performed By')
+                            ->required(),
 
-                Forms\Components\Select::make('employee_evaluation_form_id')
-                    ->relationship('employeeEvaluationForm', 'id')
-                    ->getOptionLabelFromRecordUsing(
-                        fn ($record) => $record->jobDescription->job_title ?? "Form #{$record->id}"
-                    )
-                    ->searchable()
-                    ->preload()
-                    ->label('Evaluation Form Template')
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function (Get $get, Set $set) {
-                        $formId = $get('employee_evaluation_form_id');
+                        Forms\Components\Select::make('employee_evaluation_form_id')
+                            ->relationship('employeeEvaluationForm', 'id')
+                            ->getOptionLabelFromRecordUsing(
+                                fn ($record) => $record->jobDescription->job_title ?? "Form #{$record->id}"
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->label('Evaluation Form Template')
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $formId = $get('employee_evaluation_form_id');
 
-                        if (!$formId) {
-                            $set('criteria', []);
-                            return;
-                        }
+                                if (!$formId) {
+                                    $set('criteria', []);
+                                    return;
+                                }
 
-                        $template = EvaluationFormModel::with('jobDescription')->find($formId);
+                                $template = EvaluationFormModel::with('jobDescription')->find($formId);
 
-                        if (!$template || empty($template->criteria)) {
-                            $set('criteria', []);
-                            return;
-                        }
+                                if (!$template || empty($template->criteria)) {
+                                    $set('criteria', []);
+                                    return;
+                                }
 
-                        // Map template blocks into repeater rows for scoring
-                        $rows = collect($template->criteria)->map(function ($block) {
-                            return [
-                                'type'        => $block['type'],
-                                'label'       => $block['data']['label'] ?? $block['data']['question'] ?? null,
-                                'description' => $block['data']['description'] ?? null,
-                                'weight'      => $block['data']['weight'] ?? null,
-                                'score'       => null,
-                                'answer'      => null,
-                                'notes'       => null,
-                            ];
-                        })->toArray();
+                                $rows = collect($template->criteria)->map(function ($block) {
+                                    return [
+                                        'type'        => $block['type'],
+                                        'label'       => $block['data']['label'] ?? $block['data']['question'] ?? null,
+                                        'description' => $block['data']['description'] ?? null,
+                                        'weight'      => $block['data']['weight'] ?? null,
+                                        'score'       => null,
+                                        'answer'      => null,
+                                        'notes'       => null,
+                                    ];
+                                })->toArray();
 
-                        $set('criteria', $rows);
-                    }),
-
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'draft'      => 'Draft',
-                        'in_progress' => 'In Progress',
-                        'submitted'  => 'Submitted',
-                        'approved'   => 'Approved',
+                                $set('criteria', $rows);
+                            })
+                            ->columnSpanFull(),
                     ])
-                    ->default('draft')
-                    ->required(),
+                    ->columns(2),
 
-                Forms\Components\DatePicker::make('due_by')
-                    ->required(),
+                Section::make('Status & Dates')
+                    ->description('Track the progress and timeline of this evaluation.')
+                    ->schema([
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'draft'       => 'Draft',
+                                'in_progress' => 'In Progress',
+                                'submitted'   => 'Submitted',
+                                'approved'    => 'Approved',
+                            ])
+                            ->default('draft')
+                            ->required(),
 
-                Forms\Components\DatePicker::make('performed_on'),
+                        Forms\Components\DatePicker::make('due_by')
+                            ->required(),
 
-                Repeater::make('criteria')
-    ->label('Evaluation Responses')
-    ->schema([
+                        Forms\Components\DatePicker::make('performed_on'),
+                    ])
+                    ->columns(3),
 
-        Select::make('type')
-            ->label('Type')
-            ->options([
-                'rated_criterion' => 'Rated Criterion',
-                'text_feedback'   => 'Text Feedback',
-                'yes_no'          => 'Yes / No',
-            ])
-            ->disabled()
-            ->dehydrated(true)
-            ->live(),
+                Section::make('Evaluation Responses')
+                    ->description('Complete each criterion based on the selected evaluation template.')
+                    ->schema([
+                        Repeater::make('criteria')
+                            ->label(false)
+                            ->schema([
 
-        TextInput::make('label')
-            ->label('Criterion')
-            ->readOnly(),
+                                Select::make('type')
+                                    ->label('Type')
+                                    ->options([
+                                        'rated_criterion' => 'Rated Criterion',
+                                        'text_feedback'   => 'Text Feedback',
+                                        'yes_no'          => 'Yes / No',
+                                    ])
+                                    ->disabled()
+                                    ->dehydrated(true)
+                                    ->live(),
 
-        Textarea::make('description')
-            ->label('Guidance')
-            ->readOnly()
-            ->rows(2)
-            ->hidden(fn (Get $get): bool => blank($get('description'))),
+                                TextInput::make('label')
+                                    ->label('Criterion')
+                                    ->readOnly(),
 
-        // Rated criterion → 1–5 score
-        Select::make('score')
-            ->label('Score (1–5)')
-            ->options([
-                1 => '1 – Poor',
-                2 => '2 – Below Expectations',
-                3 => '3 – Meets Expectations',
-                4 => '4 – Exceeds Expectations',
-                5 => '5 – Outstanding',
-            ])
-            ->hidden(fn (Get $get): bool => $get('type') !== 'rated_criterion')
-            ->required(fn (Get $get): bool => $get('type') === 'rated_criterion'),
+                                Textarea::make('description')
+                                    ->label('Guidance')
+                                    ->readOnly()
+                                    ->rows(2)
+                                    ->hidden(fn (Get $get): bool => blank($get('description'))),
 
-        // Yes/No question → radio
-        Radio::make('answer')
-            ->label('Answer')
-            ->options([
-                'yes' => 'Yes',
-                'no'  => 'No',
-            ])
-            ->inline()
-            ->hidden(fn (Get $get): bool => $get('type') !== 'yes_no')
-            ->required(fn (Get $get): bool => $get('type') === 'yes_no'),
+                                Select::make('score')
+                                    ->label('Score (1–5)')
+                                    ->options([
+                                        1 => '1 – Poor',
+                                        2 => '2 – Below Expectations',
+                                        3 => '3 – Meets Expectations',
+                                        4 => '4 – Exceeds Expectations',
+                                        5 => '5 – Outstanding',
+                                    ])
+                                    ->hidden(fn (Get $get): bool => $get('type') !== 'rated_criterion')
+                                    ->required(fn (Get $get): bool => $get('type') === 'rated_criterion'),
 
-        // Text feedback / additional notes
-        Textarea::make('notes')
-            ->label(fn (Get $get): string => $get('type') === 'text_feedback' ? 'Response' : 'Additional Notes')
-            ->rows(3)
-            ->hidden(fn (Get $get): bool => $get('type') === 'rated_criterion' || $get('type') === 'yes_no')
-            ->required(fn (Get $get): bool => $get('type') === 'text_feedback'),
+                                Radio::make('answer')
+                                    ->label('Answer')
+                                    ->options([
+                                        'yes' => 'Yes',
+                                        'no'  => 'No',
+                                    ])
+                                    ->inline()
+                                    ->hidden(fn (Get $get): bool => $get('type') !== 'yes_no')
+                                    ->required(fn (Get $get): bool => $get('type') === 'yes_no'),
 
-        TextInput::make('weight')->hidden()->dehydrated(true),
+                                Textarea::make('notes')
+                                    ->label(fn (Get $get): string => $get('type') === 'text_feedback' ? 'Response' : 'Additional Notes')
+                                    ->rows(3)
+                                    ->hidden(fn (Get $get): bool => $get('type') === 'rated_criterion' || $get('type') === 'yes_no')
+                                    ->required(fn (Get $get): bool => $get('type') === 'text_feedback'),
 
-    ])
-    ->addable(false)
-    ->deletable(false)
-    ->reorderable(false)
-    ->columnSpanFull(),
+                                TextInput::make('weight')
+                                    ->hidden()
+                                    ->dehydrated(true),
+
+                            ])
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->columnSpanFull(),
+                    ]),
 
             ]);
     }
