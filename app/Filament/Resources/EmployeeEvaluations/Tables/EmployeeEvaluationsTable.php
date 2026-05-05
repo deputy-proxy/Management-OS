@@ -20,14 +20,17 @@ class EmployeeEvaluationsTable
                     ->label('Employee')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('criteria'),
+                Tables\Columns\TextColumn::make('criteria')
+                    ->label('Criteria')
+                    ->getStateUsing(fn ($record) => count($record->criteria ?? []))
+                    ->formatStateUsing(fn ($state) => $state . ' ' . ($state === 1 ? 'criterion' : 'criteria')),
                 Tables\Columns\TextColumn::make('due_by')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('performed_on')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('performedBy.name')
                     ->label('Performed By'),
-                Tables\Columns\TextColumn::make('employeeEvaluationForm.job_description_id')
+                Tables\Columns\TextColumn::make('employeeEvaluationForm.jobDescription.job_title')
                     ->label('Employee Evaluation Form')
                     ->sortable()
                     ->searchable(),
