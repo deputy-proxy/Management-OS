@@ -13,7 +13,7 @@ class EmployeePaySlip extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['employee_id', 'month', 'items', 'amount', 'due_on', 'paid_on'];
+    protected $fillable = ['employee_id', 'month', 'items', 'amount', 'due_on', 'paid_on', 'status'];
 
     public function employee(): BelongsTo
     {

@@ -18,9 +18,12 @@ use Hexters\HexaLite\HasHexaLite;
 class EmployeePaySlipResource extends Resource
 {
     protected static ?int $navigationSort = 7;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
     use HasHexaLite;
+
     protected static ?string $model = EmployeePaySlip::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

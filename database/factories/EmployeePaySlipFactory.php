@@ -28,7 +28,8 @@ class EmployeePaySlipFactory extends Factory
             'items' => $this->faker->word(),
             'amount' => $this->faker->randomFloat(2, 10, 1000),
             'due_on' => $this->faker->date(),
-            'paid_on' => $this->faker->date()
+            'paid_on' => $this->faker->date(),
+            'status' => $this->faker->word()
         ];
     }
 }

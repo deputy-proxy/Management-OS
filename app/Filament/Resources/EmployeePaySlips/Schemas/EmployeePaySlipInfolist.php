@@ -17,7 +17,8 @@ class EmployeePaySlipInfolist
                 \Filament\Infolists\Components\TextEntry::make('due_on')
                     ->dateTime(),
                 \Filament\Infolists\Components\TextEntry::make('paid_on')
-                    ->dateTime()
+                    ->dateTime(),
+                \Filament\Infolists\Components\TextEntry::make('status')
             ]);
     }
 }

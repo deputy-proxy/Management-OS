@@ -24,7 +24,8 @@ class EmployeePaySlipsTable
                 Tables\Columns\TextColumn::make('due_on')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('paid_on')
-                    ->dateTime()
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('status')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
