@@ -31,8 +31,14 @@ class EmployeeContractForm
                             ->required(),
                         Forms\Components\DatePicker::make('end_date')
                             ->required(),
-                        Forms\Components\TextInput::make('contract_type')
+                        Select::make('contract_type')
                             ->required()
+                            ->options([
+                                'full_time' => 'Full-Time',
+                                'part_time' => 'Part-Time',
+                                'contractor' => 'Contractor',
+                                'intern'     => 'Intern',
+                            ])
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
