@@ -16,6 +16,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements Commentator, HasAvatar, FilamentUser
 {
@@ -25,6 +26,7 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
     use HasFactory, Notifiable;
     use HexaLiteRolePermission;
     use CanComment;
+    use HasApiTokens;
     /**
      * The attributes that are mass assignable.
      *
