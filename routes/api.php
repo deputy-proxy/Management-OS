@@ -13,6 +13,7 @@ Route::get('/user', function (Request $request) {
 // This will now be accessible at /api/employees/count
 Route::get('/employees/count', function () {
     return response()->json([
-        'count' => Employee::count()
+        'count' => Employee::count(),
+        'latest' => Employee::latest()->take(5)->pluck('full_name') // Adjust 'name' to your column name
     ]);
 });
