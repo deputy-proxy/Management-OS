@@ -30,6 +30,21 @@ class EmployeeEvaluationFormResource extends Resource
     //protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'success';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of employee evaluation forms';
+    }
+
 
     public function defineGates(): array
     {
