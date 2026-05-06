@@ -85,12 +85,12 @@ class EmployeeEvaluationForm
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
-                                'draft'       => 'Draft',
-                                'in_progress' => 'In Progress',
-                                'submitted'   => 'Submitted',
-                                'approved'    => 'Approved',
+                                'Draft'       => 'Draft',
+                                'In Progress' => 'In Progress',
+                                'Submitted'   => 'Submitted',
+                                'Approved'    => 'Approved',
                             ])
-                            ->default('draft')
+                            ->default('Draft')
                             ->required(),
 
                         Forms\Components\DatePicker::make('due_by')
