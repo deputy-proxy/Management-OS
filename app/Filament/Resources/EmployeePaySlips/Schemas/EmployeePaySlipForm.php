@@ -21,9 +21,9 @@ class EmployeePaySlipForm
                         Forms\Components\Select::make('status')
                             ->required()
                             ->options([
-                                'draft' => 'Draft',
-                                'finalized' => 'Finalized',
-                                'paid' => 'Paid',
+                                'Open' => 'Open',
+                                'Closed' => 'Closed',
+                                'Paid' => 'Paid',
                             ])
                         ])
                     ->columns(2),
