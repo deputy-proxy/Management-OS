@@ -35,6 +35,25 @@ class EmployeeEvaluationResource extends Resource
         return ['employee_evaluation.index' => __('Allows viewing the employee evaluation list'), 'employee_evaluation.create' => __('Allows creating a new employee evaluation'), 'employee_evaluation.update' => __('Allows updating employee evaluations'), 'employee_evaluation.delete' => __('Allows deleting employee evaluations')];
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::query()
+            ->where('status', 'In Progress')
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Number of evaluations in progress';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return EmployeeEvaluationForm::configure($schema);
