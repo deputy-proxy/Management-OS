@@ -15,6 +15,13 @@ class EmployeePaySlip extends Model
     /** @var array<int, string> */
     protected $fillable = ['employee_id', 'month', 'items', 'amount', 'due_on', 'paid_on', 'status'];
 
+    protected function casts(): array
+    {
+        return [
+            'items' => 'array',
+        ];
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
