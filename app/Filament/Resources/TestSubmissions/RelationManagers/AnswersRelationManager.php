@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\TestSubmissionResource\RelationManagers;
+namespace App\Filament\Resources\TestSubmissions\RelationManagers;
 
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;

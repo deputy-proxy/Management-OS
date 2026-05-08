@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
 

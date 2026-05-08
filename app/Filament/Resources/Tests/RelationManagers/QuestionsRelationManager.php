@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\TestResource\RelationManagers;
+namespace App\Filament\Resources\Tests\RelationManagers;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms;

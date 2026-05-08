@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Support\Facades\Auth;
 
