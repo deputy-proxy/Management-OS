@@ -76,7 +76,7 @@
         </div>
         <!-- Bottom Loading Text (Optional) -->
         <div class="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-2">
-            <span class="text-orange-500/50 text-[10px] uppercase tracking-[0.3em] font-medium">Speak the Future</span>
+            <a href="/admin"><span class="text-orange-500/50 text-[10px] uppercase tracking-[0.3em] font-medium">Speak the Future</span></a>
         </div>
     </div>
 
