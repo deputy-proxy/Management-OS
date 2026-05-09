@@ -55,8 +55,12 @@
             <div class="absolute rounded-full border border-orange-500/20 w-[450px] h-[450px] animate-pulse-slow" style="animation-delay: -1s;"></div>
             <!-- Ring 3 -->
             <div class="absolute rounded-full border border-orange-600/30 w-[300px] h-[300px] animate-pulse-slow" style="animation-delay: -2s;"></div>
+            <!-- Ring 3 -->
+            <div class="absolute rounded-full border border-orange-600/20 w-[500px] h-[500px] animate-pulse-slow" style="animation-delay: -2s;"></div>
+            <div class="absolute rounded-full border border-orange-600/20 w-[500px] h-[500px] animate-pulse-slow" style="animation-delay: -2s;"></div>
+            <div class="absolute rounded-full border border-orange-600/20 w-[450px] h-[450px] animate-pulse-slow" style="animation-delay: -2s;"></div>
             <!-- Ring 4 (Inner) -->
-            <div class="absolute rounded-full bg-gradient-to-b from-orange-500/5 to-transparent w-[200px] h-[200px] animate-pulse-slow" style="animation-delay: -3s;"></div>
+            <div class="absolute rounded-full bg-gradient-to-b from-orange-500/5 to-transparent w-[600px] h-[600px] animate-pulse-slow" style="animation-delay: -3s;"></div>
         </div>
         <!-- Logo Container -->
         <div class="relative z-10 transition-all duration-1000 transform"
