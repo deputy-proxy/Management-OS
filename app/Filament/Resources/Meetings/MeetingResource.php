@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Operations\OperationsCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class MeetingResource extends Resource
 {
@@ -23,6 +26,8 @@ class MeetingResource extends Resource
     protected static ?string $model = Meeting::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    use HasHexaLite;
 
     public static function form(Schema $schema): Schema
     {
