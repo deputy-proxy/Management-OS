@@ -14,8 +14,8 @@ class EditProcess extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),            CommentsAction::make(),
-
+            Actions\DeleteAction::make(),            
+            CommentsAction::make(),
         ];
     }
 }
