@@ -66,5 +66,35 @@ class TestTypeResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public function defineGates(): array
+    {
+        return ['test_type.index' => __('Allows viewing the test type list'), 'test_type.create' => __('Allows creating a new test type'), 'test_type.update' => __('Allows updating test types'), 'test_type.delete' => __('Allows deleting test types')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_type.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_type.create') ? Response::allow() : Response::deny(__('You do not have permission to create test type.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_type.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_type.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a test type.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_type.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete test types.'));
+    }
 }
 
