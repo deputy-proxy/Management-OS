@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
 class EmployeePaySlipResource extends Resource
 {
@@ -27,7 +29,7 @@ class EmployeePaySlipResource extends Resource
     protected static ?string $model = EmployeePaySlip::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    
     public static function getNavigationBadge(): ?string
     {
         $count = static::getModel()::query()
@@ -81,6 +83,36 @@ class EmployeePaySlipResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
+    }
+
+    public function defineGates(): array
+    {
+        return ['employee_pay_slip.index' => __('Allows viewing the employee pay slip list'), 'employee_pay_slip.create' => __('Allows creating a new employee pay slip'), 'employee_pay_slip.update' => __('Allows updating employee pay slips'), 'employee_pay_slip.delete' => __('Allows deleting employee pay slips')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_pay_slip.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_pay_slip.create') ? Response::allow() : Response::deny(__('You do not have permission to create employee pay slip.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_pay_slip.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('employee_pay_slip.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete an employee pay slip.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('employee_pay_slip.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employee pay slips.'));
     }
 }
 
