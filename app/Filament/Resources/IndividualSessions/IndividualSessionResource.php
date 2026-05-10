@@ -13,9 +13,9 @@ use App\Filament\Resources\IndividualSessions\Tables\IndividualSessionsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
+use App\Filament\Clusters\Academic\AcademicCluster;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
-use App\Filament\Clusters\Academic\AcademicCluster;
 use Hexters\HexaLite\HasHexaLite;
 class IndividualSessionResource extends Resource
 {
