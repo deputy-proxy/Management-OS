@@ -32,7 +32,6 @@ class CustomerInteractionResource extends Resource
     public function defineGates(): array
     {
         return [
-            ActivitiesRelationManager::class,
             'customer_interaction.index' => __('Allows viewing the customer interaction list'),
             'customer_interaction.create' => __('Allows creating a new customer interaction'),
             'customer_interaction.update' => __('Allows updating customer interactions'),
