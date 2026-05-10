@@ -21,23 +21,18 @@ use App\Filament\Clusters\Finance\FinanceCluster;
 class TransactionResource extends Resource
 {
     protected static ?int $navigationSort = 7;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Treasurery & Tax';
     use HasHexaLite;
 
     protected static ?string $model = Transaction::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
     public function defineGates(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-            'transaction.index' => __('Allows viewing the transaction list'),
-            'transaction.create' => __('Allows creating a new transaction'),
-            'transaction.update' => __('Allows updating transactions'),
-            'transaction.delete' => __('Allows deleting transactions'),
-        ];
+        return [ActivitiesRelationManager::class, 'transaction.index' => __('Allows viewing the transaction list'), 'transaction.create' => __('Allows creating a new transaction'), 'transaction.update' => __('Allows updating transactions'), 'transaction.delete' => __('Allows deleting transactions')];
     }
 
     public static function form(Schema $schema): Schema
@@ -57,9 +52,7 @@ class TransactionResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            ActivitiesRelationManager::class,
-        ];
+        return [ActivitiesRelationManager::class];
     }
 
     public static function getPages(): array
@@ -74,37 +67,27 @@ class TransactionResource extends Resource
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('transaction.index')
-            ? Response::allow()
-            : Response::deny();
+        return hexa()->can('transaction.index') ? Response::allow() : Response::deny();
     }
 
     public static function getCreateAuthorizationResponse(): Response
     {
-        return hexa()->can('transaction.create')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to create transaction.'));
+        return hexa()->can('transaction.create') ? Response::allow() : Response::deny(__('You do not have permission to create transaction.'));
     }
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('transaction.update')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to edit this.'));
+        return hexa()->can('transaction.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return hexa()->can('transaction.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete a transaction.'));
+        return hexa()->can('transaction.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a transaction.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('transaction.delete')
-            ? Response::allow()
-            : Response::deny(__('You do not have permission to delete transactions.'));
+        return hexa()->can('transaction.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete transactions.'));
     }
 
     public static function getEloquentQuery(): Builder

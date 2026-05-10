@@ -28,7 +28,9 @@ class TransactionFactory extends Factory
             'transaction_type' => $this->faker->word(),
             'amount' => $this->faker->randomFloat(2, 10, 1000),
             'payment_method' => $this->faker->word(),
-            'timestamp' => $this->faker->dateTime()
+            'timestamp' => $this->faker->dateTime(),
+            'customer_invoice_id' => \App\Models\CustomerInvoice::factory(),
+            'tax_id' => \App\Models\Tax::factory()
         ];
     }
 }

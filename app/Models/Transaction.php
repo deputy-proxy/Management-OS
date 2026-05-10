@@ -11,13 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-
 use App\Models\Concerns\HasTasks;
 
 class Transaction extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -32,9 +30,8 @@ class Transaction extends Model implements Commentable
     {
         return $this->morphMany(Activity::class, 'subject');
     }
-
-/** @var array<int, string> */
-    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp'];
+    /** @var array<int, string> */
+    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'];
 
     public function financialAccount(): BelongsTo
     {
@@ -45,10 +42,19 @@ class Transaction extends Model implements Commentable
     {
         return $this->belongsTo(VendorInvoice::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
 
+    public function customerInvoice(): BelongsTo
+    {
+        return $this->belongsTo(CustomerInvoice::class);
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
 }

@@ -16,7 +16,9 @@ class TransactionInfolist
                 \Filament\Infolists\Components\TextEntry::make('amount'),
                 \Filament\Infolists\Components\TextEntry::make('payment_method'),
                 \Filament\Infolists\Components\TextEntry::make('timestamp')
-                    ->dateTime()
+                    ->dateTime(),
+                \Filament\Infolists\Components\TextEntry::make('customer_invoice_id'),
+                \Filament\Infolists\Components\TextEntry::make('tax_id')
             ]);
     }
 }

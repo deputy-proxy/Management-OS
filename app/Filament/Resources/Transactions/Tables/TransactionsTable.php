@@ -28,15 +28,24 @@ class TransactionsTable
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('payment_method'),
                 Tables\Columns\TextColumn::make('timestamp')
-                    ->dateTime()
+                    ->dateTime(),
+                Tables\Columns\TextColumn::make('customerInvoice.identifier')
+                    ->label('Customer Invoice')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('tax.id')
+                    ->label('Tax')
+                    ->sortable()
+                    ->searchable()
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
             ])
-            ->recordActions([EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make(),
+                CommentsAction::make()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
