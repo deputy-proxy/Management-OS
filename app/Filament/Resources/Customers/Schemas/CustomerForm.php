@@ -30,6 +30,7 @@ class CustomerForm
 
                 Section::make('Contact Details')
                     ->columns(2)
+                    ->description('Contact information for the customer.')
                     ->schema([
                         Forms\Components\TextInput::make('address')
                             ->required(),
