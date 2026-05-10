@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\LogOptions;
-use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+
+use App\Models\Concerns\HasTasks;
 
 class Camp extends Model
 {

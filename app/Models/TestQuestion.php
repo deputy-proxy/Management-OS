@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\LogOptions;
-use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+
+use App\Models\Concerns\HasTasks;
 
 class TestQuestion extends Model implements Commentable
 {

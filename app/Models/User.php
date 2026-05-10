@@ -9,15 +9,17 @@ use Illuminate\Notifications\Notifiable;
 use Hexters\HexaLite\HexaLiteRolePermission;
 use Relaticle\Comments\Concerns\CanComment;
 use Relaticle\Comments\Contracts\Commentator;
-use App\Models\Concerns\HasTasks;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+
+use App\Models\Concerns\HasTasks;
+
 
 class User extends Authenticatable implements Commentator, HasAvatar, FilamentUser
 {

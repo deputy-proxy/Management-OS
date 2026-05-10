@@ -9,10 +9,11 @@ use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+
 use App\Models\Concerns\HasTasks;
 use App\Models\Concerns\HasProductResources;
-use Spatie\Activitylog\Models\Activity;
 
 
 class VendorInvoice extends Model implements Commentable
