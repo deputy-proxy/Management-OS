@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class DigitalAssetResource extends Resource
 {
@@ -21,7 +24,7 @@ class DigitalAssetResource extends Resource
     protected static ?string $cluster = GeneralCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Inventory Management';
     protected static ?string $model = DigitalAsset::class;
-
+    use HasHexaLite;
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string
@@ -78,5 +81,37 @@ class DigitalAssetResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public function defineGates(): array
+    {
+        return ['digital_asset.index' => __('Allows viewing the digital asset list'), 'digital_asset.create' => __('Allows creating a new digital asset'), 'digital_asset.update' => __('Allows updating digital assets'), 'digital_asset.delete' => __('Allows deleting digital assets')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('digital_asset.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('digital_asset.create') ? Response::allow() : Response::deny(__('You do not have permission to create digital asset.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('digital_asset.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('digital_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a digital asset.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('digital_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete digital assets.'));
+    }
 }
+
+
 
