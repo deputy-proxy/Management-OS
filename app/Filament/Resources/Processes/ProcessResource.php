@@ -30,7 +30,7 @@ class ProcessResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     public function defineGates(): array
     {
-        return [ActivitiesRelationManager::class, 'process.index' => __('Allows viewing the process list'), 'process.create' => __('Allows creating a new process'), 'process.update' => __('Allows updating processs'), 'process.delete' => __('Allows deleting processs')];
+        return ['process.index' => __('Allows viewing the process list'), 'process.create' => __('Allows creating a new process'), 'process.update' => __('Allows updating processs'), 'process.delete' => __('Allows deleting processs')];
     }
     public static function getNavigationBadge(): ?string
     {
