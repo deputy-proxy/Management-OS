@@ -15,12 +15,11 @@ use App\Models\Concerns\HasTasks;
 
 class Competition extends Model implements Commentable
 {
-    use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
     use HasTasks;
+    use LogsActivity;
 
     public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Relaticle\Comments\Concerns\HasComments;
+use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -17,7 +19,9 @@ class Camp extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
+    use HasComments;
+    use HasTasks;
+    use LogsActivity;
     /** @var array<int, string> */
     protected $fillable = ['title', 'description', 'location', 'start_on', 'end_on'];
 
