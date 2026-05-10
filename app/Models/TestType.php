@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 
 class TestType extends Model
 {
@@ -30,7 +31,12 @@ class TestType extends Model
         return $this->hasMany(Test::class);
     }
 
-    public function getActivitylogOptions(): LogOptions
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll();
     }

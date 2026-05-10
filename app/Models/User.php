@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 
 class User extends Authenticatable implements Commentator, HasAvatar, FilamentUser
 {
@@ -72,7 +73,12 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    public function receivesBroadcastNotificationsOn(): string
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+public function receivesBroadcastNotificationsOn(): string
     {
         return 'App.Models.User.' . $this->id;
     }

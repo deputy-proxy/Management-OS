@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Models\Activity;
 
 class VendorContract extends Model implements Commentable
 {
@@ -26,7 +27,12 @@ class VendorContract extends Model implements Commentable
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    /** @var array<int, string> */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['start_date', 'end_date', 'document', 'vendor_id', 'contract_code'];
 
     public function vendor(): BelongsTo

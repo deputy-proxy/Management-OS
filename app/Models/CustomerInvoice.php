@@ -12,6 +12,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Activitylog\Models\Activity;
 
 
 class CustomerInvoice extends Model implements Commentable
@@ -26,7 +27,13 @@ class CustomerInvoice extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-    /** @var array<int, string> */
+
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['customer_id', 'customer_contract_id', 'amount_without_vat', 'vat', 'month', 'status', 'invoice', 'identifier'];
 
     public function customer(): BelongsTo

@@ -12,6 +12,7 @@ use Spatie\Activitylog\LogOptions;
 use Illuminate\Broadcasting\PrivateChannel;
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Spatie\Activitylog\Models\Activity;
 
 class Course extends Model implements Commentable
 {
@@ -26,7 +27,12 @@ class Course extends Model implements Commentable
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    /** @var array<int, string> */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['title', 'description', 'support'];
     public function getActivitylogOptions(): LogOptions
     {

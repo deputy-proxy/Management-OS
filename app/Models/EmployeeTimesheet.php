@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Models\Activity;
 
 class EmployeeTimesheet extends Model implements Commentable
 {
@@ -25,7 +26,12 @@ class EmployeeTimesheet extends Model implements Commentable
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    /** @var array<int, string> */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['employee_id', 'date', 'time_start', 'time_end', 'category', 'number_of_hours', 'group_session_id'];
 
     public function employee(): BelongsTo

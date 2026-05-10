@@ -13,6 +13,7 @@ use Guava\Calendar\ValueObjects\CalendarEvent;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Models\Activity;
 
 class GroupSession extends Model implements Eventable, Commentable
 {
@@ -27,7 +28,12 @@ class GroupSession extends Model implements Eventable, Commentable
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    /** @var array<int, string> */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['group_id', 'course_id', 'teacher_id', 'start_on', 'end_on', 'status', 'identifier'];
     protected $casts = ['start_on' => 'datetime', 'end_on' => 'datetime'];
 

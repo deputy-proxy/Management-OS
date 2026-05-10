@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Models\Activity;
 
 class Meeting extends Model
 {
@@ -27,6 +28,11 @@ class Meeting extends Model
     public function organizer(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'organizer_id');
+    }
+
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
     }
 
 }

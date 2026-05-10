@@ -12,6 +12,7 @@ use Relaticle\Comments\Contracts\Commentable;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Models\Activity;
 
 class TestQuestion extends Model implements Commentable
 {
@@ -64,7 +65,12 @@ class TestQuestion extends Model implements Commentable
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    // -----------------------------------------------------------------------
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+// -----------------------------------------------------------------------
     // Activity log
     // -----------------------------------------------------------------------
 

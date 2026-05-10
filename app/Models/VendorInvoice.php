@@ -12,6 +12,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\Concerns\HasTasks;
 use App\Models\Concerns\HasProductResources;
+use Spatie\Activitylog\Models\Activity;
 
 
 class VendorInvoice extends Model implements Commentable
@@ -27,7 +28,13 @@ class VendorInvoice extends Model implements Commentable
     {
         return $this->morphMany(Task::class, 'taskable');
     }
-    /** @var array<int, string> */
+
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+/** @var array<int, string> */
     protected $fillable = ['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'month', 'status', 'invoice', 'amount', 'invoice_number', 'identifier'];
 
     protected function casts(): array
