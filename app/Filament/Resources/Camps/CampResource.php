@@ -73,5 +73,41 @@ class CampResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp.index')
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp.create')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to create camp.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('camp.update')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('camp.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete a camp.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp.delete')
+            ? Response::allow()
+            : Response::deny(__('You do not have permission to delete camps.'));
+    }
+
 }
 
