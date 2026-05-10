@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
+
 class TestSubmissionAnswerResource extends Resource
 {
     protected static ?int $navigationSort = 13;
@@ -22,6 +26,8 @@ class TestSubmissionAnswerResource extends Resource
 
     protected static ?string $model = TestSubmissionAnswer::class;
 
+    use HasHexaLite;    
+    
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Schema $schema): Schema
@@ -58,6 +64,36 @@ class TestSubmissionAnswerResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
+    }
+
+    public function defineGates(): array
+    {
+        return ['test_submission_answer.index' => __('Allows viewing the test submission answer list'), 'test_submission_answer.create' => __('Allows creating a new test submission answer'), 'test_submission_answer.update' => __('Allows updating test submission answers'), 'test_submission_answer.delete' => __('Allows deleting test submission answers')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_submission_answer.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_submission_answer.create') ? Response::allow() : Response::deny(__('You do not have permission to create test submission answer.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_submission_answer.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('test_submission_answer.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a test submission answer.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('test_submission_answer.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete test submission answers.'));
     }
 }
 
