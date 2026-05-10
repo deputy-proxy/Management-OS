@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
+
 class CampResource extends Resource
 {
     protected static ?int $navigationSort = 1;
@@ -22,6 +26,7 @@ class CampResource extends Resource
     protected static ?string $model = Camp::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+    use HasHexaLite;
 
     public static function form(Schema $schema): Schema
     {
@@ -50,6 +55,16 @@ class CampResource extends Resource
             'create' => Pages\CreateCamp::route('/create'),
             'edit' => Pages\EditCamp::route('/{record}/edit'),
             'view' => Pages\ViewCamp::route('/{record}')
+        ];
+    }
+
+    public function defineGates(): array
+    {
+        return [
+            'camp.index' => __('Allows viewing the camp list'),
+            'camp.create' => __('Allows creating a new camp'),
+            'camp.update' => __('Allows updating camps'),
+            'camp.delete' => __('Allows deleting camps'),
         ];
     }
 
