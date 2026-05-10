@@ -68,5 +68,35 @@ class MeetingResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public function defineGates(): array
+    {
+        return ['meeting.index' => __('Allows viewing the meeting list'), 'meeting.create' => __('Allows creating a new meeting'), 'meeting.update' => __('Allows updating meetings'), 'meeting.delete' => __('Allows deleting meetings')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting.create') ? Response::allow() : Response::deny(__('You do not have permission to create meeting.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('meeting.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('meeting.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a meeting.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete meetings.'));
+    }
 }
 
