@@ -50,13 +50,13 @@ class TestSubmissionAnswerResource extends Resource
         return [];
     }
 
-    public static function getPages(): array
+    public function defineGates(): array
     {
         return [
-            'index' => Pages\ListTestSubmissionAnswers::route('/'),
-            'create' => Pages\CreateTestSubmissionAnswer::route('/create'),
-            'edit' => Pages\EditTestSubmissionAnswer::route('/{record}/edit'),
-            'view' => Pages\ViewTestSubmissionAnswer::route('/{record}')
+            'test_submission_answer.index' => __('Allows viewing the test submission answer list'),
+            'test_submission_answer.create' => __('Allows creating a new test submission answer'),
+            'test_submission_answer.update' => __('Allows updating test submission answers'),
+            'test_submission_answer.delete' => __('Allows deleting test submission answers'),
         ];
     }
 
@@ -64,16 +64,6 @@ class TestSubmissionAnswerResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
-    }
-
-    public function defineGates(): array
-    {
-        return [
-            'test_submission_answer.index' => __('Allows viewing the test submission answer list'), 
-            'test_submission_answer.create' => __('Allows creating a new test submission answer'), 
-            'test_submission_answer.update' => __('Allows updating test submission answers'), 
-            'test_submission_answer.delete' => __('Allows deleting test submission answers')
-            ];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
