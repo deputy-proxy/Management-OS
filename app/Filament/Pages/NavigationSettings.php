@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Services\NavigationSettingsManager;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Hexters\HexaLite\HasHexaLite;
 use UnitEnum;
 
 class NavigationSettings extends Page
@@ -15,7 +16,8 @@ class NavigationSettings extends Page
     protected static ?string $navigationLabel = 'Navigation Settings';
     protected static string|UnitEnum|null $navigationGroup = 'System';
     protected string $view = 'filament.pages.navigation-settings';
-
+    
+    use HasHexaLite;
     public array $structure = [];
 
     public function mount(): void
@@ -57,5 +59,17 @@ class NavigationSettings extends Page
             ->title('Reset to default')
             ->success()
             ->send();
+    }
+
+    public function defineGates(): array
+    {
+        return [
+            'general-dashboard.view' => __('Allows viewing the general dashboard'),
+        ];
+    }
+
+    public static function canAccess(): bool
+    {
+        return hexa()->can('general-dashboard.view');
     }
 }
