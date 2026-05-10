@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class ProductRevenueResource extends Resource
 {
@@ -23,7 +26,7 @@ class ProductRevenueResource extends Resource
     protected static ?string $model = ProductRevenue::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return ProductRevenueForm::configure($schema);
@@ -62,6 +65,37 @@ class ProductRevenueResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+        }
+    public function defineGates(): array
+    {
+        return ['product_revenue.index' => __('Allows viewing the product revenue list'), 'product_revenue.create' => __('Allows creating a new product revenue'), 'product_revenue.update' => __('Allows updating product revenues'), 'product_revenue.delete' => __('Allows deleting product revenues')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_revenue.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_revenue.create') ? Response::allow() : Response::deny(__('You do not have permission to create product revenue.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_revenue.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_revenue.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete this product revenue.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_revenue.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete product revenues.'));
     }
 }
+
+
 
