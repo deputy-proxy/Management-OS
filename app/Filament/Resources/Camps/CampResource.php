@@ -13,10 +13,10 @@ use App\Filament\Resources\Camps\Tables\CampsTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
+use Hexters\HexaLite\HasHexaLite;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
-use Hexters\HexaLite\HasHexaLite;
 
 class CampResource extends Resource
 {
