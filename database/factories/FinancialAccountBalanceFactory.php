@@ -15,7 +15,6 @@ class FinancialAccountBalanceFactory extends Factory
      * @var class-string<FinancialAccountBalance>
      */
     protected $model = FinancialAccountBalance::class;
-
     /**
      * Define the model's default state.
      *
@@ -27,7 +26,7 @@ class FinancialAccountBalanceFactory extends Factory
             'financial_account_id' => \App\Models\FinancialAccount::factory(),
             'current_balance' => $this->faker->randomNumber(),
             'currency' => $this->faker->word(),
-            'reported_on' => $this->faker->date(),
+            'reported_on' => $this->faker->date()
         ];
     }
 }

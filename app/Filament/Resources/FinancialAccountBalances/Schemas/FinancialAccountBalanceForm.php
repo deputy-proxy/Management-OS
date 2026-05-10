@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Filament\Resources\FinancialAccountBalances\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
 
 class FinancialAccountBalanceForm
 {
@@ -11,15 +11,25 @@ class FinancialAccountBalanceForm
     {
         return $schema
             ->components([
-                Forms\Components\Select::make('financial_account_id')
-                    ->relationship('financialAccount', 'title')
-                    ->required(),
-                Forms\Components\TextInput::make('current_balance')->numeric()
-                    ->required(),
-                Forms\Components\TextInput::make('currency')
-                    ->required(),
-                Forms\Components\DatePicker::make('reported_on')
-                    ->required(),
+                Section::make('Account Reference')
+                    ->description('The financial account this balance entry belongs to.')
+                    ->columns(1)
+                    ->schema([
+                        Forms\Components\Select::make('financial_account_id')
+                            ->relationship('financialAccount', 'title')
+                            ->required(),
+                    ]),
+
+                Section::make('Balance Details')
+                    ->description('The recorded balance amount, currency and reporting date.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('current_balance')
+                            ->numeric()
+                            ->required(),
+                        Forms\Components\DatePicker::make('reported_on')
+                            ->required(),
+                    ]),
             ]);
     }
 }

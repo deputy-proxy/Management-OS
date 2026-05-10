@@ -11,13 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-
 use App\Models\Concerns\HasTasks;
 
 class FinancialAccountBalance extends Model implements Commentable
 {
     use LogsActivity;
-
     use HasFactory;
     use SoftDeletes;
     use HasComments;
@@ -32,20 +30,16 @@ class FinancialAccountBalance extends Model implements Commentable
     {
         return $this->morphMany(Activity::class, 'subject');
     }
-
-/** @var array<int, string> */
-    protected $fillable = [
-        'financial_account_id', 'current_balance', 'currency', 'reported_on'
-    ];
+    /** @var array<int, string> */
+    protected $fillable = ['financial_account_id', 'current_balance', 'currency', 'reported_on'];
 
     public function financialAccount(): BelongsTo
     {
         return $this->belongsTo(FinancialAccount::class);
     }
+
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logAll();
     }
-
 }
