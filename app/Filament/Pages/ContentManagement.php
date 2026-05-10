@@ -18,12 +18,12 @@ class ContentManagement extends Page
     public function defineGates(): array
     {
         return [
-            'students-dashboard.view' => __('Allows viewing the students dashboard'),
+            'content-management.view' => __('Allows viewing the content management page'),
         ];
     }
 
     public static function canAccess(): bool
     {
-        return hexa()->can('students-dashboard.view');
+        return hexa()->can('content-management.view');
     }
 }
