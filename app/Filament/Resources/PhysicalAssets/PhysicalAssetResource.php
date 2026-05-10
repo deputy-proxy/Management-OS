@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class PhysicalAssetResource extends Resource
 {
@@ -23,7 +26,7 @@ class PhysicalAssetResource extends Resource
     protected static ?string $model = PhysicalAsset::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return PhysicalAssetForm::configure($schema);
@@ -78,5 +81,37 @@ class PhysicalAssetResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public function defineGates(): array
+    {
+        return ['physical_asset.index' => __('Allows viewing the physical asset list'), 'physical_asset.create' => __('Allows creating a new physical asset'), 'physical_asset.update' => __('Allows updating physical assets'), 'physical_asset.delete' => __('Allows deleting physical assets')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('physical_asset.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('physical_asset.create') ? Response::allow() : Response::deny(__('You do not have permission to create physical asset.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('physical_asset.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('physical_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a physical asset.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('physical_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete physical assets.'));
+    }
 }
+
+
 
