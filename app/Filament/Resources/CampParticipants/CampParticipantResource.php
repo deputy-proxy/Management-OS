@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class CampParticipantResource extends Resource
 {
@@ -23,7 +26,8 @@ class CampParticipantResource extends Resource
     protected static ?string $model = CampParticipant::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return CampParticipantForm::configure($schema);
@@ -62,6 +66,36 @@ class CampParticipantResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public function defineGates(): array
+    {
+        return ['camp_participant.index' => __('Allows viewing the camp participant list'), 'camp_participant.create' => __('Allows creating a new camp participant'), 'camp_participant.update' => __('Allows updating camp participants'), 'camp_participant.delete' => __('Allows deleting camp participants')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp_participant.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp_participant.create') ? Response::allow() : Response::deny(__('You do not have permission to create camp participant.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('camp_participant.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('camp_participant.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a camp participant.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('camp_participant.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete camp participants.'));
     }
 }
 
