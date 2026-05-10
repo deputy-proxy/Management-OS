@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use App\Models\Concerns\HasTasks;
+use Spatie\Activitylog\Models\Activity;
 
 class Process extends Model implements Commentable
 {
@@ -38,6 +39,12 @@ class Process extends Model implements Commentable
     public function owner(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+
+    public function activities()
+    {
+        return $this->morphMany(Activity::class, 'subject');
     }
 
     public function getActivitylogOptions(): LogOptions
