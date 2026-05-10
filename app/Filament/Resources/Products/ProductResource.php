@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class ProductResource extends Resource
 {
@@ -23,7 +26,7 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return ProductForm::configure($schema);
@@ -63,5 +66,36 @@ class ProductResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+    public function defineGates(): array
+    {
+        return ['product.index' => __('Allows viewing the product list'), 'product.create' => __('Allows creating a new product'), 'product.update' => __('Allows updating products'), 'product.delete' => __('Allows deleting products')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('product.create') ? Response::allow() : Response::deny(__('You do not have permission to create a product.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this product.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete this product.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete products.'));
+    }
 }
+
+
 
