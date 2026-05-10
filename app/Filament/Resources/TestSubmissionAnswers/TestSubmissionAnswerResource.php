@@ -26,7 +26,7 @@ class TestSubmissionAnswerResource extends Resource
 
     protected static ?string $model = TestSubmissionAnswer::class;
 
-    use HasHexaLite;    
+    use HasHexaLite;
     
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
