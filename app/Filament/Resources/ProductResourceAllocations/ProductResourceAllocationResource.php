@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
+
 
 class ProductResourceAllocationResource extends Resource
 {
@@ -23,7 +27,7 @@ class ProductResourceAllocationResource extends Resource
     protected static ?string $model = ProductResourceAllocation::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return ProductResourceAllocationForm::configure($schema);
@@ -63,5 +67,36 @@ class ProductResourceAllocationResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+    public function defineGates(): array
+    {
+        return ['product_resource_allocation.index' => __('Allows viewing the product resource allocation list'), 'product_resource_allocation.create' => __('Allows creating a new product resource allocation'), 'product_resource_allocation.update' => __('Allows updating product resource allocations'), 'product_resource_allocation.delete' => __('Allows deleting product resource allocations')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_resource_allocation.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_resource_allocation.create') ? Response::allow() : Response::deny(__('You do not have permission to create product resource allocation.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_resource_allocation.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_resource_allocation.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete this product resource allocation.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_resource_allocation.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete product resource allocations.'));
+    }
 }
+
+
 
