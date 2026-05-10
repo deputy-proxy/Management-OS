@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Operations\OperationsCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class MeetingTopicResource extends Resource
 {
@@ -23,7 +26,7 @@ class MeetingTopicResource extends Resource
     protected static ?string $model = MeetingTopic::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    use HasHexaLite;
     public static function form(Schema $schema): Schema
     {
         return MeetingTopicForm::configure($schema);
@@ -62,6 +65,35 @@ class MeetingTopicResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+    public function defineGates(): array
+    {
+        return ['meeting_topic.index' => __('Allows viewing the meeting topic list'), 'meeting_topic.create' => __('Allows creating a new meeting topic'), 'meeting_topic.update' => __('Allows updating meeting topics'), 'meeting_topic.delete' => __('Allows deleting meeting topics')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting_topic.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting_topic.create') ? Response::allow() : Response::deny(__('You do not have permission to create meeting topic.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('meeting_topic.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('meeting_topic.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete a meeting topic.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('meeting_topic.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete meeting topics.'));
     }
 }
 
