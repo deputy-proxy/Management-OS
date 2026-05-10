@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use App\Filament\Clusters\Portfolio\PortfolioCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Hexters\HexaLite\HasHexaLite;
 
 class ProductPriceResource extends Resource
 {
@@ -21,7 +24,7 @@ class ProductPriceResource extends Resource
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductPrice::class;
-
+    use HasHexaLite;
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Schema $schema): Schema
@@ -63,5 +66,36 @@ class ProductPriceResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+    public function defineGates(): array
+    {
+        return ['product_price.index' => __('Allows viewing the product price list'), 'product_price.create' => __('Allows creating a new product price'), 'product_price.update' => __('Allows updating product prices'), 'product_price.delete' => __('Allows deleting product prices')];
+    }
+
+    public static function getViewAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_price.index') ? Response::allow() : Response::deny();
+    }
+
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_price.create') ? Response::allow() : Response::deny(__('You do not have permission to create product price.'));
+    }
+
+    public static function getEditAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_price.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
+    }
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        return hexa()->can('product_price.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete this product price.'));
+    }
+
+    public static function getDeleteAnyAuthorizationResponse(): Response
+    {
+        return hexa()->can('product_price.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete product prices.'));
+    }
 }
+
+
 
