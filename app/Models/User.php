@@ -17,6 +17,8 @@ use Hexters\HexaLite\HexaLiteRolePermission;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+use Rappasoft\LaravelAuthenticationLog\Traits\AuthenticationLoggable;
+
 
 class User extends Authenticatable implements Commentator, HasAvatar, FilamentUser
 {
@@ -27,6 +29,8 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
     use HexaLiteRolePermission;
     use CanComment;
     use HasApiTokens;
+    use AuthenticationLoggable;
+    
     /**
      * The attributes that are mass assignable.
      *

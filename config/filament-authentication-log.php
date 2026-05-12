@@ -12,7 +12,7 @@ return [
     'authenticable-resources' => [
         User::class,
     ],
-
+    'show-location' => true,
     'authenticatable' => [
         'field-to-display' => null,
     ],
@@ -22,7 +22,7 @@ return [
             'register' => true,
             'sort' => 1,
             'icon' => 'heroicon-o-shield-check',
-            // 'group' => 'Logins',
+            'group' => 'System',
         ],
     ],
 
