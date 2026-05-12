@@ -14,7 +14,7 @@ return [
     ],
     'show-location' => true,
     'authenticatable' => [
-        'field-to-display' => null,
+        'field-to-display' => 'name',
     ],
 
     'navigation' => [
