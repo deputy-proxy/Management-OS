@@ -6,7 +6,7 @@ use Tapp\FilamentAuthenticationLog\Resources\AuthenticationLogResource;
 return [
     // 'user-resource' => \App\Filament\Resources\UserResource::class,
     'resources' => [
-        'AutenticationLogResource' => AuthenticationLogResource::class,
+        'AutenticationLogResource' => \App\Filament\Resources\AuthenticationLogResource::class,
     ],
 
     'authenticable-resources' => [
