@@ -52,7 +52,8 @@ class AuthenticationLogResource extends BaseResource
 
                 return implode(', ', array_filter([
                     $data['city'] ?? null,
-                    $data['state_name'] ?? null,
+                    $data['postal_code'] ?? null,
+                    $data['state_name'] ?? null,                    
                     $data['country'] ?? null,
                 ])) ?: '-';
             });
