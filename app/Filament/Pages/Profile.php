@@ -200,11 +200,8 @@ class Profile extends EditProfile
 
     public function getLoginHistory(): \Illuminate\Support\Collection
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        return $user->authentications()
-            ->latest()
+        return Auth::user()->authentications()
+            ->latest('login_at')
             ->limit(10)
             ->get();
     }
