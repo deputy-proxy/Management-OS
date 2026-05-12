@@ -41,6 +41,8 @@ use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\Facades\Blade;
 use App\Services\NavigationSettingsManager;
 use Filament\Navigation\NavigationBuilder;
+use Tapp\FilamentAuthenticationLog\FilamentAuthenticationLogPlugin;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -125,6 +127,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentCommandPalettePlugin::make(),
                 CommentsPlugin::make(),
                 MobileBottomNav::make(),
+                FilamentAuthenticationLogPlugin::make(),
                 ActivityLogPlugin::make()
                     ->label('Log')
                     ->pluralLabel('Logs')
