@@ -194,4 +194,33 @@ class Profile extends EditProfile
             ->limit(10)
             ->get();
     }
+
+
+    // ── Login history ─────────────────────────────────────────────────────────
+
+    public function getLoginHistory(): \Illuminate\Support\Collection
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user->authentications()
+            ->latest()
+            ->limit(10)
+            ->get();
+    }
+
+    public function clearLoginEntry(int $id): void
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $user->authentications()
+            ->where('id', $id)
+            ->update(['cleared_by_user' => true]);
+
+        Notification::make()
+            ->title('Login entry cleared.')
+            ->success()
+            ->send();
+    }
 }
