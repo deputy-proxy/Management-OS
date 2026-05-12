@@ -60,7 +60,6 @@ class AuthenticationLogResource extends BaseResource
 
         return $table->columns([
             ...collect($table->getColumns())
-                ->reject(fn ($column) => $column->getName() === 'cleared_by_user')
                 ->values()
                 ->all(),
             $locationColumn,
