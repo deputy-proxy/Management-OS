@@ -97,7 +97,7 @@
                                     @endif
                                 @endif
                                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                                    {{ $login->login_at?->diffForHumans() ?? $login->created_at->diffForHumans() }}
+                                    {{ $login->login_at?->diffForHumans() ?? $login->last_activity_at?->diffForHumans() ?? '-' }}
                                 </p>
                             </div>
                             <x-filament::button
