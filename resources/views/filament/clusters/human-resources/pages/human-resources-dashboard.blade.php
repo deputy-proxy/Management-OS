@@ -1,3 +1,3 @@
 <x-filament-panels::page>
-    {{-- Page content --}} huh? no way...this easy?
+    {{-- Page content --}} 
 </x-filament-panels::page>
