@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e5cb63a025c2a05628a8a87a1d8eb32a",
+    "content-hash": "92cd61edab33551c91b2ef28606aeb86",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
@@ -2508,7 +2508,7 @@
             "dist": {
                 "type": "path",
                 "url": "./packages/hexters/hexa-lite",
-                "reference": "189c9b041e3c4705078e103e5e3b55bcd06da8d5"
+                "reference": "6dc3211c6a28b0b2e2bd437b1f4a5c9c8a255702"
             },
             "type": "library",
             "extra": {
@@ -2557,7 +2557,7 @@
                 "role management PHP"
             ],
             "transport-options": {
-                "symlink": false,
+                "symlink": true,
                 "relative": true
             }
         },

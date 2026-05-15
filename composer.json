@@ -13,7 +13,7 @@
             "type": "path",
             "url": "./packages/hexters/hexa-lite",
             "options": {
-                "symlink": false
+                "symlink": true
             }
         }
     ],
