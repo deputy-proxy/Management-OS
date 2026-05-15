@@ -1,0 +1,47 @@
+{
+    "name": "hexters/hexa-lite",
+    "description": "Filament Hexa Lite is a effortless role and permission management plugin for Filament",
+    "keywords": [
+        "Hexa plugin",
+        "role and permission Filament",
+        "role management Filament",
+        "access permissions Filament",
+        "Hexa Filament",
+        "Hexa plugin",
+        "hexters ladmin",
+        "Hexa installation",
+        "Filament integration",
+        "Filament permission setup",
+        "Filament access control",
+        "role management PHP",
+        "Filament panel",
+        "Filament resource access",
+        "Filament widget permissions"
+    ],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Hexters\\HexaLite\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Asep",
+            "email": "hexters@gmail.com"
+        }
+    ],
+    "require": {},
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Hexters\\HexaLite\\HexaLiteServiceProvider"
+            ]
+        }
+    }
+}

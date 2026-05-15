@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "49a6f68b23b00044d221760d5d44ce85",
+    "content-hash": "e5cb63a025c2a05628a8a87a1d8eb32a",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
@@ -2504,38 +2504,31 @@
         },
         {
             "name": "hexters/hexa-lite",
-            "version": "3.0.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/hexters/hexa-lite.git",
-                "reference": "3533fe8608a6aaee71670d41644989494aa2eca0"
-            },
+            "version": "dev-main",
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/hexters/hexa-lite/zipball/3533fe8608a6aaee71670d41644989494aa2eca0",
-                "reference": "3533fe8608a6aaee71670d41644989494aa2eca0",
-                "shasum": ""
+                "type": "path",
+                "url": "./packages/hexters/hexa-lite",
+                "reference": "189c9b041e3c4705078e103e5e3b55bcd06da8d5"
             },
             "type": "library",
             "extra": {
+                "branch-alias": {
+                    "dev-main": "2.x-dev"
+                },
                 "laravel": {
                     "providers": [
                         "Hexters\\HexaLite\\HexaLiteServiceProvider"
                     ]
-                },
-                "branch-alias": {
-                    "dev-main": "2.x-dev"
                 }
             },
             "autoload": {
-                "files": [
-                    "src/functions.php"
-                ],
                 "psr-4": {
                     "Hexters\\HexaLite\\": "src/"
-                }
+                },
+                "files": [
+                    "src/functions.php"
+                ]
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -2556,35 +2549,17 @@
                 "Hexa Filament",
                 "Hexa installation",
                 "Hexa plugin",
+                "Hexa plugin",
                 "access permissions Filament",
                 "hexters ladmin",
                 "role and permission Filament",
                 "role management Filament",
                 "role management PHP"
             ],
-            "support": {
-                "issues": "https://github.com/hexters/hexa-lite/issues",
-                "source": "https://github.com/hexters/hexa-lite/tree/3.0.5"
-            },
-            "funding": [
-                {
-                    "url": "https://www.buymeacoffee.com/hexters",
-                    "type": "buy_me_a_coffee"
-                },
-                {
-                    "url": "https://github.com/hexters",
-                    "type": "github"
-                },
-                {
-                    "url": "https://ko-fi.com/hexters",
-                    "type": "ko_fi"
-                },
-                {
-                    "url": "https://www.patreon.com/hexters",
-                    "type": "patreon"
-                }
-            ],
-            "time": "2026-01-13T08:30:32+00:00"
+            "transport-options": {
+                "symlink": false,
+                "relative": true
+            }
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
@@ -12669,7 +12644,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
