@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Employees\Pages;
 use App\Filament\Resources\Employees\EmployeeResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\ImportAction;
+use App\Filament\Imports\EmployeeImporter;
 
 class ListEmployees extends ListRecords
 {
@@ -14,6 +16,8 @@ class ListEmployees extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+             ImportAction::make()
+                ->importer(EmployeeImporter::class),
         ];
     }
 }
