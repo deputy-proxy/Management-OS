@@ -2,6 +2,7 @@
 
 namespace Hexters\HexaLite\Resources\Roles\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ViewField;
@@ -15,19 +16,25 @@ class RoleForm
     public static function configure(Schema $schema): Schema
     {
         $rawPermissions = collect(config('hexa-lite-roles'));
-
-        // Build a map of gate_key => cluster label
         $gateClusterMap = static::buildGateClusterMap();
 
-        // Group permission sections by cluster
-        $grouped = $rawPermissions->groupBy(function ($role) use ($gateClusterMap) {
+        // Also build a map of cluster => [gate_keys...] for the toggle action
+        $clusterGateKeys = [];
+        $rawPermissions->each(function ($role) use ($gateClusterMap, &$clusterGateKeys) {
+            $firstGate = array_key_first($role['names'] ?? []);
+            $cluster = $gateClusterMap[$firstGate] ?? 'General';
             $key = Str::slug($role['name'], '_');
-            // Find if any gate in this role belongs to a cluster
+            $clusterGateKeys[$cluster][] = $key;
+        });
+
+        $grouped = $rawPermissions->groupBy(function ($role) use ($gateClusterMap) {
             $firstGate = array_key_first($role['names'] ?? []);
             return $gateClusterMap[$firstGate] ?? 'General';
         });
 
-        $clusterSections = $grouped->map(function ($roles, $clusterLabel) {
+        $clusterSections = $grouped->map(function ($roles, $clusterLabel) use ($clusterGateKeys) {
+            $gateKeys = $clusterGateKeys[$clusterLabel] ?? [];
+
             $permissionSections = $roles->map(function ($role) {
                 $key = Str::slug($role['name'], '_');
                 return Section::make(ucfirst($role['name']))
@@ -45,6 +52,33 @@ class RoleForm
 
             return Section::make($clusterLabel)
                 ->collapsed(false)
+                ->headerActions([
+                    Action::make("select_all_{$clusterLabel}")
+                        ->label(__('Select all'))
+                        ->link()
+                        ->action(function (Action $action, $livewire) use ($gateKeys) {
+                            $data = $livewire->data;
+                            foreach ($gateKeys as $key) {
+                                $allOptions = array_keys(
+                                    collect(config('hexa-lite-roles'))
+                                        ->firstWhere('name', Str::replace('_', ' ', $key))['names'] ?? []
+                                );
+                                $data['gates'][$key] = $allOptions;
+                            }
+                            $livewire->data = $data;
+                        }),
+                    Action::make("deselect_all_{$clusterLabel}")
+                        ->label(__('Deselect all'))
+                        ->link()
+                        ->color('gray')
+                        ->action(function (Action $action, $livewire) use ($gateKeys) {
+                            $data = $livewire->data;
+                            foreach ($gateKeys as $key) {
+                                $data['gates'][$key] = [];
+                            }
+                            $livewire->data = $data;
+                        }),
+                ])
                 ->schema($permissionSections);
         })->values()->all();
 
@@ -63,12 +97,6 @@ class RoleForm
             ]);
     }
 
-    /**
-     * Scans all registered Filament resources and maps each gate key
-     * to the label of the cluster the resource belongs to.
-     *
-     * @return array<string, string>  [ 'discount.index' => 'Portfolio', ... ]
-     */
     protected static function buildGateClusterMap(): array
     {
         $map = [];
@@ -85,10 +113,8 @@ class RoleForm
                 continue;
             }
 
-            // Resolve cluster label
             $clusterLabel = static::resolveClusterLabel($resourceClass);
 
-            // Check if resource uses HasHexaLite and has defineGates()
             if (!method_exists($resourceClass, 'defineGates')) {
                 continue;
             }
@@ -108,14 +134,10 @@ class RoleForm
         return $map;
     }
 
-    /**
-     * Resolves a human-readable cluster label from a resource class.
-     */
     protected static function resolveClusterLabel(string $resourceClass): string
     {
         $clusterClass = null;
 
-        // Read the static $cluster property safely
         try {
             $ref = new \ReflectionClass($resourceClass);
             if ($ref->hasProperty('cluster')) {
@@ -131,7 +153,6 @@ class RoleForm
             return 'General';
         }
 
-        // Try to get the cluster's navigation label or derive from class name
         try {
             if (method_exists($clusterClass, 'getNavigationLabel')) {
                 return $clusterClass::getNavigationLabel();
@@ -140,7 +161,6 @@ class RoleForm
             // fall through
         }
 
-        // Fallback: derive label from class name (e.g. PortfolioCluster → Portfolio)
         $basename = class_basename($clusterClass);
         return Str::title(Str::replaceLast('Cluster', '', $basename));
     }
