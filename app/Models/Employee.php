@@ -45,6 +45,6 @@ class Employee extends Model implements Commentable
 
     public function jobDescription(): BelongsTo
     {
-        return $this->belongsTo(JobDescription::class);
+        return $this->belongsTo(JobDescription::class, 'job_description');
     }
 }

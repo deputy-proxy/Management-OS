@@ -44,6 +44,10 @@ class EmployeeForm
                                     $get('last_name')
                                 ))
                             ),
+                        Forms\Components\Select::make('job_description_id')
+                            ->relationship('jobDescription', 'job_title')
+                            ->label('Position')
+                            ->required(),
                     ])
                     ->columns(3),
 
