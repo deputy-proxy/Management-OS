@@ -4,21 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92cd61edab33551c91b2ef28606aeb86",
+    "content-hash": "9dec15a3f08ba88b6f5270ee66591ffc",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
-            "version": "v1.3.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/AlizHarb/filament-activity-log.git",
-                "reference": "6b84e8d9548e66fa548eba73bd22a7a28f7882d5"
-            },
+            "version": "dev-main",
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/AlizHarb/filament-activity-log/zipball/6b84e8d9548e66fa548eba73bd22a7a28f7882d5",
-                "reference": "6b84e8d9548e66fa548eba73bd22a7a28f7882d5",
-                "shasum": ""
+                "type": "path",
+                "url": "./packages/alizharb/filament-activity-log",
+                "reference": "ee44522b0fadd3974c4ab7584f06c86bc54c298c"
             },
             "require": {
                 "filament/actions": "^4.2|^5.0",
@@ -50,7 +44,22 @@
                     "AlizHarb\\ActivityLog\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "AlizHarb\\ActivityLog\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "vendor/bin/pest"
+                ],
+                "test-coverage": [
+                    "vendor/bin/pest --coverage"
+                ],
+                "format": [
+                    "vendor/bin/pint"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -81,17 +90,20 @@
                 "timeline"
             ],
             "support": {
-                "docs": "https://github.com/alizharb/filament-activity-log#readme",
                 "issues": "https://github.com/alizharb/filament-activity-log/issues",
-                "source": "https://github.com/alizharb/filament-activity-log"
+                "source": "https://github.com/alizharb/filament-activity-log",
+                "docs": "https://github.com/alizharb/filament-activity-log#readme"
             },
             "funding": [
                 {
-                    "url": "https://github.com/sponsors/alizharb",
-                    "type": "github"
+                    "type": "github",
+                    "url": "https://github.com/sponsors/alizharb"
                 }
             ],
-            "time": "2026-04-16T10:02:46+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "blade-ui-kit/blade-heroicons",
