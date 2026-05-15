@@ -16,11 +16,15 @@ class EmployeesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('full_name'),
-                Tables\Columns\TextColumn::make('first_name'),
-                Tables\Columns\TextColumn::make('last_name'),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('first_name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('last_name')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('date_of_birth')
-                    ->dateTime(),
+                    ->date()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('User')
                     ->sortable()

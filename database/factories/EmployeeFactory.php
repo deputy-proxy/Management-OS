@@ -27,7 +27,8 @@ class EmployeeFactory extends Factory
             'first_name' => $this->faker->sentence(),
             'last_name' => $this->faker->sentence(),
             'user_id' => \App\Models\User::factory(),
-            'date_of_birth' => $this->faker->date()
+            'date_of_birth' => $this->faker->date(),
+            'job_description' => \App\Models\JobDescription::factory()
         ];
     }
 }

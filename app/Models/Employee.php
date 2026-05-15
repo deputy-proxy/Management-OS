@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-
 use App\Models\Concerns\HasTasks;
 
 class Employee extends Model implements Commentable
@@ -31,9 +30,8 @@ class Employee extends Model implements Commentable
     {
         return $this->morphMany(Activity::class, 'subject');
     }
-
-/** @var array<int, string> */
-    protected $fillable = ['full_name', 'first_name', 'last_name', 'user_id', 'date_of_birth'];
+    /** @var array<int, string> */
+    protected $fillable = ['full_name', 'first_name', 'last_name', 'user_id', 'date_of_birth', 'job_description'];
 
     public function user(): BelongsTo
     {
@@ -43,5 +41,10 @@ class Employee extends Model implements Commentable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll();
+    }
+
+    public function jobDescription(): BelongsTo
+    {
+        return $this->belongsTo(JobDescription::class);
     }
 }
