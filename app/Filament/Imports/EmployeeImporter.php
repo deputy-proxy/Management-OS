@@ -24,12 +24,12 @@ class EmployeeImporter extends Importer
             ImportColumn::make('last_name')
                 ->requiredMapping()
                 ->rules(['required']),
-            // ImportColumn::make('user')
-            //     ->requiredMapping()
-            //     ->relationship()
-            //     ->rules(['required']),
-            // ImportColumn::make('date_of_birth')
-            //     ->rules(['date']),
+            ImportColumn::make('user')
+                ->requiredMapping()
+                ->relationship()
+                ->rules(['required']),
+            ImportColumn::make('date_of_birth')
+                ->rules(['date']),
         ];
     }
 
