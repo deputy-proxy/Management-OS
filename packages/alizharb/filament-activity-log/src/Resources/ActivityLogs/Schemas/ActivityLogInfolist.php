@@ -131,19 +131,14 @@ class ActivityLogInfolist
                                 return ! $hasJsonField && config('filament-activity-log.infolist.tabs.changes', true);
                             })
                             ->schema([
-                                KeyValueEntry::make('new_values')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.attributes'))
-                                    ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
-                                    ->valueLabel(__('filament-activity-log::activity.infolist.entry.value'))
-                                    ->getStateUsing(fn ($record) => ActivityChanges::getNewValues($record))
-                                    ->visible(fn ($record) => ActivityChanges::hasNewValues($record) && config('filament-activity-log.infolist.entries.properties_attributes', true)),
-
-                                KeyValueEntry::make('old_values')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.old'))
-                                    ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
-                                    ->valueLabel(__('filament-activity-log::activity.infolist.entry.value'))
-                                    ->getStateUsing(fn ($record) => ActivityChanges::getOldValues($record))
-                                    ->visible(fn ($record) => ActivityChanges::hasOldValues($record) && config('filament-activity-log.infolist.entries.properties_old', true)),
+                                TextEntry::make('changes')
+                                    ->label(__('filament-activity-log::activity.infolist.tab.changes'))
+                                    ->getStateUsing(fn ($record) => [
+                                        'new' => ActivityChanges::getNewValues($record),
+                                        'old' => ActivityChanges::getOldValues($record),
+                                    ])
+                                    ->view('filament-activity-log::infolists.components.changes-entry')
+                                    ->visible(fn ($record) => (ActivityChanges::hasNewValues($record) || ActivityChanges::hasOldValues($record)) && config('filament-activity-log.infolist.tabs.changes', true)),
                             ]),
 
                         Tab::make('Raw Data')
