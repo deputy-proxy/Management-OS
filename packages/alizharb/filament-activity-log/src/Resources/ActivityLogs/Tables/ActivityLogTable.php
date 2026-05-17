@@ -86,7 +86,9 @@ class ActivityLogTable
                             return $customUrl;
                         }
 
-                        $resource = Filament::getModelResource($record->subject_type);
+                        // Use the actual class from the subject instance instead of the stored string
+                        $subjectClass = get_class($record->subject);
+                        $resource = Filament::getModelResource($subjectClass);
 
                         if ($resource && $resource::hasPage('view')) {
                             return $resource::getUrl('view', ['record' => $record->subject]);

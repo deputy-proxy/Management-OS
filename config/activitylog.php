@@ -70,4 +70,8 @@ return [
         'log_activity' => LogActivityAction::class,
         'clean_log' => CleanActivityLogAction::class,
     ],
+
+    'activity_logger_taps' => [
+        \AlizHarb\ActivityLog\Taps\SetActivityContextTap::class,
+    ],
 ];

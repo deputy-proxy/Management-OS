@@ -15,6 +15,7 @@ use App\Models\ProductResource;
 use App\Models\ProductResourceAllocation;
 use App\Observers\ProductResourceObserver;
 use App\Observers\ProductResourceAllocationObserver;
+use Spatie\Activitylog\Models\Activity;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -32,6 +33,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+
+        Activity::creating(function (Activity $activity) {
+            if (request()->hasSession()) {
+                $activity->properties = $activity->properties->merge([
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+            }
+        });
+        
         ProductResource::observe(ProductResourceObserver::class);
         ProductResourceAllocation::observe(ProductResourceAllocationObserver::class);
 
