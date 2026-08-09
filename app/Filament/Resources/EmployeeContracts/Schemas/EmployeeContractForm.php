@@ -48,11 +48,11 @@ class EmployeeContractForm
                     ->schema([
                         Forms\Components\TextInput::make('base_salary')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('RON')
                             ->required(),
                         Forms\Components\TextInput::make('hourly_rate')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('RON')
                             ->required(),
                     ])
                     ->columns(2),
