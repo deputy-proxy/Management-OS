@@ -28,6 +28,11 @@ class EmployeeContractsTable
                 Tables\Columns\TextColumn::make('base_salary'),
                 Tables\Columns\TextColumn::make('hourly_rate'),
                 Tables\Columns\TextColumn::make('clauses')
+                    ->label('Clauses')
+                    ->formatStateUsing(fn ($state) => is_array($state) ? count($state) : 0)
+                    ->suffix(fn ($state) => ' ' . \Illuminate\Support\Str::plural('clause', is_array($state) ? count($state) : 0))
+                    ->badge()
+                    ->color('primary'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
