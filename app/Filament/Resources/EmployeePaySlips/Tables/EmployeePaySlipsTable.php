@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 class EmployeePaySlipsTable
 {
     public static function configure(Table $table): Table
@@ -19,7 +20,6 @@ class EmployeePaySlipsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('month'),
-                Tables\Columns\TextColumn::make('items'),
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('due_on')
                     ->dateTime(),
