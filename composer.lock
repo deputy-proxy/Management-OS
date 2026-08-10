@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9dec15a3f08ba88b6f5270ee66591ffc",
+    "content-hash": "2b85e6d490fe069dc79b593cfe820953",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
@@ -6688,16 +6688,16 @@
         },
         {
             "name": "relaticle/comments",
-            "version": "v1.0.0",
+            "version": "v1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/relaticle/comments.git",
-                "reference": "e37958c90577351afe7b28fe92adc34402593b4b"
+                "reference": "4680d37e8ae8617efc321a8ac51819082c3493df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/relaticle/comments/zipball/e37958c90577351afe7b28fe92adc34402593b4b",
-                "reference": "e37958c90577351afe7b28fe92adc34402593b4b",
+                "url": "https://api.github.com/repos/relaticle/comments/zipball/4680d37e8ae8617efc321a8ac51819082c3493df",
+                "reference": "4680d37e8ae8617efc321a8ac51819082c3493df",
                 "shasum": ""
             },
             "require": {
@@ -6739,7 +6739,7 @@
             "description": "A full-featured commenting system for Filament panels",
             "support": {
                 "issues": "https://github.com/relaticle/comments/issues",
-                "source": "https://github.com/relaticle/comments/tree/v1.0.0"
+                "source": "https://github.com/relaticle/comments/tree/v1.0.4"
             },
             "funding": [
                 {
@@ -6747,7 +6747,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-29T14:30:22+00:00"
+            "time": "2026-07-15T22:50:55+00:00"
         },
         {
             "name": "ryangjchandler/blade-capture-directive",

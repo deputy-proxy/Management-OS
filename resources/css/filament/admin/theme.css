@@ -21,7 +21,7 @@
 body {
   @apply antialiased;
   font-family: var(--font-family);
-  @apply h-screen max-h-screen pb-3 overflow-hidden dark:bg-black;
+  @apply min-h-screen dark:bg-black;
 }
 
 
