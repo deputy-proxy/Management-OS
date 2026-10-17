@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use App\Models\ProjectPhase;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ProjectPhaseFactory extends Factory
 {
@@ -25,7 +24,7 @@ class ProjectPhaseFactory extends Factory
     {
         return [
             'title' => $this->faker->sentence(),
-            'project_id' => \App\Models\Process::factory(),
+            'project_id' => Project::factory(),
             'description' => $this->faker->paragraphs(3, true),
             'start_on' => $this->faker->date(),
             'end_on' => $this->faker->date(),

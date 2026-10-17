@@ -115,8 +115,8 @@ class ProfileMenuCreateActionsTest extends TestCase
                 'created_by' => $user->getKey(),
                 'status' => 'pending',
                 'due_date' => '2026-10-20',
-                'project_id' => $phaseId,
-                'project_phase_id' => $projectId,
+                'project_id' => $projectId,
+                'project_phase_id' => $phaseId,
             ])
             ->callMountedAction();
 
@@ -125,8 +125,8 @@ class ProfileMenuCreateActionsTest extends TestCase
             'description' => 'Created in the modal.',
             'assigned_to' => $user->getKey(),
             'created_by' => $user->getKey(),
-            'project_id' => $phaseId,
-            'project_phase_id' => $projectId,
+            'project_id' => $projectId,
+            'project_phase_id' => $phaseId,
         ]);
     }
 
