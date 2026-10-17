@@ -2,42 +2,75 @@
 
 namespace App\Filament\Resources\Tasks;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\Operations\OperationsCluster;
+use App\Filament\Resources\Tasks\Schemas\TaskForm;
+use App\Filament\Resources\Tasks\Schemas\TaskInfolist;
+use App\Filament\Resources\Tasks\Tables\TasksTable;
 use App\Models\Task;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\Tasks\Pages;
-use App\Filament\Resources\Tasks\Schemas\TaskForm;
-use App\Filament\Resources\Tasks\Schemas\TaskInfolist;
-use App\Filament\Resources\Tasks\Tables\TasksTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\Operations\OperationsCluster;
 
 class TaskResource extends Resource
 {
     protected static ?int $navigationSort = 3;
+
     use HasHexaLite;
+
     protected static ?string $cluster = OperationsCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Project Management';
+
     protected static ?string $model = Task::class;
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public function defineGates(): array
     {
         return [
-            'task.index'    => __('Allows viewing the task list'),
+            'task.index' => __('Allows viewing the task list'),
             'task.view_all' => __('Allows viewing ALL tasks, not just own'),
-            'task.create'   => __('Allows creating a new task'),
-            'task.update'   => __('Allows updating tasks'),
-            'task.delete'   => __('Allows deleting tasks'),
-            'task.assign'   => __('Allows assigning tasks to other users'),
+            'task.create' => __('Allows creating a new task'),
+            'task.update' => __('Allows updating tasks'),
+            'task.delete' => __('Allows deleting tasks'),
+            'task.assign' => __('Allows assigning tasks to other users'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! hexa()->can('task.index')) {
+            return null;
+        }
+
+        $query = Task::query()->where('status', '!=', 'done');
+        if (! hexa()->can('task.view_all')) {
+            $userId = auth()->id();
+            $query->where(function (Builder $scope) use ($userId): void {
+                $scope->where('assigned_to', $userId)->orWhere('created_by', $userId);
+            });
+        }
+
+        $count = $query->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Open tasks in your permitted task scope';
     }
 
     public static function form(Schema $schema): Schema
@@ -63,10 +96,10 @@ class TaskResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListTasks::route('/'),
+            'index' => Pages\ListTasks::route('/'),
             'create' => Pages\CreateTask::route('/create'),
-            'edit'   => Pages\EditTask::route('/{record}/edit'),
-            'view'   => Pages\ViewTask::route('/{record}'),
+            'edit' => Pages\EditTask::route('/{record}/edit'),
+            'view' => Pages\ViewTask::route('/{record}'),
         ];
     }
 
@@ -152,7 +185,7 @@ class TaskResource extends Resource
 
         return $query->where(function (Builder $q) use ($user) {
             $q->where('assigned_to', $user->id)
-              ->orWhere('created_by', $user->id);
+                ->orWhere('created_by', $user->id);
         });
     }
 }
