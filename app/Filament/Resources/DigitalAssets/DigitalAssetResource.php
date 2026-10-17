@@ -2,33 +2,41 @@
 
 namespace App\Filament\Resources\DigitalAssets;
 
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Resources\DigitalAssets\Schemas\DigitalAssetForm;
+use App\Filament\Resources\DigitalAssets\Schemas\DigitalAssetInfolist;
+use App\Filament\Resources\DigitalAssets\Tables\DigitalAssetsTable;
 use App\Models\DigitalAsset;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\DigitalAssets\Pages;
-use App\Filament\Resources\DigitalAssets\Schemas\DigitalAssetForm;
-use App\Filament\Resources\DigitalAssets\Schemas\DigitalAssetInfolist;
-use App\Filament\Resources\DigitalAssets\Tables\DigitalAssetsTable;
+use Hexters\HexaLite\HasHexaLite;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
-use Hexters\HexaLite\HasHexaLite;
 
 class DigitalAssetResource extends Resource
 {
     protected static ?int $navigationSort = 3;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Inventory Management';
+
     protected static ?string $model = DigitalAsset::class;
+
     use HasHexaLite;
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('digital_asset.index')) {
+            return null;
+        }
+
         return static::getModel()::count();
     }
 
@@ -112,6 +120,3 @@ class DigitalAssetResource extends Resource
         return hexa()->can('digital_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete digital assets.'));
     }
 }
-
-
-
