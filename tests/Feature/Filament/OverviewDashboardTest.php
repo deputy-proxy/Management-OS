@@ -6,6 +6,7 @@ use App\Filament\Pages\CustomerDashboard;
 use App\Filament\Pages\FinanceDashboard;
 use App\Filament\Pages\GeneralDashboard;
 use App\Filament\Pages\OverviewDashboard;
+use App\Filament\Pages\ProductsOverview;
 use App\Filament\Pages\TasksAndProjects;
 use Filament\Pages\Page;
 use Tests\TestCase;
@@ -28,7 +29,7 @@ class OverviewDashboardTest extends TestCase
 
         $this->assertCount(5, $items);
         $this->assertSame('Available', $items[2]['scope']);
-        $this->assertSame('Planned', $items[4]['scope']);
+        $this->assertSame('Available', $items[4]['scope']);
     }
 
     public function test_overview_links_only_reference_existing_filament_pages(): void
@@ -46,7 +47,7 @@ class OverviewDashboardTest extends TestCase
         }
 
         $this->assertSame(CustomerDashboard::class, $items[2]['page']);
-        $this->assertNull($items[4]['page']);
+        $this->assertSame(ProductsOverview::class, $items[4]['page']);
     }
 
     public function test_customer_dashboard_declares_a_dedicated_access_permission(): void
