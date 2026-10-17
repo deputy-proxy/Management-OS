@@ -2,21 +2,21 @@
 
 namespace App\Filament\Resources\EmployeePaySlips;
 
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Resources\EmployeePaySlips\Schemas\EmployeePaySlipForm;
+use App\Filament\Resources\EmployeePaySlips\Schemas\EmployeePaySlipInfolist;
+use App\Filament\Resources\EmployeePaySlips\Tables\EmployeePaySlipsTable;
 use App\Models\EmployeePaySlip;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeePaySlips\Pages;
-use App\Filament\Resources\EmployeePaySlips\Schemas\EmployeePaySlipForm;
-use App\Filament\Resources\EmployeePaySlips\Schemas\EmployeePaySlipInfolist;
-use App\Filament\Resources\EmployeePaySlips\Tables\EmployeePaySlipsTable;
+use Hexters\HexaLite\HasHexaLite;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
-use Hexters\HexaLite\HasHexaLite;
+
 class EmployeePaySlipResource extends Resource
 {
     protected static ?int $navigationSort = 7;
@@ -24,14 +24,19 @@ class EmployeePaySlipResource extends Resource
     protected static ?string $cluster = GeneralCluster::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeePaySlip::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
-    
+
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_pay_slip.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->where('status', 'Open')
             ->count();
@@ -75,7 +80,7 @@ class EmployeePaySlipResource extends Resource
             'index' => Pages\ListEmployeePaySlips::route('/'),
             'create' => Pages\CreateEmployeePaySlip::route('/create'),
             'edit' => Pages\EditEmployeePaySlip::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeePaySlip::route('/{record}')
+            'view' => Pages\ViewEmployeePaySlip::route('/{record}'),
         ];
     }
 
@@ -115,4 +120,3 @@ class EmployeePaySlipResource extends Resource
         return hexa()->can('employee_pay_slip.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employee pay slips.'));
     }
 }
-
