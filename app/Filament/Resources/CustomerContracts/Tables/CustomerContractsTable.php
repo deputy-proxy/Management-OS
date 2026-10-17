@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources\CustomerContracts\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
-
 
 class CustomerContractsTable
 {
@@ -26,6 +27,8 @@ class CustomerContractsTable
                 Tables\Columns\TextColumn::make('start_date')->dateTime(),
                 Tables\Columns\TextColumn::make('end_date')->dateTime(),
                 Tables\Columns\TextColumn::make('document'),
+                Tables\Columns\TextColumn::make('signed_at')->dateTime(),
+                Tables\Columns\TextColumn::make('source_customer_lead_id')->label('Source lead'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -38,8 +41,8 @@ class CustomerContractsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
