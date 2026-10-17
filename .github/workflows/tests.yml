@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  php:
+    name: PHP tests and migrations
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/database/ci.sqlite
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pdo_sqlite, sqlite3, xml, zip
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/composer
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          mkdir -p database
+          touch database/ci.sqlite
+
+      # The feature suite may render Blade views that require Vite's manifest.
+      - name: Setup Node for PHP tests
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Build frontend for PHP tests
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify migrations
+        run: php artisan migrate --force
+
+      - name: Check PHP syntax
+        run: |
+          php <<'PHP'
+          <?php
+          $roots = ['app', 'bootstrap', 'config', 'database', 'routes', 'tests'];
+          foreach ($roots as $root) {
+              if (!is_dir($root)) {
+                  continue;
+              }
+              $files = new RecursiveIteratorIterator(
+                  new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)
+              );
+              foreach ($files as $file) {
+                  if (!$file->isFile() || $file->getExtension() !== 'php') {
+                      continue;
+                  }
+                  try {
+                      token_get_all(file_get_contents($file->getPathname()), TOKEN_PARSE);
+                  } catch (ParseError $error) {
+                      fwrite(STDERR, $file->getPathname() . ': ' . $error->getMessage() . PHP_EOL);
+                      exit(1);
+                  }
+              }
+          }
+          echo "PHP syntax check passed." . PHP_EOL;
+          PHP
+
+      - name: Check PHP formatting
+        run: vendor/bin/pint --test tests
+
+      - name: Run PHPUnit suite
+        run: composer test
+
+      - name: Audit Composer dependencies
+        run: composer audit --locked
+
+  frontend:
+    name: Frontend build and dependency audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The Filament theme imports CSS from vendor/, so Composer dependencies
+      # are required even in the standalone frontend build job.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pdo_sqlite, sqlite3, xml, zip
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/composer
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies for Filament assets
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
