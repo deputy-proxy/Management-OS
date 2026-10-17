@@ -57,9 +57,9 @@ class OverviewDashboard extends Page
             [
                 'title' => 'Customer Dashboard',
                 'description' => 'Customer and lead status, recent activity, and authorized follow-up links.',
-                'page' => null,
+                'page' => CustomerDashboard::class,
                 'owner' => 'Customer Management',
-                'scope' => 'Planned',
+                'scope' => 'Available',
             ],
             [
                 'title' => 'Tasks & Projects',
