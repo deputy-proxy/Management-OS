@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\CustomerContracts\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class CustomerContractInfolist
@@ -11,11 +11,13 @@ class CustomerContractInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('customer_id'),
-                \Filament\Infolists\Components\TextEntry::make('contract_code'),
-                \Filament\Infolists\Components\TextEntry::make('start_date')->dateTime(),
-                \Filament\Infolists\Components\TextEntry::make('end_date')->dateTime(),
-                \Filament\Infolists\Components\TextEntry::make('document'),
+                TextEntry::make('customer.name')->label('Customer'),
+                TextEntry::make('source_customer_lead_id')->label('Source lead'),
+                TextEntry::make('contract_code'),
+                TextEntry::make('start_date')->dateTime(),
+                TextEntry::make('end_date')->dateTime(),
+                TextEntry::make('document'),
+                TextEntry::make('signed_at')->dateTime(),
             ]);
     }
 }
