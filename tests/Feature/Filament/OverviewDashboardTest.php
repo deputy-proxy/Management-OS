@@ -57,6 +57,14 @@ class OverviewDashboardTest extends TestCase
         );
     }
 
+    public function test_tasks_and_projects_page_declares_a_dedicated_access_permission(): void
+    {
+        $this->assertSame(
+            ['tasks-and-projects.view' => __('Allows viewing the tasks and projects')],
+            (new TasksAndProjects)->defineGates(),
+        );
+    }
+
     public function test_page_declares_a_dedicated_access_permission(): void
     {
         $this->assertSame(
