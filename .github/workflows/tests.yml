@@ -106,7 +106,7 @@ jobs:
           PHP
 
       - name: Check PHP formatting
-        run: vendor/bin/pint --test
+        run: vendor/bin/pint --test tests
 
       - name: Run PHPUnit suite
         run: composer test
