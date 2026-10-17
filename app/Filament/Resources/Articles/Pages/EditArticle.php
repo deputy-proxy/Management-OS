@@ -3,9 +3,8 @@
 namespace App\Filament\Resources\Articles\Pages;
 
 use App\Filament\Resources\Articles\ArticleResource;
+use App\Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
-use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditArticle extends EditRecord
@@ -15,10 +14,9 @@ class EditArticle extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),            
+            ...parent::getHeaderActions(),
             CommentsAction::make(),
             TasksAction::make(),
         ];
     }
 }
-
