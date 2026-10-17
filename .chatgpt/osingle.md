@@ -26,7 +26,7 @@ Do not substitute generic Laravel/PHP conventions when the repository establishe
 
 Use the Railway Sandbox MCP `repository_prepare` flow for:
 
-`deputy-proxy/cr8or`
+`deputy-proxy/Management-OS`
 
 Prepare the Sandbox for the issue's dedicated development branch.
 
@@ -36,7 +36,7 @@ Do NOT create a new Sandbox merely because a new issue is being processed.
 
 The expected model is:
 
-- one persistent Sandbox for `deputy-proxy/cr8or`
+- one persistent Sandbox for `deputy-proxy/Management-OS`
 - one development branch per issue
 - reuse the existing Sandbox for subsequent issues
 - create a new Sandbox only when no usable persistent Sandbox for this repository exists
