@@ -68,13 +68,6 @@ class OverviewDashboard extends Page
                 'owner' => 'Project Management',
                 'scope' => 'Available',
             ],
-            [
-                'title' => 'Products Overview',
-                'description' => 'Product catalog, productable records, prices, availability, and lifecycle state.',
-                'page' => ProductsOverview::class,
-                'owner' => 'Product Management',
-                'scope' => 'Available',
-            ],
         ];
     }
 
