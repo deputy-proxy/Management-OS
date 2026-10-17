@@ -2,14 +2,18 @@
 
 namespace App\Filament\Resources\GroupSessions\Tables;
 
+use App\Filament\Resources\GroupSessions\Actions\ProvideSessionFeedbackAction;
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
+
 class GroupSessionsTable
 {
     public static function configure(Table $table): Table
@@ -33,23 +37,24 @@ class GroupSessionsTable
                 Tables\Columns\TextColumn::make('end_on')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('identifier')
+                Tables\Columns\TextColumn::make('identifier'),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make()
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
-                CommentsAction::make()
+                ProvideSessionFeedbackAction::make(),
+                CommentsAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make()
-                ])
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ]),
             ]);
     }
 }
