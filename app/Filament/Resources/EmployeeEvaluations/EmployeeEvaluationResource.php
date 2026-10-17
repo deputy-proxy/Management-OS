@@ -2,34 +2,38 @@
 
 namespace App\Filament\Resources\EmployeeEvaluations;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\EmployeeEvaluations\Schemas\EmployeeEvaluationForm;
+use App\Filament\Resources\EmployeeEvaluations\Schemas\EmployeeEvaluationInfolist;
+use App\Filament\Resources\EmployeeEvaluations\Tables\EmployeeEvaluationsTable;
 use App\Models\EmployeeEvaluation;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeeEvaluations\Pages;
-use App\Filament\Resources\EmployeeEvaluations\Schemas\EmployeeEvaluationForm;
-use App\Filament\Resources\EmployeeEvaluations\Schemas\EmployeeEvaluationInfolist;
-use App\Filament\Resources\EmployeeEvaluations\Tables\EmployeeEvaluationsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+
 class EmployeeEvaluationResource extends Resource
 {
     protected static ?int $navigationSort = 9;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeeEvaluation::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
         return ['employee_evaluation.index' => __('Allows viewing the employee evaluation list'), 'employee_evaluation.create' => __('Allows creating a new employee evaluation'), 'employee_evaluation.update' => __('Allows updating employee evaluations'), 'employee_evaluation.delete' => __('Allows deleting employee evaluations')];
@@ -37,6 +41,10 @@ class EmployeeEvaluationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_evaluation.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->where('status', 'In Progress')
             ->count();
@@ -80,7 +88,7 @@ class EmployeeEvaluationResource extends Resource
             'index' => Pages\ListEmployeeEvaluations::route('/'),
             'create' => Pages\CreateEmployeeEvaluation::route('/create'),
             'edit' => Pages\EditEmployeeEvaluation::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeeEvaluation::route('/{record}')
+            'view' => Pages\ViewEmployeeEvaluation::route('/{record}'),
         ];
     }
 
