@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GroupSessions\Tables;
 
+use App\Filament\Resources\GroupSessions\Actions\InputSessionAttendanceAction;
 use App\Filament\Resources\GroupSessions\Actions\ProvideSessionFeedbackAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
@@ -46,6 +47,7 @@ class GroupSessionsTable
                 EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
+                InputSessionAttendanceAction::make(),
                 ProvideSessionFeedbackAction::make(),
                 CommentsAction::make(),
             ])

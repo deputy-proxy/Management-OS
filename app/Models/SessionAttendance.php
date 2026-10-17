@@ -34,7 +34,7 @@ class SessionAttendance extends Model implements Commentable
 
     /** @var array<int, string> */
     protected $fillable = [
-        'group_session_id', 'student_id', 'achievement_badge', 'feedback',
+        'group_session_id', 'student_id', 'status', 'achievement_badge', 'feedback',
     ];
 
     public function groupSession(): BelongsTo

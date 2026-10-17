@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\Support\LogOptions;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Activity;
-
-use App\Models\Concerns\HasTasks;
 
 class IndividualSession extends Model
 {
@@ -18,7 +15,8 @@ class IndividualSession extends Model
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['identifier', 'customer_id', 'course_id', 'teacher_id', 'starts_at', 'ends_at', 'status'];
+    protected $fillable = ['identifier', 'customer_id', 'course_id', 'teacher_id', 'starts_at', 'ends_at', 'status', 'attendance_status'];
+
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
 
     public function customer(): BelongsTo
@@ -36,9 +34,8 @@ class IndividualSession extends Model
         return $this->belongsTo(Employee::class);
     }
 
-    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function activities(): MorphMany
     {
         return $this->morphMany(Activity::class, 'subject');
     }
-
 }
