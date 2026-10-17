@@ -2,28 +2,30 @@
 
 namespace App\Filament\Resources\CustomerLeads;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\Finance\FinanceCluster;
+use App\Filament\Resources\CustomerLeads\Schemas\CustomerLeadForm;
+use App\Filament\Resources\CustomerLeads\Schemas\CustomerLeadInfolist;
+use App\Filament\Resources\CustomerLeads\Tables\CustomerLeadsTable;
 use App\Models\CustomerLead;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\CustomerLeads\Pages;
-use App\Filament\Resources\CustomerLeads\Schemas\CustomerLeadForm;
-use App\Filament\Resources\CustomerLeads\Schemas\CustomerLeadInfolist;
-use App\Filament\Resources\CustomerLeads\Tables\CustomerLeadsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\Finance\FinanceCluster;
 
 class CustomerLeadResource extends Resource
 {
     protected static ?int $navigationSort = 2;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
+
     use HasHexaLite;
 
     protected static ?string $model = CustomerLead::class;
@@ -38,6 +40,27 @@ class CustomerLeadResource extends Resource
             'customer_lead.update' => __('Allows updating customer leads'),
             'customer_lead.delete' => __('Allows deleting customer leads'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! hexa()->can('customer_lead.index')) {
+            return null;
+        }
+
+        $count = CustomerLead::query()->whereNull('converted_at')->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Unconverted customer leads';
     }
 
     public static function form(Schema $schema): Schema
