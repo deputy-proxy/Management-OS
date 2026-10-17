@@ -6,7 +6,7 @@ use App\Filament\Pages\CustomerDashboard;
 use App\Filament\Pages\FinanceDashboard;
 use App\Filament\Pages\GeneralDashboard;
 use App\Filament\Pages\OverviewDashboard;
-use App\Filament\Pages\ProductsOverview;
+use App\Filament\Pages\PortfolioOverview;
 use App\Filament\Pages\TasksAndProjects;
 use Filament\Pages\Page;
 use Tests\TestCase;
@@ -18,18 +18,17 @@ class OverviewDashboardTest extends TestCase
         $items = app(OverviewDashboard::class)->getOverviewItems();
 
         $this->assertSame(
-            ['General Overview', 'Financial Overview', 'Customer Dashboard', 'Tasks & Projects', 'Products Overview'],
+            ['General Overview', 'Financial Overview', 'Customer Dashboard', 'Tasks & Projects'],
             array_column($items, 'title'),
         );
 
         $this->assertSame(
-            ['Operations', 'Finance', 'Customer Management', 'Project Management', 'Product Management'],
+            ['Operations', 'Finance', 'Customer Management', 'Project Management'],
             array_column($items, 'owner'),
         );
 
-        $this->assertCount(5, $items);
+        $this->assertCount(4, $items);
         $this->assertSame('Available', $items[2]['scope']);
-        $this->assertSame('Available', $items[4]['scope']);
     }
 
     public function test_overview_links_only_reference_existing_filament_pages(): void
@@ -47,7 +46,6 @@ class OverviewDashboardTest extends TestCase
         }
 
         $this->assertSame(CustomerDashboard::class, $items[2]['page']);
-        $this->assertSame(ProductsOverview::class, $items[4]['page']);
     }
 
     public function test_customer_dashboard_declares_a_dedicated_access_permission(): void
@@ -64,6 +62,21 @@ class OverviewDashboardTest extends TestCase
             ['tasks-and-projects.view' => __('Allows viewing the tasks and projects')],
             (new TasksAndProjects)->defineGates(),
         );
+    }
+
+    public function test_portfolio_overview_contains_the_products_catalog(): void
+    {
+        $page = new PortfolioOverview;
+
+        $this->assertSame(
+            ['portfolio-overview.view' => __('Allows viewing the portfolio overview')],
+            $page->defineGates(),
+        );
+        $this->assertSame(
+            'filament.clusters.portfolio.pages.portfolio-overview',
+            $page->getView(),
+        );
+        $this->assertStringContainsString('Products Catalog', file_get_contents(resource_path('views/filament/clusters/portfolio/pages/portfolio-overview.blade.php')));
     }
 
     public function test_page_declares_a_dedicated_access_permission(): void
