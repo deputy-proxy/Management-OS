@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/**/*';
@@ -15,7 +16,7 @@
 
 /* ----- GLOBAL TYPOGRAPHY ----- */
 :root {
-  --font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -487,7 +488,7 @@ border-bottom: none !important;
 }
 
 .dark .ec-today {
-    @apply dark:bg-amber-600/20;
+    @apply dark:bg-zinc-500/20;
 }
 
 .ec-button {
