@@ -45,6 +45,25 @@ class ProductsOverviewDataTest extends TestCase
         $this->assertSame(1, $summary['ambiguous_price']);
     }
 
+    public function test_it_resolves_legacy_class_names_stored_as_productable_types(): void
+    {
+        $course = Course::factory()->create(['title' => 'Legacy Course']);
+        $product = Product::factory()->create([
+            'title' => 'Legacy Product',
+            'productable_type' => Course::class,
+            'productable_id' => $course->id,
+        ]);
+
+        $this->assertSame('course', $product->productable_type);
+        $this->assertInstanceOf(Course::class, $product->productable);
+
+        $summary = app(ProductsOverviewData::class)->summary(CarbonImmutable::parse('2026-06-15', config('app.timezone')));
+        $row = $summary['products']->firstWhere('id', $product->id);
+
+        $this->assertTrue($row['productable_exists']);
+        $this->assertSame('Legacy Course', $row['productable_title']);
+    }
+
     public function test_it_reports_missing_and_future_prices_without_guessing(): void
     {
         $course = Course::factory()->create();
