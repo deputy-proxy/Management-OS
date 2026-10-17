@@ -27,6 +27,8 @@ class EventParticipantResource extends Resource
     use HasHexaLite;
     protected static ?string $model = EventParticipant::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     
     public function defineGates(): array

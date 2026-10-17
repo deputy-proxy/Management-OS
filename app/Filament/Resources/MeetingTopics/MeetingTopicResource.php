@@ -25,6 +25,8 @@ class MeetingTopicResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Meetings';
     protected static ?string $model = MeetingTopic::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     use HasHexaLite;
     public static function form(Schema $schema): Schema

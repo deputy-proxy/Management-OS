@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Relaticle\Comments\Concerns\HasComments;
@@ -15,6 +17,8 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 class CoursePrice extends ProductPrice implements Commentable
 {
+    use HasPanelSearchTitle;
+
     protected $table = 'product_prices';
 
     use HasComments;

@@ -27,6 +27,8 @@ class DigitalAssetResource extends Resource
 
     protected static ?string $model = DigitalAsset::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     use HasHexaLite;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

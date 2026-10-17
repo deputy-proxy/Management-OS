@@ -27,6 +27,8 @@ class PhysicalAssetResource extends Resource
 
     protected static ?string $model = PhysicalAsset::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     use HasHexaLite;

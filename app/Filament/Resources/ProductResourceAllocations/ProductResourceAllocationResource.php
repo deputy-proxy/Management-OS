@@ -26,6 +26,8 @@ class ProductResourceAllocationResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductResourceAllocation::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     use HasHexaLite;
     public static function form(Schema $schema): Schema

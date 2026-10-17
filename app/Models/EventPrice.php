@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Relaticle\Comments\Concerns\HasComments;
@@ -12,6 +14,8 @@ use Spatie\Activitylog\Support\LogOptions;
 /** Backwards-compatible adapter for event prices stored in product_prices. */
 class EventPrice extends ProductPrice implements Commentable
 {
+    use HasPanelSearchTitle;
+
     protected $table = 'product_prices';
 
     use HasComments;

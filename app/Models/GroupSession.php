@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use App\Models\Concerns\HasTasks;
 use Guava\Calendar\Contracts\Eventable;
 use Guava\Calendar\ValueObjects\CalendarEvent;
@@ -19,6 +21,8 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class GroupSession extends Model implements Commentable, Eventable
 {
+    use HasPanelSearchTitle;
+
     use HasComments;
     use HasFactory;
     use HasTasks;

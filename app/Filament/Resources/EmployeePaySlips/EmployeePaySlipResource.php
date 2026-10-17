@@ -29,6 +29,8 @@ class EmployeePaySlipResource extends Resource
 
     protected static ?string $model = EmployeePaySlip::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string

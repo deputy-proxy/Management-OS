@@ -24,6 +24,8 @@ class ProductPriceResource extends Resource
     protected static ?string $cluster = PortfolioCluster::class;
     protected static string|UnitEnum|null $navigationGroup = 'Product Management';
     protected static ?string $model = ProductPrice::class;
+
+    protected static ?string $recordTitleAttribute = 'title';
     use HasHexaLite;
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
