@@ -2,36 +2,39 @@
 
 namespace App\Filament\Resources\EmployeeContracts;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\EmployeeContracts\Schemas\EmployeeContractForm;
+use App\Filament\Resources\EmployeeContracts\Schemas\EmployeeContractInfolist;
+use App\Filament\Resources\EmployeeContracts\Tables\EmployeeContractsTable;
 use App\Models\EmployeeContract;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeeContracts\Pages;
-use App\Filament\Resources\EmployeeContracts\Schemas\EmployeeContractForm;
-use App\Filament\Resources\EmployeeContracts\Schemas\EmployeeContractInfolist;
-use App\Filament\Resources\EmployeeContracts\Tables\EmployeeContractsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Carbon;
+use UnitEnum;
 
 class EmployeeContractResource extends Resource
 {
     protected static ?int $navigationSort = 6;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeeContract::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
         return ['employee_contract.index' => __('Allows viewing the employee contract list'), 'employee_contract.create' => __('Allows creating a new employee contract'), 'employee_contract.update' => __('Allows updating employee contracts'), 'employee_contract.delete' => __('Allows deleting employee contracts')];
@@ -39,6 +42,10 @@ class EmployeeContractResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_contract.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->whereBetween('end_date', [
                 Carbon::today(),
@@ -104,7 +111,7 @@ class EmployeeContractResource extends Resource
             'index' => Pages\ListEmployeeContracts::route('/'),
             'create' => Pages\CreateEmployeeContract::route('/create'),
             'edit' => Pages\EditEmployeeContract::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeeContract::route('/{record}')
+            'view' => Pages\ViewEmployeeContract::route('/{record}'),
         ];
     }
 
