@@ -15,6 +15,14 @@ concurrency:
 jobs:
   remediate:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/database/ci.sqlite
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
     steps:
       - name: Checkout branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,6 +40,11 @@ jobs:
       - name: Update vulnerable Composer dependencies
         run: |
           composer update filament/filament laravel/framework league/commonmark symfony/http-foundation symfony/yaml --with-all-dependencies --no-interaction --prefer-dist --no-progress
+          cp .env.example .env
+          php artisan key:generate --force
+          mkdir -p database
+          touch database/ci.sqlite
+          php artisan migrate --force
           composer audit --locked
           composer test
 
