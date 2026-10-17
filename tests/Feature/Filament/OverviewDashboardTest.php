@@ -6,7 +6,6 @@ use App\Filament\Pages\CustomerDashboard;
 use App\Filament\Pages\FinanceDashboard;
 use App\Filament\Pages\GeneralDashboard;
 use App\Filament\Pages\OverviewDashboard;
-use App\Filament\Pages\ProductsOverview;
 use App\Filament\Pages\TasksAndProjects;
 use Filament\Pages\Page;
 use Tests\TestCase;
@@ -18,18 +17,17 @@ class OverviewDashboardTest extends TestCase
         $items = app(OverviewDashboard::class)->getOverviewItems();
 
         $this->assertSame(
-            ['General Overview', 'Financial Overview', 'Customer Dashboard', 'Tasks & Projects', 'Products Overview'],
+            ['General Overview', 'Financial Overview', 'Customer Dashboard', 'Tasks & Projects'],
             array_column($items, 'title'),
         );
 
         $this->assertSame(
-            ['Operations', 'Finance', 'Customer Management', 'Project Management', 'Product Management'],
+            ['Operations', 'Finance', 'Customer Management', 'Project Management'],
             array_column($items, 'owner'),
         );
 
-        $this->assertCount(5, $items);
+        $this->assertCount(4, $items);
         $this->assertSame('Available', $items[2]['scope']);
-        $this->assertSame('Available', $items[4]['scope']);
     }
 
     public function test_overview_links_only_reference_existing_filament_pages(): void
@@ -47,7 +45,6 @@ class OverviewDashboardTest extends TestCase
         }
 
         $this->assertSame(CustomerDashboard::class, $items[2]['page']);
-        $this->assertSame(ProductsOverview::class, $items[4]['page']);
     }
 
     public function test_customer_dashboard_declares_a_dedicated_access_permission(): void
