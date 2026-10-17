@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Filament\Resources\Customers\Schemas;
 
 use Filament\Forms;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+
 class CustomerForm
 {
     public static function configure(Schema $schema): Schema
@@ -37,6 +39,8 @@ class CustomerForm
                         Forms\Components\TextInput::make('email')
                             ->required()
                             ->email(),
+                        Forms\Components\TextInput::make('phone')
+                            ->tel(),
                     ]),
             ]);
     }

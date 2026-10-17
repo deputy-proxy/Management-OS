@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Customers\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class CustomerInfolist
@@ -11,11 +11,12 @@ class CustomerInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('name'),
-                \Filament\Infolists\Components\TextEntry::make('customer_type'),
-                \Filament\Infolists\Components\TextEntry::make('cnp_cui'),
-                \Filament\Infolists\Components\TextEntry::make('address'),
-                \Filament\Infolists\Components\TextEntry::make('email'),
+                TextEntry::make('name'),
+                TextEntry::make('customer_type'),
+                TextEntry::make('cnp_cui'),
+                TextEntry::make('address'),
+                TextEntry::make('email'),
+                TextEntry::make('phone'),
             ]);
     }
 }
