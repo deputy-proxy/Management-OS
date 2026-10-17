@@ -1,11 +1,13 @@
 <?php
+
 namespace App\Filament\Resources\CustomerLeads\Schemas;
 
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+
 class CustomerLeadForm
 {
     public static function configure(Schema $schema): Schema
@@ -24,23 +26,21 @@ class CustomerLeadForm
                         Forms\Components\TextInput::make('first_name')
                             ->required()
                             ->reactive()
-                            ->afterStateUpdated(fn($state, Set $set, Get $get) =>
-                                $set('full_name', self::buildFullName(
-                                    $get('first_name'),
-                                    $get('middle_name'),
-                                    $get('last_name')
-                                ))
+                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => $set('full_name', self::buildFullName(
+                                $get('first_name'),
+                                $get('middle_name'),
+                                $get('last_name')
+                            ))
                             ),
                         Forms\Components\TextInput::make('middle_name'),
                         Forms\Components\TextInput::make('last_name')
                             ->required()
                             ->reactive()
-                            ->afterStateUpdated(fn($state, Set $set, Get $get) =>
-                                $set('full_name', self::buildFullName(
-                                    $get('first_name'),
-                                    $get('middle_name'),
-                                    $get('last_name')
-                                ))
+                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => $set('full_name', self::buildFullName(
+                                $get('first_name'),
+                                $get('middle_name'),
+                                $get('last_name')
+                            ))
                             ),
                     ])
                     ->columns(3),
@@ -67,6 +67,18 @@ class CustomerLeadForm
                             ->required(),
                         Forms\Components\TextInput::make('product_interest')
                             ->required(),
+                    ]),
+
+                Section::make('Contract Delivery')
+                    ->description('Attach the existing contract PDF to make it available for sending to the lead.')
+                    ->schema([
+                        Forms\Components\FileUpload::make('contract_document')
+                            ->label('Contract PDF')
+                            ->disk('local')
+                            ->directory('customer-lead-contracts')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(10240)
+                            ->downloadable(),
                     ]),
 
                 Section::make('Lead Status')

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CustomerLeads\Tables;
 
 use App\Actions\ConvertCustomerLead;
+use App\Actions\SendCustomerLeadContract;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
 use App\Models\CustomerLead;
 use Filament\Actions\Action;
@@ -21,7 +22,9 @@ use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
+use Throwable;
 
 class CustomerLeadsTable
 {
@@ -48,6 +51,8 @@ class CustomerLeadsTable
                 Tables\Columns\TextColumn::make('product_interest'),
                 Tables\Columns\TextColumn::make('status'),
                 Tables\Columns\TextColumn::make('last_contacted_at')->dateTime(),
+                Tables\Columns\TextColumn::make('contract_send_status')->label('Contract delivery')->badge(),
+                Tables\Columns\TextColumn::make('contract_sent_at')->dateTime(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -112,6 +117,61 @@ class CustomerLeadsTable
                         Notification::make()
                             ->title('Lead converted into customer')
                             ->body("Created customer {$customer->name} and its signed contract.")
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('sendContract')
+                    ->label('Send contract')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->visible(fn (CustomerLead $record): bool => ! $record->trashed()
+                        && ! in_array($record->contract_send_status, ['queued', 'sent'], true)
+                        && hexa()->can('customer_lead.update'))
+                    ->authorize(fn (CustomerLead $record): bool => ! $record->trashed()
+                        && ! in_array($record->contract_send_status, ['queued', 'sent'], true)
+                        && hexa()->can('customer_lead.update'))
+                    ->schema([
+                        TextInput::make('recipient_preview')
+                            ->label('Recipient email')
+                            ->default(fn (CustomerLead $record): ?string => $record->email)
+                            ->disabled()
+                            ->dehydrated(false),
+                        TextInput::make('document_preview')
+                            ->label('Attached contract PDF')
+                            ->default(fn (CustomerLead $record): ?string => $record->contract_document)
+                            ->disabled()
+                            ->dehydrated(false),
+                        Checkbox::make('confirm_send')
+                            ->label('I confirm this PDF should be emailed to the lead above.')
+                            ->accepted()
+                            ->required(),
+                    ])
+                    ->action(function (CustomerLead $record, array $data): void {
+                        try {
+                            $updatedLead = app(SendCustomerLeadContract::class)->handle($record);
+                        } catch (ValidationException $exception) {
+                            Notification::make()
+                                ->title('Contract was not sent')
+                                ->body(collect($exception->errors())->flatten()->first())
+                                ->danger()
+                                ->send();
+
+                            return;
+                        } catch (Throwable $exception) {
+                            report($exception);
+                            Notification::make()
+                                ->title('Contract delivery failed')
+                                ->body('The delivery could not be queued. Check the delivery error on this lead before retrying.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title($updatedLead->contract_send_status === 'sent' ? 'Contract sent' : 'Contract queued for delivery')
+                            ->body($updatedLead->contract_send_status === 'sent'
+                                ? 'The configured mail transport accepted the contract email.'
+                                : 'Delivery status will update after the queued mail job runs.')
                             ->success()
                             ->send();
                     }),

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\CustomerLeads\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class CustomerLeadInfolist
@@ -11,17 +11,21 @@ class CustomerLeadInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('first_name'),
-                \Filament\Infolists\Components\TextEntry::make('middle_name'),
-                \Filament\Infolists\Components\TextEntry::make('last_name'),
-                \Filament\Infolists\Components\TextEntry::make('full_name'),
-                \Filament\Infolists\Components\TextEntry::make('email'),
-                \Filament\Infolists\Components\TextEntry::make('phone'),
-                \Filament\Infolists\Components\TextEntry::make('source'),
-                \Filament\Infolists\Components\TextEntry::make('topic_interest'),
-                \Filament\Infolists\Components\TextEntry::make('product_interest'),
-                \Filament\Infolists\Components\TextEntry::make('status'),
-                \Filament\Infolists\Components\TextEntry::make('last_contacted_at')->dateTime(),
+                TextEntry::make('first_name'),
+                TextEntry::make('middle_name'),
+                TextEntry::make('last_name'),
+                TextEntry::make('full_name'),
+                TextEntry::make('email'),
+                TextEntry::make('phone'),
+                TextEntry::make('source'),
+                TextEntry::make('topic_interest'),
+                TextEntry::make('product_interest'),
+                TextEntry::make('status'),
+                TextEntry::make('last_contacted_at')->dateTime(),
+                TextEntry::make('contract_document')->label('Contract PDF'),
+                TextEntry::make('contract_send_status')->label('Contract delivery status'),
+                TextEntry::make('contract_sent_at')->dateTime(),
+                TextEntry::make('contract_send_error')->label('Last delivery error')->placeholder('None'),
             ]);
     }
 }
