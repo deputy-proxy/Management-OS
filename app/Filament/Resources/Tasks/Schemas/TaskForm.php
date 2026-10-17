@@ -25,6 +25,7 @@ class TaskForm
                 ->required(),
 
             Textarea::make('description')
+                ->required()
                 ->columnSpanFull(),
 
             // ── Assigned To ──────────────────────────────────────────────
@@ -69,17 +70,20 @@ class TaskForm
                 ->default('pending')
                 ->required(),
 
-            DatePicker::make('due_date'),
+            DatePicker::make('due_date')
+                ->required(),
 
             Select::make('project_id')
                 ->label('Project')
                 ->relationship('project', 'title')
+                ->required()
                 ->searchable()
                 ->preload(),
 
             Select::make('project_phase_id')
                 ->label('Project Phase')
                 ->relationship('projectPhase', 'title')
+                ->required()
                 ->searchable()
                 ->preload(),
         ]);
