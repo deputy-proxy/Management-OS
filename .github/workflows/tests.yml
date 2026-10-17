@@ -79,7 +79,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Check PHP syntax
-        run: find app bootstrap config database routes tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find app bootstrap config database routes tests -type f -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
 
       - name: Run PHPUnit suite
         run: composer test
