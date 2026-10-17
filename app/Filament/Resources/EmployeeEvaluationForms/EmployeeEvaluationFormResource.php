@@ -2,36 +2,44 @@
 
 namespace App\Filament\Resources\EmployeeEvaluationForms;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\EmployeeEvaluationForms\Schemas\EmployeeEvaluationFormForm;
+use App\Filament\Resources\EmployeeEvaluationForms\Schemas\EmployeeEvaluationFormInfolist;
+use App\Filament\Resources\EmployeeEvaluationForms\Tables\EmployeeEvaluationFormsTable;
 use App\Models\EmployeeEvaluationForm;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeeEvaluationForms\Pages;
-use App\Filament\Resources\EmployeeEvaluationForms\Schemas\EmployeeEvaluationFormForm;
-use App\Filament\Resources\EmployeeEvaluationForms\Schemas\EmployeeEvaluationFormInfolist;
-use App\Filament\Resources\EmployeeEvaluationForms\Tables\EmployeeEvaluationFormsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+
 class EmployeeEvaluationFormResource extends Resource
 {
     protected static ?int $navigationSort = 8;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeeEvaluationForm::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_evaluation_form.index')) {
+            return null;
+        }
+
         return static::getModel()::count();
     }
 
@@ -44,7 +52,6 @@ class EmployeeEvaluationFormResource extends Resource
     {
         return 'Number of employee evaluation forms';
     }
-
 
     public function defineGates(): array
     {
@@ -83,7 +90,7 @@ class EmployeeEvaluationFormResource extends Resource
             'index' => Pages\ListEmployeeEvaluationForms::route('/'),
             'create' => Pages\CreateEmployeeEvaluationForm::route('/create'),
             'edit' => Pages\EditEmployeeEvaluationForm::route('/{record}/edit'),
-            'view' => Pages\ViewEmployeeEvaluationForm::route('/{record}')
+            'view' => Pages\ViewEmployeeEvaluationForm::route('/{record}'),
         ];
     }
 
