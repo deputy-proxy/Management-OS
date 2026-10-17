@@ -95,6 +95,8 @@ class AdminPanelProvider extends PanelProvider
             ->userMenuItems([
                 CreateAction::make('medical_leave')
                     ->model(EmployeeMedicalLeave::class)
+                    ->authorize(fn (): bool => hexa()->can('employee_medical_leafe.create'))
+                    ->visible(fn (): bool => hexa()->can('employee_medical_leafe.create'))
                     ->modalHeading('Request Medical Leave')
                         ->schema(fn (\Filament\Schemas\Schema $schema) => 
                             EmployeeMedicalLeaveResource::form($schema)
@@ -103,6 +105,8 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-c-plus-circle'),
                 CreateAction::make('holiday')
                     ->model(\App\Models\EmployeeHoliday::class)
+                    ->authorize(fn (): bool => hexa()->can('employee_holiday.create'))
+                    ->visible(fn (): bool => hexa()->can('employee_holiday.create'))
                     ->modalHeading('Request Holiday')
                      ->schema(fn (\Filament\Schemas\Schema $schema) => 
                         EmployeeHolidayResource::form($schema)
@@ -111,6 +115,8 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-c-sun'),
                 CreateAction::make('task')
                     ->model(\App\Models\Task::class)
+                    ->authorize(fn (): bool => hexa()->can('task.create'))
+                    ->visible(fn (): bool => hexa()->can('task.create'))
                     ->modalHeading('Create a new task')
                      ->schema(fn (\Filament\Schemas\Schema $schema) => 
                         TaskResource::form($schema)
@@ -144,4 +150,3 @@ class AdminPanelProvider extends PanelProvider
         );
     }
 }
-
