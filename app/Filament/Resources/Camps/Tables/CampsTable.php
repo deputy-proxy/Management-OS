@@ -6,8 +6,11 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
+
 class CampsTable
 {
     public static function configure(Table $table): Table
@@ -21,24 +24,24 @@ class CampsTable
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('end_on')
                     ->dateTime(),
-                Tables\Columns\TextColumn::make('campPrice.id')
-                    ->label('Camp Price')
+                Tables\Columns\TextColumn::make('productPrice.price')
+                    ->label('Price')
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make()
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make()
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make()
-                ])
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ]),
             ]);
     }
 }
