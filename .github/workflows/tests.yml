@@ -81,11 +81,11 @@ jobs:
       - name: Check PHP syntax
         run: find app bootstrap config database routes tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - name: Audit Composer dependencies
-        run: composer audit --locked
-
       - name: Run PHPUnit suite
         run: composer test
+
+      - name: Audit Composer dependencies
+        run: composer audit --locked
 
   frontend:
     name: Frontend build and dependency audit
@@ -107,8 +107,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Audit npm dependencies
-        run: npm audit --audit-level=high
-
       - name: Build frontend
         run: npm run build
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
