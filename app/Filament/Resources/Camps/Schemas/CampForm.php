@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Camps\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+
 class CampForm
 {
     public static function configure(Schema $schema): Schema
@@ -20,6 +21,13 @@ class CampForm
                     ->required(),
                 Forms\Components\DatePicker::make('end_on')
                     ->required(),
+                Forms\Components\TextInput::make('price')
+                    ->label('Price')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('currency')
+                    ->label('Currency')
+                    ->maxLength(3),
             ]);
     }
 }

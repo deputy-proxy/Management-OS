@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources\EventPrices\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
-
 
 class EventPricesTable
 {
@@ -22,7 +23,7 @@ class EventPricesTable
                     ->label('Event')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('amount'),
+                Tables\Columns\TextColumn::make('price')->label('Amount'),
                 Tables\Columns\TextColumn::make('currency'),
             ])
             ->filters([
@@ -36,8 +37,8 @@ class EventPricesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

@@ -11,8 +11,13 @@ class ProductPriceInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('price'),
-                \Filament\Infolists\Components\TextEntry::make('currency'),
+                Infolists\Components\TextEntry::make('price'),
+                Infolists\Components\TextEntry::make('currency'),
+                Infolists\Components\TextEntry::make('price_type'),
+                Infolists\Components\TextEntry::make('priceable_type'),
+                Infolists\Components\TextEntry::make('priceable.title')->label('Priced item'),
+                Infolists\Components\TextEntry::make('valid_from')->date(),
+                Infolists\Components\TextEntry::make('valid_until')->date(),
             ]);
     }
 }

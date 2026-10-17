@@ -2,50 +2,59 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
-use Spatie\Activitylog\Models\Activity;
 
-use App\Models\Concerns\HasTasks;
-
-class EventPrice extends Model implements Commentable
+/** Backwards-compatible adapter for event prices stored in product_prices. */
+class EventPrice extends ProductPrice implements Commentable
 {
+    protected $table = 'product_prices';
+
+    use HasComments;
     use LogsActivity;
 
-    use HasFactory;
-    use SoftDeletes;
-    use HasComments;
-    use HasTasks;
+    protected $fillable = ['event_id', 'amount', 'currency', 'price_type'];
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    protected static function booted(): void
     {
-        return $this->morphMany(Task::class, 'taskable');
+        static::addGlobalScope('event_priceable', fn (Builder $query) => $query->where('priceable_type', 'event'));
+        static::creating(function (self $price): void {
+            $price->priceable_type = 'event';
+        });
     }
 
-    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function setEventIdAttribute(mixed $value): void
     {
-        return $this->morphMany(Activity::class, 'subject');
+        $this->attributes['priceable_type'] = 'event';
+        $this->attributes['priceable_id'] = $value;
     }
 
-/** @var array<int, string> */
-    protected $fillable = [
-        'event_id', 'amount', 'currency'
-    ];
+    public function getEventIdAttribute(): mixed
+    {
+        return $this->attributes['priceable_type'] === 'event' ? ($this->attributes['priceable_id'] ?? null) : null;
+    }
+
+    public function setAmountAttribute(mixed $value): void
+    {
+        $this->attributes['price'] = $value;
+    }
+
+    public function getAmountAttribute(): mixed
+    {
+        return $this->attributes['price'] ?? null;
+    }
 
     public function event(): BelongsTo
     {
-        return $this->belongsTo(Event::class);
-    }
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll();
+        return $this->belongsTo(Event::class, 'priceable_id');
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll();
+    }
 }

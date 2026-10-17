@@ -2,22 +2,24 @@
 
 namespace App\Filament\Resources\Camps\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
+
 class CampInfolist
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('title'),
-                \Filament\Infolists\Components\TextEntry::make('description'),
-                \Filament\Infolists\Components\TextEntry::make('location'),
-                \Filament\Infolists\Components\TextEntry::make('start_on')
+                TextEntry::make('title'),
+                TextEntry::make('description'),
+                TextEntry::make('location'),
+                TextEntry::make('start_on')
                     ->dateTime(),
-                \Filament\Infolists\Components\TextEntry::make('end_on')
+                TextEntry::make('end_on')
                     ->dateTime(),
-                \Filament\Infolists\Components\TextEntry::make('camp_price_id')
+                TextEntry::make('productPrice.price')->label('Price'),
+                TextEntry::make('productPrice.currency')->label('Currency'),
             ]);
     }
 }

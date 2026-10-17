@@ -2,50 +2,79 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
-use Spatie\Activitylog\Models\Activity;
 
-use App\Models\Concerns\HasTasks;
-
-class WorkshopPrice extends Model implements Commentable
+/** Backwards-compatible adapter for workshop prices stored in product_prices. */
+class WorkshopPrice extends ProductPrice implements Commentable
 {
+    protected $table = 'product_prices';
+
+    use HasComments;
     use LogsActivity;
 
-    use HasFactory;
-    use SoftDeletes;
-    use HasComments;
-    use HasTasks;
+    protected $fillable = ['workshop_id', 'amount', 'currency', 'start_on', 'end_on', 'price_type'];
 
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    protected static function booted(): void
     {
-        return $this->morphMany(Task::class, 'taskable');
+        static::addGlobalScope('workshop_priceable', fn (Builder $query) => $query->where('priceable_type', 'workshop'));
+        static::creating(function (self $price): void {
+            $price->priceable_type = 'workshop';
+        });
     }
 
-    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function setWorkshopIdAttribute(mixed $value): void
     {
-        return $this->morphMany(Activity::class, 'subject');
+        $this->attributes['priceable_type'] = 'workshop';
+        $this->attributes['priceable_id'] = $value;
     }
 
-/** @var array<int, string> */
-    protected $fillable = [
-        'workshop_id', 'amount', 'currency', 'start_on', 'end_on'
-    ];
+    public function getWorkshopIdAttribute(): mixed
+    {
+        return $this->attributes['priceable_type'] === 'workshop' ? ($this->attributes['priceable_id'] ?? null) : null;
+    }
+
+    public function setAmountAttribute(mixed $value): void
+    {
+        $this->attributes['price'] = $value;
+    }
+
+    public function getAmountAttribute(): mixed
+    {
+        return $this->attributes['price'] ?? null;
+    }
+
+    public function setStartOnAttribute(mixed $value): void
+    {
+        $this->attributes['valid_from'] = $value;
+    }
+
+    public function getStartOnAttribute(): mixed
+    {
+        return $this->attributes['valid_from'] ?? null;
+    }
+
+    public function setEndOnAttribute(mixed $value): void
+    {
+        $this->attributes['valid_until'] = $value;
+    }
+
+    public function getEndOnAttribute(): mixed
+    {
+        return $this->attributes['valid_until'] ?? null;
+    }
 
     public function workshop(): BelongsTo
     {
-        return $this->belongsTo(Workshop::class);
-    }
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll();
+        return $this->belongsTo(Workshop::class, 'priceable_id');
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll();
+    }
 }

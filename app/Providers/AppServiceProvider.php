@@ -51,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
             'user' => \App\Models\User::class,
 
             'course' => \App\Models\Course::class,
+            'camp' => \App\Models\Camp::class,
+            'product_price' => \App\Models\ProductPrice::class,
             'course_material' => \App\Models\CourseMaterial::class,
             'course_price' => \App\Models\CoursePrice::class,
 

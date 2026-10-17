@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources\WorkshopPrices\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
-
 
 class WorkshopPricesTable
 {
@@ -22,10 +23,10 @@ class WorkshopPricesTable
                     ->label('Workshop')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('amount'),
+                Tables\Columns\TextColumn::make('price')->label('Amount'),
                 Tables\Columns\TextColumn::make('currency'),
-                Tables\Columns\TextColumn::make('start_on')->dateTime(),
-                Tables\Columns\TextColumn::make('end_on')->dateTime(),
+                Tables\Columns\TextColumn::make('valid_from')->label('Starts')->date(),
+                Tables\Columns\TextColumn::make('valid_until')->label('Ends')->date(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -38,8 +39,8 @@ class WorkshopPricesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
