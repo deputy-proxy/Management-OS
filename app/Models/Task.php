@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +19,8 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Task extends Model implements Commentable
 {
+    use HasPanelSearchTitle;
+
     use HasComments;
     use HasFactory;
     use LogsActivity;

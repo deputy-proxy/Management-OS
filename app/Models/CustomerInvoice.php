@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +21,8 @@ use App\Models\Concerns\HasTasks;
 
 class CustomerInvoice extends Model implements Commentable
 {
+    use HasPanelSearchTitle;
+
     use LogsActivity;
     use HasFactory;
     use SoftDeletes;

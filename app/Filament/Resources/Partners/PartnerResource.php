@@ -28,6 +28,8 @@ class PartnerResource extends Resource
 
     protected static ?string $model = Partner::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public function defineGates(): array

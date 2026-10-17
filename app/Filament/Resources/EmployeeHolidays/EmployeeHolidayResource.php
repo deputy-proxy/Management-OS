@@ -30,6 +30,8 @@ class EmployeeHolidayResource extends Resource
     use HasHexaLite;
 
     protected static ?string $model = EmployeeHoliday::class;
+
+    protected static ?string $recordTitleAttribute = 'title';
     // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';

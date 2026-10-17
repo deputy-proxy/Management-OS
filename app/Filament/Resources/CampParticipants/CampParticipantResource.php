@@ -25,6 +25,8 @@ class CampParticipantResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Camp Management';
     protected static ?string $model = CampParticipant::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     
     use HasHexaLite;

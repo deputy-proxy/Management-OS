@@ -25,6 +25,8 @@ class MeetingResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Meetings';
     protected static ?string $model = Meeting::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     use HasHexaLite;

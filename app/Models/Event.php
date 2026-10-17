@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +19,8 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Event extends Model implements Commentable
 {
+    use HasPanelSearchTitle;
+
     use HasComments;
     use HasFactory;
     use HasTasks;

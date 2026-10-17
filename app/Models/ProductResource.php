@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,6 +13,8 @@ use Spatie\Activitylog\Models\Activity;
 
 class ProductResource extends Model
 {
+    use HasPanelSearchTitle;
+
     use HasFactory;
     use SoftDeletes;
 

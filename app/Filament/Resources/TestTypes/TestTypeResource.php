@@ -27,6 +27,8 @@ class TestTypeResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
     protected static ?string $model = TestType::class;
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Schema $schema): Schema

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPanelSearchTitle;
+
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +15,8 @@ use Spatie\Activitylog\Models\Activity;
 
 class ProductPrice extends Model
 {
+    use HasPanelSearchTitle;
+
     use HasFactory;
     use SoftDeletes;
 
