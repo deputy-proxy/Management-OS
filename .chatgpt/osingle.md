@@ -1,6 +1,6 @@
 ## 1. Select the issue
 
-Get the **oldest open issue** in `deputy-proxy/cr8or`.
+Get the **oldest open issue** in `deputy-proxy/Management-OS`.
 
 Read the **implementation plan in the issue body** and treat that plan as the primary implementation specification.
 
