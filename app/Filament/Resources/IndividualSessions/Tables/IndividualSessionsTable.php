@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources\IndividualSessions\Tables;
 
+use App\Filament\Resources\IndividualSessions\Actions\InputIndividualSessionAttendanceAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
+
 class IndividualSessionsTable
 {
     public static function configure(Table $table): Table
@@ -29,21 +33,23 @@ class IndividualSessionsTable
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('ends_at')
                     ->dateTime(),
-                Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('attendance_status')->label('Attendance'),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make()
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make()
+                DeleteAction::make(),
+                InputIndividualSessionAttendanceAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make()
-                ])
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ]),
             ]);
     }
 }
