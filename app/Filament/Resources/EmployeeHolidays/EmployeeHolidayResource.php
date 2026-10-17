@@ -2,38 +2,44 @@
 
 namespace App\Filament\Resources\EmployeeHolidays;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\EmployeeHolidays\Schemas\EmployeeHolidayForm;
+use App\Filament\Resources\EmployeeHolidays\Schemas\EmployeeHolidayInfolist;
+use App\Filament\Resources\EmployeeHolidays\Tables\EmployeeHolidaysTable;
 use App\Models\EmployeeHoliday;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeeHolidays\Pages;
-use App\Filament\Resources\EmployeeHolidays\Schemas\EmployeeHolidayForm;
-use App\Filament\Resources\EmployeeHolidays\Schemas\EmployeeHolidayInfolist;
-use App\Filament\Resources\EmployeeHolidays\Tables\EmployeeHolidaysTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
 
 class EmployeeHolidayResource extends Resource
 {
     protected static ?int $navigationSort = 10;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeeHoliday::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_holiday.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->where('status', 'Pending')
             ->count();
