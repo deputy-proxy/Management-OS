@@ -1,0 +1,75 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Customer;
+use App\Models\CustomerContract;
+use App\Models\CustomerInteraction;
+use App\Models\CustomerInvoice;
+use App\Models\CustomerLead;
+use App\Services\CustomerDashboardData;
+use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CustomerDashboardDataTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_summary_separates_converted_leads_and_counts_current_contracts_and_recent_interactions(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone'));
+        $customer = Customer::factory()->create();
+        Customer::factory()->create()->delete();
+        CustomerLead::factory()->create(['status' => 'New', 'converted_customer_id' => null, 'created_at' => '2026-10-10 10:00:00']);
+        CustomerLead::factory()->create(['status' => 'New', 'converted_customer_id' => $customer->id]);
+        CustomerLead::factory()->create(['status' => 'Qualified', 'converted_customer_id' => null])->delete();
+
+        CustomerContract::factory()->create(['customer_id' => $customer->id, 'start_date' => '2026-01-01', 'end_date' => '2026-10-17']);
+        CustomerContract::factory()->create(['customer_id' => $customer->id, 'start_date' => '2026-10-18', 'end_date' => '2027-10-17']);
+        CustomerContract::factory()->create(['customer_id' => $customer->id, 'start_date' => '2025-01-01', 'end_date' => '2026-10-16']);
+
+        CustomerInteraction::factory()->create(['customer_id' => $customer->id, 'timestamp' => '2026-09-18 12:00:00', 'reason' => 'Boundary']);
+        CustomerInteraction::factory()->create(['customer_id' => $customer->id, 'timestamp' => '2026-09-17 11:59:59', 'reason' => 'Too old']);
+        CustomerInteraction::factory()->create(['customer_id' => $customer->id, 'timestamp' => '2026-10-18 12:00:00', 'reason' => 'Future']);
+        CustomerInteraction::factory()->create(['customer_id' => $customer->id, 'timestamp' => '2026-10-01 12:00:00', 'reason' => 'Deleted'])->delete();
+
+        $summary = app(CustomerDashboardData::class)->summary($now);
+
+        $this->assertSame(1, $summary['customers']);
+        $this->assertSame(1, $summary['open_leads']);
+        $this->assertSame(1, $summary['active_contracts']);
+        $this->assertSame(1, $summary['interactions_last_30_days']);
+        $this->assertSame('October 17, 2026', $summary['as_of']);
+        $this->assertCount(1, $summary['recent_leads']);
+        $this->assertSame('Boundary', $summary['recent_interactions']->first()->reason);
+        $this->assertSame([['status' => 'New', 'count' => 1]], $summary['lead_statuses']);
+    }
+
+    public function test_invoice_status_counts_are_limited_to_current_billing_month_and_exclude_soft_deleted_rows(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone'));
+        CustomerInvoice::factory()->create(['month' => '2026-10-01', 'status' => 'Sent']);
+        CustomerInvoice::factory()->create(['month' => '2026-10-15', 'status' => 'Sent']);
+        CustomerInvoice::factory()->create(['month' => '2026-10-01', 'status' => 'Sent'])->delete();
+        CustomerInvoice::factory()->create(['month' => '2026-09-01', 'status' => 'Paid']);
+
+        $summary = app(CustomerDashboardData::class)->summary($now);
+
+        $this->assertSame([['status' => 'Sent', 'count' => 2]], $summary['invoice_statuses']);
+    }
+
+    public function test_summary_handles_empty_data(): void
+    {
+        $summary = app(CustomerDashboardData::class)->summary(CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone')));
+
+        $this->assertSame(0, $summary['customers']);
+        $this->assertSame(0, $summary['open_leads']);
+        $this->assertSame(0, $summary['active_contracts']);
+        $this->assertSame(0, $summary['interactions_last_30_days']);
+        $this->assertSame([], $summary['invoice_statuses']);
+        $this->assertSame([], $summary['lead_statuses']);
+        $this->assertCount(0, $summary['recent_interactions']);
+        $this->assertCount(0, $summary['recent_leads']);
+    }
+}

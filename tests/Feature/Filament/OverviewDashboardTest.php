@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\CustomerDashboard;
 use App\Filament\Pages\FinanceDashboard;
 use App\Filament\Pages\GeneralDashboard;
 use App\Filament\Pages\OverviewDashboard;
@@ -26,7 +27,7 @@ class OverviewDashboardTest extends TestCase
         );
 
         $this->assertCount(5, $items);
-        $this->assertSame('Planned', $items[2]['scope']);
+        $this->assertSame('Available', $items[2]['scope']);
         $this->assertSame('Planned', $items[4]['scope']);
     }
 
@@ -44,8 +45,16 @@ class OverviewDashboardTest extends TestCase
             }
         }
 
-        $this->assertNull($items[2]['page']);
+        $this->assertSame(CustomerDashboard::class, $items[2]['page']);
         $this->assertNull($items[4]['page']);
+    }
+
+    public function test_customer_dashboard_declares_a_dedicated_access_permission(): void
+    {
+        $this->assertSame(
+            ['customer-dashboard.view' => __('Allows viewing the customer dashboard')],
+            (new CustomerDashboard)->defineGates(),
+        );
     }
 
     public function test_page_declares_a_dedicated_access_permission(): void
