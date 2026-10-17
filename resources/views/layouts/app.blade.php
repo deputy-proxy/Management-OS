@@ -48,10 +48,10 @@
 
         function switchIcon(usesDarkMode) {
             if (usesDarkMode) { 
-                favicon.href = 'favicon-light.ico?v=<?php echo filemtime('favicon-light.ico') ?>';
+                favicon.href = 'favicon-light.ico?v=<?php echo file_exists(public_path('favicon-light.ico')) ? filemtime(public_path('favicon-light.ico')) : '1' ?>';
                 manifest.href='manifest-dark.json' 
             } else {
-                favicon.href = 'favicon-dark.ico?v=<?php echo filemtime('favicon-dark.ico') ?>';
+                favicon.href = 'favicon-dark.ico?v=<?php echo file_exists(public_path('favicon-dark.ico')) ? filemtime(public_path('favicon-dark.ico')) : '1' ?>';
                 manifest.href='manifest-light.json' 
             }
         }
