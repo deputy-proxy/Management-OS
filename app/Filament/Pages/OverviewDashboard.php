@@ -71,15 +71,15 @@ class OverviewDashboard extends Page
             [
                 'title' => 'Products Overview',
                 'description' => 'Product catalog, productable records, prices, availability, and lifecycle state.',
-                'page' => null,
+                'page' => ProductsOverview::class,
                 'owner' => 'Product Management',
-                'scope' => 'Planned',
+                'scope' => 'Available',
             ],
         ];
     }
 
     /**
-     * @param class-string<Page>|null $page
+     * @param  class-string<Page>|null  $page
      */
     public function canOpenOverview(?string $page): bool
     {
