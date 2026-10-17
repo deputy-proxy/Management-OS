@@ -2,38 +2,44 @@
 
 namespace App\Filament\Resources\EmployeeMedicalLeaves;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\EmployeeMedicalLeaves\Schemas\EmployeeMedicalLeaveForm;
+use App\Filament\Resources\EmployeeMedicalLeaves\Schemas\EmployeeMedicalLeaveInfolist;
+use App\Filament\Resources\EmployeeMedicalLeaves\Tables\EmployeeMedicalLeavesTable;
 use App\Models\EmployeeMedicalLeave;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\EmployeeMedicalLeaves\Pages;
-use App\Filament\Resources\EmployeeMedicalLeaves\Schemas\EmployeeMedicalLeaveForm;
-use App\Filament\Resources\EmployeeMedicalLeaves\Schemas\EmployeeMedicalLeaveInfolist;
-use App\Filament\Resources\EmployeeMedicalLeaves\Tables\EmployeeMedicalLeavesTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
 
 class EmployeeMedicalLeaveResource extends Resource
 {
     protected static ?int $navigationSort = 11;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = EmployeeMedicalLeave::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee_medical_leafe.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->whereDate('start_date', '<=', today())
             ->whereDate('end_date', '>=', today())

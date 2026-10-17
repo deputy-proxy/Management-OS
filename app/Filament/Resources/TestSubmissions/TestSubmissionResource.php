@@ -2,37 +2,61 @@
 
 namespace App\Filament\Resources\TestSubmissions;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\Academic\AcademicCluster;
+use App\Filament\Resources\TestSubmissionResource\RelationManagers\AnswersRelationManager;
+use App\Filament\Resources\TestSubmissions\Schemas\TestSubmissionForm;
+use App\Filament\Resources\TestSubmissions\Schemas\TestSubmissionInfolist;
+use App\Filament\Resources\TestSubmissions\Tables\TestSubmissionsTable;
 use App\Models\TestSubmission;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\TestSubmissions\Pages;
-use App\Filament\Resources\TestSubmissions\Schemas\TestSubmissionForm;
-use App\Filament\Resources\TestSubmissions\Schemas\TestSubmissionInfolist;
-use App\Filament\Resources\TestSubmissions\Tables\TestSubmissionsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\Academic\AcademicCluster;
-use App\Filament\Resources\TestSubmissionResource\RelationManagers\AnswersRelationManager;
 
 class TestSubmissionResource extends Resource
 {
     protected static ?int $navigationSort = 14;
+
     protected static ?string $cluster = AcademicCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
+
     use HasHexaLite;
 
     protected static ?string $model = TestSubmission::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
         return ['test_submission.index' => __('Allows viewing the test submission list'), 'test_submission.create' => __('Allows creating a new test submission'), 'test_submission.update' => __('Allows updating test submissions'), 'test_submission.delete' => __('Allows deleting test submissions')];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! hexa()->can('test_submission.index')) {
+            return null;
+        }
+
+        $count = TestSubmission::query()->whereIn('status', ['submitted', 'grading'])->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Test submissions awaiting grading';
     }
 
     public static function form(Schema $schema): Schema
@@ -55,7 +79,7 @@ class TestSubmissionResource extends Resource
         return [
             ActivitiesRelationManager::class,
             AnswersRelationManager::class,
-];
+        ];
     }
 
     public static function getPages(): array
@@ -64,7 +88,7 @@ class TestSubmissionResource extends Resource
             'index' => Pages\ListTestSubmissions::route('/'),
             'create' => Pages\CreateTestSubmission::route('/create'),
             'edit' => Pages\EditTestSubmission::route('/{record}/edit'),
-            'view' => Pages\ViewTestSubmission::route('/{record}')
+            'view' => Pages\ViewTestSubmission::route('/{record}'),
         ];
     }
 

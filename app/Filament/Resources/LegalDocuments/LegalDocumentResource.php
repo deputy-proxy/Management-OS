@@ -2,29 +2,31 @@
 
 namespace App\Filament\Resources\LegalDocuments;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Resources\LegalDocuments\Schemas\LegalDocumentForm;
+use App\Filament\Resources\LegalDocuments\Schemas\LegalDocumentInfolist;
+use App\Filament\Resources\LegalDocuments\Tables\LegalDocumentsTable;
 use App\Models\LegalDocument;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\LegalDocuments\Pages;
-use App\Filament\Resources\LegalDocuments\Schemas\LegalDocumentForm;
-use App\Filament\Resources\LegalDocuments\Schemas\LegalDocumentInfolist;
-use App\Filament\Resources\LegalDocuments\Tables\LegalDocumentsTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
-use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Carbon;
+use UnitEnum;
 
 class LegalDocumentResource extends Resource
 {
     protected static ?int $navigationSort = 2;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
+
     use HasHexaLite;
 
     protected static ?string $model = LegalDocument::class;
@@ -43,6 +45,10 @@ class LegalDocumentResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('legal_document.index')) {
+            return null;
+        }
+
         $count = static::getModel()::query()
             ->whereBetween('expiration_date', [
                 Carbon::today(),

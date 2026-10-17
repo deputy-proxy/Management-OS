@@ -2,31 +2,35 @@
 
 namespace App\Filament\Resources\PhysicalAssets;
 
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Resources\PhysicalAssets\Schemas\PhysicalAssetForm;
+use App\Filament\Resources\PhysicalAssets\Schemas\PhysicalAssetInfolist;
+use App\Filament\Resources\PhysicalAssets\Tables\PhysicalAssetsTable;
 use App\Models\PhysicalAsset;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\PhysicalAssets\Pages;
-use App\Filament\Resources\PhysicalAssets\Schemas\PhysicalAssetForm;
-use App\Filament\Resources\PhysicalAssets\Schemas\PhysicalAssetInfolist;
-use App\Filament\Resources\PhysicalAssets\Tables\PhysicalAssetsTable;
+use Hexters\HexaLite\HasHexaLite;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
-use Hexters\HexaLite\HasHexaLite;
 
 class PhysicalAssetResource extends Resource
 {
     protected static ?int $navigationSort = 4;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Inventory Management';
+
     protected static ?string $model = PhysicalAsset::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     use HasHexaLite;
+
     public static function form(Schema $schema): Schema
     {
         return PhysicalAssetForm::configure($schema);
@@ -34,6 +38,10 @@ class PhysicalAssetResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('physical_asset.index')) {
+            return null;
+        }
+
         return static::getModel()::count();
     }
 
@@ -112,6 +120,3 @@ class PhysicalAssetResource extends Resource
         return hexa()->can('physical_asset.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete physical assets.'));
     }
 }
-
-
-

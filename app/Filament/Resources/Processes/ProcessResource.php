@@ -2,38 +2,47 @@
 
 namespace App\Filament\Resources\Processes;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Resources\Processes\Schemas\ProcessForm;
+use App\Filament\Resources\Processes\Schemas\ProcessInfolist;
+use App\Filament\Resources\Processes\Tables\ProcessesTable;
 use App\Models\Process;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\Processes\Pages;
-use App\Filament\Resources\Processes\Schemas\ProcessForm;
-use App\Filament\Resources\Processes\Schemas\ProcessInfolist;
-use App\Filament\Resources\Processes\Tables\ProcessesTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+
 class ProcessResource extends Resource
 {
     protected static ?int $navigationSort = 1;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Compliance Overview';
+
     use HasHexaLite;
 
     protected static ?string $model = Process::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
         return ['process.index' => __('Allows viewing the process list'), 'process.create' => __('Allows creating a new process'), 'process.update' => __('Allows updating processs'), 'process.delete' => __('Allows deleting processs')];
     }
+
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('process.index')) {
+            return null;
+        }
+
         return static::getModel()::count();
     }
 
@@ -73,7 +82,7 @@ class ProcessResource extends Resource
             'index' => Pages\ListProcesses::route('/'),
             'create' => Pages\CreateProcess::route('/create'),
             'edit' => Pages\EditProcess::route('/{record}/edit'),
-            'view' => Pages\ViewProcess::route('/{record}')
+            'view' => Pages\ViewProcess::route('/{record}'),
         ];
     }
 

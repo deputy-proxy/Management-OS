@@ -2,40 +2,49 @@
 
 namespace App\Filament\Resources\Employees;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\General\GeneralCluster;
+use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
+use App\Filament\Resources\Employees\Schemas\EmployeeForm;
+use App\Filament\Resources\Employees\Schemas\EmployeeInfolist;
+use App\Filament\Resources\Employees\Tables\EmployeesTable;
 use App\Models\Employee;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\Employees\Pages;
-use App\Filament\Resources\Employees\Schemas\EmployeeForm;
-use App\Filament\Resources\Employees\Schemas\EmployeeInfolist;
-use App\Filament\Resources\Employees\Tables\EmployeesTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\HumanResources\HumanResourcesCluster;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\General\GeneralCluster;
+
 class EmployeeResource extends Resource
 {
     protected static ?int $navigationSort = 5;
+
     protected static ?string $cluster = GeneralCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Human Resources';
+
     use HasHexaLite;
 
     protected static ?string $model = Employee::class;
-    //protected static ?string $cluster = HumanResourcesCluster::class;
+    // protected static ?string $cluster = HumanResourcesCluster::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
         return ['employee.index' => __('Allows viewing the employee list'), 'employee.create' => __('Allows creating a new employee'), 'employee.update' => __('Allows updating employees'), 'employee.delete' => __('Allows deleting employees')];
     }
+
     public static function getNavigationBadge(): ?string
     {
+        if (! hexa()->can('employee.index')) {
+            return null;
+        }
+
         return static::getModel()::count();
     }
 
@@ -75,7 +84,7 @@ class EmployeeResource extends Resource
             'index' => Pages\ListEmployees::route('/'),
             'create' => Pages\CreateEmployee::route('/create'),
             'edit' => Pages\EditEmployee::route('/{record}/edit'),
-            'view' => Pages\ViewEmployee::route('/{record}')
+            'view' => Pages\ViewEmployee::route('/{record}'),
         ];
     }
 
