@@ -75,8 +75,8 @@ class ProductsOverviewDataTest extends TestCase
     public function test_it_supports_each_productable_type_and_only_infers_availability_from_date_ranges(): void
     {
         $camp = Camp::query()->forceCreate(['title' => 'Camp', 'description' => 'Camp description', 'location' => 'Satu Mare', 'start_on' => '2026-06-01', 'end_on' => '2026-06-30', 'camp_price' => 100, 'camp_price_id' => 'legacy-camp-price']);
-        $event = Event::query()->create(['title' => 'Event', 'description' => 'Event description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-30', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-30 17:00:00', 'event_price_id' => 'legacy-event-price', 'featured_image' => 'event.jpg']);
-        $workshop = Workshop::query()->create(['title' => 'Workshop', 'description' => 'Workshop description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-30', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-30 17:00:00', 'type' => 'training', 'location' => 'Satu Mare', 'workshop_price_id' => 'legacy-workshop-price']);
+        $event = Event::query()->create(['title' => 'Event', 'description' => 'Event description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-30', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-30 17:00:00', 'featured_image' => 'event.jpg']);
+        $workshop = Workshop::query()->create(['title' => 'Workshop', 'description' => 'Workshop description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-30', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-30 17:00:00', 'type' => 'training', 'location' => 'Satu Mare']);
         $course = Course::factory()->create();
 
         foreach ([['camp', $camp], ['event', $event], ['workshop', $workshop], ['course', $course]] as [$type, $owner]) {

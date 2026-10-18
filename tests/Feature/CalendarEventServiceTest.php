@@ -39,7 +39,7 @@ class CalendarEventServiceTest extends TestCase
         CustomerInvoice::factory()->create(['month' => '2026-10-01', 'status' => 'Sent']);
         $evaluationForm = EmployeeEvaluationForm::query()->create(['job_description_id' => JobDescription::factory()->create()->id, 'criteria' => []]);
         EmployeeEvaluation::factory()->create(['employee_evaluation_form_id' => $evaluationForm->id, 'due_by' => '2026-10-11', 'performed_on' => '2026-10-11']);
-        Event::query()->create(['title' => 'Community event', 'description' => 'Calendar test', 'start_date' => '2026-10-10', 'end_date' => '2026-10-10', 'start_time' => '2026-10-10 13:00:00', 'end_time' => '2026-10-10 15:00:00', 'event_price_id' => 'legacy-price', 'featured_image' => 'event.jpg']);
+        Event::query()->create(['title' => 'Community event', 'description' => 'Calendar test', 'start_date' => '2026-10-10', 'end_date' => '2026-10-10', 'start_time' => '2026-10-10 13:00:00', 'end_time' => '2026-10-10 15:00:00', 'featured_image' => 'event.jpg']);
         Session::factory()->create(['starts_at' => '2026-10-10 16:00:00', 'ends_at' => '2026-10-10 17:00:00', 'status' => 'scheduled']);
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());

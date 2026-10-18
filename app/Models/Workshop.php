@@ -6,7 +6,6 @@ use App\Models\Concerns\HasPanelSearchTitle;
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,12 +35,7 @@ class Workshop extends Model implements Commentable
     }
 
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'type', 'location', 'workshop_price_id'];
-
-    public function workshopPrice(): BelongsTo
-    {
-        return $this->belongsTo(WorkshopPrice::class);
-    }
+    protected $fillable = ['title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'type', 'location'];
 
     public function getActivitylogOptions(): LogOptions
     {

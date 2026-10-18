@@ -4,12 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Camp;
 use App\Models\Course;
-use App\Models\CoursePrice;
 use App\Models\Event;
-use App\Models\EventPrice;
 use App\Models\ProductPrice;
 use App\Models\Workshop;
-use App\Models\WorkshopPrice;
 use App\Services\ProductPriceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -30,14 +27,14 @@ class ProductPriceConsolidationTest extends TestCase
             'id' => 502, 'title' => 'Event', 'description' => 'Event description',
             'start_date' => '2026-01-01', 'end_date' => '2026-01-02',
             'start_time' => $timestamp, 'end_time' => $timestamp,
-            'event_price_id' => 42, 'featured_image' => 'event.png',
+            'featured_image' => 'event.png',
             'created_at' => $timestamp, 'updated_at' => $timestamp, 'deleted_at' => null,
         ]);
         DB::table('workshops')->insert([
             'id' => 503, 'title' => 'Workshop', 'description' => 'Workshop description',
             'start_date' => '2026-01-01', 'end_date' => '2026-01-02',
             'start_time' => $timestamp, 'end_time' => $timestamp,
-            'type' => 'training', 'location' => 'Room 1', 'workshop_price_id' => '43',
+            'type' => 'training', 'location' => 'Room 1',
             'created_at' => $timestamp, 'updated_at' => $timestamp, 'deleted_at' => null,
         ]);
 
@@ -134,104 +131,44 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
         $this->assertDatabaseCount('product_prices', 4);
-        $eventPriceId = DB::table('product_prices')->where('legacy_source_type', 'event_prices')->value('id');
-        $workshopPriceId = DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->value('id');
-        $this->assertDatabaseHas('events', ['id' => 502, 'event_price_id' => $eventPriceId]);
-        $this->assertDatabaseHas('workshops', ['id' => 503, 'workshop_price_id' => (string) $workshopPriceId]);
-
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseHas('events', ['id' => 502, 'event_price_id' => 42]);
-        $this->assertDatabaseHas('workshops', ['id' => 503, 'workshop_price_id' => '43']);
     }
 
-    public function test_legacy_price_models_write_to_the_unified_table(): void
+    public function test_all_product_types_write_prices_through_the_canonical_model(): void
     {
         $course = Course::factory()->create();
-        $coursePrice = CoursePrice::query()->create([
-            'course_id' => $course->id,
-            'amount' => '125.50',
-            'start_on' => '2026-01-01',
-            'end_on' => '2026-12-31',
-        ]);
+        $event = Event::factory()->create();
+        $workshop = Workshop::factory()->create();
 
-        $this->assertSame('course', $coursePrice->priceable_type);
-        $this->assertSame($course->id, $coursePrice->course_id);
-        $this->assertSame($course->id, $coursePrice->course->id);
-        $this->assertDatabaseHas('product_prices', [
-            'id' => $coursePrice->id,
-            'priceable_type' => 'course',
-            'priceable_id' => $course->id,
-            'price' => '125.50',
-            'valid_from' => '2026-01-01',
-            'valid_until' => '2026-12-31',
-        ]);
+        foreach ([[$course, 'course', '125.50', 'RON'], [$event, 'event', '49.00', 'EUR'], [$workshop, 'workshop', '75.00', 'RON']] as [$owner, $type, $amount, $currency]) {
+            $price = $owner->productPrices()->create([
+                'price' => $amount,
+                'currency' => $currency,
+                'price_type' => 'standard',
+                'valid_from' => '2026-01-01',
+                'valid_until' => '2026-12-31',
+            ]);
+
+            $this->assertSame($type, $price->priceable_type);
+            $this->assertSame($owner->id, $price->priceable_id);
+            $this->assertDatabaseHas('product_prices', [
+                'id' => $price->id,
+                'priceable_type' => $type,
+                'priceable_id' => $owner->id,
+                'price' => $amount,
+                'currency' => $currency,
+            ]);
+        }
+
         $this->assertDatabaseCount('course_prices', 0);
-
-        $event = Event::query()->create([
-            'title' => 'Event',
-            'description' => 'Event description',
-            'start_date' => '2026-01-01',
-            'end_date' => '2026-01-02',
-            'start_time' => '2026-01-01 09:00:00',
-            'end_time' => '2026-01-01 10:00:00',
-            'event_price_id' => null,
-            'featured_image' => 'event.png',
-        ]);
-        $eventPrice = EventPrice::query()->create([
-            'event_id' => $event->id,
-            'amount' => '49.00',
-            'currency' => 'EUR',
-        ]);
-        $event->update(['event_price_id' => $eventPrice->id]);
-        $this->assertSame($event->id, $eventPrice->event->id);
-        $this->assertSame($eventPrice->id, $event->fresh()->eventPrice->id);
-        $this->assertSame('event', $event->fresh()->eventPrice->priceable_type);
-        $this->assertDatabaseHas('product_prices', [
-            'id' => $eventPrice->id,
-            'priceable_type' => 'event',
-            'priceable_id' => $event->id,
-            'price' => '49.00',
-            'currency' => 'EUR',
-        ]);
         $this->assertDatabaseCount('event_prices', 0);
-
-        $workshop = Workshop::query()->create([
-            'title' => 'Workshop',
-            'description' => 'Workshop description',
-            'start_date' => '2026-01-01',
-            'end_date' => '2026-01-02',
-            'start_time' => '2026-01-01 09:00:00',
-            'end_time' => '2026-01-01 10:00:00',
-            'type' => 'training',
-            'location' => 'Room 1',
-            'workshop_price_id' => null,
-        ]);
-        $workshopPrice = WorkshopPrice::query()->create([
-            'workshop_id' => $workshop->id,
-            'amount' => '75.00',
-            'currency' => 'RON',
-            'start_on' => '2026-04-01',
-            'end_on' => '2026-04-30',
-        ]);
-        $workshop->update(['workshop_price_id' => (string) $workshopPrice->id]);
-        $this->assertSame($workshop->id, $workshopPrice->workshop->id);
-        $this->assertSame($workshopPrice->id, $workshop->fresh()->workshopPrice->id);
-        $this->assertSame('workshop', $workshop->fresh()->workshopPrice->priceable_type);
-        $this->assertDatabaseHas('product_prices', [
-            'id' => $workshopPrice->id,
-            'priceable_type' => 'workshop',
-            'priceable_id' => $workshop->id,
-            'price' => '75.00',
-            'currency' => 'RON',
-            'valid_from' => '2026-04-01',
-            'valid_until' => '2026-04-30',
-        ]);
         $this->assertDatabaseCount('workshop_prices', 0);
+        $this->assertDatabaseCount('product_prices', 3);
     }
 
     public function test_effective_price_lookup_respects_historical_validity_and_prefers_latest_start_date(): void

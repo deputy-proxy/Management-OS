@@ -38,7 +38,6 @@ There are 78 resource edit pages at the time of this audit. The remaining migrat
 - [ ] Competitors
 - [ ] ContentTemplates
 - [ ] CourseMaterials
-- [ ] CoursePrices
 - [ ] Courses
 - [ ] CustomerContracts
 - [ ] CustomerInteractions
@@ -56,7 +55,6 @@ There are 78 resource edit pages at the time of this audit. The remaining migrat
 - [ ] EmployeeTimesheets
 - [ ] Employees
 - [ ] EventParticipants
-- [ ] EventPrices
 - [ ] Events
 - [ ] FinancialAccountBalances
 - [ ] FinancialAccounts
@@ -104,6 +102,5 @@ There are 78 resource edit pages at the time of this audit. The remaining migrat
 - [ ] Vendors
 - [ ] WorkshopMaterials
 - [ ] WorkshopParticipants
-- [ ] WorkshopPrices
 - [ ] Workshops
 - [ ] Users (exception: includes View action; migrate after confirming desired action order)

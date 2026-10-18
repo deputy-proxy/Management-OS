@@ -6,7 +6,6 @@ use App\Models\Concerns\HasPanelSearchTitle;
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,12 +35,7 @@ class Event extends Model implements Commentable
     }
 
     /** @var array<int, string> */
-    protected $fillable = ['title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'event_price_id', 'featured_image'];
-
-    public function eventPrice(): BelongsTo
-    {
-        return $this->belongsTo(EventPrice::class);
-    }
+    protected $fillable = ['title', 'description', 'start_date', 'end_date', 'start_time', 'end_time', 'featured_image'];
 
     public function getActivitylogOptions(): LogOptions
     {

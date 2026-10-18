@@ -2,14 +2,17 @@
 
 namespace App\Filament\Resources\Events\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
+
 class EventsTable
 {
     public static function configure(Table $table): Table
@@ -26,14 +29,10 @@ class EventsTable
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('end_time')
                     ->dateTime(),
-                Tables\Columns\TextColumn::make('eventPrice.id')
-                    ->label('Event Price')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('featured_image')
+                Tables\Columns\TextColumn::make('featured_image'),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make()
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([EditAction::make(),
                 DeleteAction::make(),
@@ -43,9 +42,9 @@ class EventsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make()
-                ])
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ]),
             ]);
     }
 }
