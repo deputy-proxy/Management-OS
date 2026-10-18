@@ -8,7 +8,9 @@ use App\Models\Course;
 use App\Models\Customer;
 use App\Models\CustomerLead;
 use App\Models\ProductReview;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PublicFormsTest extends TestCase
@@ -217,6 +219,99 @@ class PublicFormsTest extends TestCase
 
         $this->assertDatabaseCount('product_reviews', 1);
         $this->assertDatabaseHas('product_reviews', ['customer_id' => $customer->id, 'status' => 'pending_review']);
+    }
+
+    public function test_customer_can_replace_a_soft_deleted_review_for_the_same_product(): void
+    {
+        $customer = Customer::factory()->create(['email' => 'reviewer@example.test']);
+        $course = Course::factory()->create();
+        $deletedReview = ProductReview::factory()->create([
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'customer_id' => $customer->id,
+            'reviewer_email' => $customer->email,
+        ]);
+        $deletedReview->delete();
+
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), [
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'reviewer_name' => 'Ari Pop',
+            'reviewer_email' => $customer->email,
+            'content' => 'A replacement review.',
+            'rating' => 5,
+            'privacy_consent' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('product_reviews', 2);
+        $this->assertSame(1, ProductReview::query()->where('customer_id', $customer->id)->where('product_id', $course->id)->count());
+        $this->assertNotNull($deletedReview->fresh()->deleted_at);
+        $this->assertDatabaseHas('product_reviews', [
+            'customer_id' => $customer->id,
+            'product_id' => $course->id,
+            'status' => 'pending_review',
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_database_constraint_rejects_a_second_active_review_bypassing_the_controller_check(): void
+    {
+        $customer = Customer::factory()->create();
+        $course = Course::factory()->create();
+        ProductReview::factory()->create([
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        ProductReview::factory()->create([
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'customer_id' => $customer->id,
+        ]);
+    }
+
+    public function test_racing_review_submission_returns_a_controlled_duplicate_error(): void
+    {
+        $customer = Customer::factory()->create(['email' => 'reviewer@example.test']);
+        $course = Course::factory()->create();
+        $insertedConcurrentReview = false;
+
+        ProductReview::creating(function () use ($customer, $course, &$insertedConcurrentReview): void {
+            if ($insertedConcurrentReview) {
+                return;
+            }
+
+            $insertedConcurrentReview = true;
+            DB::table('product_reviews')->insert([
+                'product_type' => 'course',
+                'product_id' => $course->id,
+                'reviewer_name' => 'Concurrent reviewer',
+                'reviewer_email' => $customer->email,
+                'customer_id' => $customer->id,
+                'content' => 'Concurrent review inserted after the pre-check.',
+                'rating' => 5,
+                'reviewed_on' => now(),
+                'privacy_consented_at' => now(),
+                'status' => 'pending_review',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), [
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'reviewer_name' => 'Ari Pop',
+            'reviewer_email' => $customer->email,
+            'content' => 'A racing review.',
+            'rating' => 4,
+            'privacy_consent' => '1',
+        ])->assertRedirect()->assertSessionHasErrors('reviewer_email');
+
+        $this->assertDatabaseCount('product_reviews', 1);
     }
 
     public function test_honeypot_blocks_submission(): void
