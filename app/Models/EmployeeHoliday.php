@@ -39,8 +39,13 @@ class EmployeeHoliday extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'employee_id', 'start_date', 'end_date', 'status'
+        'employee_id', 'start_date', 'end_date', 'hours_per_day', 'status'
     ];
+
+    protected function casts(): array
+    {
+        return ['hours_per_day' => 'decimal:2'];
+    }
 
     public function employee(): BelongsTo
     {

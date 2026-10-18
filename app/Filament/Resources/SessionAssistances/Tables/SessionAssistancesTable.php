@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\SessionAssistances\Tables;
 
+use App\Filament\Resources\EmployeePaySlips\Actions\AddToPaySlipAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -37,12 +37,12 @@ class SessionAssistancesTable
             ->recordActions([EditAction::make(),
                 DeleteAction::make(),
                 TasksAction::make(),
+                AddToPaySlipAction::make(),
                 CommentsAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
             ]);

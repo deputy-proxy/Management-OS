@@ -47,10 +47,12 @@ class EmployeeContractForm
                     ->description('Salary and rate details for this contract.')
                     ->schema([
                         Forms\Components\TextInput::make('base_salary')
+                            ->minValue(0)
                             ->numeric()
                             ->prefix('RON')
                             ->required(),
                         Forms\Components\TextInput::make('hourly_rate')
+                            ->minValue(0)
                             ->numeric()
                             ->prefix('RON')
                             ->required(),
@@ -183,6 +185,20 @@ class EmployeeContractForm
                                         Forms\Components\TextInput::make('notice_during_probation_days')
                                             ->label('Notice Period During Probation (days)')
                                             ->numeric(),
+                                    ])
+                                    ->columns(2),
+
+                                Block::make('use_own_equipment_reimbursement')
+                                    ->label('Own Equipment Reimbursement')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('amount')
+                                            ->label('Monthly Reimbursement (RON)')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->required(),
+                                        Forms\Components\Textarea::make('content')
+                                            ->label('Clause Text')
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns(2),
 

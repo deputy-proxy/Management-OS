@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Employee;
 use App\Models\EmployeePaySlip;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class EmployeePaySlipFactory extends Factory
 {
@@ -15,6 +14,7 @@ class EmployeePaySlipFactory extends Factory
      * @var class-string<EmployeePaySlip>
      */
     protected $model = EmployeePaySlip::class;
+
     /**
      * Define the model's default state.
      *
@@ -23,13 +23,13 @@ class EmployeePaySlipFactory extends Factory
     public function definition(): array
     {
         return [
-            'employee_id' => \App\Models\Employee::factory(),
-            'month' => $this->faker->word(),
-            'items' => $this->faker->word(),
-            'amount' => $this->faker->randomFloat(2, 10, 1000),
-            'due_on' => $this->faker->date(),
-            'paid_on' => $this->faker->date(),
-            'status' => $this->faker->word()
+            'employee_id' => Employee::factory(),
+            'month' => now()->startOfMonth()->toDateString(),
+            'items' => [],
+            'manual_amount' => 0,
+            'due_on' => null,
+            'paid_on' => null,
+            'status' => 'Open',
         ];
     }
 }

@@ -28,7 +28,7 @@ class EmployeeContract extends Model implements Commentable
 
     protected function casts(): array
     {
-        return ['clauses' => 'array'];
+        return ['clauses' => 'array', 'base_salary' => 'decimal:2', 'hourly_rate' => 'decimal:2'];
     }
 
     public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -43,6 +43,42 @@ class EmployeeContract extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = ['employee_id', 'start_date', 'end_date', 'contract_type', 'base_salary', 'hourly_rate', 'clauses'];
+
+    public function equipmentReimbursementAmount(): ?float
+    {
+        $clauses = $this->clauses;
+        if (! is_array($clauses)) {
+            return null;
+        }
+
+        $acceptedKeys = [
+            'use_own_equipment_reimbursement',
+            'use_own_equipment_reimbursment',
+            'UseOwnEquipmentReimbursement',
+            'UseOwnEquipmentReimbursment',
+        ];
+
+        foreach ($clauses as $key => $value) {
+            if (is_string($key) && in_array($key, $acceptedKeys, true)) {
+                $amount = is_array($value) ? ($value['amount'] ?? $value['reimbursement_amount'] ?? null) : $value;
+                if (is_numeric($amount) && (float) $amount >= 0) {
+                    return round((float) $amount, 2, PHP_ROUND_HALF_UP);
+                }
+            }
+
+            if (! is_array($value) || ! in_array($value['type'] ?? null, $acceptedKeys, true)) {
+                continue;
+            }
+
+            $data = $value['data'] ?? $value;
+            $amount = is_array($data) ? ($data['amount'] ?? $data['reimbursement_amount'] ?? null) : null;
+            if (is_numeric($amount) && (float) $amount >= 0) {
+                return round((float) $amount, 2, PHP_ROUND_HALF_UP);
+            }
+        }
+
+        return null;
+    }
 
     public function employee(): BelongsTo
     {
