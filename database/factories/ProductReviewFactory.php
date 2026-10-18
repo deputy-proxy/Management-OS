@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Course;
+use App\Models\Customer;
 use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ProductReviewFactory extends Factory
 {
@@ -24,13 +24,13 @@ class ProductReviewFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_type' => $this->faker->word(),
-            'product_id' => \App\Models\Product::factory(),
+            'product_type' => 'course',
+            'product_id' => Course::factory(),
             'reviewer_name' => $this->faker->sentence(),
             'reviewer_email' => $this->faker->unique()->safeEmail(),
-            'customer_id' => \App\Models\Customer::factory(),
+            'customer_id' => Customer::factory(),
             'content' => $this->faker->paragraphs(3, true),
-            'rating' => $this->faker->randomNumber(),
+            'rating' => $this->faker->numberBetween(1, 5),
             'reviewed_on' => $this->faker->dateTime(),
         ];
     }

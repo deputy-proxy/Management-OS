@@ -44,6 +44,11 @@ class Customer extends Model implements Commentable
         return $this->hasMany(CompetitionEntry::class);
     }
 
+    public function productReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
     /** @var array<int, string> */
     protected $fillable = [
         'name', 'customer_type', 'cnp_cui', 'address', 'email', 'phone',

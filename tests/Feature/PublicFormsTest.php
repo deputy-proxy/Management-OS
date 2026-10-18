@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
+use App\Models\Course;
 use App\Models\Customer;
+use App\Models\ProductReview;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -126,19 +128,77 @@ class PublicFormsTest extends TestCase
         $this->assertDatabaseCount('competition_entries', 1);
     }
 
-    public function test_review_rejects_unlisted_product_types_and_non_customer_email(): void
+    public function test_public_review_links_product_and_customer_and_starts_pending_moderation(): void
     {
-        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), [
-            'product_type' => '\\App\\Models\\User',
-            'product_id' => 1,
-            'reviewer_name' => 'Ari',
+        $customer = Customer::factory()->create(['email' => 'reviewer@example.test']);
+        $course = Course::factory()->create();
+        $payload = [
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'reviewer_name' => 'Ari Pop',
+            'reviewer_email' => 'reviewer@example.test',
+            'content' => 'A useful course.',
+            'rating' => 5,
+            'privacy_consent' => '1',
+            'status' => 'approved',
+        ];
+
+        $this->post(route('public.reviews.store'), $payload)->assertRedirect();
+
+        $review = ProductReview::query()->sole();
+        $this->assertSame('pending_review', $review->status);
+        $this->assertSame($customer->id, $review->customer_id);
+        $this->assertSame($course->id, $review->reviewedProduct->id);
+        $this->assertTrue($course->reviews()->sole()->is($review));
+        $this->assertTrue($customer->productReviews()->sole()->is($review));
+        $this->assertNotNull($review->privacy_consented_at);
+    }
+
+    public function test_public_review_rejects_invalid_rating_unknown_product_and_non_customer(): void
+    {
+        $course = Course::factory()->create();
+        $base = [
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'reviewer_name' => 'Ari Pop',
             'reviewer_email' => 'unknown@example.test',
             'content' => 'Good',
             'rating' => 5,
             'privacy_consent' => '1',
-        ])->assertSessionHasErrors(['product_type']);
+        ];
+
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), array_merge($base, ['product_type' => 'user']))
+            ->assertSessionHasErrors('product_type');
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), array_merge($base, ['rating' => 6]))
+            ->assertSessionHasErrors('rating');
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), array_merge($base, ['product_id' => 999999]))
+            ->assertNotFound();
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), $base)
+            ->assertSessionHasErrors('reviewer_email');
 
         $this->assertDatabaseCount('product_reviews', 0);
+    }
+
+    public function test_customer_cannot_submit_more_than_one_review_for_the_same_product(): void
+    {
+        $customer = Customer::factory()->create(['email' => 'reviewer@example.test']);
+        $course = Course::factory()->create();
+        $payload = [
+            'product_type' => 'course',
+            'product_id' => $course->id,
+            'reviewer_name' => 'Ari Pop',
+            'reviewer_email' => 'reviewer@example.test',
+            'content' => 'A useful course.',
+            'rating' => 4,
+            'privacy_consent' => '1',
+        ];
+
+        $this->post(route('public.reviews.store'), $payload)->assertRedirect();
+        $this->from(route('public.reviews.create'))->post(route('public.reviews.store'), $payload)
+            ->assertSessionHasErrors('reviewer_email');
+
+        $this->assertDatabaseCount('product_reviews', 1);
+        $this->assertDatabaseHas('product_reviews', ['customer_id' => $customer->id, 'status' => 'pending_review']);
     }
 
     public function test_honeypot_blocks_submission(): void
