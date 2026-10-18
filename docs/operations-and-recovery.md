@@ -2,20 +2,27 @@
 
 ## Verified state and unresolved production facts
 
-This repository is a Laravel 12 application. The system owner has confirmed the following production details in the issue discussion on 2026-10-18; these are owner-reported facts and have not been independently inspected from the Hostinger control panel by this code change.
+The system owner supplied the following production-readiness answers on 2026-10-18. These are owner-reported statements, not independently verified through the hosting control panel or production telemetry.
 
-| Component | Current reported state | Remaining evidence / owner action |
+| Component | Owner-reported state | Remaining evidence / owner action |
 | --- | --- | --- |
-| Hosting | Hostinger | Record exact hosting product, deployment method and responsible operator. |
-| Database | MySQL hosted with Hostinger | Record server/version, storage/capacity monitoring, and verify schema migrations against a staging clone of that MySQL version. |
-| Queue worker | Persistent queue worker configured | Record supervisor/provider, command, timeout, `retry_after`, restart procedure, and verify heartbeat monitoring in production. |
-| Scheduler | Scheduler configured outside the application; provider/method unspecified | Record the scheduler product and invocation, verify every-minute execution, and test missed-run alerting. |
-| Monitoring and alert delivery | Not configured or unknown | Configure and test alert routing for database/readiness, worker heartbeat, scheduler heartbeat, failed critical jobs, and monthly payslip completion. Name the recipient and escalation owner. |
-| Backups | Hostinger; coverage and restore options confirmed by owner | Backup restore reported successful today (2026-10-18) in an isolated non-production environment. Record backup identifier, target, validated records/files, start/end times, actual RPO/RTO, reviewer and evidence location. Frequency, retention, encryption/key ownership, access controls and policy approval remain unknown. |
-| Incident and service owners | Not supplied | Assign named operational and incident owners and escalation contacts. |
-| Mail and other integrations | Unknown | Record production providers and confirm their delivery/error alerting without exposing customer data. |
+| Hosting | Hostinger shared hosting | Confirm the exact plan/product capabilities and whether a continuously running queue worker is supported. |
+| Deployment | Git-based deployment | Document the actual release steps, migration execution point, rollback procedure, and responsible operator. |
+| Database | MySQL; exact server/version unknown | Record engine/version and capacity monitoring; verify migrations, generated indexes and locking against a staging copy of that version. |
+| Persistent files | Local disk on the hosting account | Confirm which paths contain user uploads, how they are included in backups, disk-capacity monitoring, and recovery behavior after redeploy/restore. |
+| Queue worker | Owner reports “Laravel Cloud” supervision | Clarify the exact service and how it relates to the Hostinger shared-hosting deployment; record queue driver, worker command, timeout, `retry_after`, restart procedure, and production heartbeat evidence. Do not assume the worker is healthy merely because a service is named. |
+| Scheduler | **No scheduler configured** | Install and verify a supported scheduler runner before relying on heartbeat checks or monthly payslip generation. Record the invocation and test missed-run alerting. |
+| Mail provider | Unknown | Identify the provider and test delivery/error monitoring without exposing customer data. |
+| Cache backend | Unknown | Identify the configured cache store and verify that application, queue worker, scheduler, and monitoring commands share a durable store suitable for heartbeat values and locks. |
+| Monitoring and alert delivery | Not configured or unknown; destination unknown | Configure and test alert routing. Owner-selected events are database/readiness failures, queue worker/failed jobs, scheduler heartbeat, and monthly payslip generation. Also decide whether backup failures, storage capacity, and mail/integration failures must alert. |
+| Operational ownership | Service owner and incident escalation both reported as “admin” | Identify the accountable person or role, a backup contact, and the actual notification route. Confirm access and availability during an incident. |
+| Backup provider and restore | Hostinger; coverage/restore options checked by owner. An isolated non-production restore was reported successful on 2026-10-18. | The restore remains owner-reported, not independently verified. Store the backup identifier, isolated target, database and file checks, command results, start/end times, measured data loss/RPO, measured RTO, reviewer sign-off and cleanup evidence in the restricted operational record. |
+| Backup policy | Owner-selected daily frequency and 14-day retention | Confirm these settings match the provider's actual configured backup plan and include the database plus required local uploads. Confirm storage region and whether backups are isolated from the primary failure domain. |
+| RPO / RTO | Owner-selected RPO 15 minutes; RTO 4 hours | Daily backups alone do not meet a 15-minute RPO. Verify that point-in-time recovery or another sufficiently frequent recovery mechanism exists and test it. Demonstrate the 4-hour RTO with a timed restore drill. |
+| Encryption and key ownership | Unknown | Verify encryption at rest and in transit, key ownership/recovery, and access to keys during a restore. Do not store secrets in this repository. |
+| Backup access/deletion protection | Named operators only, needs confirmation | Verify actual role assignments, least privilege, auditability, and deletion/immutability protection with the provider. |
 
-The repository has no production credentials and does not infer undocumented settings. Do not treat owner-reported restore success as a fully evidenced drill until the restricted operational record contains the backup identifier, validation results, timings and reviewer. Never put secrets, backup contents, personal data or credential-bearing connection strings in this repository or issue comments.
+The repository has no production credentials and does not infer undocumented settings. Do not treat owner-reported restore success as a fully evidenced drill until the restricted operational record contains the evidence above. Never put secrets, backup contents, personal data or credential-bearing connection strings in this repository or issue comments.
 
 ## Health endpoints
 
@@ -53,7 +60,7 @@ php artisan queue:restart
 
 ## Scheduler and payslip recovery
 
-The scheduler registers `employee-payslips:generate` for day 1 at 00:05 in `Europe/Bucharest`, with `withoutOverlapping()`. The deployed host still needs a scheduler runner, typically invoking `php artisan schedule:run` every minute, or an equivalent provider-managed scheduler. Confirm that it is actually installed and that the cache/lock backend supports the chosen deployment topology. `withoutOverlapping()` relies on cache locks and can leave a stale lock after an interrupted run; investigate before clearing scheduler locks.
+The scheduler registers `employee-payslips:generate` for day 1 at 00:05 in `Europe/Bucharest`, with `withoutOverlapping()`. The system owner reports that no production scheduler is currently configured. This is an operational blocker: install a supported runner that invokes `php artisan schedule:run` every minute, or an equivalent provider-managed scheduler, then verify actual execution and heartbeat recording. Confirm that the cache/lock backend supports the chosen deployment topology. `withoutOverlapping()` relies on cache locks and can leave a stale lock after an interrupted run; investigate before clearing scheduler locks. Until the runner is installed and tested, do not rely on monthly payslip generation or scheduler heartbeat alerts.
 
 Inspect the schedule from the deployed release:
 
@@ -74,7 +81,7 @@ Replace `YYYY-MM` with the approved calendar month. After execution, verify the 
 
 ## Backup policy and restore drill
 
-Before launch, the system owner must approve numeric targets for recovery point objective (RPO), recovery time objective (RTO), backup frequency, retention, encryption/key ownership, storage region, access roles, deletion protection and restore-test cadence. A proposed starting point for approval, not a statement of current policy, is daily encrypted database backups, a 35-day retention window, a monthly isolated restore drill and a documented RPO/RTO. Adjust these targets to the business and legal requirements before accepting them.
+Owner-selected targets supplied on 2026-10-18 are RPO 15 minutes, RTO 4 hours, daily backups, and 14-day retention. These are decisions/targets, not proof that the provider configuration can meet them. **Daily backups alone cannot meet a 15-minute RPO.** Confirm whether Hostinger provides point-in-time recovery or configure another approved mechanism that demonstrably meets the target. If the target cannot be achieved, the owner must explicitly revise the RPO or approve a feasible recovery design. The owner still needs to verify encryption/key ownership, storage region, access roles, deletion protection, and restore-test cadence. A monthly isolated restore drill is a proposed starting point, not an approved cadence until confirmed.
 
 Back up the database and every persistent upload/object store needed to interpret the records. Keep backups outside the failure domain of the primary database, restrict access to named operators, encrypt in transit and at rest, and test key recovery. Do not assume local `storage/`, application logs, or a provider's default backup feature is durable or restorable. Keep the encryption keys and restore instructions available to authorized recovery operators without storing secrets in this repository.
 
@@ -96,7 +103,7 @@ It fails for missing, unreadable or empty artifacts and prints a SHA-256 digest 
 6. Record pass/fail, recovered timestamp, measured data loss, measured RTO, discrepancies and corrective actions. Obtain reviewer sign-off.
 7. Securely remove the isolated restored data under the approved retention procedure and verify the cleanup.
 
-**Drill status: system owner reports a successful isolated restore on 2026-10-18.** The repository change did not perform or independently verify that restore. The backup acceptance criterion remains incomplete until a restricted drill record captures the artifact identifier, isolated target, restored database and file checks, `migrate:status`, integrity audit and smoke-test results, measured RPO/RTO, start/end times, reviewer sign-off and secure cleanup.
+**Drill status: system owner reports a successful isolated restore on 2026-10-18.** The repository change did not perform or independently verify that restore. The backup acceptance criterion remains incomplete until a restricted drill record captures the artifact identifier, isolated target, restored database and local-file checks, `migrate:status`, integrity audit and smoke-test results, measured data loss/RPO and RTO, start/end times, reviewer sign-off and secure cleanup. The drill must demonstrate the owner-selected 15-minute RPO and 4-hour RTO; a restore that succeeds but misses either target does not satisfy the policy.
 
 ## Deployment and migration procedure
 
@@ -117,4 +124,4 @@ Rollback is not universally a code rollback. A migration may be irreversible or 
 - **Integrations/mail:** use provider delivery/error metrics and synthetic checks that do not expose real customer data. The application currently has no provider-specific integration alerting configured.
 - **Security/privacy:** send structured logs to a restricted, access-controlled sink with retention approved by the owner. Do not include secrets, request bodies, credentials or raw personal records in alerts. Share request IDs and sanitized error categories instead.
 
-On incident: assign an incident lead, record UTC/local timestamps and impact, preserve relevant restricted logs, stop unsafe retries or deployments, identify the last known-good release/backup, and follow the approved recovery path. After recovery, validate key workflows and reconcile financial/academic history before declaring resolution. Record cause, impact, corrective actions and owners. Hosting provider is reported as Hostinger; the exact hosting product, incident owner, paging destination, and approved thresholds remain **unknown and require explicit assignment**.
+On incident: assign an incident lead, record UTC/local timestamps and impact, preserve relevant restricted logs, stop unsafe retries or deployments, identify the last known-good release/backup, and follow the approved recovery path. After recovery, validate key workflows and reconcile financial/academic history before declaring resolution. Record cause, impact, corrective actions and owners. The owner has identified Hostinger shared hosting and “admin” as service owner/incident escalation, but the exact accountable person/role, backup contact, alert destination, tested alert route and thresholds remain unresolved.
