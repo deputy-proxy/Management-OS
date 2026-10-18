@@ -11,7 +11,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('scheduled_sessions', function (Blueprint $table): void {
+        if (! Schema::hasTable('scheduled_sessions')) {
+            Schema::create('scheduled_sessions', function (Blueprint $table): void {
             $table->id();
             $table->string('session_type')->index();
             $table->foreignId('group_id')->nullable()->index();
@@ -29,36 +30,38 @@ return new class extends Migration
             $table->unsignedBigInteger('legacy_teacher_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['legacy_type', 'legacy_id']);
-        });
+                $table->unique(['legacy_type', 'legacy_id']);
+            });
+        }
 
         $groupIds = [];
         foreach (DB::table('group_sessions')->orderBy('id')->get() as $record) {
-            DB::table('scheduled_sessions')->insert([
-                'id' => $record->id,
-                'session_type' => 'group',
-                'group_id' => $record->group_id,
-                'customer_id' => null,
-                'course_id' => $record->course_id,
-                'teacher_id' => $record->teacher_id,
-                'starts_at' => $record->start_on,
-                'ends_at' => $record->end_on,
-                'status' => $record->status,
-                'attendance_status' => null,
-                'identifier' => $record->identifier ?? null,
-                'legacy_type' => 'group',
-                'legacy_id' => $record->id,
-                'legacy_teacher_id' => null,
-                'created_at' => $record->created_at,
-                'updated_at' => $record->updated_at,
-                'deleted_at' => $record->deleted_at ?? null,
-            ]);
+            DB::table('scheduled_sessions')->updateOrInsert(
+                ['legacy_type' => 'group', 'legacy_id' => $record->id],
+                [
+                    'id' => $record->id,
+                    'session_type' => 'group',
+                    'group_id' => $record->group_id,
+                    'customer_id' => null,
+                    'course_id' => $record->course_id,
+                    'teacher_id' => $record->teacher_id,
+                    'starts_at' => $record->start_on,
+                    'ends_at' => $record->end_on,
+                    'status' => $record->status,
+                    'attendance_status' => null,
+                    'identifier' => $record->identifier ?? null,
+                    'legacy_teacher_id' => null,
+                    'created_at' => $record->created_at,
+                    'updated_at' => $record->updated_at,
+                    'deleted_at' => $record->deleted_at ?? null,
+                ]
+            );
             $groupIds[(int) $record->id] = (int) $record->id;
         }
 
         $individualIds = [];
         foreach (DB::table('individual_sessions')->orderBy('id')->get() as $record) {
-            $newId = DB::table('scheduled_sessions')->insertGetId([
+            $individualData = [
                 'session_type' => 'individual',
                 'group_id' => null,
                 'customer_id' => $record->customer_id,
@@ -75,7 +78,19 @@ return new class extends Migration
                 'created_at' => $record->created_at,
                 'updated_at' => $record->updated_at,
                 'deleted_at' => $record->deleted_at ?? null,
-            ]);
+            ];
+
+            $existing = DB::table('scheduled_sessions')
+                ->where('legacy_type', 'individual')
+                ->where('legacy_id', $record->id)
+                ->first();
+
+            if ($existing) {
+                DB::table('scheduled_sessions')->where('id', $existing->id)->update($individualData);
+                $newId = (int) $existing->id;
+            } else {
+                $newId = (int) DB::table('scheduled_sessions')->insertGetId($individualData);
+            }
             $individualIds[(int) $record->id] = (int) $newId;
         }
 
