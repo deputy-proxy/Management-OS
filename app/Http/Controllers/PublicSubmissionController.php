@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Camp;
 use App\Models\Competition;
-use App\Models\CompetitionEntry;
 use App\Models\Course;
 use App\Models\Customer;
 use App\Models\CustomerLead;
@@ -12,10 +11,12 @@ use App\Models\Event;
 use App\Models\NewsletterSubscriber;
 use App\Models\ProductReview;
 use App\Models\Workshop;
+use App\Services\PublicSubmissions\CompetitionEntrySubmission;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PublicSubmissionController extends Controller
@@ -39,20 +40,28 @@ class PublicSubmissionController extends Controller
             'website' => ['prohibited'],
         ]);
 
-        CustomerLead::query()->create([
-            'first_name' => $data['first_name'],
-            'middle_name' => $data['middle_name'] ?? '',
-            'last_name' => $data['last_name'],
-            'full_name' => trim(implode(' ', array_filter([$data['first_name'], $data['middle_name'] ?? null, $data['last_name']]))),
-            'email' => $data['email'],
-            'phone' => $data['phone'],
-            'source' => 'public_form',
-            'topic_interest' => $data['topic_interest'],
-            'product_interest' => $data['product_interest'],
-            'status' => 'new',
-            'last_contacted_at' => now(),
-            'privacy_consented_at' => now(),
-        ]);
+        try {
+            CustomerLead::query()->create([
+                'first_name' => $data['first_name'],
+                'middle_name' => $data['middle_name'] ?? '',
+                'last_name' => $data['last_name'],
+                'full_name' => trim(implode(' ', array_filter([$data['first_name'], $data['middle_name'] ?? null, $data['last_name']]))),
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'source' => 'public_form',
+                'topic_interest' => $data['topic_interest'],
+                'product_interest' => $data['product_interest'],
+                'status' => 'new',
+                'last_contacted_at' => now(),
+                'privacy_consented_at' => now(),
+            ]);
+        } catch (QueryException $exception) {
+            if ($this->isPublicEmailUniqueViolation($exception, 'customer_leads_active_email_unique', 'customer_leads')) {
+                return back()->withErrors(['email' => __('This email address has already been submitted.')])->withInput();
+            }
+
+            throw $exception;
+        }
 
         return back()->with('status', __('Thank you. Your enquiry has been received.'));
     }
@@ -66,36 +75,36 @@ class PublicSubmissionController extends Controller
         return view('public-forms.competition-entry', compact('competition'));
     }
 
-    public function submitCompetitionEntry(Request $request, Competition $competition): RedirectResponse
+    public function submitCompetitionEntry(Request $request, Competition $competition, CompetitionEntrySubmission $submission): RedirectResponse
     {
         abort_if($competition->trashed() || ($competition->start_on && $competition->start_on > now()->toDateString()) || ($competition->end_on && $competition->end_on < now()->toDateString()), 404);
 
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc', 'max:255', Rule::unique('competition_entries', 'email')->where('competition_id', $competition->getKey())],
+            'email' => ['required', 'email:rfc', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:10000'],
             'privacy_consent' => ['accepted'],
             'website' => ['prohibited'],
         ]);
 
-        if ($competition->maximum_entries && $competition->entries()->count() >= $competition->maximum_entries) {
-            return back()->withErrors(['competition' => __('This competition is no longer accepting entries.')])->withInput();
+        try {
+            $submission->submit((int) $competition->getKey(), [
+                'competition_id' => $competition->getKey(),
+                'customer_id' => Customer::query()->where('email', $data['email'])->value('id'),
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'full_name' => trim($data['first_name'].' '.$data['last_name']),
+                'email' => $data['email'],
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'privacy_consented_at' => now(),
+                'status' => 'pending_review',
+            ]);
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors())->withInput();
         }
-
-        CompetitionEntry::query()->create([
-            'competition_id' => $competition->getKey(),
-            'customer_id' => Customer::query()->where('email', $data['email'])->value('id'),
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'full_name' => trim($data['first_name'].' '.$data['last_name']),
-            'email' => $data['email'],
-            'title' => $data['title'],
-            'content' => $data['content'],
-            'privacy_consented_at' => now(),
-            'status' => 'pending_review',
-        ]);
 
         return back()->with('status', __('Your entry has been submitted for review.'));
     }
@@ -115,14 +124,20 @@ class PublicSubmissionController extends Controller
             'website' => ['prohibited'],
         ]);
 
-        $existing = NewsletterSubscriber::query()->where('email', $data['email'])->first();
+        $existing = NewsletterSubscriber::query()->where('email', $data['email'])->exists();
         if (! $existing) {
-            NewsletterSubscriber::query()->create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'],
-                'privacy_consented_at' => now(),
-            ]);
+            try {
+                NewsletterSubscriber::query()->create([
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                    'privacy_consented_at' => now(),
+                ]);
+            } catch (QueryException $exception) {
+                if (! $this->isPublicEmailUniqueViolation($exception, 'newsletter_subscribers_active_email_unique', 'newsletter_subscribers')) {
+                    throw $exception;
+                }
+            }
         }
 
         return back()->with('status', __('Thank you. Your subscription request has been received.'));
@@ -193,6 +208,18 @@ class PublicSubmissionController extends Controller
         }
 
         return back()->with('status', __('Thank you. Your review has been submitted for moderation.'));
+    }
+
+    private function isPublicEmailUniqueViolation(QueryException $exception, string $indexName, string $table): bool
+    {
+        $message = strtolower($exception->getMessage());
+        $sqlState = (string) ($exception->errorInfo[0] ?? '');
+        $driverCode = (int) ($exception->errorInfo[1] ?? 0);
+
+        return str_contains($message, strtolower($indexName))
+            || ($sqlState === '23000' && $driverCode === 1062 && str_contains($message, $table))
+            || ($sqlState === '23505' && str_contains($message, $table))
+            || ($sqlState === '23000' && str_contains($message, 'unique constraint failed: '.$table.'.'));
     }
 
     private function isActiveReviewUniqueViolation(QueryException $exception): bool
