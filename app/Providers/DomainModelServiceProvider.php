@@ -73,6 +73,11 @@ use App\Observers\ProductResourceAllocationObserver;
 use App\Observers\ProductResourceObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
+use Relaticle\Comments\Events\CommentCreated;
+use Relaticle\Comments\Events\CommentDeleted;
+use Relaticle\Comments\Events\CommentReacted;
+use Relaticle\Comments\Events\CommentUpdated;
+use Relaticle\Comments\Models\Comment;
 
 class DomainModelServiceProvider extends ServiceProvider
 {
@@ -153,5 +158,27 @@ class DomainModelServiceProvider extends ServiceProvider
             'test_result' => TestResult::class,
             'test_type' => TestType::class,
         ]);
+
+        // Relaticle Comments v1.1.1 builds broadcast channels directly from
+        // comments.commentable_type. Older rows may store a full model class
+        // name (for example App\\Models\\Article), which is invalid in a
+        // Pusher channel. Normalize legacy values on broadcast event objects.
+        foreach ([CommentCreated::class, CommentUpdated::class, CommentDeleted::class, CommentReacted::class] as $eventClass) {
+            $this->app['events']->listen($eventClass, function (object $event): void {
+                if (! isset($event->comment) || ! $event->comment instanceof Comment) {
+                    return;
+                }
+
+                $type = $event->comment->getAttribute('commentable_type');
+                if (! is_string($type) || $type === '') {
+                    return;
+                }
+
+                $alias = array_search($type, Relation::morphMap(), true);
+                if ($alias !== false) {
+                    $event->comment->setAttribute('commentable_type', $alias);
+                }
+            });
+        }
     }
 }
