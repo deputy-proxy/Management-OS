@@ -11,6 +11,7 @@ use App\Models\Workshop;
 use App\Services\ProductsOverviewData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductsOverviewDataTest extends TestCase
@@ -21,15 +22,11 @@ class ProductsOverviewDataTest extends TestCase
     {
         $date = CarbonImmutable::parse('2026-06-15', config('app.timezone'));
         $course = Course::factory()->create(['title' => 'Robotics']);
-        $product = Product::factory()->create([
-            'title' => 'Robotics Course',
-            'status' => 'published',
-            'productable_type' => 'course',
-            'productable_id' => $course->id,
-        ]);
+        $product = $course->product()->firstOrFail();
+        $product->update(['title' => 'Robotics Course', 'status' => 'published']);
         ProductPrice::factory()->create(['priceable_type' => 'course', 'priceable_id' => $course->id, 'price' => 120, 'currency' => 'EUR', 'valid_from' => '2026-06-01', 'valid_until' => '2026-06-30']);
         $ambiguousCourse = Course::factory()->create(['title' => 'Ambiguous']);
-        Product::factory()->create(['title' => 'Ambiguous Product', 'status' => 'draft', 'productable_type' => 'course', 'productable_id' => $ambiguousCourse->id]);
+        $ambiguousCourse->product()->firstOrFail()->update(['title' => 'Ambiguous Product', 'status' => 'draft']);
         ProductPrice::factory()->create(['priceable_type' => 'course', 'priceable_id' => $ambiguousCourse->id, 'price' => 100, 'currency' => 'EUR']);
         ProductPrice::factory()->create(['priceable_type' => 'course', 'priceable_id' => $ambiguousCourse->id, 'price' => 200, 'currency' => 'EUR']);
 
@@ -48,11 +45,10 @@ class ProductsOverviewDataTest extends TestCase
     public function test_it_resolves_legacy_class_names_stored_as_productable_types(): void
     {
         $course = Course::factory()->create(['title' => 'Legacy Course']);
-        $product = Product::factory()->create([
-            'title' => 'Legacy Product',
-            'productable_type' => Course::class,
-            'productable_id' => $course->id,
-        ]);
+        $product = $course->product()->firstOrFail();
+        $product->update(['title' => 'Legacy Product']);
+        DB::table('products')->where('id', $product->id)->update(['productable_type' => Course::class]);
+        $product->refresh();
 
         $this->assertSame('course', $product->productable_type);
         $this->assertInstanceOf(Course::class, $product->productable);
@@ -67,7 +63,7 @@ class ProductsOverviewDataTest extends TestCase
     public function test_it_reports_missing_and_future_prices_without_guessing(): void
     {
         $course = Course::factory()->create();
-        $product = Product::factory()->create(['productable_type' => 'course', 'productable_id' => $course->id]);
+        $product = $course->product()->firstOrFail();
         ProductPrice::factory()->create(['priceable_type' => 'course', 'priceable_id' => $course->id, 'valid_from' => '2026-07-01', 'valid_until' => null]);
 
         $summary = app(ProductsOverviewData::class)->summary(CarbonImmutable::parse('2026-06-15', config('app.timezone')));
@@ -84,7 +80,7 @@ class ProductsOverviewDataTest extends TestCase
         $course = Course::factory()->create();
 
         foreach ([['camp', $camp], ['event', $event], ['workshop', $workshop], ['course', $course]] as [$type, $owner]) {
-            Product::factory()->create(['title' => ucfirst($type), 'productable_type' => $type, 'productable_id' => $owner->id]);
+            $owner->product()->firstOrFail()->update(['title' => ucfirst($type)]);
         }
 
         $summary = app(ProductsOverviewData::class)->summary(CarbonImmutable::parse('2026-06-15', config('app.timezone')));
@@ -101,8 +97,8 @@ class ProductsOverviewDataTest extends TestCase
     {
         $course = Course::factory()->create();
         $camp = Camp::query()->forceCreate(['title' => 'Camp', 'description' => 'Camp description', 'location' => 'Satu Mare', 'start_on' => '2026-06-01', 'end_on' => '2026-06-30', 'camp_price' => 100, 'camp_price_id' => 'legacy-camp-price']);
-        Product::factory()->create(['title' => 'Published course', 'status' => 'published', 'productable_type' => 'course', 'productable_id' => $course->id]);
-        Product::factory()->create(['title' => 'Draft camp', 'status' => 'draft', 'productable_type' => 'camp', 'productable_id' => $camp->id]);
+        $course->product()->firstOrFail()->update(['title' => 'Published course', 'status' => 'published']);
+        $camp->product()->firstOrFail()->update(['title' => 'Draft camp', 'status' => 'draft']);
 
         $summary = app(ProductsOverviewData::class)->summary(
             CarbonImmutable::parse('2026-06-15', config('app.timezone')),
