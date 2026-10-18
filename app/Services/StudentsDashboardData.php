@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Student;
+use App\Models\StudentGroupMembership;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,6 +30,16 @@ class StudentsDashboardData
         $totalStudents = $canViewStudents ? Student::withTrashed()->count() : null;
         $currentStudents = $canViewStudents ? Student::query()->count() : null;
         $deletedStudents = $canViewStudents ? Student::onlyTrashed()->count() : null;
+
+        $currentMemberships = null;
+        $groupsWithCurrentMemberships = null;
+        if ($canViewStudents) {
+            $memberships = StudentGroupMembership::query()
+                ->whereDate('started_on', '<=', $today->toDateString())
+                ->where(fn (Builder $query) => $query->whereNull('ended_on')->orWhereDate('ended_on', '>=', $today->toDateString()));
+            $currentMemberships = (clone $memberships)->count();
+            $groupsWithCurrentMemberships = (clone $memberships)->distinct('group_id')->count('group_id');
+        }
 
         $enrollmentTrend = collect();
         $recentStudents = collect();
@@ -97,6 +108,8 @@ class StudentsDashboardData
             'total_students' => $totalStudents,
             'current_students' => $currentStudents,
             'deleted_students' => $deletedStudents,
+            'current_group_memberships' => $currentMemberships,
+            'groups_with_current_memberships' => $groupsWithCurrentMemberships,
             'enrollment_trend' => $enrollmentTrend,
             'max_daily_enrollments' => max(1, (int) $enrollmentTrend->max('count')),
             'recent_students' => $recentStudents,

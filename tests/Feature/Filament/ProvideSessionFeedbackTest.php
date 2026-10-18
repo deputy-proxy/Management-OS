@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\Session;
 use App\Models\SessionAttendance;
 use App\Models\Student;
+use App\Models\StudentGroupMembership;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,6 +39,7 @@ class ProvideSessionFeedbackTest extends TestCase
             'session_id' => $session->id,
             'student_id' => $student->id,
         ]);
+        StudentGroupMembership::query()->create(['student_id' => $student->id, 'group_id' => $session->group_id, 'started_on' => $session->starts_at->toDateString()]);
 
         Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [
@@ -85,6 +87,7 @@ class ProvideSessionFeedbackTest extends TestCase
             'session_id' => $session->id,
             'student_id' => $student->id,
         ]);
+        StudentGroupMembership::query()->create(['student_id' => $student->id, 'group_id' => $session->group_id, 'started_on' => $session->starts_at->toDateString()]);
 
         Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [

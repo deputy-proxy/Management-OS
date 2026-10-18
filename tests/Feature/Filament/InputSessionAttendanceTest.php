@@ -11,6 +11,7 @@ use App\Models\Group;
 use App\Models\Session;
 use App\Models\SessionAttendance;
 use App\Models\Student;
+use App\Models\StudentGroupMembership;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,6 +37,7 @@ class InputSessionAttendanceTest extends TestCase
         $this->actingAs($user);
         $student = Student::factory()->create();
         $attendance = SessionAttendance::factory()->create(['session_id' => $session->id, 'student_id' => $student->id]);
+        StudentGroupMembership::query()->create(['student_id' => $student->id, 'group_id' => $session->group_id, 'started_on' => $session->starts_at->toDateString()]);
 
         Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
@@ -65,6 +67,25 @@ class InputSessionAttendanceTest extends TestCase
         $otherSession = Session::factory()->create(['session_type' => 'group']);
         $student = Student::factory()->create();
         $attendance = SessionAttendance::factory()->create(['session_id' => $otherSession->id, 'student_id' => $student->id]);
+
+        Livewire::test(ListSessions::class)
+            ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
+                'attendance_id' => $attendance->id,
+                'student_name' => $student->full_name,
+                'status' => 'present',
+            ]]])
+            ->assertHasTableActionErrors();
+
+        $this->assertDatabaseHas('session_attendances', ['id' => $attendance->id, 'status' => null]);
+    }
+
+    public function test_group_attendance_rejects_an_existing_row_for_a_student_not_enrolled_on_the_session_date(): void
+    {
+        Gate::before(fn (): bool => true);
+        [$user, $session] = $this->groupSessionForTeacher();
+        $this->actingAs($user);
+        $student = Student::factory()->create();
+        $attendance = SessionAttendance::factory()->create(['session_id' => $session->id, 'student_id' => $student->id]);
 
         Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
@@ -110,6 +131,7 @@ class InputSessionAttendanceTest extends TestCase
         $this->actingAs($user);
         $student = Student::factory()->create();
         $attendance = SessionAttendance::factory()->create(['session_id' => $session->id, 'student_id' => $student->id]);
+        StudentGroupMembership::query()->create(['student_id' => $student->id, 'group_id' => $session->group_id, 'started_on' => $session->starts_at->toDateString()]);
 
         Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
