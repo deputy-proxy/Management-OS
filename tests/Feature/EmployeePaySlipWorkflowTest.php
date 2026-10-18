@@ -112,6 +112,38 @@ class EmployeePaySlipWorkflowTest extends TestCase
         }
     }
 
+    public function test_session_pay_uses_the_effective_dated_contract_rate_and_rounds_half_up_to_two_decimals(): void
+    {
+        $employee = Employee::factory()->create();
+        EmployeeContract::factory()->create([
+            'employee_id' => $employee->id,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-10-14',
+            'hourly_rate' => 20,
+            'clauses' => [],
+        ]);
+        $effectiveContract = EmployeeContract::factory()->create([
+            'employee_id' => $employee->id,
+            'start_date' => '2026-10-15',
+            'end_date' => '2027-12-31',
+            'hourly_rate' => 10.01,
+            'clauses' => [],
+        ]);
+        $session = Session::factory()->individual()->create([
+            'teacher_id' => $employee->id,
+            'starts_at' => '2026-10-15 09:00:00',
+            'ends_at' => '2026-10-15 09:30:00',
+            'status' => 'completed',
+        ]);
+
+        $result = app(EmployeePaySlipService::class)->addSession($session);
+
+        $this->assertSame('10.01', $result['item']->unit_rate);
+        $this->assertSame('5.01', $result['item']->amount);
+        $this->assertSame($effectiveContract->id, $result['item']->calculation_snapshot['contract_id']);
+        $this->assertSame('5.01', $result['item']->paySlip->fresh()->amount);
+    }
+
     public function test_assistance_and_completed_test_simulation_can_be_added_to_the_same_monthly_slip(): void
     {
         $employee = Employee::factory()->create();
