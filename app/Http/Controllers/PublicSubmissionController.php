@@ -14,8 +14,8 @@ use App\Models\ProductReview;
 use App\Models\Workshop;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class PublicSubmissionController extends Controller
 {
@@ -72,7 +72,7 @@ class PublicSubmissionController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc', 'max:255'],
+            'email' => ['required', 'email:rfc', 'max:255', Rule::unique('competition_entries', 'email')->where('competition_id', $competition->getKey())],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:10000'],
             'privacy_consent' => ['accepted'],
@@ -85,6 +85,7 @@ class PublicSubmissionController extends Controller
 
         CompetitionEntry::query()->create([
             'competition_id' => $competition->getKey(),
+            'customer_id' => Customer::query()->where('email', $data['email'])->value('id'),
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
             'full_name' => trim($data['first_name'].' '.$data['last_name']),

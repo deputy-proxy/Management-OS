@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
+use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -90,6 +91,39 @@ class PublicFormsTest extends TestCase
         ]);
         $this->assertNotNull(CompetitionEntry::query()->where('email', 'ari@example.test')->value('privacy_consented_at'));
         $this->assertDatabaseMissing('competition_entries', ['competition_id' => 999]);
+    }
+
+    public function test_competition_entry_links_existing_customer_and_rejects_duplicate_email_per_competition(): void
+    {
+        $customer = Customer::factory()->create(['email' => 'ari@example.test']);
+        $competition = Competition::query()->create([
+            'title' => 'Customer competition',
+            'description' => 'Test',
+            'start_on' => now()->subDay()->toDateString(),
+            'end_on' => now()->addDay()->toDateString(),
+            'maximum_entries' => 10,
+            'rules' => [],
+        ]);
+        $payload = [
+            'first_name' => 'Ari',
+            'last_name' => 'Pop',
+            'email' => 'ari@example.test',
+            'title' => 'Entry',
+            'content' => 'My entry',
+            'privacy_consent' => '1',
+        ];
+
+        $this->post(route('public.competitions.entries.store', $competition), $payload)->assertRedirect();
+
+        $entry = CompetitionEntry::query()->sole();
+        $this->assertSame($competition->id, $entry->competition_id);
+        $this->assertSame($customer->id, $entry->customer_id);
+        $this->assertTrue($customer->fresh()->competitionEntries()->sole()->is($entry));
+
+        $this->from(route('public.competitions.entries.create', $competition))
+            ->post(route('public.competitions.entries.store', $competition), $payload)
+            ->assertSessionHasErrors('email');
+        $this->assertDatabaseCount('competition_entries', 1);
     }
 
     public function test_review_rejects_unlisted_product_types_and_non_customer_email(): void
