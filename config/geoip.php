@@ -1,11 +1,14 @@
 <?php
 
+$cacheStore = env('CACHE_STORE', 'database');
+$cacheTagsSupported = ! in_array($cacheStore, ['file', 'database'], true);
+
 return [
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Logging Configuration
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Here you may configure the log settings for when a location is not found
     | for the IP provided.
@@ -15,9 +18,9 @@ return [
     'log_failures' => true,
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Include Currency in Results
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | When enabled the system will do it's best in deciding the user's currency
     | by matching their ISO code to a preset list of currencies.
@@ -27,9 +30,9 @@ return [
     'include_currency' => true,
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Default Service
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Here you may specify the default storage driver that should be used
     | by the framework using the services listed below.
@@ -39,9 +42,9 @@ return [
     'service' => 'maxmind_database',
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Storage Specific Configuration
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Here you may configure as many storage drivers as you wish.
     |
@@ -50,21 +53,21 @@ return [
     'services' => [
 
         'maxmind_database' => [
-            'class' => \Torann\GeoIP\Services\MaxMindDatabase::class,
+            'class' => \\Torann\\GeoIP\\Services\\MaxMindDatabase::class,
             'database_path' => storage_path('app/geoip.mmdb'),
             'update_url' => sprintf('https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=%s&suffix=tar.gz', env('MAXMIND_LICENSE_KEY')),
             'locales' => ['en'],
         ],
 
         'maxmind_api' => [
-            'class' => \Torann\GeoIP\Services\MaxMindWebService::class,
+            'class' => \\Torann\\GeoIP\\Services\\MaxMindWebService::class,
             'user_id' => env('MAXMIND_USER_ID'),
             'license_key' => env('MAXMIND_LICENSE_KEY'),
             'locales' => ['en'],
         ],
 
         'ipgeolocation' => [
-            'class' => \Torann\GeoIP\Services\IPGeoLocation::class,
+            'class' => \\Torann\\GeoIP\\Services\\IPGeoLocation::class,
             'secure' => true,
             'key' => env('IPGEOLOCATION_KEY'),
             'continent_path' => storage_path('app/continents.json'),
@@ -72,13 +75,13 @@ return [
         ],
 
         'ipdata' => [
-            'class' => \Torann\GeoIP\Services\IPData::class,
+            'class' => \\Torann\\GeoIP\\Services\\IPData::class,
             'key' => env('IPDATA_API_KEY'),
             'secure' => true,
         ],
 
         'ipfinder' => [
-            'class' => \Torann\GeoIP\Services\IPFinder::class,
+            'class' => \\Torann\\GeoIP\\Services\\IPFinder::class,
             'key' => env('IPFINDER_API_KEY'),
             'secure' => true,
             'locales' => ['en'],
@@ -87,9 +90,9 @@ return [
     ],
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Default Cache Driver
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Here you may specify the type of caching that should be used
     | by the package.
@@ -99,27 +102,28 @@ return [
     |  all  - All location are cached
     |  some - Cache only the requesting user
     |  none - Disable cached
-    |
     */
 
     'cache' => 'all',
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Cache Tags
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
-    | Cache tags are not supported when using the file or database cache
-    | drivers in Laravel. This is done so that only locations can be cleared.
+    | Laravel file and database cache stores do not support cache tags. Disable
+    | GeoIP tags for those stores while retaining ordinary location caching.
+    | This also prevents the GeoIP cache clear command from flushing the entire
+    | cache store when tags are unavailable.
     |
     */
 
-    'cache_tags' => ['torann-geoip-location'],
+    'cache_tags' => $cacheTagsSupported ? ['torann-geoip-location'] : [],
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Cache Expiration
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Define how long cached location are valid.
     |
@@ -128,9 +132,9 @@ return [
     'cache_expires' => 30,
 
     /*
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     | Default Location
-    |--------------------------------------------------------------------------
+    |---------------------------------------------------------------------------
     |
     | Return when a location is not found.
     |
