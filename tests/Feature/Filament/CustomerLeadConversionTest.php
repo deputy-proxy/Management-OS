@@ -3,14 +3,17 @@
 namespace Tests\Feature\Filament;
 
 use App\Actions\ConvertCustomerLead;
+use App\Events\CustomerLeadConverted;
 use App\Filament\Resources\CustomerLeads\Pages\ListCustomerLeads;
 use App\Models\Customer;
 use App\Models\CustomerContract;
 use App\Models\CustomerLead;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -167,6 +170,32 @@ class CustomerLeadConversionTest extends TestCase
 
         $this->assertDatabaseCount('customers', 1);
         $this->assertDatabaseCount('customer_contracts', 1);
+    }
+
+    public function test_conversion_event_is_an_explicit_after_commit_business_event(): void
+    {
+        $this->assertContains(
+            ShouldDispatchAfterCommit::class,
+            class_implements(CustomerLeadConverted::class),
+        );
+
+        $lead = CustomerLead::factory()->create();
+        Event::fake([CustomerLeadConverted::class]);
+
+        try {
+            DB::transaction(function () use ($lead): void {
+                app(ConvertCustomerLead::class)->handle($lead, $this->conversionData());
+                Event::assertNotDispatched(CustomerLeadConverted::class);
+                throw new RuntimeException('Rollback conversion transaction.');
+            });
+            $this->fail('Expected the transaction to roll back.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Rollback conversion transaction.', $exception->getMessage());
+        }
+
+        Event::assertNotDispatched(CustomerLeadConverted::class);
+        $this->assertDatabaseCount('customer_contracts', 0);
+        $this->assertDatabaseHas('customer_leads', ['id' => $lead->getKey(), 'converted_customer_id' => null]);
     }
 
     public function test_customer_and_contract_creation_roll_back_together_on_failure(): void

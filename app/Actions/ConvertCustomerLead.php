@@ -2,10 +2,12 @@
 
 namespace App\Actions;
 
+use App\Events\CustomerLeadConverted;
 use App\Models\Customer;
 use App\Models\CustomerContract;
 use App\Models\CustomerLead;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 
 class ConvertCustomerLead
@@ -91,7 +93,7 @@ class ConvertCustomerLead
                 $customer->forceFill(['phone' => $lockedLead->phone])->save();
             }
 
-            CustomerContract::query()->create([
+            $contract = CustomerContract::query()->create([
                 'customer_id' => $customer->getKey(),
                 'source_customer_lead_id' => $lockedLead->getKey(),
                 'contract_code' => $data['contract_code'],
@@ -106,6 +108,12 @@ class ConvertCustomerLead
                 'converted_customer_id' => $customer->getKey(),
                 'converted_at' => now(),
             ])->save();
+
+            Event::dispatch(new CustomerLeadConverted(
+                (int) $lockedLead->getKey(),
+                (int) $customer->getKey(),
+                (int) $contract->getKey(),
+            ));
 
             return $customer;
         });
