@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-// Ensure this matches your package
 use App\Models\User;
 use App\Services\CommentEmailNotificationDispatcher;
 use App\Services\NotificationPreferenceService;
