@@ -50,7 +50,7 @@ Management-OS is a Laravel monolith for EdVenture's administrative, finance, aca
    npm audit --audit-level=high
    ```
 
-   CI also parses PHP files in `app`, `bootstrap`, `config`, `database`, `routes`, `scripts`, and `tests` using `token_get_all(..., TOKEN_PARSE)`. Follow the workflow for the exact syntax-check command and SQLite environment. `composer test` is the configured test script; PHP static analysis is not currently configured as a CI gate.
+   CI also parses PHP files in `app`, `bootstrap`, `config`, `database`, `routes`, `scripts`, and `tests` using `token_get_all(..., TOKEN_PARSE)`. Follow the workflow for the exact syntax-check command and SQLite environment. `composer test` is the configured test script. `composer analyse` runs PHPStan/Larastan at level 5 with a reviewed legacy baseline. Retire fixed findings by removing their specific baseline entries and rerunning the command; baseline additions require explicit review. CI also has a MySQL 8.0 migration and database-sensitive regression job; the exact production MySQL minor version still needs verification.
 
 5. Add focused regression coverage for behavior or schema changes, run the focused tests, then run the complete local gate. Open/update the PR only after local validation passes, inspect the actual GitHub Actions result, and merge only when all required checks are green.
 

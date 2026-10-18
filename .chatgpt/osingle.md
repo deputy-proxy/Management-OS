@@ -99,11 +99,12 @@ The current full local validation sequence is:
 5. Run the PHP syntax check over `app`, `bootstrap`, `config`, `database`, `routes`, and `tests` using the workflow's `token_get_all(..., TOKEN_PARSE)` check.
 6. `vendor/bin/pint --test tests`
 7. `composer test`
-8. `composer audit --locked`
-9. `npm audit --audit-level=high`
-10. `php scripts/check-documented-composer-scripts.php`
+8. `composer analyse`
+9. `composer audit --locked`
+10. `npm audit --audit-level=high`
+11. `php scripts/check-documented-composer-scripts.php`
 
-`composer.json` currently defines `setup`, `dev`, and `test`; only `composer test` is a CI quality-gate script. `lint:check`, `types:check`, and `ci:check` do not exist and must not be called. No PHPStan/Larastan/Psalm configuration or enforced static-analysis gate is currently present. Do not claim type analysis passes unless it is explicitly added and run.
+`composer.json` defines `setup`, `dev`, `test`, and `analyse`; `composer test` and `composer analyse` are quality-gate scripts. `lint:check`, `types:check`, and `ci:check` do not exist and must not be called. PHPStan 2 with Larastan 3 is configured at level 5 for `app`, with the reviewed legacy findings in `phpstan-baseline.neon`; `composer analyse` is a required CI gate. New findings fail unless the baseline is explicitly changed and reviewed. Retire fixed findings by removing their specific entries from the baseline and confirming `composer analyse` passes. A separate MySQL 8.0 CI job verifies migrations and database-sensitive regressions. Production is documented as MySQL 8.x, but the exact deployed minor version remains unverified and must be checked against staging before release.
 
 The full local validation is the **pre-PR gate**.
 
