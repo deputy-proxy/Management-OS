@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Operations;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
@@ -35,6 +36,29 @@ class HealthAndObservabilityTest extends TestCase
         $response->assertOk();
         $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/', (string) $response->headers->get('X-Request-ID'));
         $this->assertNull($response->headers->get('X-Leak'));
+    }
+
+    public function test_operational_heartbeat_check_passes_with_recent_queue_and_scheduler_heartbeats(): void
+    {
+        Cache::put('ops:heartbeat:queue-worker', now()->timestamp, now()->addMinutes(5));
+        Cache::put('ops:heartbeat:scheduler', now()->timestamp, now()->addMinutes(5));
+
+        $this->artisan('ops:check-heartbeats')
+            ->expectsOutput('database: healthy')
+            ->expectsOutput('queue-worker: healthy')
+            ->expectsOutput('scheduler: healthy')
+            ->assertExitCode(0);
+    }
+
+    public function test_operational_heartbeat_check_fails_when_heartbeats_are_missing_or_stale(): void
+    {
+        Cache::put('ops:heartbeat:queue-worker', now()->subMinutes(10)->timestamp, now()->addMinutes(5));
+
+        $this->artisan('ops:check-heartbeats')
+            ->expectsOutput('database: healthy')
+            ->expectsOutput('queue-worker: unhealthy')
+            ->expectsOutput('scheduler: unhealthy')
+            ->assertExitCode(1);
     }
 
     public function test_backup_verification_rejects_missing_and_empty_files(): void
