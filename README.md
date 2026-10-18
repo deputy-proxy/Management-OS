@@ -20,7 +20,7 @@ Management-OS is a Laravel monolith for EdVenture's administrative, finance, aca
 ### Important data-integrity boundaries
 
 - `App\Models\Session` is the runtime model for the `scheduled_sessions` table. `session_type` distinguishes group and individual sessions. The old `GroupSession`/`IndividualSession` names remain only in the historical consolidation migration and its regression coverage, not as current runtime models.
-- `ProductPrice` is the canonical price table/model. `CoursePrice`, `EventPrice`, and `WorkshopPrice` remain active compatibility adapters because Filament resources, owner relationships, factories/seeders, and polymorphic aliases still depend on them. Do not remove them until those callers and historical morph identities are migrated; details are in [docs/product-prices.md](docs/product-prices.md).
+- `ProductPrice` is the only runtime price model and the canonical price ledger. The old price tables remain as migration rollback/audit sources; legacy polymorphic aliases resolve to `ProductPrice`. See [docs/product-prices.md](docs/product-prices.md).
 - Payslip JSON `items` is a legacy/manual breakdown. `manual_amount` preserves the existing baseline, while `employee_pay_slip_items` stores normalized source-linked activity and adjustment lines. These representations are intentionally not interchangeable; see [docs/employee-payslip-workflow.md](docs/employee-payslip-workflow.md).
 - Migrations that preserve financial or historical records may reject rollback when it would discard audit data. Do not bypass those guards to force a schema rollback.
 - The two wildcard Composer constraints are intentional local path-package exceptions; see [dependency constraint decisions](docs/composer-dependency-constraints.md) before changing them.

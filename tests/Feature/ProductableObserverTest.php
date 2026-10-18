@@ -22,8 +22,8 @@ class ProductableObserverTest extends TestCase
         $models = [
             Course::factory()->create(['title' => 'Course product']),
             Camp::query()->forceCreate(['title' => 'Camp product', 'description' => 'Description', 'location' => 'Satu Mare', 'start_on' => '2026-06-01', 'end_on' => '2026-06-02', 'camp_price' => 0, 'camp_price_id' => 'legacy-camp-price']),
-            Event::query()->create(['title' => 'Event product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'event_price_id' => 'legacy-event-price', 'featured_image' => 'event.jpg']),
-            Workshop::query()->create(['title' => 'Workshop product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'type' => 'training', 'location' => 'Satu Mare', 'workshop_price_id' => 'legacy-workshop-price']),
+            Event::query()->create(['title' => 'Event product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'featured_image' => 'event.jpg']),
+            Workshop::query()->create(['title' => 'Workshop product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'type' => 'training', 'location' => 'Satu Mare']),
         ];
 
         foreach ($models as $model) {

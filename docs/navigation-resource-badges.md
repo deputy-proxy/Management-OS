@@ -43,7 +43,6 @@ The following resources have no badge because their current models/resources do 
 - `app/Filament/Resources/Competitors/CompetitorResource.php`
 - `app/Filament/Resources/ContentTemplates/ContentTemplateResource.php`
 - `app/Filament/Resources/CourseMaterials/CourseMaterialResource.php`
-- `app/Filament/Resources/CoursePrices/CoursePriceResource.php`
 - `app/Filament/Resources/Courses/CourseResource.php`
 - `app/Filament/Resources/CustomerContracts/CustomerContractResource.php`
 - `app/Filament/Resources/CustomerInteractions/CustomerInteractionResource.php`
@@ -52,7 +51,6 @@ The following resources have no badge because their current models/resources do 
 - `app/Filament/Resources/Discounts/DiscountResource.php`
 - `app/Filament/Resources/EmployeeTimesheets/EmployeeTimesheetResource.php`
 - `app/Filament/Resources/EventParticipants/EventParticipantResource.php`
-- `app/Filament/Resources/EventPrices/EventPriceResource.php`
 - `app/Filament/Resources/Events/EventResource.php`
 - `app/Filament/Resources/FinancialAccountBalances/FinancialAccountBalanceResource.php`
 - `app/Filament/Resources/FinancialAccounts/FinancialAccountResource.php`
@@ -98,5 +96,4 @@ The following resources have no badge because their current models/resources do 
 - `app/Filament/Resources/Vendors/VendorResource.php`
 - `app/Filament/Resources/WorkshopMaterials/WorkshopMaterialResource.php`
 - `app/Filament/Resources/WorkshopParticipants/WorkshopParticipantResource.php`
-- `app/Filament/Resources/WorkshopPrices/WorkshopPriceResource.php`
 - `app/Filament/Resources/Workshops/WorkshopResource.php`
