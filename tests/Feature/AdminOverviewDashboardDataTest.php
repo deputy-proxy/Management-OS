@@ -37,6 +37,7 @@ class AdminOverviewDashboardDataTest extends TestCase
         $this->assertSame([2, 4], array_column($summary['metrics'], 'value'));
         // Student fixtures create their own customer records; all are visible under customer.index.
         $this->assertSame(config('app.timezone'), $summary['timezone']);
+        $this->assertSame('October 18, 2026', $summary['as_of']);
     }
 
     public function test_overdue_tasks_follow_the_existing_assigned_or_created_visibility_scope(): void
