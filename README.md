@@ -23,6 +23,7 @@ Management-OS is a Laravel monolith for EdVenture's administrative, finance, aca
 - `ProductPrice` is the canonical price table/model. `CoursePrice`, `EventPrice`, and `WorkshopPrice` remain active compatibility adapters because Filament resources, owner relationships, factories/seeders, and polymorphic aliases still depend on them. Do not remove them until those callers and historical morph identities are migrated; details are in [docs/product-prices.md](docs/product-prices.md).
 - Payslip JSON `items` is a legacy/manual breakdown. `manual_amount` preserves the existing baseline, while `employee_pay_slip_items` stores normalized source-linked activity and adjustment lines. These representations are intentionally not interchangeable; see [docs/employee-payslip-workflow.md](docs/employee-payslip-workflow.md).
 - Migrations that preserve financial or historical records may reject rollback when it would discard audit data. Do not bypass those guards to force a schema rollback.
+- The two wildcard Composer constraints are intentional local path-package exceptions; see [dependency constraint decisions](docs/composer-dependency-constraints.md) before changing them.
 
 ## Local development and contribution workflow
 
