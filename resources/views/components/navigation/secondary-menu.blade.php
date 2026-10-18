@@ -39,12 +39,6 @@
                                                 <nav class="grve-vertical-menu grve-menu-element" data-menu-type="toggle">
                                                     <ul class="grve-menu">
                                                         <li class="menu-item grve-first-level">
-                                                            <a href="{{ route('contact') }}">
-                                                                <i class="fa fa-envelope-o"></i>
-                                                                Pagina de contact
-                                                            </a>
-                                                        </li>
-                                                        <li class="menu-item grve-first-level">
                                                             <a href="tel:0213129036">
                                                                 <i class="fa fa-phone"></i>
                                                                 021 312 9036

@@ -26,16 +26,16 @@
                             <nav>
                                 <ul class="space-y-2">
                                     <li>
-                                        <a href="{{ route('contact') }}#adresa" class="inline-flex items-start gap-2">
+                                        <span class="inline-flex items-start gap-2">
                                             <i class="fa fa-map-pin"></i>
                                             <span>EdVenture School Cotroceni: Strada Dr. Staicovici nr. 4</span>
-                                        </a>
+                                        </span>
                                     </li>
                                     <li>
-                                        <a href="{{ route('contact') }}#adresa" class="inline-flex items-start gap-2">
+                                        <span class="inline-flex items-start gap-2">
                                             <i class="fa fa-map-pin"></i>
                                             <span>EdVenture School Tineretului: Strada Vitejescu nr. 19</span>
-                                        </a>
+                                        </span>
                                     </li>
                                 </ul>
                             </nav>
@@ -56,10 +56,7 @@
                                     <h3 class="text-3xl font-bold mb-[18px]">Pagini</h3>
                                     <nav>
                                         <ul class="space-y-2">
-                                            <li><a href="{{ route('about') }}">Despre noi</a></li>
-                                            <li><a href="{{ route('careers') }}">Cariere</a></li>
-                                            <li><a href="{{ route('blog') }}" target="_blank">Blog</a></li>
-                                            <li><a href="{{ route('contact') }}">Contact</a></li>
+                                            <li><a href="{{ route('home') }}">Acasă</a></li>
                                         </ul>
                                     </nav>
                                 </div>
@@ -82,7 +79,6 @@
                                     <h3 class="text-3xl font-bold mb-[18px]">Contactează-ne</h3>
                                     <nav>
                                         <ul class="space-y-2">
-                                            <li><a href="{{ route('contact') }}"><i class="fa fa-envelope-o"></i> Pagina de contact</a></li>
                                             <li><a href="tel:0213129036"><i class="fa fa-phone"></i> 021 312 9036</a></li>
                                             <li><a href="tel:0740085809"><i class="fa fa-phone"></i> 0740 085 809</a></li>
                                         </ul>

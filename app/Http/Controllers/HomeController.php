@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class HomeController extends Controller
 {
     public function index()
@@ -12,6 +10,6 @@ class HomeController extends Controller
             return view('welcome');
         }
 
-        return response('Home', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 }

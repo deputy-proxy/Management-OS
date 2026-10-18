@@ -12,11 +12,7 @@
                 'columns' => [
                     [
                         'title' => 'Despre noi',
-                        'links' => [
-                            ['text' => 'Despre EdVenture School', 'url' => route('about')],
-                            ['text' => 'Alătură-te echipei noastre', 'url' => route('careers')],
-                            ['text' => 'Pagina de contact', 'url' => route('contact')],
-                        ]
+                        'content' => 'EdVenture School este o școală de limbi străine care cultivă pasiunea pentru învățare de peste 20 ani.'
                     ],
                     [
                         'title' => 'Valorile noastre:',
@@ -53,12 +49,7 @@
                 'columns' => [
                     [
                         'title' => 'Cursuri pentru copii',
-                        'links' => [
-                            ['text' => 'Cursuri Engleză Copii', 'url' => route('courses.english-kids')],
-                            ['text' => 'Cursuri Germană Copii', 'url' => route('courses.german-kids')],
-                            ['text' => 'Cursuri Franceză Copii', 'url' => route('courses.french-kids')],
-                            ['text' => 'Cursuri Japoneză Copii', 'url' => route('courses.japanese-kids')],
-                        ]
+                        'content' => 'Cursuri Engleză Copii<br>Cursuri Germană Copii<br>Cursuri Franceză Copii<br>Cursuri Japoneză Copii'
                     ],
                     [
                         'title' => 'Cursuri pentru adolescenți',
@@ -82,11 +73,7 @@
                 'columns' => [
                     [
                         'title' => 'Cursuri Engleză Online',
-                        'links' => [
-                            ['text' => 'Cursuri de engleză online pentru adulți', 'url' => route('courses.english-adults')],
-                            ['text' => 'Cursuri individuale de limba engleză', 'url' => route('courses.english-individual')],
-                            ['text' => 'Curs engleză conversațională', 'url' => route('courses.english-conversation')],
-                        ]
+                        'content' => 'Cursuri de engleză online pentru adulți<br>Cursuri individuale de limba engleză<br>Curs engleză conversațională'
                     ]
                 ]
             ])
@@ -131,10 +118,7 @@
                 'columns' => [
                     [
                         'title' => 'Cursuri Corporate – B2B',
-                        'links' => [
-                            ['text' => 'Cursuri de Engleză pentru Companii', 'url' => route('courses.corporate')],
-                            ['text' => 'Cursuri de limbi străine pentru Afterschools și Școli', 'url' => route('courses.schools')],
-                        ]
+                        'content' => 'Cursuri de Engleză pentru Companii<br>Cursuri de limbi străine pentru Afterschools și Școli'
                     ]
                 ]
             ])

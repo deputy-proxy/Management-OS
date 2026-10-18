@@ -16,14 +16,8 @@ Route::get('/courses', [CourseController::class, 'index'])->name('courses.index'
 Route::prefix('courses')->group(function () {
     Route::get('/english-kids', [CourseController::class, 'englishKids'])->name('courses.english-kids');
     Route::get('/english-adults', [CourseController::class, 'englishAdults'])->name('courses.english-adults');
-    Route::get('/english-individual', [CourseController::class, 'englishIndividual'])->name('courses.english-individual');
-    Route::get('/english-conversation', [CourseController::class, 'englishConversation'])->name('courses.english-conversation');
     Route::get('/english', [CourseController::class, 'english'])->name('courses.english');
     Route::get('/kids', [CourseController::class, 'kids'])->name('courses.kids');
-    Route::get('/schools', [CourseController::class, 'kids'])->name('courses.schools');
-    Route::get('/german-kids', [CourseController::class, 'kids'])->name('courses.german-kids');
-    Route::get('/french-kids', [CourseController::class, 'kids'])->name('courses.french-kids');
-    Route::get('/japanese-kids', [CourseController::class, 'kids'])->name('courses.japanese-kids');
     Route::get('/corporate', [CourseController::class, 'corporate'])->name('courses.corporate');
 });
 
@@ -39,8 +33,6 @@ Route::prefix('public')->name('public.')->middleware('throttle:5,1')->group(func
 });
 
 // Other routes
-Route::get('/blog', [PageController::class, 'privacy'])->name('blog');
-Route::get('/search', [PageController::class, 'privacy'])->name('search');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/cookies', [PageController::class, 'cookies'])->name('cookies');
 Route::get('/cariere', [PageController::class, 'careers'])->name('careers');

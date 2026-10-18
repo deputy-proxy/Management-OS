@@ -31,7 +31,11 @@
                                 @if(!empty($column['links']))
                                 <div class="grve-element grve-text">
                                     @foreach($column['links'] as $link)
+                                    @if($link['url'] === '#')
+                                    <p>{{ $link['text'] }}</p>
+                                    @else
                                     <p><a href="{{ $link['url'] }}">{{ $link['text'] }}</a></p>
+                                    @endif
                                     @endforeach
                                 </div>
                                 @elseif(!empty($column['content']))
