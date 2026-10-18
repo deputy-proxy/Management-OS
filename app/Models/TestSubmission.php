@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
+use App\Services\Academic\AcademicSessionLinkValidator;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use App\Models\Concerns\HasTasks;
 
 class TestSubmission extends Model implements Commentable
 {
+
     use HasPanelSearchTitle;
 
     use LogsActivity;
@@ -28,10 +30,22 @@ class TestSubmission extends Model implements Commentable
     use HasComments;
     use HasTasks;
 
+    protected static function booted(): void
+    {
+        static::saving(function (TestSubmission $record): void {
+            app(AcademicSessionLinkValidator::class)->validate(
+                $record->session_id === null ? null : (int) $record->session_id,
+                $record->student_id === null ? null : (int) $record->student_id,
+            );
+        });
+    }
+
+
     /** @var array<int, string> */
     protected $fillable = [
         'test_id',
         'student_id',
+        'session_id',
         'submission_timestamp',
         'status',  // draft | submitted | grading | graded
         'score',
@@ -48,6 +62,11 @@ class TestSubmission extends Model implements Commentable
     // -----------------------------------------------------------------------
     // Relationships
     // -----------------------------------------------------------------------
+
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(Session::class);
+    }
 
     public function test(): BelongsTo
     {

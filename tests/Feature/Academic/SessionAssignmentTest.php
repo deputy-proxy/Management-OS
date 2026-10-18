@@ -6,11 +6,14 @@ use App\Filament\Resources\Sessions\SessionResource;
 use App\Models\Course;
 use App\Models\Employee;
 use App\Models\Group;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class SessionAssignmentTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_group_session_must_use_the_groups_course_and_assigned_teacher(): void
     {
         $course = Course::factory()->create();

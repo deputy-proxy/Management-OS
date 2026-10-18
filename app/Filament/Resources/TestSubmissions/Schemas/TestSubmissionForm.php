@@ -28,6 +28,13 @@ class TestSubmissionForm
                                 ->preload()
                                 ->required(),
  
+                            Select::make('session_id')
+                                ->label('Related group session')
+                                ->relationship('session', 'identifier')
+                                ->searchable()
+                                ->preload()
+                                ->nullable(),
+
                             Select::make('student_id')
                                 ->label('Student')
                                 ->relationship('student', 'full_name')

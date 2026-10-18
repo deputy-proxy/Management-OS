@@ -7,9 +7,8 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 use App\Filament\Resources\Sessions\Schemas\SessionForm;
 use App\Filament\Resources\Sessions\Schemas\SessionInfolist;
 use App\Filament\Resources\Sessions\Tables\SessionsTable;
-use App\Models\Session;
 use App\Models\Group;
-use Illuminate\Validation\ValidationException;
+use App\Models\Session;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -18,6 +17,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Validation\ValidationException;
 use UnitEnum;
 
 class SessionResource extends Resource
@@ -107,7 +107,6 @@ class SessionResource extends Resource
             ? Response::allow()
             : Response::deny(__('You do not have permission to delete these sessions.'));
     }
-
 
     public static function validateGroupAssignment(array $data): void
     {

@@ -35,7 +35,9 @@ class EditSession extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->disabled(fn (Session $record): bool => $record->sessionAttendances()->exists() || $record->employeeTimesheets()->exists()),            CommentsAction::make(),
+            Actions\DeleteAction::make()
+                ->disabled(fn (Session $record): bool => $record->sessionAttendances()->exists() || $record->employeeTimesheets()->exists()),
+            CommentsAction::make(),
 
         ];
     }

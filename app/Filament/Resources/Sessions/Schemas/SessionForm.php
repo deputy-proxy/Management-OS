@@ -51,10 +51,12 @@ class SessionForm
                 ->relationship('course', 'title')
                 ->live()
                 ->disabled(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
+                ->dehydrated()
                 ->afterStateUpdated(fn (Get $get, Set $set) => static::updateGroupIdentifier($get, $set))
                 ->required(),
             Forms\Components\Select::make('teacher_id')->relationship('teacher', 'full_name')
                 ->disabled(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
+                ->dehydrated()
                 ->required(),
             Forms\Components\DateTimePicker::make('starts_at')
                 ->live()

@@ -14,9 +14,9 @@ Management-OS is the canonical system of record for student-to-group membership 
 | Scheduled session | `scheduled_sessions` / `Session` | Group or individual session, its scheduled date/time, assigned teacher and lifecycle status |
 | Group attendance and feedback | `session_attendances` / `SessionAttendance` | One active participation row per student/session, with attendance, achievement and feedback |
 | Individual attendance | `scheduled_sessions.attendance_status` | Attendance for the individual-session customer |
-| Assessment submission | `test_submissions` / `TestSubmission` | Student's submission to a test, with status and score |
+| Assessment submission | `test_submissions` / `TestSubmission` | Student's submission to a test, with status and score; optional `session_id` attributes it to a group session |
 | Assessment result | `test_results` / `TestResult` | Student and submission result; result payload remains the existing schema contract |
-| Progress | `progress_updates` / `ProgressUpdate` | Dated teacher-authored progress update for a student |
+| Progress | `progress_updates` / `ProgressUpdate` | Dated teacher-authored progress update for a student; optional `session_id` attributes it to a group session |
 
 ## Membership semantics
 
@@ -42,6 +42,7 @@ Management-OS is the canonical system of record for student-to-group membership 
 - Student record counts describe rows, not active/inactive learner status; the student schema has no such status field.
 - The legacy “Enrollment trend” remains explicitly a student-record creation trend, not a group enrollment trend.
 - Current student-group membership count includes memberships effective today (`started_on <= today` and `ended_on` null or `ended_on >= today`). “Groups with current members” counts distinct groups with at least one such membership.
+- Progress updates and assessment submissions may be linked to a group session. When linked, model-level validation requires the student to be a member of that group on the session date. Existing/unlinked records remain valid for backwards compatibility.
 - These student and membership metrics are hidden unless the viewer has `student.index`.
 
 ## Session scheduling and history
@@ -67,6 +68,7 @@ Management-OS is the canonical system of record for student-to-group membership 
 - [ ] Duplicate active student/group membership and duplicate active session/student attendance are rejected by the database.
 - [ ] A transfer preserves both membership periods and does not rewrite attendance history.
 - [ ] Session roster synchronization creates exactly one attendance row per eligible student and is idempotent.
+- [ ] Session-linked progress updates and assessment submissions reject students outside the effective-dated session roster.
 - [ ] Group session course and teacher match the selected group's course and assigned teacher.
 - [ ] New sessions start scheduled; scheduled sessions may be completed, cancelled, or rescheduled; terminal session times and states cannot be rewritten.
 - [ ] Students not members on the session date cannot be added to attendance or feedback through the session actions.
