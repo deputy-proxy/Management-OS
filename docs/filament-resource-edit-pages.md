@@ -60,9 +60,9 @@ There are 78 resource edit pages at the time of this audit. The remaining migrat
 - [ ] Events
 - [ ] FinancialAccountBalances
 - [ ] FinancialAccounts
-- [ ] GroupSessions
+- [x] Sessions (unified group and individual session resource)
 - [ ] Groups
-- [ ] IndividualSessions
+
 - [ ] JobDescriptions
 - [ ] LegalDocuments
 - [ ] MeetingTopics

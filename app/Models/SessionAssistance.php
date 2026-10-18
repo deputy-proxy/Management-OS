@@ -39,7 +39,7 @@ class SessionAssistance extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'group_session_id', 'teacher_id', 'assistance_date', 'status', 'review'
+        'session_id', 'teacher_id', 'assistance_date', 'status', 'review'
     ];
 
     protected function casts(): array
@@ -48,9 +48,9 @@ class SessionAssistance extends Model implements Commentable
             'review' => 'array',
         ];
     }
-    public function groupSession(): BelongsTo
+    public function session(): BelongsTo
     {
-        return $this->belongsTo(GroupSession::class);
+        return $this->belongsTo(Session::class);
     }
 
     public function teacher(): BelongsTo

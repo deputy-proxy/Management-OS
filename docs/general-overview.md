@@ -27,11 +27,11 @@ The General Overview uses the current application timezone (`config('app.timezon
 
 ## Weekly schedule
 
-- **Source:** `group_sessions` and `individual_sessions`, including both existing models until the consolidation in issue #176 is completed.
+- **Source:** the unified `scheduled_sessions` table through the `Session` model.
 - **Window:** Monday 00:00 through Sunday 23:59:59.999999 in the application timezone.
 - **Rule:** include non-deleted sessions whose start time falls within the current calendar week; sort both types together by start time. Display title, session type, start/end time, and teacher. Missing related labels are displayed as “Course”, “Group”, “Customer”, or “Unassigned” rather than failing the page.
-- **Limit:** the legacy individual-session schema contains both `teacher` and `teacher_id`; the dashboard reads `teacher_id` when resolving the displayed teacher. Session lifecycle/status semantics are not consistently defined, so no status is silently excluded.
+- **Limit:** `teacher_id` drives the unified teacher relationship; the legacy individual `teacher` value is retained in `legacy_teacher_id` for traceability. Session lifecycle/status semantics are not consistently defined, so no status is silently excluded.
 
 ## Tests
 
-Feature tests cover active-timesheet boundaries and deduplication, current-month course-margin calculation and incomplete records, current-month feedback averaging and empty data, and the combined schedule ordering across both session models.
+Feature tests cover active-timesheet boundaries and deduplication, current-month course-margin calculation and incomplete records, current-month feedback averaging and empty data, and the combined schedule ordering across group and individual session types.

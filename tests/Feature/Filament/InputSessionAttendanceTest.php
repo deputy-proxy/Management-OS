@@ -2,16 +2,13 @@
 
 namespace Tests\Feature\Filament;
 
-use App\Filament\Resources\GroupSessions\Actions\InputSessionAttendanceAction;
-use App\Filament\Resources\GroupSessions\Pages\ListGroupSessions;
-use App\Filament\Resources\IndividualSessions\Actions\InputIndividualSessionAttendanceAction;
-use App\Filament\Resources\IndividualSessions\Pages\ListIndividualSessions;
+use App\Filament\Resources\Sessions\Actions\InputSessionAttendanceAction;
+use App\Filament\Resources\Sessions\Pages\ListSessions;
 use App\Models\Course;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Group;
-use App\Models\GroupSession;
-use App\Models\IndividualSession;
+use App\Models\Session;
 use App\Models\SessionAttendance;
 use App\Models\Student;
 use App\Models\User;
@@ -38,9 +35,9 @@ class InputSessionAttendanceTest extends TestCase
         [$user, $session] = $this->groupSessionForTeacher();
         $this->actingAs($user);
         $student = Student::factory()->create();
-        $attendance = SessionAttendance::factory()->create(['group_session_id' => $session->id, 'student_id' => $student->id]);
+        $attendance = SessionAttendance::factory()->create(['session_id' => $session->id, 'student_id' => $student->id]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
                 'attendance_id' => $attendance->id,
                 'student_name' => $student->full_name,
@@ -48,7 +45,7 @@ class InputSessionAttendanceTest extends TestCase
             ]]])
             ->assertHasNoTableActionErrors();
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
                 'attendance_id' => $attendance->id,
                 'student_name' => $student->full_name,
@@ -65,11 +62,11 @@ class InputSessionAttendanceTest extends TestCase
         Gate::before(fn (): bool => true);
         [$user, $session] = $this->groupSessionForTeacher();
         $this->actingAs($user);
-        $otherSession = GroupSession::factory()->create();
+        $otherSession = Session::factory()->create(['session_type' => 'group']);
         $student = Student::factory()->create();
-        $attendance = SessionAttendance::factory()->create(['group_session_id' => $otherSession->id, 'student_id' => $student->id]);
+        $attendance = SessionAttendance::factory()->create(['session_id' => $otherSession->id, 'student_id' => $student->id]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
                 'attendance_id' => $attendance->id,
                 'student_name' => $student->full_name,
@@ -87,24 +84,23 @@ class InputSessionAttendanceTest extends TestCase
         $employee = Employee::factory()->create(['user_id' => $user->id]);
         $course = Course::factory()->create();
         $customer = Customer::factory()->create();
-        $session = IndividualSession::factory()->create([
+        $session = Session::factory()->individual()->create([
             'customer_id' => $customer->id,
             'course_id' => $course->id,
-            'teacher' => $employee->id,
             'teacher_id' => $employee->id,
             'attendance_status' => null,
         ]);
         $this->actingAs($user);
 
-        Livewire::test(ListIndividualSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: [
                 'customer_name' => $customer->name,
                 'attendance_status' => 'absent',
             ])
             ->assertHasNoTableActionErrors();
 
-        $this->assertDatabaseHas('individual_sessions', ['id' => $session->id, 'attendance_status' => 'absent']);
-        $this->assertDatabaseCount('individual_sessions', 1);
+        $this->assertDatabaseHas('scheduled_sessions', ['id' => $session->id, 'session_type' => 'individual', 'attendance_status' => 'absent']);
+        $this->assertDatabaseCount('scheduled_sessions', 1);
     }
 
     public function test_invalid_group_attendance_status_is_rejected(): void
@@ -113,9 +109,9 @@ class InputSessionAttendanceTest extends TestCase
         [$user, $session] = $this->groupSessionForTeacher();
         $this->actingAs($user);
         $student = Student::factory()->create();
-        $attendance = SessionAttendance::factory()->create(['group_session_id' => $session->id, 'student_id' => $student->id]);
+        $attendance = SessionAttendance::factory()->create(['session_id' => $session->id, 'student_id' => $student->id]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('inputSessionAttendance', $session, data: ['students' => [[
                 'attendance_id' => $attendance->id,
                 'student_name' => $student->full_name,
@@ -128,14 +124,29 @@ class InputSessionAttendanceTest extends TestCase
 
     public function test_attendance_actions_require_the_matching_update_permission(): void
     {
-        Gate::before(fn ($user, string $ability): bool => ! in_array($ability, ['group_session.update', 'individual_session.update'], true));
+        Gate::before(fn ($user, string $ability): bool => ! in_array($ability, ['session.update', 'group_session.update', 'individual_session.update'], true));
         [$user, $groupSession] = $this->groupSessionForTeacher();
         $employee = Employee::query()->where('user_id', $user->id)->firstOrFail();
-        $individualSession = IndividualSession::factory()->create(['teacher' => $employee->id, 'teacher_id' => $employee->id]);
+        $individualSession = Session::factory()->individual()->create(['teacher_id' => $employee->id]);
         $this->actingAs($user);
 
         $this->assertFalse(InputSessionAttendanceAction::canManage($groupSession));
-        $this->assertFalse(InputIndividualSessionAttendanceAction::canManage($individualSession));
+        $this->assertFalse(InputSessionAttendanceAction::canManage($individualSession));
+    }
+
+    public function test_unified_session_update_permission_allows_the_assigned_teacher_to_record_attendance(): void
+    {
+        Gate::before(fn ($user, string $ability): bool => $ability === 'session.update');
+        [$user, $session] = $this->groupSessionForTeacher();
+        $this->actingAs($user);
+
+        $this->assertTrue(InputSessionAttendanceAction::canManage($session));
+
+        $individualSession = Session::factory()->individual()->create([
+            'teacher_id' => Employee::query()->where('user_id', $user->id)->value('id'),
+        ]);
+
+        $this->assertTrue(InputSessionAttendanceAction::canManage($individualSession));
     }
 
     public function test_group_attendance_action_requires_the_assigned_teacher(): void
@@ -146,20 +157,20 @@ class InputSessionAttendanceTest extends TestCase
         $otherTeacher = Employee::factory()->create();
         $course = Course::factory()->create();
         $group = Group::factory()->create(['course_id' => $course->id, 'teacher_id' => $otherTeacher->id]);
-        $session = GroupSession::factory()->create(['group_id' => $group->id, 'course_id' => $course->id, 'teacher_id' => $employee->id]);
+        $session = Session::factory()->create(['session_type' => 'group', 'group_id' => $group->id, 'course_id' => $course->id, 'teacher_id' => $employee->id]);
         $this->actingAs($user);
 
         $this->assertFalse(InputSessionAttendanceAction::canManage($session));
     }
 
-    /** @return array{User, GroupSession} */
+    /** @return array{User, Session} */
     private function groupSessionForTeacher(): array
     {
         $user = User::factory()->create();
         $employee = Employee::factory()->create(['user_id' => $user->id]);
         $course = Course::factory()->create();
         $group = Group::factory()->create(['course_id' => $course->id, 'teacher_id' => $employee->id]);
-        $session = GroupSession::factory()->create(['group_id' => $group->id, 'course_id' => $course->id, 'teacher_id' => $employee->id]);
+        $session = Session::factory()->create(['session_type' => 'group', 'group_id' => $group->id, 'course_id' => $course->id, 'teacher_id' => $employee->id]);
 
         return [$user, $session];
     }

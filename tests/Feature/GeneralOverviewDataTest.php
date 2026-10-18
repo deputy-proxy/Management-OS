@@ -8,6 +8,7 @@ use App\Models\CustomerInteraction;
 use App\Models\Employee;
 use App\Models\Group;
 use App\Models\Product;
+use App\Models\Session;
 use App\Services\GeneralOverviewData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -77,7 +78,7 @@ class GeneralOverviewDataTest extends TestCase
         $this->assertSame(0, $empty['response_count']);
     }
 
-    public function test_weekly_schedule_merges_both_session_models_in_start_time_order(): void
+    public function test_weekly_schedule_merges_both_session_types_in_start_time_order(): void
     {
         $now = CarbonImmutable::parse('2026-10-14 10:30:00', config('app.timezone'));
         $course = Course::factory()->create(['title' => 'Test Course']);
@@ -85,29 +86,25 @@ class GeneralOverviewDataTest extends TestCase
         $customer = Customer::factory()->create(['name' => 'Customer']);
         $group = Group::factory()->create(['course_id' => $course->id, 'teacher_id' => $employee->id, 'title' => 'Group A']);
 
-        DB::table('group_sessions')->insert([
+        Session::factory()->create([
+            'session_type' => 'group',
             'group_id' => $group->id,
             'course_id' => $course->id,
             'teacher_id' => $employee->id,
-            'start_on' => '2026-10-14 12:00:00',
-            'end_on' => '2026-10-14 13:00:00',
+            'starts_at' => '2026-10-14 12:00:00',
+            'ends_at' => '2026-10-14 13:00:00',
             'status' => 'scheduled',
             'identifier' => 'G-1',
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
-        DB::table('individual_sessions')->insert([
+        Session::factory()->individual()->create([
             'identifier' => 'I-1',
             'customer_id' => $customer->id,
             'course_id' => $course->id,
-            'teacher' => $employee->id,
             'teacher_id' => $employee->id,
             'starts_at' => '2026-10-14 11:00:00',
             'ends_at' => '2026-10-14 12:00:00',
             'status' => 'scheduled',
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         $result = app(GeneralOverviewData::class)->weeklySchedule($now);
@@ -126,8 +123,8 @@ class GeneralOverviewDataTest extends TestCase
             'time_end' => $now->toDateString().' '.$end,
             'category' => 'work',
             'number_of_hours' => 2,
-            'session_id' => 'test-session',
-            'group_session_id' => 1,
+            'session_id' => Session::factory()->create()->id,
+            'legacy_session_reference' => 'test-session',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

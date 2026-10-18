@@ -19,7 +19,7 @@ class EmployeeTimesheetInfolist
                     ->dateTime(),
                 \Filament\Infolists\Components\TextEntry::make('category'),
                 \Filament\Infolists\Components\TextEntry::make('number_of_hours'),
-                \Filament\Infolists\Components\TextEntry::make('group_session_id')
+                \Filament\Infolists\Components\TextEntry::make('session.identifier')
             ]);
     }
 }

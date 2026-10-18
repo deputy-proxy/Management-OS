@@ -11,7 +11,7 @@ class SessionAttendanceInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('group_session_id'),
+                \Filament\Infolists\Components\TextEntry::make('session.identifier'),
                 \Filament\Infolists\Components\TextEntry::make('student_id'),
             ]);
     }

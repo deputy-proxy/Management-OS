@@ -2,12 +2,12 @@
 
 namespace Tests\Feature\Filament;
 
-use App\Filament\Resources\GroupSessions\Actions\ProvideSessionFeedbackAction;
-use App\Filament\Resources\GroupSessions\Pages\ListGroupSessions;
+use App\Filament\Resources\Sessions\Actions\ProvideSessionFeedbackAction;
+use App\Filament\Resources\Sessions\Pages\ListSessions;
 use App\Models\Course;
 use App\Models\Employee;
 use App\Models\Group;
-use App\Models\GroupSession;
+use App\Models\Session;
 use App\Models\SessionAttendance;
 use App\Models\Student;
 use App\Models\User;
@@ -35,11 +35,11 @@ class ProvideSessionFeedbackTest extends TestCase
         $this->actingAs($user);
         $student = Student::factory()->create();
         $attendance = SessionAttendance::factory()->create([
-            'group_session_id' => $session->id,
+            'session_id' => $session->id,
             'student_id' => $student->id,
         ]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [
                 'students' => [[
                     'attendance_id' => $attendance->id,
@@ -56,7 +56,7 @@ class ProvideSessionFeedbackTest extends TestCase
             'feedback' => 'Explained the solution clearly.',
         ]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [
                 'students' => [[
                     'attendance_id' => $attendance->id,
@@ -82,11 +82,11 @@ class ProvideSessionFeedbackTest extends TestCase
         $this->actingAs($user);
         $student = Student::factory()->create();
         $attendance = SessionAttendance::factory()->create([
-            'group_session_id' => $session->id,
+            'session_id' => $session->id,
             'student_id' => $student->id,
         ]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [
                 'students' => [[
                     'attendance_id' => $attendance->id,
@@ -112,7 +112,8 @@ class ProvideSessionFeedbackTest extends TestCase
         $course = Course::factory()->create();
         $otherEmployee = Employee::factory()->create();
         $group = Group::factory()->create(['course_id' => $course->id, 'teacher_id' => $otherEmployee->id]);
-        $session = GroupSession::factory()->create([
+        $session = Session::factory()->create([
+            'session_type' => 'group',
             'group_id' => $group->id,
             'course_id' => $course->id,
             'teacher_id' => $employee->id,
@@ -128,13 +129,13 @@ class ProvideSessionFeedbackTest extends TestCase
         [$user, , , $session] = $this->sessionForTeacher();
         $this->actingAs($user);
         $student = Student::factory()->create();
-        $otherSession = GroupSession::factory()->create();
+        $otherSession = Session::factory()->create(['session_type' => 'group']);
         $attendance = SessionAttendance::factory()->create([
-            'group_session_id' => $otherSession->id,
+            'session_id' => $otherSession->id,
             'student_id' => $student->id,
         ]);
 
-        Livewire::test(ListGroupSessions::class)
+        Livewire::test(ListSessions::class)
             ->callTableAction('provideSessionFeedback', $session, data: [
                 'students' => [[
                     'attendance_id' => $attendance->id,
@@ -157,7 +158,8 @@ class ProvideSessionFeedbackTest extends TestCase
         $employee = Employee::factory()->create(['user_id' => $user->id]);
         $course = Course::factory()->create();
         $group = Group::factory()->create(['course_id' => $course->id, 'teacher_id' => $employee->id]);
-        $session = GroupSession::factory()->create([
+        $session = Session::factory()->create([
+            'session_type' => 'group',
             'group_id' => $group->id,
             'course_id' => $course->id,
             'teacher_id' => $employee->id,

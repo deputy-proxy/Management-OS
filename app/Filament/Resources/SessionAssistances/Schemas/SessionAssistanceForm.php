@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources\SessionAssistances\Schemas;
 
+use App\Models\Session;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
 
 class SessionAssistanceForm
 {
@@ -17,15 +17,15 @@ class SessionAssistanceForm
     {
         return $schema
             ->components([
-                Forms\Components\Select::make('group_session_id')
-                    ->relationship('groupSession', 'id')
+                Select::make('session_id')
+                    ->relationship('session', 'identifier', fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('session_type', Session::TYPE_GROUP))
                     ->required(),
-                Forms\Components\Select::make('teacher_id')
+                Select::make('teacher_id')
                     ->relationship('teacher', 'full_name')
                     ->required(),
                 Forms\Components\DatePicker::make('assistance_date')
                     ->required(),
-                Forms\Components\TextInput::make('status')
+                TextInput::make('status')
                     ->required(),
                 Builder::make('review')
                     ->blocks([
@@ -57,7 +57,7 @@ class SessionAssistanceForm
                                     ->required()
                                     ->columnSpan(4),
                             ])
-                            ->columns(6)
+                            ->columns(6),
                     ])
                     ->required(),
             ]);

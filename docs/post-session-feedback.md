@@ -1,6 +1,6 @@
 # Post-session feedback
 
-The **Provide post-session feedback** action appears on a group-session row only when the signed-in user has `group_session.update` and is the employee assigned both to the session and to its group. The modal lists the session's existing `session_attendances` rows only; it never creates attendance or accepts arbitrary student IDs. Saving is transactional and rejects row IDs outside the selected session.
+The **Provide post-session feedback** action appears on a group-type session row in the unified Sessions resource only when the signed-in user has `group_session.update` and is the employee assigned both to the session and to its group. The modal lists the session's existing `session_attendances` rows only; it never creates attendance or accepts arbitrary student IDs. Saving is transactional and rejects row IDs outside the selected session.
 
 Each attendance row stores one optional `achievement_badge` and optional free-text `feedback` (up to 5,000 characters). Achievement badges are required when saving a row and are restricted to:
 

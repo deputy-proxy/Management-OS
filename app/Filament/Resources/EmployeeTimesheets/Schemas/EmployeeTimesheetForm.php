@@ -24,8 +24,8 @@ class EmployeeTimesheetForm
                 Forms\Components\TextInput::make('number_of_hours')
                     ->numeric()
                     ->required(),
-                Forms\Components\Select::make('group_session_id')
-                    ->relationship('groupSession', 'id')
+                Forms\Components\Select::make('session_id')
+                    ->relationship('session', 'identifier')
                     ->required()
             ]);
     }
