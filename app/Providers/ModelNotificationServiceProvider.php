@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-// Ensure this matches your package
 use App\Services\NotificationPreferenceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
