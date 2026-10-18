@@ -6,7 +6,7 @@ Management-OS is a Laravel monolith for EdVenture's administrative, finance, aca
 
 | Area | Main locations | Responsibility |
 | --- | --- | --- |
-| HTTP boundaries | `routes/web.php`, `routes/api.php`, `app/Http/Controllers` | Public pages/forms and API endpoints. The API currently exposes the Sanctum-protected `/api/user` route. |
+| HTTP boundaries | `routes/web.php`, `routes/api.php`, `app/Http/Controllers` | Public pages/forms and API endpoints. The API exposes the versioned Sanctum-protected `GET /api/v1/user` self-profile endpoint and retains `GET /api/user` as a protected compatibility route. See `docs/api-contract.md` for scopes, response fields, rate limits, and versioning policy. |
 | Domain records | `app/Models`, `database/migrations` | Eloquent models, relationships, status rules, and schema/data migrations. |
 | Admin UI | `app/Filament/Resources` | Filament resource forms, tables, filters, actions, and infolists for the management modules. |
 | Overview/query services | `app/Services/GeneralOverviewData.php`, `FinancialOverviewData.php`, `ProductsOverviewData.php`, `TasksAndProjectsData.php`, `CustomerDashboardData.php` | Assemble domain data for management dashboards without making the UI the source of business logic. |
