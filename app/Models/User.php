@@ -8,6 +8,7 @@ use App\Models\Concerns\HasPanelSearchTitle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -97,8 +98,16 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
 
     public function canAccessPanel(Panel $panel): bool
     {
-        //return str_ends_with($this->email, '@edventure.ro');
-        return true;
+        // HexaLite treats users without assigned roles as superadmins. That behavior is
+        // useful inside its permission helper, but must never grant panel admission.
+        // Require an explicitly assigned role with at least one configured permission.
+        return $this->roles()->get()->contains(function ($role): bool {
+            $permissions = Arr::flatten($role->access ?? []);
+
+            return collect($permissions)->contains(
+                fn ($permission): bool => is_string($permission) && trim($permission) !== ''
+            );
+        });
     }
 
     public function getFilamentAvatarUrl(): ?string
