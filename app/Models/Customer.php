@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
-
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,10 +17,9 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Customer extends Model implements Commentable
 {
-    use HasPanelSearchTitle;
-
     use HasComments;
     use HasFactory;
+    use HasPanelSearchTitle;
     use HasTasks;
     use LogsActivity;
     use SoftDeletes;
@@ -39,6 +37,11 @@ class Customer extends Model implements Commentable
     public function contracts(): HasMany
     {
         return $this->hasMany(CustomerContract::class);
+    }
+
+    public function competitionEntries(): HasMany
+    {
+        return $this->hasMany(CompetitionEntry::class);
     }
 
     /** @var array<int, string> */
