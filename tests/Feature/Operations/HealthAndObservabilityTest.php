@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Operations;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -10,6 +11,8 @@ use Tests\TestCase;
 
 class HealthAndObservabilityTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_readiness_returns_a_minimal_success_response_when_database_is_available(): void
     {
         $this->getJson('/ready')
