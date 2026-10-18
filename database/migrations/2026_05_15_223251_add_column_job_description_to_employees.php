@@ -8,16 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->foreignId('job_description')->nullable()->after('user_id');
-        });
+        // Some deployed databases already have this column even though the
+        // migration was not recorded as completed. Avoid failing on reruns.
+        if (! Schema::hasColumn('employees', 'job_description')) {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreignId('job_description')->nullable()->after('user_id');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->dropColumn('job_description');
-        });
+        if (Schema::hasColumn('employees', 'job_description')) {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->dropColumn('job_description');
+            });
+        }
     }
 };
-
