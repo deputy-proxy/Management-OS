@@ -71,7 +71,7 @@ return new class extends Migration
                 'identifier' => $record->identifier,
                 'legacy_type' => 'individual',
                 'legacy_id' => $record->id,
-                'legacy_teacher_id' => $record->teacher,
+                'legacy_teacher_id' => $record->teacher ?? $record->teacher_id ?? null,
                 'created_at' => $record->created_at,
                 'updated_at' => $record->updated_at,
                 'deleted_at' => $record->deleted_at ?? null,
