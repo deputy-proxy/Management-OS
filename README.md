@@ -59,3 +59,8 @@ Management-OS is a Laravel monolith for EdVenture's administrative, finance, aca
 - `php artisan employee-payslips:generate --month=YYYY-MM` generates or safely recovers a calendar month; the command is idempotent. The scheduler runs it on day 1 at 00:05 in the configured application timezone.
 
 Do not infer missing business rules, rewrite historical records for convenience, or remove compatibility code before its runtime and migration references have been verified.
+
+
+## Production operations and recovery
+
+Read [`docs/operations-and-recovery.md`](docs/operations-and-recovery.md) for verified deployment assumptions, health endpoints, request correlation, queue and scheduler operations, backup verification, isolated restore-drill procedure, deployment and incident runbooks. Production hosting, backup policy, alert destinations and restore evidence remain unverified until the system owner records them.
