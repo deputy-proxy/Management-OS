@@ -38,7 +38,7 @@ class ProductReview extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'product_type', 'product_id', 'reviewer_name', 'reviewer_email', 'customer_id', 'content', 'rating', 'reviewed_on'
+        'product_type', 'product_id', 'reviewer_name', 'reviewer_email', 'customer_id', 'content', 'rating', 'reviewed_on', 'privacy_consented_at', 'status'
     ];
 
     public function customer(): BelongsTo

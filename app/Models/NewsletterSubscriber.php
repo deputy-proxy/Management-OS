@@ -38,7 +38,7 @@ class NewsletterSubscriber extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'customer_id'
+        'first_name', 'last_name', 'email', 'customer_id', 'privacy_consented_at'
     ];
 
     public function customer(): BelongsTo
