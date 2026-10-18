@@ -21,6 +21,14 @@ class ManageProductRevenueAction extends Action
         parent::setUp();
 
         $this
+            ->visible(fn (Model $record): bool => $record->productRevenue()->exists()
+                ? hexa()->can('product_revenue.index')
+                : hexa()->can('product_revenue.create')
+            )
+            ->authorize(fn (Model $record): bool => $record->productRevenue()->exists()
+                ? hexa()->can('product_revenue.index')
+                : hexa()->can('product_revenue.create')
+            )
             ->label(fn (Model $record) => $record->productRevenue()->exists()
                 ? 'Product Revenue'
                 : 'Add as Product Revenue'
@@ -85,6 +93,11 @@ class ManageProductRevenueAction extends Action
                 : [$action->getModalSubmitAction()]
             )
             ->action(function (Model $record, array $data) {
+                abort_unless(
+                    ! $record->productRevenue()->exists() && hexa()->can('product_revenue.create'),
+                    403,
+                );
+
                 ProductRevenue::create([
                     'product_id'          => $data['product_id'],
                     'customer_invoice_id' => $record->id,
