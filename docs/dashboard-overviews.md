@@ -39,3 +39,14 @@ The admin landing page uses `App\Services\AdminOverviewDashboardData` for the sy
 - Domain overview links continue to require the destination page's own `canAccess()` check. Resource links are emitted only when the matching resource list permission is granted.
 
 This landing page intentionally omits revenue, performance, attendance, teacher capacity, campaign engagement, and other metrics that lack a verified cross-domain definition or permission-safe source here. Domain owners remain responsible for the detailed metric definitions in their respective overview issues.
+
+## Academic Students overview (#237)
+
+`App\Services\StudentsDashboardData` supplies the existing `StudentsDashboard` page. All student counts, enrollment data, and recent additions are available only when the viewer has `student.index`; the page-level `students-dashboard.view` gate does not grant access to student records. The create action additionally requires `student.create`.
+
+- **Total student records** counts all rows, including soft-deleted rows. **Current records** excludes soft-deleted rows, and **Soft-deleted records** counts them separately. None of these labels implies an active/inactive lifecycle because no such status column exists.
+- **Enrollment trend** supports 7, 30, and 90 calendar days, including the current application-timezone date. Its start boundary is midnight on the first selected date and its end boundary is midnight after today (exclusive). Daily buckets include zeroes. It counts rows by `created_at`, including rows subsequently soft-deleted, because it represents record creation history rather than current population.
+- **Recent student additions** is capped at five non-deleted records created within the same selected date window. It is shown only to viewers with `student.index`.
+- **Follow-up required** lists up to eight overdue, unfinished tasks explicitly linked to non-deleted students. It requires both `student.index` and `task.index`; unless `task.view_all` is granted, the task list is limited to tasks assigned to or created by the viewer, matching the task resource scope.
+- The student schema has no explicit lifecycle, cohort, program, level, or location field. `gender` is free text rather than a normalized category, so those breakdowns are omitted. Attendance, assessment, progress, and academic-risk queues are also omitted because no reliable signal is defined here.
+- No student metrics are shown as zero when `student.index` is absent; the page instead renders an unavailable state. A genuine empty database shows zero population and empty trend/recent/follow-up states.
