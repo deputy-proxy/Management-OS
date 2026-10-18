@@ -11,9 +11,14 @@ use Relaticle\Comments\Models\Subscription;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Event;
 use Filament\Actions\Action;
+use App\Models\Camp;
+use App\Models\Course;
+use App\Models\Event as EventModel;
+use App\Models\Workshop;
 use App\Models\ProductResource;
 use App\Models\ProductResourceAllocation;
 use App\Observers\ProductResourceObserver;
+use App\Observers\ProductableObserver;
 use App\Observers\ProductResourceAllocationObserver;
 use App\Services\NotificationPreferenceService;
 use Spatie\Activitylog\Models\Activity;
@@ -46,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         ProductResource::observe(ProductResourceObserver::class);
+        foreach ([Camp::class, Course::class, EventModel::class, Workshop::class] as $productableModel) {
+            $productableModel::observe(ProductableObserver::class);
+        }
         ProductResourceAllocation::observe(ProductResourceAllocationObserver::class);
 
         Relation::enforceMorphMap([

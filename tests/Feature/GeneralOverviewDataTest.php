@@ -132,12 +132,10 @@ class GeneralOverviewDataTest extends TestCase
 
     private function courseProduct(Course $course): Product
     {
-        return Product::query()->create([
-            'title' => $course->title,
-            'status' => 'active',
-            'productable_type' => 'course',
-            'productable_id' => $course->id,
-        ]);
+        $product = $course->product()->firstOrFail();
+        $product->update(['title' => $course->title, 'status' => 'active']);
+
+        return $product;
     }
 
     private function insertRevenue(int $productId, string $month, int $amount): void
