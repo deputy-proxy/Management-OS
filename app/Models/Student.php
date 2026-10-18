@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -39,6 +40,11 @@ class Student extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = ['first_name', 'middle_name', 'last_name', 'gender', 'date_of_birth', 'customer_id', 'phone_number', 'email', 'address', 'full_name'];
+
+    public function groupMemberships(): HasMany
+    {
+        return $this->hasMany(StudentGroupMembership::class);
+    }
 
     public function customer(): BelongsTo
     {
