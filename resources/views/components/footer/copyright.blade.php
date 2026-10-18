@@ -24,18 +24,8 @@
                                             <nav class="inline-block">
                                                 <ul class="flex gap-6">
                                                     <li class="menu-item">
-                                                        <a href="{{ route('privacy') }}">
-                                                            Politica de confidențialitate
-                                                        </a>
-                                                    </li>
-                                                    <li class="menu-item">
                                                         <a href="https://anpc.ro/" target="_blank" rel="nofollow">
                                                             ANPC
-                                                        </a>
-                                                    </li>
-                                                    <li class="menu-item">
-                                                        <a href="{{ route('cookies') }}">
-                                                            Cookies
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -59,13 +49,7 @@
                                                 <nav>
                                                     <ul class="flex flex-col items-center gap-2">
                                                         <li class="menu-item">
-                                                            <a href="{{ route('privacy') }}">Politica de confidențialitate</a>
-                                                        </li>
-                                                        <li class="menu-item">
                                                             <a href="https://anpc.ro/" target="_blank" rel="nofollow">ANPC</a>
-                                                        </li>
-                                                        <li class="menu-item">
-                                                            <a href="{{ route('cookies') }}">Cookies</a>
                                                         </li>
                                                     </ul>
                                                 </nav>

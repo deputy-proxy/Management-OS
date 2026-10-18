@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class ContactController extends Controller
 {
     public function index()
@@ -12,6 +10,6 @@ class ContactController extends Controller
             return view('contact');
         }
 
-        return response('Contact page', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 }

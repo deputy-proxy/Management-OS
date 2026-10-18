@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class AboutController extends Controller
 {
     public function index()
@@ -12,6 +10,6 @@ class AboutController extends Controller
             return view('about');
         }
 
-        return response('About page', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 }

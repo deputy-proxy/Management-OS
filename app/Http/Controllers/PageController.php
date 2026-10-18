@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class PageController extends Controller
 {
     public function privacy()
@@ -12,7 +10,7 @@ class PageController extends Controller
             return view('privacy');
         }
 
-        return response('Privacy policy', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function cookies()
@@ -21,7 +19,7 @@ class PageController extends Controller
             return view('cookies');
         }
 
-        return response('Cookies page', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function careers()
@@ -30,6 +28,6 @@ class PageController extends Controller
             return view('careers');
         }
 
-        return response('Careers', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 }

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class CourseController extends Controller
 {
     public function index()
@@ -12,7 +10,7 @@ class CourseController extends Controller
             return view('courses.index');
         }
 
-        return response('Courses index', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function englishKids()
@@ -21,7 +19,7 @@ class CourseController extends Controller
             return view('courses.english-kids');
         }
 
-        return response('English (Kids) course', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function englishAdults()
@@ -30,7 +28,7 @@ class CourseController extends Controller
             return view('courses.english-adults');
         }
 
-        return response('English (Adults) course', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function english()
@@ -39,7 +37,7 @@ class CourseController extends Controller
             return view('courses.english');
         }
 
-        return response('English course', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function kids()
@@ -48,7 +46,7 @@ class CourseController extends Controller
             return view('courses.kids');
         }
 
-        return response('Kids course', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 
     public function corporate()
@@ -57,6 +55,6 @@ class CourseController extends Controller
             return view('courses.corporate');
         }
 
-        return response('Corporate course', 200)->header('Content-Type', 'text/plain');
+        abort(404);
     }
 }
