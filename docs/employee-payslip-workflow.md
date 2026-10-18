@@ -33,3 +33,28 @@ If a source record changes or is cancelled after a line was added, the saved sna
 The payroll schema migration normalizes existing month values before adding the unique index and fails with a reconciliation message if existing duplicates would collide. Existing integer amounts are preserved as decimal values and copied to `manual_amount`. The line-item migration refuses rollback when it would discard persisted audit items; the Test Simulation migration similarly refuses rollback while simulation records exist. Export/reconcile those records before a deliberate schema rollback.
 
 Run `php artisan employee-payslips:generate --month=YYYY-MM` to backfill or recover a month. Re-running is safe. Verify the payslip count, line-item source IDs, snapshots, and total amount before closing a period.
+
+## Representation contract and retirement decision
+
+The two representations are intentionally not interchangeable:
+
+| Representation | Meaning and owner | Current behavior | Retirement constraint |
+| --- | --- | --- | --- |
+| `employee_pay_slips.items` JSON | Legacy/manual payroll and statutory breakdown, edited through the `Legacy Payroll Breakdown` Builder in `EmployeePaySlipForm` and displayed by `EmployeePaySlipInfolist` | Preserved as stored JSON; editable only while the payslip is Open. No automatic conversion to source-linked rows occurs. | Historical blocks do not consistently contain a verified source record, source date, rate, or formula. Do not infer these fields or split the JSON into normalized rows without an authoritative mapping. |
+| `employee_pay_slips.manual_amount` | Existing manually calculated baseline; it was backfilled from the previous `amount` column by the monthly workflow migration | The baseline is combined with normalized line amounts to produce the displayed `amount`. The JSON breakdown is not independently re-summed into the total, which would risk double-counting the old baseline. | Preserve the original baseline and the legacy JSON separately; do not replace one with the other. |
+| `employee_pay_slip_items` | Source-linked activity and adjustment ledger, owned by `EmployeePaySlip::lineItems()` | Stores source identity, date, quantity, unit/rate, amount, currency, and immutable calculation snapshot. `EmployeePaySlipService` creates these rows and recalculates `amount` as `manual_amount + sum(line item amounts)`. | Rows are immutable and are not a lossless mirror of the JSON breakdown. Keep source IDs, snapshots, and adjustment links. The migration refuses rollback while rows exist. |
+| `employee_pay_slips.amount` | Aggregate displayed/paid total | New/updated totals are maintained from the manual baseline plus normalized source lines; the migration copies the old total into `manual_amount` before the new aggregation behavior is used. | Closed and paid values must remain stable. Corrections are signed adjustment rows on a permitted open period, not edits to historical items. |
+
+### Verified reads and writes
+
+- `EmployeePaySlip` casts `items` to an array and treats it as a fillable field; its save guard prevents `items` or `manual_amount` changes after the slip leaves Open, and locks all financial fields once Paid.
+- `EmployeePaySlipForm` exposes the legacy JSON Builder and manual baseline only while Open. `EmployeePaySlipInfolist` displays the JSON breakdown separately from normalized source-linked rows.
+- `EmployeePaySlipService` writes normalized rows through `EmployeePaySlipItem`; it does not read, rewrite, or convert the legacy JSON. `EmployeePaySlip::recalculateAmount()` sums only `manual_amount` and normalized row amounts.
+- `EmployeePaySlipSchemaMigrationTest` verifies the existing total is copied to `manual_amount`, the legacy JSON and payment dates are preserved, and duplicate employee/month rows stop migration pending reconciliation.
+- `EmployeePaySlipWorkflowTest` verifies the baseline plus source-line total, JSON preservation, locked Open/Closed/Paid behavior, immutable source rows, and signed adjustments.
+
+### Retirement decision
+
+Keep the coexistence until a payroll-authoritative specification defines a lossless mapping from each legacy JSON block to normalized rows and verifies how those rows affect the manual baseline and paid total. The current data does not establish reliable source IDs, rates, or statutory calculation semantics for every legacy block. Migrating the JSON now would require inventing missing facts or risk double-counting. No JSON data is deleted or rewritten by the current workflow migration, and no tax/statutory calculations are inferred.
+
+Any future single-representation migration must first export and reconcile existing slips, preserve the original JSON and historical snapshots, compare per-slip totals before and after, verify Open/Closed/Paid immutability, and provide a tested recovery plan. The line-item migration's rollback guard must remain in place unless an explicit data-retention and recovery strategy replaces it.

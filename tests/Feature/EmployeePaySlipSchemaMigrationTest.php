@@ -15,11 +15,15 @@ class EmployeePaySlipSchemaMigrationTest extends TestCase
     {
         $this->withIsolatedSchema(function (): void {
             $this->createLegacyPayrollSchema();
+            $legacyItems = json_encode([
+                ['type' => 'gross_salary', 'amount' => 1000, 'notes' => 'historical JSON must remain unchanged'],
+                ['type' => 'cas', 'base_amount' => 1000, 'amount' => 250],
+            ], JSON_THROW_ON_ERROR);
             DB::table('employee_pay_slips')->insert([
                 'id' => 1,
                 'employee_id' => 10,
                 'month' => '2026-02-17',
-                'items' => '[]',
+                'items' => $legacyItems,
                 'amount' => 123,
                 'due_on' => '2026-03-10',
                 'paid_on' => '2026-03-10',
@@ -34,6 +38,9 @@ class EmployeePaySlipSchemaMigrationTest extends TestCase
             $this->assertSame('2026-02-01', $paySlip->month);
             $this->assertSame('123.00', number_format((float) $paySlip->manual_amount, 2, '.', ''));
             $this->assertSame('123.00', number_format((float) $paySlip->amount, 2, '.', ''));
+            $this->assertSame($legacyItems, $paySlip->items);
+            $this->assertSame('2026-03-10', $paySlip->due_on);
+            $this->assertSame('2026-03-10', $paySlip->paid_on);
             $this->assertSame('Paid', $paySlip->status);
             $this->assertTrue(Schema::hasColumn('employee_holidays', 'hours_per_day'));
             $this->assertSame(8, (int) DB::table('employee_holidays')->insertGetId(['start_date' => '2026-02-01', 'end_date' => '2026-02-01', 'status' => 'Approved']) ? DB::table('employee_holidays')->value('hours_per_day') : 0);

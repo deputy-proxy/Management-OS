@@ -247,6 +247,63 @@ class EmployeePaySlipWorkflowTest extends TestCase
         $nextMonthSlip->refresh()->update(['manual_amount' => 1]);
     }
 
+    public function test_legacy_breakdown_and_manual_baseline_remain_separate_from_source_items_and_locked_states(): void
+    {
+        $employee = Employee::factory()->create();
+        EmployeeContract::factory()->create([
+            'employee_id' => $employee->id,
+            'start_date' => '2026-01-01',
+            'end_date' => '2027-12-31',
+            'hourly_rate' => 20,
+            'clauses' => [],
+        ]);
+        $legacyBreakdown = [
+            ['type' => 'gross_salary', 'amount' => 900, 'notes' => 'Manually verified baseline'],
+            ['type' => 'cas', 'base_amount' => 900, 'amount' => 225],
+        ];
+        $paySlip = EmployeePaySlip::factory()->create([
+            'employee_id' => $employee->id,
+            'month' => '2026-10-01',
+            'items' => $legacyBreakdown,
+            'manual_amount' => 123.45,
+            'status' => 'Open',
+        ]);
+
+        $session = Session::factory()->create([
+            'teacher_id' => $employee->id,
+            'starts_at' => '2026-10-10 09:00:00',
+            'ends_at' => '2026-10-10 10:00:00',
+            'status' => 'completed',
+        ]);
+        app(EmployeePaySlipService::class)->addSession($session);
+
+        $paySlip->refresh();
+        $this->assertSame($legacyBreakdown, $paySlip->items);
+        $this->assertSame('123.45', $paySlip->manual_amount);
+        $this->assertSame('143.45', $paySlip->amount);
+        $this->assertSame(1, $paySlip->lineItems()->count());
+
+        $paySlip->update(['status' => 'Closed']);
+        try {
+            $paySlip->update(['items' => [], 'manual_amount' => 0]);
+            $this->fail('A closed payslip must preserve its legacy breakdown and baseline.');
+        } catch (ValidationException) {
+            $this->assertSame($legacyBreakdown, $paySlip->fresh()->items);
+            $this->assertSame('123.45', $paySlip->fresh()->manual_amount);
+            $this->assertSame('143.45', $paySlip->fresh()->amount);
+        }
+
+        $paySlip->refresh()->update(['status' => 'Paid', 'paid_on' => '2026-10-31']);
+        try {
+            $paySlip->refresh()->update(['items' => []]);
+            $this->fail('A paid payslip must preserve its legacy breakdown.');
+        } catch (ValidationException) {
+            $this->assertSame($legacyBreakdown, $paySlip->fresh()->items);
+            $this->assertSame('123.45', $paySlip->fresh()->manual_amount);
+            $this->assertSame('143.45', $paySlip->fresh()->amount);
+        }
+    }
+
     public function test_source_line_items_cannot_be_mutated_or_deleted(): void
     {
         $employee = Employee::factory()->create();
