@@ -35,9 +35,10 @@ The application records queue-worker heartbeat timestamps while a worker loop ru
 
 ```sh
 php artisan ops:check-heartbeats --max-age=180
+php artisan ops:check-failed-jobs --max-failed=0
 ```
 
-Exit code `0` means the database is reachable and both heartbeat timestamps are recent. Exit code `1` means at least one check failed; configure the external monitor to alert on that result. The command intentionally reports only healthy/unhealthy labels, not hostnames, credentials or exception messages. It does not replace queue-depth, failed-job, integration, or payslip-completion monitoring.
+Exit code `0` means the database is reachable and both heartbeat timestamps are recent. Exit code `1` means at least one check failed; configure the external monitor to alert on that result. `ops:check-failed-jobs` returns a non-zero exit if the failed-job count exceeds `--max-failed` (default `0`), reports only the count and threshold, and never prints job payloads or exception text. A missing/unavailable failed-jobs table also fails the check. Set a nonzero threshold only after the owner explicitly accepts that alert policy and has a process to inspect/clear failures safely. The command intentionally reports only healthy/unhealthy labels, not hostnames, credentials or exception messages. It does not replace queue-depth, failed-job, integration, or payslip-completion monitoring.
 
 
 ```sh
@@ -48,7 +49,7 @@ php artisan queue:forget <failed-job-uuid>
 php artisan queue:restart
 ```
 
-`queue:monitor` must be scheduled/triggered by the actual monitoring setup to be useful. Alert on any unexpected failed job for critical workflows and on queue depth/oldest-job age exceeding an owner-approved threshold. The application records a queue-worker heartbeat on queue loop iterations in the configured shared cache. Check it with `php artisan ops:check-heartbeats`; this only proves a worker loop has run recently, not that every queue is draining or every job succeeds. The worker and scheduler must use the same shared cache backend as the command. Inspect a failed job using restricted operator access before retrying it; retries can repeat external side effects unless that job is idempotent. Use `queue:retry` only after fixing the cause and checking whether the operation already succeeded externally. Use `queue:forget` only after documenting an approved decision to discard it. Never paste raw failed-job payloads or exception dumps into tickets or public chat; they can contain personal data or integration details. Queue driver `sync` does not provide an asynchronous worker or failed-job queue, so production configuration must be verified.
+`queue:monitor` must be scheduled/triggered by the actual monitoring setup to be useful. Alert on any unexpected failed job for critical workflows and on queue depth/oldest-job age exceeding an owner-approved threshold. The application records a queue-worker heartbeat on queue loop iterations in the configured shared cache. Check it with `php artisan ops:check-heartbeats`; this only proves a worker loop has run recently, not that every queue is draining or every job succeeds. The worker and scheduler must use the same shared cache backend as the command. Use `php artisan ops:check-failed-jobs --max-failed=0` from the external monitor to detect unreviewed failed jobs without leaking payloads. Inspect a failed job using restricted operator access before retrying it; retries can repeat external side effects unless that job is idempotent. Use `queue:retry` only after fixing the cause and checking whether the operation already succeeded externally. Use `queue:forget` only after documenting an approved decision to discard it. Never paste raw failed-job payloads or exception dumps into tickets or public chat; they can contain personal data or integration details. Queue driver `sync` does not provide an asynchronous worker or failed-job queue, so production configuration must be verified.
 
 ## Scheduler and payslip recovery
 

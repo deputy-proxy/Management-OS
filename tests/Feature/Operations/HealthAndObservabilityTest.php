@@ -4,6 +4,7 @@ namespace Tests\Feature\Operations;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -59,6 +60,52 @@ class HealthAndObservabilityTest extends TestCase
             ->expectsOutput('queue-worker: unhealthy')
             ->expectsOutput('scheduler: unhealthy')
             ->assertExitCode(1);
+    }
+
+    public function test_failed_job_check_passes_when_count_is_within_threshold_without_showing_payloads(): void
+    {
+        DB::table('failed_jobs')->delete();
+
+        $this->artisan('ops:check-failed-jobs')
+            ->expectsOutput('failed-jobs: healthy (count=0; threshold=0)')
+            ->assertExitCode(0);
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => json_encode(['secret' => 'must-not-appear'], JSON_THROW_ON_ERROR),
+            'exception' => 'sensitive exception detail',
+            'failed_at' => now(),
+        ]);
+
+        $this->artisan('ops:check-failed-jobs --max-failed=1')
+            ->expectsOutput('failed-jobs: healthy (count=1; threshold=1)')
+            ->doesntExpectOutputToContain('must-not-appear')
+            ->doesntExpectOutputToContain('sensitive exception detail')
+            ->assertExitCode(0);
+    }
+
+    public function test_failed_job_check_fails_for_unexpected_failures_and_invalid_threshold(): void
+    {
+        DB::table('failed_jobs')->delete();
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => '{}',
+            'exception' => 'fixture',
+            'failed_at' => now(),
+        ]);
+
+        $this->artisan('ops:check-failed-jobs')
+            ->expectsOutput('failed-jobs: unhealthy (count=1; threshold=0)')
+            ->assertExitCode(1);
+
+        $this->artisan('ops:check-failed-jobs --max-failed=-1')
+            ->expectsOutput('--max-failed must be a non-negative integer.')
+            ->assertExitCode(2);
     }
 
     public function test_backup_verification_rejects_missing_and_empty_files(): void
