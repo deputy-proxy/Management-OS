@@ -7,22 +7,23 @@ use Tests\TestCase;
 
 class PublicSiteRouteTest extends TestCase
 {
-    public function test_missing_public_page_views_return_not_found_instead_of_placeholder_text(): void
+    public function test_unimplemented_public_page_routes_are_not_registered(): void
     {
         foreach ([
-            '/about',
-            '/contact',
-            '/cariere',
-            '/privacy',
-            '/cookies',
-            '/courses',
-            '/courses/english-kids',
-            '/courses/english-adults',
-            '/courses/english',
-            '/courses/kids',
-            '/courses/corporate',
-        ] as $path) {
+            '/about' => 'about',
+            '/contact' => 'contact',
+            '/cariere' => 'careers',
+            '/privacy' => 'privacy',
+            '/cookies' => 'cookies',
+            '/courses' => 'courses.index',
+            '/courses/english-kids' => 'courses.english-kids',
+            '/courses/english-adults' => 'courses.english-adults',
+            '/courses/english' => 'courses.english',
+            '/courses/kids' => 'courses.kids',
+            '/courses/corporate' => 'courses.corporate',
+        ] as $path => $name) {
             $this->get($path)->assertNotFound();
+            $this->assertNull(Route::getRoutes()->getByName($name));
         }
     }
 

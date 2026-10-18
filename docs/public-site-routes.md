@@ -2,7 +2,7 @@
 
 The public homepage is served by `HomeController@index` and `resources/views/welcome.blade.php`.
 
-Several legacy page routes do not have corresponding Blade templates. They now return HTTP 404 instead of a successful plain-text placeholder. This applies to the about, contact, careers, privacy, cookie, and course pages until their intended templates are implemented.
+The about, contact, careers, privacy, cookie, and course pages do not have corresponding Blade templates, so their routes are not registered. Requests return HTTP 404 without retaining controllers that only check for missing views. When a page is implemented, add its template and a deliberate route together.
 
 The `/blog` and `/search` routes have been removed because no blog or search implementation exists. The search icon and modal are not rendered. Language-specific course URLs that previously reused the generic kids action, as well as course URLs pointing to missing controller methods, are also removed until verified page implementations exist. They must not serve unrelated generic course content.
 
