@@ -2,26 +2,27 @@
 
 namespace App\Filament\Resources\TestSubmissionAnswers;
 
+use App\Filament\Clusters\Academic\AcademicCluster;
+use App\Filament\Resources\TestSubmissionAnswers\Schemas\TestSubmissionAnswerForm;
+use App\Filament\Resources\TestSubmissionAnswers\Schemas\TestSubmissionAnswerInfolist;
+use App\Filament\Resources\TestSubmissionAnswers\Tables\TestSubmissionAnswersTable;
 use App\Models\TestSubmissionAnswer;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\TestSubmissionAnswers\Pages;
-use App\Filament\Resources\TestSubmissionAnswers\Schemas\TestSubmissionAnswerForm;
-use App\Filament\Resources\TestSubmissionAnswers\Schemas\TestSubmissionAnswerInfolist;
-use App\Filament\Resources\TestSubmissionAnswers\Tables\TestSubmissionAnswersTable;
+use Hexters\HexaLite\HasHexaLite;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use Hexters\HexaLite\HasHexaLite;
-use App\Filament\Clusters\Academic\AcademicCluster;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 
 class TestSubmissionAnswerResource extends Resource
 {
     protected static ?int $navigationSort = 13;
+
     protected static ?string $cluster = AcademicCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Tests Management';
 
     protected static ?string $model = TestSubmissionAnswer::class;
@@ -50,6 +51,16 @@ class TestSubmissionAnswerResource extends Resource
     public static function getRelations(): array
     {
         return [];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListTestSubmissionAnswers::route('/'),
+            'create' => Pages\CreateTestSubmissionAnswer::route('/create'),
+            'edit' => Pages\EditTestSubmissionAnswer::route('/{record}/edit'),
+            'view' => Pages\ViewTestSubmissionAnswer::route('/{record}'),
+        ];
     }
 
     public function defineGates(): array
