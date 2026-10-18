@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Models\Article;
 use App\Models\Camp;
 use App\Models\Competition;
-use App\Models\CompetitionEntry; // Ensure this matches your package
+use App\Models\CompetitionEntry;
 use App\Models\Competitor;
 use App\Models\CompetitorOffer;
 use App\Models\ContentTemplate;
