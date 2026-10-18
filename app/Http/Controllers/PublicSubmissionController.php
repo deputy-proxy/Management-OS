@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\NewsletterSubscriber;
 use App\Models\ProductReview;
 use App\Models\Workshop;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -170,19 +171,39 @@ class PublicSubmissionController extends Controller
             return back()->withErrors(['reviewer_email' => __('You have already submitted a review for this product.')])->withInput();
         }
 
-        ProductReview::query()->create([
-            'product_type' => $data['product_type'],
-            'product_id' => $data['product_id'],
-            'reviewer_name' => $data['reviewer_name'],
-            'reviewer_email' => $data['reviewer_email'],
-            'customer_id' => $customer->getKey(),
-            'content' => $data['content'],
-            'rating' => $data['rating'],
-            'reviewed_on' => now(),
-            'privacy_consented_at' => now(),
-            'status' => 'pending_review',
-        ]);
+        try {
+            ProductReview::query()->create([
+                'product_type' => $data['product_type'],
+                'product_id' => $data['product_id'],
+                'reviewer_name' => $data['reviewer_name'],
+                'reviewer_email' => $data['reviewer_email'],
+                'customer_id' => $customer->getKey(),
+                'content' => $data['content'],
+                'rating' => $data['rating'],
+                'reviewed_on' => now(),
+                'privacy_consented_at' => now(),
+                'status' => 'pending_review',
+            ]);
+        } catch (QueryException $exception) {
+            if (! $this->isActiveReviewUniqueViolation($exception)) {
+                throw $exception;
+            }
+
+            return back()->withErrors(['reviewer_email' => __('You have already submitted a review for this product.')])->withInput();
+        }
 
         return back()->with('status', __('Thank you. Your review has been submitted for moderation.'));
+    }
+
+    private function isActiveReviewUniqueViolation(QueryException $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+        $sqlState = (string) ($exception->errorInfo[0] ?? '');
+        $driverCode = (int) ($exception->errorInfo[1] ?? 0);
+
+        return str_contains($message, 'product_reviews_product_customer_unique')
+            || ($sqlState === '23000' && $driverCode === 1062 && str_contains($message, 'product_reviews'))
+            || ($sqlState === '23505' && str_contains($message, 'product_reviews'))
+            || ($sqlState === '23000' && str_contains($message, 'unique constraint failed: product_reviews.'));
     }
 }
