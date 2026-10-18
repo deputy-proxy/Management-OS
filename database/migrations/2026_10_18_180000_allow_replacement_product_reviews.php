@@ -25,10 +25,9 @@ return new class extends Migration
         }
 
         Schema::table('product_reviews', function (Blueprint $table): void {
+            // Replace the old index and install the new one in a single schema change
+            // where supported, avoiding a window without a database uniqueness guard.
             $table->dropUnique(self::INDEX);
-        });
-
-        Schema::table('product_reviews', function (Blueprint $table): void {
             // MySQL has no partial unique indexes. NULL generated values for deleted
             // reviews allow historical rows to coexist while active rows stay unique.
             $table->unsignedBigInteger('active_customer_id')
