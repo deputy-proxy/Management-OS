@@ -9,6 +9,7 @@ use App\Services\NotificationPreferenceService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Throwable;
 
-class SendCommentCreatedEmail implements ShouldQueue, ShouldBeUnique
+class SendCommentCreatedEmail implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -27,9 +28,7 @@ class SendCommentCreatedEmail implements ShouldQueue, ShouldBeUnique
 
     public int $uniqueFor = 3600;
 
-    public function __construct(public int $deliveryId)
-    {
-    }
+    public function __construct(public int $deliveryId) {}
 
     public function uniqueId(): string
     {
@@ -46,7 +45,9 @@ class SendCommentCreatedEmail implements ShouldQueue, ShouldBeUnique
 
         $user = User::query()->find($delivery->user_id);
 
-        if (! $user || ! $preferences->allows($user, $delivery->event_key, $delivery->channel)) {
+        $context = $this->contextModel($delivery->payload);
+
+        if (! $user || ! $context || ! $preferences->allows($user, $delivery->event_key, $delivery->channel, $context)) {
             $delivery->update(['status' => 'skipped', 'last_error' => null]);
 
             return;
@@ -65,6 +66,18 @@ class SendCommentCreatedEmail implements ShouldQueue, ShouldBeUnique
         Mail::to($user->email)->send(new CommentCreatedMail($details));
 
         $delivery->update(['status' => 'sent', 'sent_at' => now(), 'last_error' => null]);
+    }
+
+    private function contextModel(array $payload): ?Model
+    {
+        $class = $payload['model_class'] ?? null;
+        $id = $payload['model_id'] ?? null;
+
+        if (! is_string($class) || ! is_subclass_of($class, Model::class) || ! is_scalar($id)) {
+            return null;
+        }
+
+        return $class::query()->find($id);
     }
 
     public function failed(Throwable $exception): void

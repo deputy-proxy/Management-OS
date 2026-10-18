@@ -2,11 +2,13 @@
 
 ## Event catalog
 
+The central preference service also supports opt-in CRUD events for registered Filament resources with a HexaLite index permission. Their keys are `model.{resource-key}.created`, `model.{resource-key}.updated`, and `model.{resource-key}.deleted`; see [Notification settings](notification-settings.md).
+
 | Event key | Trigger | Recipients | Content |
 | --- | --- | --- | --- |
 | `comment.created` | A comment is created through Relaticle Comments | The record owner and comment subscribers, excluding the commenter | Record title, comment text, and a link to the admin area |
 
-Email is sent only to application users who explicitly enabled the `email` channel for the event in `notification_preferences`. A missing preference means disabled. This table is the persistence contract for preference UI work tracked in issue #169.
+Email is sent only to application users who explicitly enabled the `email` channel for the event in `notification_preferences`. A missing preference means disabled. The per-user settings UI and role-scoped CRUD catalog are documented in [Notification settings](notification-settings.md).
 
 ## Delivery behavior
 
