@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Health\ReadinessController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSubmissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/ready', ReadinessController::class)->name('health.readiness');
 Route::prefix('public')->name('public.')->middleware('throttle:5,1')->group(function () {
     Route::get('/enquiries', [PublicSubmissionController::class, 'leadForm'])->name('leads.create');
     Route::post('/enquiries', [PublicSubmissionController::class, 'submitLead'])->name('leads.store');
