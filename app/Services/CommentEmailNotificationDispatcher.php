@@ -11,7 +11,7 @@ class CommentEmailNotificationDispatcher
 {
     public static function dispatchFor(Model $recipient, Model $commentable, Model $comment, string $title, string $body): void
     {
-        if (! $recipient instanceof User || ! app(NotificationPreferenceService::class)->allows($recipient, 'comment.created')) {
+        if (! $recipient instanceof User || ! app(NotificationPreferenceService::class)->allows($recipient, 'comment.created', 'email', $commentable)) {
             return;
         }
 
@@ -20,6 +20,8 @@ class CommentEmailNotificationDispatcher
             'record_title' => (string) ($commentable->title ?? class_basename($commentable)),
             'comment_body' => $body,
             'url' => url('/admin'),
+            'model_class' => $commentable::class,
+            'model_id' => (string) $commentable->getKey(),
         ];
 
         $delivery = NotificationDelivery::query()->firstOrCreate([

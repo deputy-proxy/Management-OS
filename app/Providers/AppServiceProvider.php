@@ -15,6 +15,7 @@ use App\Models\ProductResource;
 use App\Models\ProductResourceAllocation;
 use App\Observers\ProductResourceObserver;
 use App\Observers\ProductResourceAllocationObserver;
+use App\Services\NotificationPreferenceService;
 use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,6 +35,15 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         });
+
+        foreach (['created', 'updated', 'deleted'] as $modelEvent) {
+            Event::listen('eloquent.'.$modelEvent.': *', function (string $eventName, array $payload) use ($modelEvent): void {
+                $model = $payload[0] ?? null;
+                if ($model instanceof Model) {
+                    app(NotificationPreferenceService::class)->dispatchModelEvent($model, $modelEvent);
+                }
+            });
+        }
 
         ProductResource::observe(ProductResourceObserver::class);
         ProductResourceAllocation::observe(ProductResourceAllocationObserver::class);
@@ -140,12 +150,15 @@ class AppServiceProvider extends ServiceProvider
                 ->values();
 
             foreach ($recipients as $recipient) {
-                Notification::make()
-                    ->title($title)
-                    ->success()
-                    ->body($body)
-                    ->sendToDatabase($recipient)
-                    ->broadcast($recipient);
+                if ($recipient instanceof \App\Models\User) {
+                    app(NotificationPreferenceService::class)->deliverInApp(
+                        $recipient,
+                        'comment.created',
+                        (string) $comment->getKey(),
+                        ['subject' => $title, 'message' => (string) $body],
+                        $commentable
+                    );
+                }
 
                 \App\Services\CommentEmailNotificationDispatcher::dispatchFor(
                     $recipient,

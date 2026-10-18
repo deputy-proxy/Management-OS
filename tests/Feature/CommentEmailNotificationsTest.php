@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Jobs\SendCommentCreatedEmail;
 use App\Mail\CommentCreatedMail;
+use App\Models\Course;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationPreference;
 use App\Models\User;
 use App\Services\NotificationPreferenceService;
+use Hexters\HexaLite\Models\HexaRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -27,6 +29,8 @@ class CommentEmailNotificationsTest extends TestCase
     {
         Mail::fake();
         $user = User::factory()->create();
+        $course = Course::factory()->create();
+        $this->grantCourseAccess($user);
         NotificationPreference::query()->create([
             'user_id' => $user->id,
             'event_key' => 'comment.created',
@@ -39,7 +43,7 @@ class CommentEmailNotificationsTest extends TestCase
             'event_id' => 'comment-123',
             'channel' => 'email',
             'status' => 'pending',
-            'payload' => ['subject' => 'New comment', 'record_title' => 'Record A', 'comment_body' => 'Hello', 'url' => 'https://example.test/admin'],
+            'payload' => ['subject' => 'New comment', 'record_title' => 'Record A', 'comment_body' => 'Hello', 'url' => 'https://example.test/admin', 'model_class' => Course::class, 'model_id' => (string) $course->id],
         ]);
 
         (new SendCommentCreatedEmail($delivery->id))->handle(app(NotificationPreferenceService::class));
@@ -52,13 +56,15 @@ class CommentEmailNotificationsTest extends TestCase
     {
         Mail::fake();
         $user = User::factory()->create();
+        $course = Course::factory()->create();
+        $this->grantCourseAccess($user);
         $delivery = NotificationDelivery::query()->create([
             'user_id' => $user->id,
             'event_key' => 'comment.created',
             'event_id' => 'comment-124',
             'channel' => 'email',
             'status' => 'pending',
-            'payload' => ['subject' => 'New comment', 'record_title' => 'Record A', 'comment_body' => 'Hello', 'url' => 'https://example.test/admin'],
+            'payload' => ['subject' => 'New comment', 'record_title' => 'Record A', 'comment_body' => 'Hello', 'url' => 'https://example.test/admin', 'model_class' => Course::class, 'model_id' => (string) $course->id],
         ]);
 
         (new SendCommentCreatedEmail($delivery->id))->handle(app(NotificationPreferenceService::class));
@@ -90,5 +96,15 @@ class CommentEmailNotificationsTest extends TestCase
         (new SendCommentCreatedEmail($delivery->id))->handle(app(NotificationPreferenceService::class));
 
         Mail::assertNothingSent();
+    }
+
+    private function grantCourseAccess(User $user): void
+    {
+        $role = HexaRole::query()->create([
+            'name' => 'Course viewer '.$user->id,
+            'access' => ['course.index'],
+            'guard' => 'web',
+        ]);
+        $user->roles()->attach($role->getKey());
     }
 }
