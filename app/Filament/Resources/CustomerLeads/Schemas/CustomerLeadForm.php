@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\CustomerLeads\Schemas;
 
+use App\Models\CustomerLead;
 use Filament\Forms;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rule;
 
 class CustomerLeadForm
 {
@@ -51,10 +53,13 @@ class CustomerLeadForm
                     ->schema([
                         Forms\Components\TextInput::make('email')
                             ->required()
-                            ->email(),
+                            ->email()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->whereNull('deleted_at')),
                         Forms\Components\TextInput::make('phone')
                             ->required()
-                            ->tel(),
+                            ->tel()
+                            ->maxLength(50),
                     ]),
 
                 Section::make('Lead Interest')
@@ -62,7 +67,8 @@ class CustomerLeadForm
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('source')
-                            ->required(),
+                            ->required()
+                            ->maxLength(100),
                         Forms\Components\TextInput::make('topic_interest')
                             ->required(),
                         Forms\Components\TextInput::make('product_interest')
@@ -85,8 +91,11 @@ class CustomerLeadForm
                     ->description('Current status and follow-up tracking for this lead.')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('status')
-                            ->required(),
+                        Forms\Components\Select::make('status')
+                            ->options(collect(CustomerLead::statuses())->except('converted')->all())
+                            ->required()
+                            ->rules([Rule::in(array_keys(collect(CustomerLead::statuses())->except('converted')->all()))])
+                            ->disabled(fn (?CustomerLead $record): bool => $record?->status === 'converted'),
                         Forms\Components\DateTimePicker::make('last_contacted_at')
                             ->required(),
                     ]),

@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Models\CustomerLead;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CustomerLeadFactory extends Factory
 {
@@ -33,7 +31,7 @@ class CustomerLeadFactory extends Factory
             'source' => $this->faker->word(),
             'topic_interest' => $this->faker->word(),
             'product_interest' => $this->faker->word(),
-            'status' => $this->faker->word(),
+            'status' => 'new',
             'last_contacted_at' => $this->faker->dateTime(),
         ];
     }

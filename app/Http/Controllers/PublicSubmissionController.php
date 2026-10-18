@@ -30,7 +30,7 @@ class PublicSubmissionController extends Controller
             'first_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc', 'max:255'],
+            'email' => ['required', 'email:rfc', 'max:255', Rule::unique('customer_leads', 'email')->whereNull('deleted_at')],
             'phone' => ['required', 'string', 'max:50'],
             'topic_interest' => ['required', 'string', 'max:255'],
             'product_interest' => ['required', 'string', 'max:255'],
