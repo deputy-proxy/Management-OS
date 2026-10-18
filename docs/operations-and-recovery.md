@@ -2,26 +2,26 @@
 
 ## Verified state and unresolved production facts
 
-This repository is a Laravel 12 application. The checked-in configuration supports SQLite, MySQL/MariaDB, PostgreSQL and SQL Server; `.env.example` selects SQLite and the database queue. That example is a development default, not evidence of the production deployment. No deployment manifest, container definition, provider configuration, production environment, backup job, or alerting integration is checked in. The following must be confirmed by the system owner before production approval:
+This repository is a Laravel 12 application. The system owner has confirmed the following production details in the issue discussion on 2026-10-18; these are owner-reported facts and have not been independently inspected from the Hostinger control panel by this code change.
 
-| Component | Verified repository state | Production value / owner |
+| Component | Current reported state | Remaining evidence / owner action |
 | --- | --- | --- |
-| Hosting and deployment | No provider-specific deployment config found | **Unknown; owner to confirm** |
-| Database engine, version and managed-backup feature | Laravel supports several engines; example uses SQLite | **Unknown; owner to confirm** |
-| Persistent file/object storage | Local disk is configured by default; no backup target is defined | **Unknown; owner to confirm** |
-| Queue driver and worker supervisor | Database queue is the default; production value unknown | **Unknown; owner to confirm** |
-| Scheduler runner | Laravel scheduler declares monthly payslip generation; no host cron/scheduler config found | **Unknown; owner to confirm** |
-| Mail and external integrations | Example uses log mailer; production integrations not established | **Unknown; owner to confirm** |
-| Monitoring, paging, incident owner | No vendor or escalation configuration found | **Unknown; owner to confirm** |
-| Backup retention, encryption, RPO/RTO | No enforceable policy or backup job found | **Pending owner approval** |
+| Hosting | Hostinger | Record exact hosting product, deployment method and responsible operator. |
+| Database | MySQL hosted with Hostinger | Record server/version, storage/capacity monitoring, and verify schema migrations against a staging clone of that MySQL version. |
+| Queue worker | Persistent queue worker configured | Record supervisor/provider, command, timeout, `retry_after`, restart procedure, and verify heartbeat monitoring in production. |
+| Scheduler | Scheduler configured outside the application; provider/method unspecified | Record the scheduler product and invocation, verify every-minute execution, and test missed-run alerting. |
+| Monitoring and alert delivery | Not configured or unknown | Configure and test alert routing for database/readiness, worker heartbeat, scheduler heartbeat, failed critical jobs, and monthly payslip completion. Name the recipient and escalation owner. |
+| Backups | Hostinger; coverage and restore options confirmed by owner | Backup restore reported successful today (2026-10-18) in an isolated non-production environment. Record backup identifier, target, validated records/files, start/end times, actual RPO/RTO, reviewer and evidence location. Frequency, retention, encryption/key ownership, access controls and policy approval remain unknown. |
+| Incident and service owners | Not supplied | Assign named operational and incident owners and escalation contacts. |
+| Mail and other integrations | Unknown | Record production providers and confirm their delivery/error alerting without exposing customer data. |
 
-Do not describe a deployment, backup, restore drill, or alert as verified until evidence from the actual production-like environment is recorded here or in the operational change record. No production access or backup artifact was available during repository implementation, so a production restore drill has **not** been performed by this change.
+The repository has no production credentials and does not infer undocumented settings. Do not treat owner-reported restore success as a fully evidenced drill until the restricted operational record contains the backup identifier, validation results, timings and reviewer. Never put secrets, backup contents, personal data or credential-bearing connection strings in this repository or issue comments.
 
 ## Health endpoints
 
 - `GET /up` is Laravel's configured framework health endpoint. Use it as a basic liveness signal: the application process can respond.
 - `GET /ready` checks a trivial query against the configured default database connection. It returns only `{"status":"ready"}` with HTTP 200 or `{"status":"not_ready"}` with HTTP 503. It does not return connection names, exception messages, credentials, or topology. Use it as a readiness/dependency signal.
-- Neither endpoint proves queue workers or the scheduler are alive. Monitor those separately as described below. Keep detailed health and infrastructure dashboards behind operator authentication; do not add environment/configuration dumps to public endpoints.
+- Neither endpoint proves queue workers or the scheduler are alive. The private `ops:check-heartbeats` Artisan command checks database connectivity and recent queue-worker/scheduler heartbeat timestamps. It is not exposed as a public HTTP endpoint. Keep detailed health and infrastructure dashboards behind operator authentication; do not add environment/configuration dumps to public endpoints.
 
 Every HTTP response includes `X-Request-ID`. A syntactically valid incoming value of up to 100 ASCII letters, digits, dots, underscores, colons or hyphens is preserved; invalid values are replaced with a generated UUID. The ID is added to Laravel log context. Do not log request bodies, authorization headers, cookies, tokens, passwords, personal records, assessment answers, or arbitrary model JSON. For JSON logs, set `LOG_CHANNEL=stderr_json` and `LOG_LEVEL=info` (or a stricter operationally appropriate level) only after confirming the host collects stderr and retains it securely. The default remains configurable; the existence of a JSON channel alone does not prove logs are exported or alerts are configured.
 
@@ -31,6 +31,15 @@ Confirm the production queue driver, worker command, supervisor, concurrency, ti
 
 Useful commands, run from the deployed release with its approved environment:
 
+The application records queue-worker heartbeat timestamps while a worker loop runs and records a scheduler heartbeat every minute. The heartbeat values use Laravel's configured cache store, so the worker, scheduler and monitoring invocation must share a durable cache backend. Run the following from the monitoring system or a restricted operator shell:
+
+```sh
+php artisan ops:check-heartbeats --max-age=180
+```
+
+Exit code `0` means the database is reachable and both heartbeat timestamps are recent. Exit code `1` means at least one check failed; configure the external monitor to alert on that result. The command intentionally reports only healthy/unhealthy labels, not hostnames, credentials or exception messages. It does not replace queue-depth, failed-job, integration, or payslip-completion monitoring.
+
+
 ```sh
 php artisan queue:failed
 php artisan queue:monitor default --max=100
@@ -39,7 +48,7 @@ php artisan queue:forget <failed-job-uuid>
 php artisan queue:restart
 ```
 
-`queue:monitor` must be scheduled/triggered by the actual monitoring setup to be useful. Alert on any unexpected failed job for critical workflows and on queue depth/oldest-job age exceeding an owner-approved threshold. Inspect a failed job using restricted operator access before retrying it; retries can repeat external side effects unless that job is idempotent. Use `queue:retry` only after fixing the cause and checking whether the operation already succeeded externally. Use `queue:forget` only after documenting an approved decision to discard it. Never paste raw failed-job payloads or exception dumps into tickets or public chat; they can contain personal data or integration details. Queue driver `sync` does not provide an asynchronous worker or failed-job queue, so production configuration must be verified.
+`queue:monitor` must be scheduled/triggered by the actual monitoring setup to be useful. Alert on any unexpected failed job for critical workflows and on queue depth/oldest-job age exceeding an owner-approved threshold. The application records a queue-worker heartbeat on queue loop iterations in the configured shared cache. Check it with `php artisan ops:check-heartbeats`; this only proves a worker loop has run recently, not that every queue is draining or every job succeeds. The worker and scheduler must use the same shared cache backend as the command. Inspect a failed job using restricted operator access before retrying it; retries can repeat external side effects unless that job is idempotent. Use `queue:retry` only after fixing the cause and checking whether the operation already succeeded externally. Use `queue:forget` only after documenting an approved decision to discard it. Never paste raw failed-job payloads or exception dumps into tickets or public chat; they can contain personal data or integration details. Queue driver `sync` does not provide an asynchronous worker or failed-job queue, so production configuration must be verified.
 
 ## Scheduler and payslip recovery
 
@@ -52,7 +61,7 @@ php artisan schedule:list
 php artisan schedule:run
 ```
 
-Run `schedule:run` manually only with the normal scheduler's authorization and change controls; it can execute any due scheduled task. Alert if the scheduler runner stops invoking the application or if the monthly generation has not completed shortly after its expected window. There is no verified scheduler heartbeat or external alert integration in the repository yet, so this alert must be implemented by the production operator/monitoring platform.
+Run `schedule:run` manually only with the normal scheduler's authorization and change controls; it can execute any due scheduled task. Alert if the scheduler runner stops invoking the application or if the monthly generation has not completed shortly after its expected window. A named scheduler heartbeat is now recorded every minute by the Laravel schedule. Use `php artisan ops:check-heartbeats` from the external monitoring platform to detect missing/stale scheduler and queue-worker heartbeats. This command does not send alerts itself; configure the production scheduler to invoke the heartbeat event and configure an external monitor to run the check and page the named owner on non-zero exit.
 
 Payslip generation is designed to be idempotent and supports explicit month recovery. Before backfill, confirm the month, current payslip counts, existing deleted payslips, and source items with payroll staff:
 
@@ -86,7 +95,7 @@ It fails for missing, unreadable or empty artifacts and prints a SHA-256 digest 
 6. Record pass/fail, recovered timestamp, measured data loss, measured RTO, discrepancies and corrective actions. Obtain reviewer sign-off.
 7. Securely remove the isolated restored data under the approved retention procedure and verify the cleanup.
 
-**Drill status: not performed by this repository change.** Production access, backup configuration and an isolated restore target must be supplied by the system owner. Record the completed drill and evidence before marking the backup acceptance criterion complete.
+**Drill status: system owner reports a successful isolated restore on 2026-10-18.** The repository change did not perform or independently verify that restore. The backup acceptance criterion remains incomplete until a restricted drill record captures the artifact identifier, isolated target, restored database and file checks, `migrate:status`, integrity audit and smoke-test results, measured RPO/RTO, start/end times, reviewer sign-off and secure cleanup.
 
 ## Deployment and migration procedure
 
@@ -107,4 +116,4 @@ Rollback is not universally a code rollback. A migration may be irreversible or 
 - **Integrations/mail:** use provider delivery/error metrics and synthetic checks that do not expose real customer data. The application currently has no provider-specific integration alerting configured.
 - **Security/privacy:** send structured logs to a restricted, access-controlled sink with retention approved by the owner. Do not include secrets, request bodies, credentials or raw personal records in alerts. Share request IDs and sanitized error categories instead.
 
-On incident: assign an incident lead, record UTC/local timestamps and impact, preserve relevant restricted logs, stop unsafe retries or deployments, identify the last known-good release/backup, and follow the approved recovery path. After recovery, validate key workflows and reconcile financial/academic history before declaring resolution. Record cause, impact, corrective actions and owners. Hosting provider, incident owner, paging destination, and exact thresholds remain **unknown and require explicit assignment**.
+On incident: assign an incident lead, record UTC/local timestamps and impact, preserve relevant restricted logs, stop unsafe retries or deployments, identify the last known-good release/backup, and follow the approved recovery path. After recovery, validate key workflows and reconcile financial/academic history before declaring resolution. Record cause, impact, corrective actions and owners. Hosting provider is reported as Hostinger; the exact hosting product, incident owner, paging destination, and approved thresholds remain **unknown and require explicit assignment**.
