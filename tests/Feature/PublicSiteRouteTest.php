@@ -80,3 +80,4 @@ class PublicSiteRouteTest extends TestCase
         $responsiveMenu->assertDontSee('href="'.url('/contact').'"', false);
     }
 }
+
