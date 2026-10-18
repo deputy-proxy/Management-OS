@@ -7,6 +7,7 @@ use App\Models\CompetitionEntry;
 use App\Models\Course;
 use App\Models\Customer;
 use App\Models\CustomerLead;
+use App\Models\NewsletterSubscriber;
 use App\Models\ProductReview;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -347,5 +348,161 @@ class PublicFormsTest extends TestCase
         }
 
         $this->post(route('public.leads.store'), $payload)->assertTooManyRequests();
+    }
+
+    public function test_competition_capacity_rejects_entry_at_exact_limit(): void
+    {
+        $competition = Competition::query()->create([
+            'title' => 'Capacity competition',
+            'description' => 'Test',
+            'start_on' => now()->subDay()->toDateString(),
+            'end_on' => now()->addDay()->toDateString(),
+            'maximum_entries' => 1,
+            'rules' => [],
+        ]);
+
+        $payload = [
+            'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => 'first@example.test',
+            'title' => 'Entry', 'content' => 'My entry', 'privacy_consent' => '1',
+        ];
+        $this->post(route('public.competitions.entries.store', $competition), $payload)->assertRedirect()->assertSessionHasNoErrors();
+        $this->from(route('public.competitions.entries.create', $competition))
+            ->post(route('public.competitions.entries.store', $competition), array_merge($payload, ['email' => 'second@example.test']))
+            ->assertSessionHasErrors('competition');
+
+        $this->assertDatabaseCount('competition_entries', 1);
+    }
+
+    public function test_competition_with_zero_maximum_entries_is_unlimited(): void
+    {
+        $competition = Competition::query()->create([
+            'title' => 'Unlimited competition', 'description' => 'Test',
+            'start_on' => now()->subDay()->toDateString(), 'end_on' => now()->addDay()->toDateString(),
+            'maximum_entries' => 0, 'rules' => [],
+        ]);
+
+        foreach (['one@example.test', 'two@example.test'] as $email) {
+            $this->post(route('public.competitions.entries.store', $competition), [
+                'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => $email,
+                'title' => 'Entry', 'content' => 'My entry', 'privacy_consent' => '1',
+            ])->assertRedirect()->assertSessionHasNoErrors();
+        }
+
+        $this->assertDatabaseCount('competition_entries', 2);
+    }
+
+    public function test_future_and_closed_competitions_reject_submissions(): void
+    {
+        foreach ([
+            ['start_on' => now()->addDay()->toDateString(), 'end_on' => now()->addDays(2)->toDateString()],
+            ['start_on' => now()->subDays(2)->toDateString(), 'end_on' => now()->subDay()->toDateString()],
+        ] as $dates) {
+            $competition = Competition::query()->create(array_merge([
+                'title' => 'Unavailable competition', 'description' => 'Test',
+                'maximum_entries' => 10, 'rules' => [],
+            ], $dates));
+
+            $this->post(route('public.competitions.entries.store', $competition), [
+                'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => uniqid().'@example.test',
+                'title' => 'Entry', 'content' => 'My entry', 'privacy_consent' => '1',
+            ])->assertNotFound();
+        }
+
+        $this->assertDatabaseCount('competition_entries', 0);
+    }
+
+    public function test_competition_entry_database_constraint_rejects_duplicate_email_even_when_bypassing_service(): void
+    {
+        $competition = Competition::query()->create([
+            'title' => 'Unique competition', 'description' => 'Test',
+            'start_on' => now()->subDay()->toDateString(), 'end_on' => now()->addDay()->toDateString(),
+            'maximum_entries' => 10, 'rules' => [],
+        ]);
+        $attributes = [
+            'competition_id' => $competition->id, 'first_name' => 'Ari', 'last_name' => 'Pop',
+            'full_name' => 'Ari Pop', 'email' => 'duplicate@example.test', 'title' => 'Entry',
+            'content' => 'My entry', 'privacy_consented_at' => now(), 'status' => 'pending_review',
+        ];
+        CompetitionEntry::query()->create($attributes);
+
+        $this->expectException(QueryException::class);
+        CompetitionEntry::query()->create($attributes);
+    }
+
+    public function test_racing_competition_entry_returns_controlled_duplicate_error(): void
+    {
+        $competition = Competition::query()->create([
+            'title' => 'Racing competition', 'description' => 'Test',
+            'start_on' => now()->subDay()->toDateString(), 'end_on' => now()->addDay()->toDateString(),
+            'maximum_entries' => 10, 'rules' => [],
+        ]);
+        $insertedConcurrentEntry = false;
+        CompetitionEntry::creating(function (CompetitionEntry $entry) use (&$insertedConcurrentEntry): void {
+            if ($insertedConcurrentEntry) {
+                return;
+            }
+            $insertedConcurrentEntry = true;
+            DB::table('competition_entries')->insert([
+                'competition_id' => $entry->competition_id, 'first_name' => 'Concurrent', 'last_name' => 'Entry',
+                'full_name' => 'Concurrent Entry', 'email' => $entry->email, 'title' => 'Concurrent',
+                'content' => json_encode('Concurrent entry', JSON_THROW_ON_ERROR), 'privacy_consented_at' => now(),
+                'status' => 'pending_review', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        });
+
+        $this->from(route('public.competitions.entries.create', $competition))
+            ->post(route('public.competitions.entries.store', $competition), [
+                'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => 'racing@example.test',
+                'title' => 'Entry', 'content' => 'My entry', 'privacy_consent' => '1',
+            ])->assertSessionHasErrors('email');
+
+        $this->assertDatabaseCount('competition_entries', 0);
+    }
+
+    public function test_racing_lead_submission_returns_a_controlled_duplicate_error(): void
+    {
+        $insertedConcurrentLead = false;
+        CustomerLead::creating(function (CustomerLead $lead) use (&$insertedConcurrentLead): void {
+            if ($insertedConcurrentLead) {
+                return;
+            }
+            $insertedConcurrentLead = true;
+            DB::table('customer_leads')->insert([
+                'first_name' => 'Concurrent', 'middle_name' => '', 'last_name' => 'Lead',
+                'full_name' => 'Concurrent Lead', 'email' => $lead->email, 'phone' => '0700000000',
+                'source' => 'public_form', 'topic_interest' => 'English', 'product_interest' => 'Course',
+                'status' => 'new', 'last_contacted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        });
+
+        $this->from(route('public.leads.create'))->post(route('public.leads.store'), [
+            'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => 'racing-lead@example.test',
+            'phone' => '0700000000', 'topic_interest' => 'English', 'product_interest' => 'Course',
+            'privacy_consent' => '1',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertDatabaseCount('customer_leads', 1);
+    }
+
+    public function test_racing_newsletter_subscription_remains_idempotent(): void
+    {
+        $insertedConcurrentSubscriber = false;
+        NewsletterSubscriber::creating(function (NewsletterSubscriber $subscriber) use (&$insertedConcurrentSubscriber): void {
+            if ($insertedConcurrentSubscriber) {
+                return;
+            }
+            $insertedConcurrentSubscriber = true;
+            DB::table('newsletter_subscribers')->insert([
+                'first_name' => 'Concurrent', 'last_name' => 'Subscriber', 'email' => $subscriber->email,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        });
+
+        $this->post(route('public.newsletter.store'), [
+            'first_name' => 'Ari', 'last_name' => 'Pop', 'email' => 'racing-newsletter@example.test',
+            'privacy_consent' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('newsletter_subscribers', 1);
     }
 }
