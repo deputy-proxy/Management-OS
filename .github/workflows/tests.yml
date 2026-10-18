@@ -52,6 +52,9 @@ jobs:
       - name: Validate Composer configuration
         run: composer validate --no-check-publish
 
+      - name: Check documented Composer commands
+        run: php scripts/check-documented-composer-scripts.php
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
@@ -82,7 +85,7 @@ jobs:
         run: |
           php <<'PHP'
           <?php
-          $roots = ['app', 'bootstrap', 'config', 'database', 'routes', 'tests'];
+          $roots = ['app', 'bootstrap', 'config', 'database', 'routes', 'scripts', 'tests'];
           foreach ($roots as $root) {
               if (!is_dir($root)) {
                   continue;

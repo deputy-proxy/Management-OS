@@ -88,11 +88,22 @@ The purpose is to catch local errors quickly without repeatedly paying the cost 
 
 ## 6. Full validation only before the Pull Request
 
-Once implementation is complete and focused validation is clean, perform the **complete validation required by the repository's CI workflow**.
+Once implementation is complete and focused validation is clean, run the complete validation defined by `.github/workflows/tests.yml`. Do not treat non-existent Composer aliases as repository commands.
 
-At minimum, reconcile the current workflow and run its equivalent checks locally.
+The current full local validation sequence is:
 
-For the current repository, this includes the configured PHP validation and frontend build requirements.
+1. `composer validate --no-check-publish`
+2. `composer install --no-interaction --prefer-dist --no-progress` when dependencies are not already valid; do not reinstall them just because a new issue is being processed.
+3. `npm ci` and `npm run build`. The PHP feature suite also needs the Vite manifest, so the frontend build remains part of the PHP job as well as the independent frontend job.
+4. `php artisan migrate --force` against a fresh SQLite CI database.
+5. Run the PHP syntax check over `app`, `bootstrap`, `config`, `database`, `routes`, and `tests` using the workflow's `token_get_all(..., TOKEN_PARSE)` check.
+6. `vendor/bin/pint --test tests`
+7. `composer test`
+8. `composer audit --locked`
+9. `npm audit --audit-level=high`
+10. `php scripts/check-documented-composer-scripts.php`
+
+`composer.json` currently defines `setup`, `dev`, and `test`; only `composer test` is a CI quality-gate script. `lint:check`, `types:check`, and `ci:check` do not exist and must not be called. No PHPStan/Larastan/Psalm configuration or enforced static-analysis gate is currently present. Do not claim type analysis passes unless it is explicitly added and run.
 
 The full local validation is the **pre-PR gate**.
 
@@ -147,7 +158,7 @@ The repository's CI should be optimized to avoid unnecessary repeated work:
 - cache Composer dependencies using the repository's Composer lockfile as the cache key/input;
 - cache npm dependencies using the repository's npm lockfile as the cache key/input;
 - run independent PHP and frontend validation in parallel jobs where the repository workflow permits;
-- avoid performing frontend setup/build as part of the PHP validation job when it can run independently;
+- keep PHP and frontend checks in independent jobs where possible; the PHP job must also build the frontend because feature tests render Blade views that require Vite’s manifest;
 - cancel obsolete in-progress PR CI runs when a newer commit supersedes them.
 
 These optimizations must preserve the same validation requirements and must not weaken required checks.

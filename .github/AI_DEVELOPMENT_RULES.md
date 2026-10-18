@@ -95,18 +95,24 @@ If CI fails:
 
 ## 6. PHP Validation
 
-Use the Composer scripts defined by the repository rather than inventing parallel commands.
+The current `composer.json` defines `setup`, `dev`, and `test` scripts. Only `composer test` is a CI quality-gate script. The documented `lint:check`, `types:check`, and `ci:check` scripts do not exist and must not be used or described as current commands.
 
-Current quality gates are:
+The PHP CI job in `.github/workflows/tests.yml` runs these checks in order:
 
-- `composer lint:check`
-- `composer types:check`
-- `composer test`
-- `composer ci:check`
+1. `composer validate --no-check-publish`
+2. `composer install --no-interaction --prefer-dist --no-progress`
+3. Build the frontend for feature tests that render Blade views requiring Vite's manifest.
+4. `php artisan migrate --force` against the configured SQLite CI database.
+5. Parse PHP files under `app`, `bootstrap`, `config`, `database`, `routes`, and `tests` with `token_get_all(..., TOKEN_PARSE)`.
+6. `vendor/bin/pint --test tests`
+7. `composer test`
+8. `composer audit --locked`
 
-`composer ci:check` is the complete PHP validation entry point and delegates to the repository's `test` sequence.
+Use those configured checks for local validation; do not invent aliases that are absent from `composer.json`.
 
-Do not duplicate Pint, PHPStan, or Pest commands in CI when the Composer scripts already own them.
+No PHPStan, Larastan, Psalm, or other PHP static-analysis tool/configuration is currently installed or enforced by CI. Static analysis is therefore **not** an existing quality gate. Do not claim that type analysis passes until a tool, configuration, and CI command are deliberately introduced in a separate, validated change.
+
+A lightweight CI check validates the Composer commands documented in these development instructions against actual Composer scripts and the explicitly allowed Composer CLI commands.
 
 ## 7. Frontend Validation
 
@@ -196,7 +202,7 @@ Do not perform unrelated refactoring.
 
 Do not change dependency versions unless the issue requires it or validation proves an existing dependency/configuration is incompatible with the required implementation.
 
-Do not change established Composer, PHPStan, Pint, PHPUnit/Pest, Vite, or Laravel configuration merely to make an implementation easier.
+Do not change established Composer, Pint, PHPUnit, Vite, or Laravel configuration merely to make an implementation easier.
 
 Prefer the smallest change that satisfies the issue and preserves established architecture.
 
