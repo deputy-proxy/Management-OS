@@ -2,8 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\CustomerInvoice;
 use App\Models\Employee;
+use App\Models\EmployeeContract;
 use App\Models\EmployeePaySlip;
+use App\Models\FinancialAccount;
+use App\Models\Tax;
+use App\Models\Transaction;
+use App\Models\VendorInvoice;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -84,13 +90,84 @@ class FinanceReconciliationAuditTest extends TestCase
         $this->assertDatabaseCount('employee_pay_slips', 2);
     }
 
-    private function createLineItem(EmployeePaySlip $slip, float $amount): void
+    public function test_audit_reports_missing_source_records_and_unknown_source_types(): void
     {
+        $slip = EmployeePaySlip::factory()->create(['manual_amount' => 0, 'amount' => 0]);
         DB::table('employee_pay_slip_items')->insert([
             'employee_pay_slip_id' => $slip->id,
             'item_type' => 'session',
             'source_type' => 'session',
-            'source_id' => 123,
+            'source_id' => 987654,
+            'period_key' => $slip->month->format('Y-m'),
+            'source_key' => 'missing-session-source',
+            'occurred_on' => $slip->month->toDateString(),
+            'description' => 'Synthetic missing source',
+            'quantity' => 1,
+            'unit' => 'hour',
+            'unit_rate' => 10,
+            'amount' => 10,
+            'currency' => 'RON',
+            'calculation_snapshot' => json_encode(['test' => true], JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('employee_pay_slip_items')->insert([
+            'employee_pay_slip_id' => $slip->id,
+            'item_type' => 'legacy_unknown',
+            'source_type' => 'legacy_unknown',
+            'source_id' => 987655,
+            'period_key' => $slip->month->format('Y-m'),
+            'source_key' => 'unknown-source-type',
+            'occurred_on' => $slip->month->toDateString(),
+            'description' => 'Synthetic unknown source type',
+            'quantity' => 1,
+            'unit' => 'unit',
+            'unit_rate' => 0,
+            'amount' => 0,
+            'currency' => 'RON',
+            'calculation_snapshot' => json_encode(['test' => true], JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->artisan('finance:reconciliation-audit')
+            ->expectsOutputToContain('missing payslip source record: source_type=session')
+            ->expectsOutputToContain('unknown payslip source type: source_type=legacy_unknown')
+            ->assertExitCode(1);
+
+        $this->assertDatabaseCount('employee_pay_slip_items', 2);
+    }
+
+    public function test_audit_reports_transactions_linked_to_both_customer_and_vendor_invoices(): void
+    {
+        $customerInvoice = CustomerInvoice::factory()->create(['month' => '2026-10-01']);
+        $vendorInvoice = VendorInvoice::factory()->create(['month' => '2026-10-01']);
+        $account = FinancialAccount::factory()->create();
+        $tax = Tax::factory()->create(['month' => '2026-10']);
+        $transaction = Transaction::factory()->create([
+            'customer_invoice_id' => $customerInvoice->id,
+            'vendor_invoice_id' => $vendorInvoice->id,
+            'financial_account_id' => $account->id,
+            'tax_id' => $tax->id,
+        ]);
+
+        $this->artisan('finance:reconciliation-audit')
+            ->expectsOutputToContain('transaction linked to both customer and vendor invoices')
+            ->expectsOutputToContain('Invoice-linked transaction summaries (informational only')
+            ->assertExitCode(1);
+
+        $this->assertDatabaseHas('transactions', ['id' => $transaction->id]);
+    }
+
+    private function createLineItem(EmployeePaySlip $slip, float $amount): void
+    {
+        $contract = EmployeeContract::factory()->create(['employee_id' => $slip->employee_id]);
+
+        DB::table('employee_pay_slip_items')->insert([
+            'employee_pay_slip_id' => $slip->id,
+            'item_type' => 'session',
+            'source_type' => 'employee_contract',
+            'source_id' => $contract->id,
             'period_key' => $slip->month->format('Y-m'),
             'source_key' => 'test-source-'.$slip->id,
             'occurred_on' => $slip->month->toDateString(),

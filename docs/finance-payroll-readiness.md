@@ -30,7 +30,7 @@ php artisan finance:reconciliation-audit
 ```
 
 - `database:integrity-audit` checks configured duplicate and orphan-reference invariants, including invoice and transaction relationships.
-- `finance:reconciliation-audit` checks that each payslip total equals `manual_amount + sum(employee_pay_slip_items.amount)`, that Paid payslips have `paid_on`, and that employee/month payslip periods are not duplicated (including retained soft-deleted rows).
+- `finance:reconciliation-audit` checks that each payslip total equals `manual_amount + sum(employee_pay_slip_items.amount)`, that Paid payslips have `paid_on`, that employee/month payslip periods are not duplicated (including retained soft-deleted rows), that recognized source links exist, and that `source_type` values are known. It flags transactions linked to both invoice types and prints informational invoice-linked transaction summaries by invoice ID.
 - Both commands are diagnostics only. They do not fix records. A non-zero exit requires review and a documented resolution before close.
 - These checks do not prove that source activities are complete, that a payment occurred, or that a tax calculation is legally correct.
 
@@ -58,3 +58,43 @@ php artisan finance:reconciliation-audit
 - Approved migration plan for integer monetary fields and legacy JSON, including exports, before/after totals and rollback/recovery evidence.
 
 Until these are decided and reviewed by the designated owner, Management-OS should be described as an internal operational finance and source-linked payroll workflow, not a complete statutory payroll engine or general ledger.
+## Current readiness decision (2026-10-18)
+
+**Decision: conditional NO-GO for statutory payroll or general-ledger claims.** The repository is suitable only for its documented internal operational workflow, with the manual controls below. A successful test suite or a clean diagnostic report is not proof of statutory correctness, completeness of source activity, or payment settlement.
+
+### Currency, precision and rounding contract that is actually implemented
+
+- Generated payslip source lines are denominated in `RON` and store `quantity` and `unit_rate` at two decimal places and `amount` at two decimal places.
+- The current payroll service uses PHP `round(value, 2, PHP_ROUND_HALF_UP)` for quantity and money calculations. Source calculations are rounded to two decimal places before the stored line amount; holiday calculations round each covered weekday before summing the holiday total.
+- Contract selection for a dated source activity uses contracts covering that activity date, ordered by latest `start_date`, then highest ID. This deterministic tie-breaker is implemented behavior, **not** approval that overlapping contracts are valid.
+- The normalized payslip source-line currency is fixed to `RON`. No FX conversion is implemented.
+- Customer invoices, vendor invoices, transactions and tax records do not share a verified monetary contract. Customer invoices have integer `amount_without_vat`/`vat`; vendor invoices have integer `amount_without_vat`/`vat` and `amount`, plus a currency field; transaction and tax amounts are integers. The meaning of those amounts, VAT fields, sign convention and rounding stage remains unapproved.
+- Do not infer a VAT total, invoice gross total, net payroll, statutory deduction or exchange rate from these fields. Do not migrate monetary column types until the owner signs off a conversion specification with before/after totals and a tested recovery path.
+
+### Expanded read-only reconciliation command
+
+`php artisan finance:reconciliation-audit` now checks:
+
+- Stored payslip totals against `manual_amount + normalized source-line amounts`.
+- Paid payslips missing `paid_on`.
+- Duplicate employee/month payslips, including retained soft-deleted records.
+- Missing source records for recognized payslip line types and unrecognized `source_type` values.
+- Transactions linked to both a customer invoice and a vendor invoice, which requires semantic review rather than an inferred correction.
+- Informational transaction counts and raw amount sums grouped by linked invoice ID. These are trace reports only, not assertions that the invoice is paid or that the sum must equal its invoice amount; partial-payment, sign, allocation and reversal semantics are not approved.
+
+The command is read-only. It returns a non-zero exit code when configured discrepancies are found. Run it alongside `php artisan database:integrity-audit`, retain the full output with close evidence, and trace every finding to the named record IDs before correction. Unknown historical source types should be mapped only after review, not silently discarded.
+
+### Owner sign-off and production gate
+
+No qualified Romanian payroll/accounting owner or independent approver is identified in the repository, and no signed statutory-rule specification was provided for this work. Therefore CAS, CASS, income tax, exemptions, benefits, proration, statutory reporting and tax treatment remain manual/out of scope for automatic calculation. Before any statutory payroll release, the owner must attach: (1) authoritative source and effective date for each rule, (2) approved examples covering boundary dates and rounding, (3) expected results independently checked by the owner, and (4) named preparer/reviewer/approver responsibilities. The release remains blocked until that evidence exists.
+
+### Historical data and recovery
+
+- Paid/closed payslips and normalized source items remain immutable; corrections use signed adjustment items with a reason and link to the original.
+- Legacy JSON remains separate from normalized line items. Do not auto-map old JSON into new source rows.
+- No broad finance-schema migration/backfill is included in this issue. Before any future monetary or legacy-data migration: export affected records; record row counts and per-period totals by currency/status; run the conversion on a production-like copy; compare before/after values and exception rows; verify a tested restore/recovery path; obtain owner approval; and retain the evidence with the release.
+- Existing invoice and transaction data cannot currently establish settlement status reliably. Reconcile against issued invoice documents and bank/payment evidence under an approved allocation policy.
+
+### Operational decision
+
+The capability matrix and diagnostics define the software boundary, but the repository cannot itself supply human accounting sign-off. The explicit decision is **not ready to be represented as a statutory payroll engine, VAT calculator, payment ledger, or double-entry general ledger**. The operational payroll workflow may be used only under the documented manual reconciliation and approval controls until the owner-signed rule pack and payment/invoice semantics are in place.
