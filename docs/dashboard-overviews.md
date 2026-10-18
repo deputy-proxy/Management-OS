@@ -73,3 +73,16 @@ This landing page intentionally omits revenue, performance, attendance, teacher 
 - The review queue counts only current product reviews and competition entries whose status is exactly `pending_review`. The two queues remain separate. Each count and link requires the matching resource list permission.
 - The content-management page gate does not grant access to content records. Each inventory/status query and list link requires its resource's `*.index` permission; create links additionally require the matching `*.create` permission. Without list permission, the dashboard shows an unavailable state rather than a zero count.
 - Reach, clicks, opens, reactions, and engagement rates are not stored in these content schemas and are intentionally not estimated.
+
+## Marketing Market Analysis overview (#240)
+
+`App\Services\MarketAnalysisDashboardData` supplies the existing `MarketAnalysis` page. The available market-intelligence entities are competitor profiles and competitor-offer records; no separate market report, historical observation, segment, or audience/demand model exists.
+
+- Competitor and offer inventories count current records separately from soft-deleted records. Competitor profile coverage counts non-empty website/social fields and whether the JSON locations array has entries; these are completeness counts, not URL validation or verified geographic coverage.
+- Offer status and offer-type distributions group exact stored values. Both fields are free text, so the dashboard does not normalize them into lifecycle or strategy categories.
+- Offer freshness uses the explicit `last_check` date: dates from today minus 29 days through today are recent; earlier dates are stale; dates after today are flagged as future-dated. Recent-check lists use the same 30-calendar-day window. `updated_at` is shown only as a record-edit timestamp, not source verification.
+- Offers linked to missing or soft-deleted competitors are flagged only when both `competitor_offer.index` and `competitor.index` are granted. Per-competitor offer counts likewise require both list permissions.
+- `our_similar_offer` and `their_differentiator` are presented as manually entered qualitative notes. The dashboard does not infer or score strategic opportunities/risks from counts or notes.
+- `offer_price` has no currency field, and competitor offers have no offer-level source URL. Prices are not averaged/compared and the competitor website field is not treated as proof of offer verification.
+- No time-series chart, market share/size, audience segment, demand, or engagement metric is produced because there is no dated observation history or supporting data model. The latest `last_check` value alone is not a historical trend.
+- Competitor metrics/links require `competitor.index`; offer metrics/links require `competitor_offer.index`; per-competitor views require both. Create links additionally require the matching create permission. The `market-analysis.view` page gate does not grant access to either resource.
