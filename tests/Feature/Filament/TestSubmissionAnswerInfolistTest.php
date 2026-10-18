@@ -59,6 +59,14 @@ class TestSubmissionAnswerInfolistTest extends TestCase
     public function test_answer_view_renders_structured_values_and_has_a_registered_route(): void
     {
         $user = User::factory()->create();
+        $roleClass = config('hexa.models.role');
+        $role = $roleClass::create([
+            'name' => 'Test submission answer reader',
+            'created_by_name' => 'Test',
+            'access' => ['Test Submission Answers' => ['test_submission_answer.index']],
+            'guard' => 'web',
+        ]);
+        $user->roles()->attach($role->getKey());
         $answer = TestSubmissionAnswer::factory()->create([
             'answer' => ['selected' => ['A', 'C']],
             'metadata' => ['time_spent_seconds' => 42],
