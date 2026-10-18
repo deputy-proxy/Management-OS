@@ -39,6 +39,16 @@ class Customer extends Model implements Commentable
         return $this->hasMany(CustomerContract::class);
     }
 
+    public function interactions(): HasMany
+    {
+        return $this->hasMany(CustomerInteraction::class);
+    }
+
+    public function sourceLeads(): HasMany
+    {
+        return $this->hasMany(CustomerLead::class, 'converted_customer_id');
+    }
+
     public function competitionEntries(): HasMany
     {
         return $this->hasMany(CompetitionEntry::class);

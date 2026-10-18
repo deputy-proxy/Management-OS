@@ -6,6 +6,7 @@ use App\Models\Competition;
 use App\Models\CompetitionEntry;
 use App\Models\Course;
 use App\Models\Customer;
+use App\Models\CustomerLead;
 use App\Models\ProductReview;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -93,6 +94,23 @@ class PublicFormsTest extends TestCase
         ]);
         $this->assertNotNull(CompetitionEntry::query()->where('email', 'ari@example.test')->value('privacy_consented_at'));
         $this->assertDatabaseMissing('competition_entries', ['competition_id' => 999]);
+    }
+
+    public function test_public_lead_submission_rejects_duplicate_active_email(): void
+    {
+        CustomerLead::factory()->create(['email' => 'duplicate@example.test']);
+
+        $this->from('/public/enquiries')->post('/public/enquiries', [
+            'first_name' => 'Ada',
+            'last_name' => 'Lovelace',
+            'email' => 'duplicate@example.test',
+            'phone' => '+40123456789',
+            'topic_interest' => 'English',
+            'product_interest' => 'Course',
+            'privacy_consent' => '1',
+        ])->assertRedirect('/public/enquiries')->assertSessionHasErrors('email');
+
+        $this->assertDatabaseCount('customer_leads', 1);
     }
 
     public function test_competition_entry_links_existing_customer_and_rejects_duplicate_email_per_competition(): void

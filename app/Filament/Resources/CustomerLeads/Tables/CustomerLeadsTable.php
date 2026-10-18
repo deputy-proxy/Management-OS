@@ -20,6 +20,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -44,17 +45,20 @@ class CustomerLeadsTable
                 Tables\Columns\TextColumn::make('full_name')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email'),
-                Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\TextColumn::make('source'),
+                Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('phone')->searchable(),
+                Tables\Columns\TextColumn::make('source')->searchable(),
                 Tables\Columns\TextColumn::make('topic_interest'),
                 Tables\Columns\TextColumn::make('product_interest'),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'new' => 'gray', 'contacted' => 'info', 'qualified' => 'success', 'proposal' => 'warning', 'converted' => 'success', 'lost' => 'danger', default => 'gray'
+                }),
                 Tables\Columns\TextColumn::make('last_contacted_at')->dateTime(),
                 Tables\Columns\TextColumn::make('contract_send_status')->label('Contract delivery')->badge(),
                 Tables\Columns\TextColumn::make('contract_sent_at')->dateTime(),
             ])
             ->filters([
+                SelectFilter::make('status')->options(CustomerLead::statuses()),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([

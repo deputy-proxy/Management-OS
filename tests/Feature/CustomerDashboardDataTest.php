@@ -43,7 +43,7 @@ class CustomerDashboardDataTest extends TestCase
         $this->assertSame('October 17, 2026', $summary['as_of']);
         $this->assertCount(1, $summary['recent_leads']);
         $this->assertSame('Boundary', $summary['recent_interactions']->first()->reason);
-        $this->assertSame([['status' => 'New', 'count' => 1]], $summary['lead_statuses']);
+        $this->assertSame([['status' => 'new', 'count' => 1]], $summary['lead_statuses']);
     }
 
     public function test_invoice_status_counts_are_limited_to_current_billing_month_and_exclude_soft_deleted_rows(): void
