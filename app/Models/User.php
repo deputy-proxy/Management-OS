@@ -75,6 +75,11 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
             ->logAll();
     }
 
+    public function notificationPreferences(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
     public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Task::class, 'taskable');
