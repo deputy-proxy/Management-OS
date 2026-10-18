@@ -1,8 +1,8 @@
-# CR8OR AI Development Rules
+# Management-OS AI Development Rules
 
 ## Purpose
 
-This document defines the repository-level development rules for CR8OR. It is authoritative for implementation workflow, validation, scope control, and completion criteria unless a more specific repository or product specification explicitly overrides it.
+This document defines the repository-level development rules for Management-OS. It is authoritative for implementation workflow, validation, scope control, and completion criteria unless a more specific repository or product specification explicitly overrides it.
 
 ## 1. Authoritative Sources
 
@@ -145,7 +145,7 @@ AI agents own reasoning and decisions, not direct database access.
 
 MCP exposes controlled application capabilities. MCP must call application/domain services rather than duplicate business logic or manipulate persistence directly.
 
-n8n and external services are execution/orchestration boundaries and must not silently become authoritative sources of CR8OR business state.
+External services and automation tools are execution/orchestration boundaries and must not silently become authoritative sources of Management-OS business state.
 
 Sensitive actions require explicit authorization and, where applicable, approval.
 
