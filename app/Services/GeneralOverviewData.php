@@ -102,7 +102,7 @@ class GeneralOverviewData
 
     /**
      * Calendar-week sessions, Monday through Sunday, using the configured application timezone.
-     * Both legacy session models are read until the separate session consolidation is complete.
+     * Reads the unified Session model; session_type distinguishes group and individual sessions.
      *
      * @return Collection<int, array{type: string, title: string, teacher: string, starts_at: CarbonImmutable, ends_at: CarbonImmutable}>
      */

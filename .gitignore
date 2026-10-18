@@ -29,3 +29,7 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Local operating-system and IDE metadata
+.DS_Store
+.idea/
