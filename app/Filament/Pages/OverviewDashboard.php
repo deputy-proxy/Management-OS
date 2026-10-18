@@ -2,6 +2,16 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Articles\ArticleResource;
+use App\Filament\Resources\CustomerLeads\CustomerLeadResource;
+use App\Filament\Resources\Customers\CustomerResource;
+use App\Filament\Resources\Employees\EmployeeResource;
+use App\Filament\Resources\Newsletters\NewsletterResource;
+use App\Filament\Resources\PaidCampaigns\PaidCampaignResource;
+use App\Filament\Resources\Projects\ProjectResource;
+use App\Filament\Resources\Students\StudentResource;
+use App\Filament\Resources\Tasks\TaskResource;
+use App\Services\AdminOverviewDashboardData;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Hexters\HexaLite\HasHexaLite;
@@ -69,6 +79,37 @@ class OverviewDashboard extends Page
                 'scope' => 'Available',
             ],
         ];
+    }
+
+    /**
+     * Return only metrics and activity for resources the current viewer may access.
+     * Dashboard access itself never grants access to an underlying resource.
+     *
+     * @return array<string, mixed>
+     */
+    public function getDashboardSummary(): array
+    {
+        $resources = [
+            'student.index' => StudentResource::class,
+            'employee.index' => EmployeeResource::class,
+            'customer.index' => CustomerResource::class,
+            'customer_lead.index' => CustomerLeadResource::class,
+            'project.index' => ProjectResource::class,
+            'task.index' => TaskResource::class,
+            'article.index' => ArticleResource::class,
+            'newsletter.index' => NewsletterResource::class,
+            'paid_campaign.index' => PaidCampaignResource::class,
+        ];
+        $permissions = [];
+
+        foreach ($resources as $permission => $resource) {
+            $allowed = hexa()->can($permission);
+            $permissions[$permission] = $allowed;
+            $permissions[$permission.'_url'] = $allowed ? $resource::getUrl('index') : null;
+        }
+        $permissions['task.view_all'] = hexa()->can('task.view_all');
+
+        return app(AdminOverviewDashboardData::class)->summary($permissions);
     }
 
     /**
