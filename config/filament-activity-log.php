@@ -126,13 +126,14 @@ return [
         'actions' => [
             'timeline' => true,
             'view' => true,
-            'revert' => true,
-            'restore' => true,
-            'delete' => true,
+            'revert' => false,
+            'restore' => false,
+            'delete' => false,
             'export' => true,
+            'prune' => false,
         ],
         'bulk_actions' => [
-            'delete' => true,
+            'delete' => false,
         ],
     ],
 
@@ -183,43 +184,21 @@ return [
     | Permissions Settings
     |--------------------------------------------------------------------------
     |
-    | Configuration for the permissions.
-    |
-    | You can use 'custom_authorization' to define your own authorization logic.
-    | For example, to restrict access to only user ID 1:
-    |
-    | 'custom_authorization' => fn($user) => $user->id === 1,
-    |
-    | Or to allow super admins only:
-    |
-    | 'custom_authorization' => fn($user) => $user->hasRole('super_admin'),
-    |
-    | If 'custom_authorization' is set, it takes precedence over the 'enabled'
-    | and permission checks.
+    | Activity log access uses the explicit activity-log.index role permission.
+    | No custom callback is configured so view and mutation permissions remain
+    | independent. Mutation permissions intentionally have no registered gate.
     |
     */
     'permissions' => [
-        'enabled' => false,
-
-        /**
-         * Custom authorization callback.
-         *
-         * This callback receives the authenticated user and should return a boolean.
-         * If set, this takes precedence over the 'enabled' setting and permission checks.
-         *
-         * Example: fn($user) => $user->id === 1
-         * Example: fn($user) => $user->hasRole('super_admin')
-         * Example: 'App\Support\ActivityLogAuthorization' (class with __invoke method)
-         */
-        'custom_authorization' => fn($user) => $user->id === 1,
-
-        'view_any' => 'view_any_activity',
-        'view' => 'view_activity',
-        'create' => 'create_activity',
-        'update' => 'update_activity',
-        'delete' => 'delete_activity',
-        'restore' => 'restore_activity',
-        'force_delete' => 'force_delete_activity',
+        'enabled' => true,
+        'custom_authorization' => null,
+        'view_any' => 'activity-log.index',
+        'view' => 'activity-log.index',
+        'create' => 'activity-log.manage',
+        'update' => 'activity-log.manage',
+        'delete' => 'activity-log.manage',
+        'restore' => 'activity-log.manage',
+        'force_delete' => 'activity-log.manage',
     ],
 
     /*

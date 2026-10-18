@@ -46,8 +46,7 @@ class CustomerInteraction extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['timestamp', 'interaction_rating'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

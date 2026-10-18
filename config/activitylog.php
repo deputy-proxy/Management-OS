@@ -46,7 +46,15 @@ return [
      * These attributes will be excluded from logging for all models.
      * Model-specific exclusions via logExcept() are merged with these.
      */
-    'default_except_attributes' => [],
+    'default_except_attributes' => [
+        'password', 'remember_token', 'api_token', 'access_token', 'refresh_token', 'token', 'secret', 'client_secret', 'private_key',
+        'cnp_cui', 'date_of_birth', 'gender', 'email', 'phone', 'phone_number', 'address',
+        'first_name', 'middle_name', 'last_name', 'full_name', 'reviewer_name', 'contact_person_name', 'contact_person_email', 'contact_person_phone',
+        'content', 'description', 'document', 'attachment', 'invoice', 'contract_document', 'contract_send_error', 'clauses',
+        'correct_answer', 'answer', 'data', 'metadata', 'results', 'criteria', 'objectives', 'steps', 'notes', 'feedback', 'reason',
+        'topic_interest', 'product_interest', 'relevant_indicators', 'benefits_for_us', 'benefits_for_them', 'collaborations',
+        'our_similar_offer', 'their_differentiator', 'location', 'locations', 'physical_location', 'featured_image', 'rules', 'support', 'action', 'question', 'body', 'message', 'comment',
+    ],
 
     /*
      * When enabled, activities are buffered in memory and inserted in a

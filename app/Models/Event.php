@@ -39,8 +39,7 @@ class Event extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'start_date', 'end_date', 'start_time', 'end_time'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function productPrices(): MorphMany

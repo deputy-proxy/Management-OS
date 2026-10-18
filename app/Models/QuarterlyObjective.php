@@ -48,7 +48,6 @@ class QuarterlyObjective extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['employee_id', 'quarter', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

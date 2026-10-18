@@ -66,7 +66,6 @@ class Customer extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['customer_type'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

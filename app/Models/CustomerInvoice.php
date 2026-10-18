@@ -54,7 +54,7 @@ class CustomerInvoice extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['amount_without_vat', 'vat', 'month', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function productRevenue(): HasOne

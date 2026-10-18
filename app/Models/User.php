@@ -72,8 +72,7 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly([])->logOnlyDirty()->logEmptyChanges();
     }
 
     public function notificationPreferences(): \Illuminate\Database\Eloquent\Relations\HasMany

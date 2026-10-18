@@ -62,7 +62,6 @@ class CustomerContract extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['contract_code', 'start_date', 'end_date', 'signed_at'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

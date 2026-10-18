@@ -52,7 +52,6 @@ class ProductReview extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['product_type', 'product_id', 'rating', 'reviewed_on', 'privacy_consented_at', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -40,8 +40,7 @@ class PotentialPartner extends Model implements Commentable
     protected $fillable = ['name', 'site', 'contact_person_name', 'type', 'benefits_for_us', 'benefits_for_them', 'last_contact', 'contact_person_email', 'contact_person_phone'];
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['name', 'site', 'type', 'last_contact'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

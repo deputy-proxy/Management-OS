@@ -54,6 +54,6 @@ class Process extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'owner_id', 'main_topic', 'visible_to'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

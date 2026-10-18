@@ -48,8 +48,7 @@ class SocialPost extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'network', 'scheduled_on', 'published_on', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

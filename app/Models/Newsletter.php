@@ -44,8 +44,7 @@ class Newsletter extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'audience', 'scheduled_on', 'delivered_on', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

@@ -49,7 +49,7 @@ class Partner extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['name', 'site'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

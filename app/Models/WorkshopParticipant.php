@@ -52,8 +52,7 @@ class WorkshopParticipant extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['workshop_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

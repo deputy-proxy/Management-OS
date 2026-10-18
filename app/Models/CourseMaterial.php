@@ -55,6 +55,6 @@ class CourseMaterial extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'course_id', 'added_by'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

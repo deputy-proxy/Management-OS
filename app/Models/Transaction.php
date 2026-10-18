@@ -49,7 +49,7 @@ class Transaction extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function customerInvoice(): BelongsTo

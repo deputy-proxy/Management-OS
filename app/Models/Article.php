@@ -42,7 +42,6 @@ class Article extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'published_in', 'scheduled_on', 'published_on', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -49,6 +49,6 @@ class Competition extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'start_on', 'end_on', 'maximum_entries'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

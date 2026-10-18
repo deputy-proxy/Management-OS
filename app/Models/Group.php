@@ -51,6 +51,6 @@ class Group extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'course_id', 'teacher_id', 'status', 'initiated_on', 'formed_on', 'started_on', 'ended_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -48,7 +48,6 @@ class ProjectPhase extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'project_id', 'start_on', 'end_on', 'order'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

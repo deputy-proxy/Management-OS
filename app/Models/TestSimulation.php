@@ -58,6 +58,6 @@ class TestSimulation extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['test_id', 'title', 'date', 'number_of_hours', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

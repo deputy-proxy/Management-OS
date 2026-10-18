@@ -40,8 +40,7 @@ class FinancialAccount extends Model implements Commentable
     protected $fillable = ['title', 'type', 'bank', 'currency', 'status', 'opened_on', 'closed_on'];
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'type', 'bank', 'currency', 'status', 'opened_on', 'closed_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

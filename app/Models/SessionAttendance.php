@@ -53,7 +53,6 @@ class SessionAttendance extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['session_id', 'status', 'achievement_badge'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

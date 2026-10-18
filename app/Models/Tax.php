@@ -44,8 +44,7 @@ class Tax extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['category', 'month', 'amount', 'status', 'due_on', 'paid_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }
