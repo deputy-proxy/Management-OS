@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,10 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'abilities' => CheckAbilities::class,
+        ]);
     })
     ->withBroadcasting(
-    __DIR__.'/../routes/channels.php',
+        __DIR__.'/../routes/channels.php',
         [
             'prefix' => 'api',
             'middleware' => ['web', 'auth'], // Ensure 'web' is first!
