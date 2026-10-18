@@ -95,7 +95,7 @@ If CI fails:
 
 ## 6. PHP Validation
 
-The current `composer.json` defines `setup`, `dev`, and `test` scripts. Only `composer test` is a CI quality-gate script. The documented `lint:check`, `types:check`, and `ci:check` scripts do not exist and must not be used or described as current commands.
+The current `composer.json` defines `setup`, `dev`, `test`, and `analyse` scripts. `composer test` and `composer analyse` are CI quality gates. The documented `lint:check`, `types:check`, and `ci:check` scripts do not exist and must not be used or described as current commands.
 
 The PHP CI job in `.github/workflows/tests.yml` runs these checks in order:
 
@@ -106,11 +106,12 @@ The PHP CI job in `.github/workflows/tests.yml` runs these checks in order:
 5. Parse PHP files under `app`, `bootstrap`, `config`, `database`, `routes`, and `tests` with `token_get_all(..., TOKEN_PARSE)`.
 6. `vendor/bin/pint --test tests`
 7. `composer test`
-8. `composer audit --locked`
+8. `composer analyse`
+9. `composer audit --locked`
 
-Use those configured checks for local validation; do not invent aliases that are absent from `composer.json`.
+Use those configured checks for local validation; do not invent aliases that are absent from `composer.json`. CI also runs a separate MySQL 8.0 migration/integrity regression job and the PHPStan/Larastan gate.
 
-No PHPStan, Larastan, Psalm, or other PHP static-analysis tool/configuration is currently installed or enforced by CI. Static analysis is therefore **not** an existing quality gate. Do not claim that type analysis passes until a tool, configuration, and CI command are deliberately introduced in a separate, validated change.
+PHP static analysis is enforced by the `static-analysis` CI job using PHPStan 2 and Larastan 3 at level 5 over `app`. `phpstan-baseline.neon` records the reviewed legacy findings present when the gate was introduced. New findings fail CI; baseline changes must be reviewed explicitly and must not be used to hide new issues. Retire fixed findings by removing their specific entries from `phpstan-baseline.neon` and confirming `composer analyse` still passes. Run `composer analyse` locally. The separate `mysql` CI job runs migrations and database-sensitive regression tests against MySQL 8.0. Production is documented as MySQL 8.x, but the exact deployed minor version remains unverified; CI coverage is not a substitute for staging verification against that exact version.
 
 A lightweight CI check validates the Composer commands documented in these development instructions against actual Composer scripts and the explicitly allowed Composer CLI commands.
 
