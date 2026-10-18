@@ -28,6 +28,14 @@ class ManageProductResourceAction extends Action
         parent::setUp();
 
         $this
+            ->visible(fn (Model $record): bool => $record->productResources()->exists()
+                ? hexa()->can('product_resource.index')
+                : hexa()->can('product_resource.create')
+            )
+            ->authorize(fn (Model $record): bool => $record->productResources()->exists()
+                ? hexa()->can('product_resource.index')
+                : hexa()->can('product_resource.create')
+            )
             ->label(fn (Model $record) => $record->productResources()->exists()
                 ? 'Product Resource'
                 : 'Add as Product Resource'
@@ -93,6 +101,11 @@ class ManageProductResourceAction extends Action
                 : [$action->getModalSubmitAction()]
             )
             ->action(function (Model $record, array $data) {
+                abort_unless(
+                    ! $record->productResources()->exists() && hexa()->can('product_resource.create'),
+                    403,
+                );
+
                 ProductResource::create([
                     'name'              => $data['name'],
                     'amount'            => $data['amount'],

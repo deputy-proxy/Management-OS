@@ -1,6 +1,7 @@
 <?php
 namespace App\Filament\Resources\Tasks\Actions;
 
+use App\Filament\Resources\Tasks\TaskResource;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Project;
@@ -20,6 +21,8 @@ class TasksAction extends Action
         parent::setUp();
 
         $this
+            ->visible(fn (?Model $record): bool => static::canUse($record))
+            ->authorize(fn (?Model $record): bool => static::canUse($record))
             ->label(__('Tasks'))
             ->icon('heroicon-m-check-circle')
             ->slideOver()
@@ -30,15 +33,21 @@ class TasksAction extends Action
                     ->tabs([
                         Tabs\Tab::make('Current Tasks')
                             ->icon('heroicon-m-check-circle')
-                            ->visible(fn () => $record !== null && $record->tasks()->exists())
+                            ->visible(fn () => $record !== null && hexa()->can('task.index') && $record->tasks()->exists())
                             ->schema([
                                 View::make('filament.tasks.task-list')
                                     ->viewData([
-                                        'tasks' => $record !== null ? $record->tasks()->with('assignedTo')->get() : collect(),
+                                        'tasks' => $record !== null && hexa()->can('task.index')
+                                            ? TaskResource::getEloquentQuery()
+                                                ->whereIn('tasks.id', $record->tasks()->select('tasks.id'))
+                                                ->with('assignedTo')
+                                                ->get()
+                                            : collect(),
                                     ]),
                             ]),
                         Tabs\Tab::make('Add Task')
                             ->icon('heroicon-m-plus-circle')
+                            ->visible(fn (): bool => hexa()->can('task.create'))
                             ->schema([
                                 Forms\Components\TextInput::make('taskable_type')
                                     ->label('Taskable Type')
@@ -53,7 +62,10 @@ class TasksAction extends Action
                                 Forms\Components\Textarea::make('description')
                                     ->required(),
                                 Forms\Components\Select::make('assigned_to')
-                                    ->options(fn () => User::pluck('name', 'id'))
+                                    ->options(fn () => hexa()->can('task.assign')
+                                        ? User::query()->pluck('name', 'id')
+                                        : User::query()->whereKey(auth()->id())->pluck('name', 'id'))
+                                    ->default(fn () => auth()->id())
                                     ->required(),
                                 Forms\Components\Select::make('project_id')
                                     ->options(fn () => Project::pluck('title', 'id'))
@@ -80,23 +92,47 @@ class TasksAction extends Action
                 ]);
             })
             ->action(function (array $data, ?Model $record): void {
+                abort_unless(static::canUse($record) && hexa()->can('task.create'), 403);
+
                 if (! $record) {
                     return;
                 }
-                $record->tasks()->create($data);
+
+                $assignedTo = hexa()->can('task.assign')
+                    ? (int) $data['assigned_to']
+                    : (int) auth()->id();
+
+                $record->tasks()->create([
+                    'action' => $data['action'],
+                    'description' => $data['description'],
+                    'assigned_to' => $assignedTo,
+                    'project_id' => $data['project_id'],
+                    'project_phase_id' => $data['project_phase_id'],
+                    'status' => $data['status'],
+                    'due_date' => $data['due_date'],
+                ]);
             })
             ->badge(function ($record): ?int {
-                if (! $record) {
+                if (! $record || ! hexa()->can('task.index') || ! in_array(HasTasks::class, class_uses_recursive($record), true)) {
                     return null;
                 }
-                if (! in_array(HasTasks::class, class_uses_recursive($record))) {
-                    return null;
-                }
-                $count = $record->tasks()->count();
+
+                $count = TaskResource::getEloquentQuery()
+                    ->whereIn('tasks.id', $record->tasks()->select('tasks.id'))
+                    ->count();
+
                 return $count > 0 ? $count : null;
             })
             ->badgeColor('gray')
             ->successNotificationTitle('Task created successfully.');
+    }
+
+
+    public static function canUse(?Model $record): bool
+    {
+        return $record !== null
+            && in_array(HasTasks::class, class_uses_recursive($record), true)
+            && (hexa()->can('task.index') || hexa()->can('task.create'));
     }
 
     public static function getDefaultName(): ?string
