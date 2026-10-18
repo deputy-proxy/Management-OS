@@ -1,0 +1,1447 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Offset ''confirm_signed'' on array\{customer_type\: string, cnp_cui\: string, address\: string, contract_code\: string, start_date\: string, end_date\: string, document\: string, confirm_signed\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Actions/ConvertCustomerLead.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/BackfillProducts.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Pages/NotificationSettings.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$enabled\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Pages/NotificationSettings.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$event_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Pages/NotificationSettings.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>enabled" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Filament/Pages/NotificationSettings.php
+
+		-
+			message: '#^Parameter \#1 \$permissions of method App\\Services\\AdminOverviewDashboardData\:\:summary\(\) expects array\<string, bool\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Pages/OverviewDashboard.php
+
+		-
+			message: '#^Access to an undefined property App\\Filament\\Pages\\Profile\:\:\$passwordForm\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Filament/Pages/Profile.php
+
+		-
+			message: '#^Access to an undefined property App\\Filament\\Pages\\Profile\:\:\$profileForm\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Pages/Profile.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\Articles\\ArticleResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/Articles/ArticleResource.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:productPrice\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Filament/Resources/Camps/Pages/CreateCamp.php
+
+		-
+			message: '#^Cannot access property \$productPrice on Illuminate\\Database\\Eloquent\\Model\|int\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Filament/Resources/Camps/Pages/EditCamp.php
+
+		-
+			message: '#^Cannot call method productPrice\(\) on Illuminate\\Database\\Eloquent\\Model\|int\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Filament/Resources/Camps/Pages/EditCamp.php
+
+		-
+			message: '#^Invoking callable on an unknown class Filament\\Forms\\Get\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/CompetitionEntries/Schemas/CompetitionEntryForm.php
+
+		-
+			message: '#^Parameter \$get of anonymous function has invalid type Filament\\Forms\\Get\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/CompetitionEntries/Schemas/CompetitionEntryForm.php
+
+		-
+			message: '#^Anonymous function never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Filament/Resources/CustomerLeads/Tables/CustomerLeadsTable.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\DigitalAssets\\DigitalAssetResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/DigitalAssets/DigitalAssetResource.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\EmployeeEvaluationForms\\EmployeeEvaluationFormResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/EmployeeEvaluationForms/EmployeeEvaluationFormResource.php
+
+		-
+			message: '#^Parameter \#1 \$label of method Filament\\Forms\\Components\\Field\:\:label\(\) expects Closure\|Illuminate\\Contracts\\Support\\Htmlable\|string\|null, false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/EmployeeEvaluations/Schemas/EmployeeEvaluationForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$job_title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeeHolidays/Schemas/EmployeeHolidayForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$job_title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeeMedicalLeaves/Schemas/EmployeeMedicalLeaveForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/Actions/AddToPaySlipAction.php
+
+		-
+			message: '#^Unsafe call to private method App\\Filament\\Resources\\EmployeePaySlips\\Actions\\AddToPaySlipAction\:\:supports\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/Actions/AddToPaySlipAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$month\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/Actions/RecordPaySlipAdjustmentAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isOpen\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:lineItems\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
+
+		-
+			message: '#^Parameter \#1 \$paySlip of method App\\Services\\EmployeePaySlipService\:\:populateAutomaticItems\(\) expects App\\Models\\EmployeePaySlip, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/EmployeePaySlips/Pages/CreateEmployeePaySlip.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\Employees\\EmployeeResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/Employees/EmployeeResource.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\PhysicalAssets\\PhysicalAssetResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/PhysicalAssets/PhysicalAssetResource.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\Processes\\ProcessResource\:\:getNavigationBadge\(\) should return string\|null but returns int\<0, max\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/Processes/ProcessResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/ProductResources/Actions/ManageProductResourceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$month\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/ProductResources/Actions/ManageProductResourceAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:productResources\(\)\.$#'
+			identifier: method.notFound
+			count: 10
+			path: app/Filament/Resources/ProductResources/Actions/ManageProductResourceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/ProductResources/Schemas/ProductResourceForm.php
+
+		-
+			message: '#^Call to static method find\(\) on an unknown class App\\Models\\EmployeeSalary\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/ProductResources/Schemas/ProductResourceForm.php
+
+		-
+			message: '#^Call to static method query\(\) on an unknown class App\\Models\\EmployeeSalary\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/ProductResources/Schemas/ProductResourceForm.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Filament/Resources/ProductResources/Schemas/ProductResourceForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount_without_vat\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/ProductRevenues/Actions/ManageProductRevenueAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/ProductRevenues/Actions/ManageProductRevenueAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$month\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/ProductRevenues/Actions/ManageProductRevenueAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:productRevenue\(\)\.$#'
+			identifier: method.notFound
+			count: 10
+			path: app/Filament/Resources/ProductRevenues/Actions/ManageProductRevenueAction.php
+
+		-
+			message: '#^Invoking callable on an unknown class Filament\\Forms\\Get\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/ProductReviews/Schemas/ProductReviewForm.php
+
+		-
+			message: '#^Parameter \$get of anonymous function has invalid type Filament\\Forms\\Get\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/ProductReviews/Schemas/ProductReviewForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$full_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$teacher_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{attendance_id\: mixed, student_name\: mixed, status\: string\|null\}, Closure\(App\\Models\\SessionAttendance\)\: array\{attendance_id\: mixed, student_name\: mixed, status\: string\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/InputSessionAttendanceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$full_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/ProvideSessionFeedbackAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$teacher_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/ProvideSessionFeedbackAction.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/ProvideSessionFeedbackAction.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{attendance_id\: mixed, student_name\: mixed, achievement_badge\: string\|null, feedback\: string\|null\}, Closure\(App\\Models\\SessionAttendance\)\: array\{attendance_id\: mixed, student_name\: mixed, achievement_badge\: string\|null, feedback\: string\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/ProvideSessionFeedbackAction.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/Sessions/Actions/ProvideSessionFeedbackAction.php
+
+		-
+			message: '#^Cannot access property \$session_type on Illuminate\\Database\\Eloquent\\Model\|int\|string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Filament/Resources/Sessions/Pages/EditSession.php
+
+		-
+			message: '#^Parameter \#1 \$session of method App\\Services\\Academic\\SessionLifecycleService\:\:validateUpdate\(\) expects App\\Models\\Session, Illuminate\\Database\\Eloquent\\Model\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/Sessions/Pages/EditSession.php
+
+		-
+			message: '#^Unsafe call to private method App\\Filament\\Resources\\Sessions\\Schemas\\SessionForm\:\:sessionTypeOptions\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: app/Filament/Resources/Sessions/Schemas/SessionForm.php
+
+		-
+			message: '#^Unsafe call to private method App\\Filament\\Resources\\Sessions\\Schemas\\SessionForm\:\:updateGroupIdentifier\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 3
+			path: app/Filament/Resources/Sessions/Schemas/SessionForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$session_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Sessions/SessionResource.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<0, max\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Filament/Resources/Sessions/SessionResource.php
+
+		-
+			message: '#^Unsafe call to private method App\\Filament\\Resources\\Sessions\\SessionResource\:\:canManageType\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: app/Filament/Resources/Sessions/SessionResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/Tasks/Actions/TasksAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:tasks\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Filament/Resources/Tasks/Actions/TasksAction.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Filament\\Schemas\\Components\\Tabs\:\:persistTabInQueryString\(\) expects Closure\|string\|null, false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/Tasks/Actions/TasksAction.php
+
+		-
+			message: '#^Relation ''roles'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Filament/Resources/Tasks/Schemas/TaskForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$assigned_to\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/Tasks/TaskResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/Tasks/TaskResource.php
+
+		-
+			message: '#^Class App\\Filament\\Resources\\TestSubmissionResource\\RelationManagers\\AnswersRelationManager not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/TestSubmissions/TestSubmissionResource.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\TestSubmissions\\TestSubmissionResource\:\:getRelations\(\) should return array\<class\-string\<Filament\\Resources\\RelationManagers\\RelationManager\>\|Filament\\Resources\\RelationManagers\\RelationGroup\|Filament\\Resources\\RelationManagers\\RelationManagerConfiguration\> but returns array\{''AlizHarb\\\\ActivityLog\\\\RelationManagers\\\\ActivitiesRelationManager'', ''App\\\\Filament\\\\Resources\\\\TestSubmissionResource\\\\RelationManagers\\\\AnswersRelationManager''\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/TestSubmissions/TestSubmissionResource.php
+
+		-
+			message: '#^Call to an undefined method Filament\\Forms\\Components\\Field\:\:searchable\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Filament/Resources/Tests/RelationManagers/QuestionsRelationManager.php
+
+		-
+			message: '#^Class App\\Filament\\Resources\\TestResource\\RelationManagers\\QuestionsRelationManager not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/Tests/TestResource.php
+
+		-
+			message: '#^Method App\\Filament\\Resources\\Tests\\TestResource\:\:getRelations\(\) should return array\<class\-string\<Filament\\Resources\\RelationManagers\\RelationManager\>\|Filament\\Resources\\RelationManagers\\RelationGroup\|Filament\\Resources\\RelationManagers\\RelationManagerConfiguration\> but returns array\{''AlizHarb\\\\ActivityLog\\\\RelationManagers\\\\ActivitiesRelationManager'', ''App\\\\Filament\\\\Resources\\\\TestResource\\\\RelationManagers\\\\QuestionsRelationManager''\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Filament/Resources/Tests/TestResource.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/VendorContracts/Schemas/VendorContractForm.php
+
+		-
+			message: '#^Call to method Illuminate\\Contracts\\View\\Factory\:\:exists\(\) with ''welcome'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Call to function array_key_exists\(\) with ''comment_body'' and \*NEVER\* will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Jobs/SendCommentCreatedEmail.php
+
+		-
+			message: '#^Call to function is_array\(\) with string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Jobs/SendCommentCreatedEmail.php
+
+		-
+			message: '#^Parameter \#1 \$payload of method App\\Jobs\\SendCommentCreatedEmail\:\:contextModel\(\) expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/SendCommentCreatedEmail.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 4
+			path: app/Jobs/SendCommentCreatedEmail.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Jobs/SendCommentCreatedEmail.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Article\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Article.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Camp\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Camp.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CampParticipant\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CampParticipant.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CompetitionEntry\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CompetitionEntry.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Competitor\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Competitor.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CompetitorOffer\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CompetitorOffer.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ContentTemplate\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ContentTemplate.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Course\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Course.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CourseMaterial\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CourseMaterial.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Customer\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Customer.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CustomerContract\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CustomerContract.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CustomerInteraction\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CustomerInteraction.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CustomerInvoice\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CustomerInvoice.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\CustomerLead\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/CustomerLead.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\DigitalAsset\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/DigitalAsset.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Discount\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Discount.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Employee\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Employee.php
+
+		-
+			message: '#^Call to function is_array\(\) with string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Models/EmployeeContract.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeContract\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeContract.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Models/EmployeeContract.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeEvaluation\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeEvaluation.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeEvaluationForm\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeEvaluationForm.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeHoliday\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeHoliday.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeMedicalLeave\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeMedicalLeave.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EmployeeTimesheet\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EmployeeTimesheet.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Event\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\EventParticipant\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/EventParticipant.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\FinancialAccount\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/FinancialAccount.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\FinancialAccountBalance\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/FinancialAccountBalance.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Group\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Group.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\JobDescription\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/JobDescription.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\LegalDocument\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/LegalDocument.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Meeting\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Meeting.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\MeetingTopic\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/MeetingTopic.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Newsletter\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Newsletter.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\NewsletterSubscriber\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/NewsletterSubscriber.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\PaidCampaign\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/PaidCampaign.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Partner\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Partner.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\PhysicalAsset\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/PhysicalAsset.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\PotentialPartner\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/PotentialPartner.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Process\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Process.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Product\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductCost\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductCost.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductPrice\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductPrice.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductResource\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductResource.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductResourceAllocation\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductResourceAllocation.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductRevenue\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductRevenue.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProductReview\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProductReview.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProgressUpdate\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProgressUpdate.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<0, max\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/ProgressUpdate.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Project\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ProjectPhase\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ProjectPhase.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\QuarterlyObjective\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/QuarterlyObjective.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Session.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/Session.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/Session.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Models/Session.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\SessionAssistance\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/SessionAssistance.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\SessionAttendance\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/SessionAttendance.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\SocialPost\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/SocialPost.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Student\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Student.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Models/StudentGroupMembership.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Task\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Task.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Tax\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Tax.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Test\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Test.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TestQuestion\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TestQuestion.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TestResult\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TestResult.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TestSubmission\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TestSubmission.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<0, max\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/TestSubmission.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TestSubmissionAnswer\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TestSubmissionAnswer.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TestType\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TestType.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Transaction\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Transaction.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Vendor\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Vendor.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\VendorCategory\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/VendorCategory.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\VendorContract\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/VendorContract.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\VendorInvoice\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/VendorInvoice.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Workshop\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Workshop.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\WorkshopMaterial\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/WorkshopMaterial.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\WorkshopParticipant\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/WorkshopParticipant.php
+
+		-
+			message: '#^Parameter \#1 \$resource of method App\\Services\\ProductCostService\:\:recalculateForResource\(\) expects App\\Models\\ProductResource, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Observers/ProductResourceAllocationObserver.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$createdBy\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$owner\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Relaticle\\Comments\\Models\\Comment\:\:\$body\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Illuminate\\Database\\Eloquent\\Model and ''is'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Instanceof between Illuminate\\Database\\Eloquent\\Model and Illuminate\\Database\\Eloquent\\Model will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Providers/CommentNotificationServiceProvider.php
+
+		-
+			message: '#^Class App\\Models\\EmployeeSalary not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Providers/DomainModelServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$map of static method Illuminate\\Database\\Eloquent\\Relations\\Relation\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,mixed\>\:\:enforceMorphMap\(\) expects array\<class\-string\<Illuminate\\Database\\Eloquent\\Model\>\>, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Providers/DomainModelServiceProvider.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Services/Academic/SessionLifecycleService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between Carbon\\Carbon and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Services/Academic/SessionRosterService.php
+
+		-
+			message: '#^Parameter \#5 \$url of closure expects string\|null, bool\|null given\.$#'
+			identifier: argument.type
+			count: 6
+			path: app/Services/AdminOverviewDashboardData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$full_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\Competition\)\: Illuminate\\Support\\Collection\<int\|string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\ContentTemplate\)\: Illuminate\\Support\\Collection\<int\|string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\CustomerInteraction\)\: void given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\CustomerInvoice\)\: void given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\EmployeeEvaluation\)\: void given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\Event\)\: Illuminate\\Support\\Collection\<int\|string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\Session\)\: void given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/CalendarEventService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Article\:\:\$scheduled_to_start_on\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/ContentManagementDashboardData.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Article\:\:\$status_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/ContentManagementDashboardData.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: app/Services/ContentManagementDashboardData.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CustomerInvoice\:\:\$record_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/CustomerDashboardData.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CustomerLead\:\:\$record_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/CustomerDashboardData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$ends_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$identifier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$starts_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Services/EmployeePaySlipService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$full_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Method App\\Services\\GeneralOverviewData\:\:weeklySchedule\(\) should return Illuminate\\Support\\Collection\<int, array\{type\: string, title\: string, teacher\: string, starts_at\: Carbon\\CarbonImmutable, ends_at\: Carbon\\CarbonImmutable\}\> but returns Illuminate\\Support\\Collection\<int, array\{type\: ''Group session''\|''Individual session'', title\: string, teacher\: mixed, starts_at\: Carbon\\CarbonImmutable, ends_at\: Carbon\\CarbonImmutable\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Session\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Services/GeneralOverviewData.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CompetitorOffer\:\:\$value_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CompetitorOffer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/MarketAnalysisDashboardData.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: app/Services/NavigationSettingsManager.php
+
+		-
+			message: '#^Offset ''groups'' on array\{label\: \(int\|string\), class\: class\-string\<Filament\\Clusters\\Cluster\>\|null, groups\: array\{\}\} in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.offset
+			count: 1
+			path: app/Services/NavigationSettingsManager.php
+
+		-
+			message: '#^Offset ''sort'' on null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Services/NavigationSettingsManager.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''__ungrouped__'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/NavigationSettingsManager.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, bool\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Call to function is_array\(\) with string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Call to function is_bool\(\) with bool will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Relation ''roles'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 3
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$allocation_percent\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/ProductCostService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/ProductCostService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:productPrices\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/ProductPriceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:trashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/ProductSyncService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Method App\\Services\\ProductsOverviewData\:\:summary\(\) should return array\{as_of\: string, total\: int, with_effective_price\: int, missing_price\: int, ambiguous_price\: int, missing_productable\: int, products\: Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>, statuses\: array\<int, string\>, \.\.\.\} but returns array\{as_of\: non\-falsy\-string, total\: int\<0, max\>, with_effective_price\: int\<0, max\>, missing_price\: int\<0, max\>, ambiguous_price\: int\<0, max\>, missing_productable\: int\<0, max\>, products\: Illuminate\\Support\\Collection\<int, array\{id\: int\<0, max\>, title\: string, status\: string, type\: string\|null, type_label\: string, productable_id\: int, productable_title\: mixed, productable_exists\: bool, \.\.\.\}\>, statuses\: array\<int, mixed\>, \.\.\.\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Product\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:filter\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/ProductsOverviewData.php
+
+		-
+			message: '#^Anonymous function should return App\\Models\\CompetitionEntry but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/PublicSubmissions/CompetitionEntrySubmission.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/PublicSubmissions/CompetitionEntrySubmission.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Task\:\:\$record_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/TasksAndProjectsData.php
+
+		-
+			message: '#^Instanceof between Illuminate\\Support\\Collection\<\(int\|string\), mixed\> and Illuminate\\Support\\Collection will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 2
+			path: app/Services/TasksAndProjectsData.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/TeachersDashboardData.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int\<0, max\>, name\: string, group_assignments\: int\|null, scheduled_sessions\: int\|null\}, Closure\(App\\Models\\Employee\)\: array\{id\: int\<0, max\>, name\: string, group_assignments\: int\|null, scheduled_sessions\: int\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/TeachersDashboardData.php
