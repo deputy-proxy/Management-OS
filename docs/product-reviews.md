@@ -1,0 +1,7 @@
+# Product reviews
+
+Product reviews are public submissions from existing customers and are moderated before publication. The supported review targets are courses, camps, workshops, and events, represented by the established `product_type` morph-map aliases and `product_id`. `ProductReview::reviewedProduct()` resolves the target; each supported product model exposes the inverse `reviews()` relation. `ProductReview::customer()` links the reviewer to an existing customer, and `Customer::productReviews()` exposes that customer's reviews. Reviewer name and email are retained as submitted snapshots.
+
+Ratings are required integers from 1 through 5. Review content is required and limited to 5,000 characters. Public submissions require privacy consent, a valid target that exists, and an email matching an existing customer. The server derives `customer_id`; submitted values cannot choose the reviewer identity or moderation status. New reviews are recorded with `status = pending_review` and are not published automatically.
+
+A customer may submit at most one review for a given product target. The application validates duplicates before creation and the database enforces uniqueness across `product_type`, `product_id`, and `customer_id`, including soft-deleted reviews. Moderation states are `pending_review`, `approved`, and `rejected`; authorized staff can manage these in Filament under the existing HexaLite gates. Public submission is rate-limited by the existing public route middleware.

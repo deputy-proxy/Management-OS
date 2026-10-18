@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
-
 use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,10 +17,9 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Course extends Model implements Commentable
 {
-    use HasPanelSearchTitle;
-
     use HasComments;
     use HasFactory;
+    use HasPanelSearchTitle;
     use HasTasks;
     use LogsActivity;
     use SoftDeletes;
@@ -48,6 +46,11 @@ class Course extends Model implements Commentable
     public function productPrices(): MorphMany
     {
         return $this->morphMany(ProductPrice::class, 'priceable');
+    }
+
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(ProductReview::class, 'reviewedProduct', 'product_type', 'product_id');
     }
 
     public function product(): MorphOne

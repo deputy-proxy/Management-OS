@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ProductReviews\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class ProductReviewInfolist
@@ -11,14 +11,16 @@ class ProductReviewInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('product_type'),
-                \Filament\Infolists\Components\TextEntry::make('product_id'),
-                \Filament\Infolists\Components\TextEntry::make('reviewer_name'),
-                \Filament\Infolists\Components\TextEntry::make('reviewer_email'),
-                \Filament\Infolists\Components\TextEntry::make('customer_id'),
-                \Filament\Infolists\Components\TextEntry::make('content'),
-                \Filament\Infolists\Components\TextEntry::make('rating'),
-                \Filament\Infolists\Components\TextEntry::make('reviewed_on')->dateTime(),
+                TextEntry::make('product_type')->label('Product type'),
+                TextEntry::make('reviewedProduct.title')->label('Product')->placeholder('Product unavailable'),
+                TextEntry::make('reviewer_name'),
+                TextEntry::make('reviewer_email'),
+                TextEntry::make('customer.name')->label('Customer'),
+                TextEntry::make('content'),
+                TextEntry::make('rating')->badge(),
+                TextEntry::make('status')->badge(),
+                TextEntry::make('reviewed_on')->dateTime(),
+                TextEntry::make('privacy_consented_at')->dateTime(),
             ]);
     }
 }

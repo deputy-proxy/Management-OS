@@ -160,6 +160,16 @@ class PublicSubmissionController extends Controller
             return back()->withErrors(['reviewer_email' => __('Reviews are currently limited to existing customers. Please contact us if your customer email has changed.')])->withInput();
         }
 
+        $duplicateReviewExists = ProductReview::query()
+            ->where('product_type', $data['product_type'])
+            ->where('product_id', $data['product_id'])
+            ->where('customer_id', $customer->getKey())
+            ->exists();
+
+        if ($duplicateReviewExists) {
+            return back()->withErrors(['reviewer_email' => __('You have already submitted a review for this product.')])->withInput();
+        }
+
         ProductReview::query()->create([
             'product_type' => $data['product_type'],
             'product_id' => $data['product_id'],
