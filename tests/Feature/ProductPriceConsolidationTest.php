@@ -277,4 +277,3 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertSame('2026-12-31', $price->fresh()->valid_until->toDateString());
     }
 }
-
