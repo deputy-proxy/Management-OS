@@ -58,7 +58,7 @@ class CustomerLead extends Model implements Commentable
 
     /** @var array<int, string> */
     protected $fillable = [
-        'first_name', 'middle_name', 'last_name', 'full_name', 'email', 'phone', 'source', 'topic_interest', 'product_interest', 'status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_document', 'contract_send_status', 'contract_sent_at', 'contract_send_error',
+        'first_name', 'middle_name', 'last_name', 'full_name', 'email', 'phone', 'source', 'topic_interest', 'product_interest', 'status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_document', 'contract_send_status', 'contract_sent_at', 'contract_send_error', 'privacy_consented_at',
     ];
 
     public function getActivitylogOptions(): LogOptions

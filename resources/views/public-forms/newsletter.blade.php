@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ __('Newsletter subscription') }}</title></head>
+<body>
+    <main>
+        <h1>{{ __('Newsletter subscription') }}</h1>
+        @include('public-forms._form')
+        <form method="POST" action="{{ route('public.newsletter.store') }}">
+            @csrf
+            <label>{{ __('First name') }} <input name="first_name" value="{{ old('first_name') }}" required maxlength="100"></label>
+            <label>{{ __('Last name') }} <input name="last_name" value="{{ old('last_name') }}" required maxlength="100"></label>
+            <label>{{ __('Email') }} <input type="email" name="email" value="{{ old('email') }}" required maxlength="255"></label>
+            <label hidden>Website <input name="website" tabindex="-1" autocomplete="off"></label>
+            <label><input type="checkbox" name="privacy_consent" value="1" required> {{ __('I agree to receive the newsletter and understand I can unsubscribe.') }}</label>
+            <button type="submit">{{ __('Subscribe') }}</button>
+        </form>
+    </main>
+</body>
+</html>
