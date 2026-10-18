@@ -187,7 +187,10 @@ class ProductPriceConsolidationTest extends TestCase
             'amount' => '49.00',
             'currency' => 'EUR',
         ]);
+        $event->update(['event_price_id' => $eventPrice->id]);
         $this->assertSame($event->id, $eventPrice->event->id);
+        $this->assertSame($eventPrice->id, $event->fresh()->eventPrice->id);
+        $this->assertSame('event', $event->fresh()->eventPrice->priceable_type);
         $this->assertDatabaseHas('product_prices', [
             'id' => $eventPrice->id,
             'priceable_type' => 'event',
@@ -215,7 +218,10 @@ class ProductPriceConsolidationTest extends TestCase
             'start_on' => '2026-04-01',
             'end_on' => '2026-04-30',
         ]);
+        $workshop->update(['workshop_price_id' => (string) $workshopPrice->id]);
         $this->assertSame($workshop->id, $workshopPrice->workshop->id);
+        $this->assertSame($workshopPrice->id, $workshop->fresh()->workshopPrice->id);
+        $this->assertSame('workshop', $workshop->fresh()->workshopPrice->priceable_type);
         $this->assertDatabaseHas('product_prices', [
             'id' => $workshopPrice->id,
             'priceable_type' => 'workshop',
