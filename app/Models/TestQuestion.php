@@ -81,6 +81,6 @@ class TestQuestion extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['question_type'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

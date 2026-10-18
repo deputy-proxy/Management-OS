@@ -93,6 +93,6 @@ class Session extends Model implements Commentable, Eventable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['session_type', 'group_id', 'course_id', 'starts_at', 'ends_at', 'status', 'attendance_status', 'identifier'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

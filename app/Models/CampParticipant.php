@@ -46,4 +46,9 @@ class CampParticipant extends Model
         return $this->morphMany(Activity::class, 'subject');
     }
 
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logOnly([])->logOnlyDirty()->logEmptyChanges();
+    }
 }

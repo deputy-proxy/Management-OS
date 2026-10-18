@@ -89,6 +89,6 @@ class TestSubmission extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['test_id', 'submission_timestamp', 'status', 'score'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

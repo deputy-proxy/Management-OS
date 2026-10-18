@@ -79,7 +79,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Relaticle\Comments\Events\CommentCreated;
 use Relaticle\Comments\Models\Subscription;
-use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,15 +89,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Activity::creating(function (Activity $activity) {
-            if (request()->hasSession()) {
-                $activity->properties = $activity->properties->merge([
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]);
-            }
-        });
-
         foreach (['created', 'updated', 'deleted'] as $modelEvent) {
             Event::listen('eloquent.'.$modelEvent.': *', function (string $eventName, array $payload) use ($modelEvent): void {
                 $model = $payload[0] ?? null;

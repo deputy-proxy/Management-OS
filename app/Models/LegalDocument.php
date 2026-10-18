@@ -44,8 +44,7 @@ class LegalDocument extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'category', 'expiration_date'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

@@ -93,6 +93,6 @@ class Test extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'topic', 'level', 'created_by', 'test_type_id', 'time_limit', 'passing_score'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

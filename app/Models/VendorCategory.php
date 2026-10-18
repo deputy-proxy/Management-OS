@@ -44,8 +44,7 @@ class VendorCategory extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

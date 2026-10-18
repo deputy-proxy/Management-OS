@@ -44,8 +44,7 @@ class PaidCampaign extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'network', 'scheduled_to_start_on', 'started_on', 'scheduled_to_end_on', 'ended_on', 'budget', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

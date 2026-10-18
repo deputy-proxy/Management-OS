@@ -47,7 +47,6 @@ class NewsletterSubscriber extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['privacy_consented_at'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -44,6 +44,6 @@ class TestType extends Model
 
 public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

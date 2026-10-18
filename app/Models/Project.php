@@ -48,8 +48,7 @@ class Project extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'status', 'planned_start_date', 'planned_end_date', 'start_date', 'end_date', 'budget'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

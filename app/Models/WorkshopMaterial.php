@@ -55,6 +55,6 @@ class WorkshopMaterial extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'workshop_id', 'added_by'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

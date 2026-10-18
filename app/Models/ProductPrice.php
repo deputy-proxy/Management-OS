@@ -58,7 +58,7 @@ class ProductPrice extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['price', 'currency', 'priceable_type', 'priceable_id', 'price_type', 'valid_from', 'valid_until', 'legacy_source_type', 'legacy_source_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function activities(): MorphMany

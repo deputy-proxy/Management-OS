@@ -44,8 +44,7 @@ class ContentTemplate extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'template_for', 'link', 'last_revision'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

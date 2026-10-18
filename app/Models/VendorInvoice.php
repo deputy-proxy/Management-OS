@@ -58,6 +58,6 @@ class VendorInvoice extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'month', 'status', 'amount', 'invoice_number', 'identifier'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

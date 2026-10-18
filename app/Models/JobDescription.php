@@ -48,8 +48,7 @@ class JobDescription extends Model implements Commentable
 
 public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['job_title', 'job_level', 'job_role'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 

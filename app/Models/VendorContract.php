@@ -46,8 +46,7 @@ class VendorContract extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['start_date', 'end_date', 'vendor_id', 'contract_code'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

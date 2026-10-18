@@ -119,7 +119,6 @@ class CustomerLead extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_sent_at', 'privacy_consented_at'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

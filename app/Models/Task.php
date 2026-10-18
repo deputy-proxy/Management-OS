@@ -67,7 +67,7 @@ class Task extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type', 'created_by'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function createdBy(): BelongsTo

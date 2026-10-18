@@ -50,7 +50,7 @@ class EmployeeEvaluation extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['due_by', 'performed_on', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function performedBy(): BelongsTo

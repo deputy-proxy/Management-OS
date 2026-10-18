@@ -48,8 +48,7 @@ class CompetitorOffer extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['title', 'competitor_id', 'offer_type', 'offer_price', 'last_check', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

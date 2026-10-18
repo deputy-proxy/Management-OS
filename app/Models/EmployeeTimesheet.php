@@ -51,6 +51,6 @@ class EmployeeTimesheet extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['date', 'time_start', 'time_end', 'category', 'number_of_hours'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

@@ -44,8 +44,7 @@ class Discount extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['applies_to_type', 'applies_to_item', 'value', 'type', 'start_on', 'end_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

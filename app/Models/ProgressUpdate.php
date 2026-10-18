@@ -53,8 +53,7 @@ class ProgressUpdate extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['update_date'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

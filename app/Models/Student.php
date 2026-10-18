@@ -46,8 +46,7 @@ class Student extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly([])->logOnlyDirty()->logEmptyChanges();
     }
 
 }

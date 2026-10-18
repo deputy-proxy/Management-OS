@@ -44,6 +44,6 @@ class FinancialAccountBalance extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['financial_account_id', 'current_balance', 'currency', 'reported_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

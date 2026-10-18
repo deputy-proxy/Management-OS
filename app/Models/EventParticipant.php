@@ -52,7 +52,6 @@ class EventParticipant extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['event_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

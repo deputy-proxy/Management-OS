@@ -57,8 +57,7 @@ class EmployeeEvaluationForm extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['job_description_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

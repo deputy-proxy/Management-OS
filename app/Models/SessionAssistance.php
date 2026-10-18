@@ -59,8 +59,7 @@ class SessionAssistance extends Model implements Commentable
     }
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logAll();
+        return LogOptions::defaults()->logOnly(['session_id', 'assistance_date', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }

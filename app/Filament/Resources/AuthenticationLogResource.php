@@ -17,6 +17,7 @@ class AuthenticationLogResource extends BaseResource
     {
         return [
             'auth-log.index' => __('Allows viewing the authentication logs'),
+            'activity-log.index' => __('Allows viewing the activity audit log'),
         ];
     }
 

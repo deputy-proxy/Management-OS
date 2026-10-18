@@ -49,6 +49,6 @@ class CompetitionEntry extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll();
+        return LogOptions::defaults()->logOnly(['competition_id', 'privacy_consented_at', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }
