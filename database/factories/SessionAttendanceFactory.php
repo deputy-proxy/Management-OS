@@ -24,7 +24,7 @@ class SessionAttendanceFactory extends Factory
     public function definition(): array
     {
         return [
-            'group_session_id' => \App\Models\GroupSession::factory(),
+            'session_id' => \App\Models\Session::factory(),
             'student_id' => \App\Models\Student::factory(),
         ];
     }

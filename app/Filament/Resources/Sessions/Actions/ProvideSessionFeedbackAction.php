@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\GroupSessions\Actions;
+namespace App\Filament\Resources\Sessions\Actions;
 
 use App\Models\Employee;
-use App\Models\GroupSession;
+use App\Models\Session;
 use App\Models\SessionAttendance;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
@@ -33,10 +33,10 @@ class ProvideSessionFeedbackAction
         return Action::make('provideSessionFeedback')
             ->label('Provide post-session feedback')
             ->icon('heroicon-o-chat-bubble-left-right')
-            ->visible(fn (GroupSession $record): bool => static::canManage($record))
-            ->modalHeading(fn (GroupSession $record): string => 'Post-session feedback: '.$record->identifier)
+            ->visible(fn (Session $record): bool => static::canManage($record))
+            ->modalHeading(fn (Session $record): string => 'Post-session feedback: '.$record->identifier)
             ->modalSubmitActionLabel('Save feedback')
-            ->fillForm(fn (GroupSession $record): array => [
+            ->fillForm(fn (Session $record): array => [
                 'students' => $record->sessionAttendances()
                     ->with('student')
                     ->orderBy('id')
@@ -77,7 +77,7 @@ class ProvideSessionFeedbackAction
                     ->reorderable(false)
                     ->columnSpanFull(),
             ])
-            ->action(function (GroupSession $record, array $data): void {
+            ->action(function (Session $record, array $data): void {
                 abort_unless(static::canManage($record), 403);
 
                 $rows = collect($data['students'] ?? []);
@@ -115,9 +115,9 @@ class ProvideSessionFeedbackAction
             });
     }
 
-    public static function canManage(GroupSession $session): bool
+    public static function canManage(Session $session): bool
     {
-        if (! auth()->check() || ! hexa()->can('group_session.update')) {
+        if ($session->session_type !== Session::TYPE_GROUP || ! auth()->check() || ! (hexa()->can('session.update') || hexa()->can('group_session.update'))) {
             return false;
         }
 

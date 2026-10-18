@@ -38,12 +38,12 @@ class SessionAttendance extends Model implements Commentable
 
     /** @var array<int, string> */
     protected $fillable = [
-        'group_session_id', 'student_id', 'status', 'achievement_badge', 'feedback',
+        'session_id', 'student_id', 'status', 'achievement_badge', 'feedback',
     ];
 
-    public function groupSession(): BelongsTo
+    public function session(): BelongsTo
     {
-        return $this->belongsTo(GroupSession::class);
+        return $this->belongsTo(Session::class);
     }
 
     public function student(): BelongsTo

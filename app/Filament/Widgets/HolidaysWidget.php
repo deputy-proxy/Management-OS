@@ -2,62 +2,39 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\GroupSession;
-use \Guava\Calendar\Filament\CalendarWidget;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
-use Guava\Calendar\ValueObjects\FetchInfo;
+use App\Models\Session;
 use Guava\Calendar\Enums\CalendarViewType;
 use Guava\Calendar\Filament\Actions\ViewAction;
-
-
+use Guava\Calendar\Filament\CalendarWidget;
+use Guava\Calendar\ValueObjects\FetchInfo;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class HolidaysWidget extends CalendarWidget
 {
-    //protected CalendarViewType $calendarView = CalendarViewType::TimeGridWeek;
     protected bool $eventClickEnabled = true;
     protected ?string $defaultEventClickAction = 'view';
+    protected CalendarViewType $calendarView = CalendarViewType::TimeGridWeek;
 
-
-    protected function getEvents(FetchInfo $info): Collection | array | Builder
+    protected function getEvents(FetchInfo $info): Collection|array|Builder
     {
-    // The simplest way:
-       return GroupSession::query();
-    
-    // You probably want to query only visible events:
-  /*  return GroupSession::query()
-        ->whereDate('end_on', '>=', $info->start)
-        ->whereDate('start_on', '<=', $info->end);
-        
-   */
-    // If you need to display multiple types of models,
-   // you will need to combine the results of each
-   // query builder manually:
-   return collect()
-       ->push(GroupSession::query()->get())
-   ;  
+        return Session::query()
+            ->where('ends_at', '>=', $info->start)
+            ->where('starts_at', '<=', $info->end);
     }
 
     public function viewAction(): ViewAction
     {
-        return ViewAction::make()
-            ->model(GroupSession::class);
+        return ViewAction::make()->model(Session::class);
     }
 
     public function getOptions(): array
     {
-        return array_merge(parent::getOptions(), [
-            'pointer' => true,
-        ]);
-
+        return array_merge(parent::getOptions(), ['pointer' => true]);
     }
 
     protected function getEventClickContextMenuActions(): array
     {
-        return [
-            $this->viewAction(),
-            $this->editAction(),
-            $this->deleteAction(),
-        ];
+        return [$this->viewAction(), $this->editAction(), $this->deleteAction()];
     }
 }

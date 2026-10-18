@@ -11,7 +11,7 @@ class SessionAssistanceInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('group_session_id'),
+                \Filament\Infolists\Components\TextEntry::make('session.identifier'),
                 \Filament\Infolists\Components\TextEntry::make('teacher_id'),
                 \Filament\Infolists\Components\TextEntry::make('assistance_date')->dateTime(),
                 \Filament\Infolists\Components\TextEntry::make('status'),

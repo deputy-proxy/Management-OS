@@ -30,7 +30,6 @@ class EmployeeTimesheetFactory extends Factory
             'category' => $this->faker->word(),
             'number_of_hours' => $this->faker->randomNumber(),
             'session_id' => \App\Models\Session::factory(),
-            'group_session_id' => \App\Models\GroupSession::factory()
         ];
     }
 }

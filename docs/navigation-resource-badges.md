@@ -56,9 +56,8 @@ The following resources have no badge because their current models/resources do 
 - `app/Filament/Resources/Events/EventResource.php`
 - `app/Filament/Resources/FinancialAccountBalances/FinancialAccountBalanceResource.php`
 - `app/Filament/Resources/FinancialAccounts/FinancialAccountResource.php`
-- `app/Filament/Resources/GroupSessions/GroupSessionResource.php`
+- `app/Filament/Resources/Sessions/SessionResource.php`
 - `app/Filament/Resources/Groups/GroupResource.php`
-- `app/Filament/Resources/IndividualSessions/IndividualSessionResource.php`
 - `app/Filament/Resources/JobDescriptions/JobDescriptionResource.php`
 - `app/Filament/Resources/MeetingTopics/MeetingTopicResource.php`
 - `app/Filament/Resources/Meetings/MeetingResource.php`

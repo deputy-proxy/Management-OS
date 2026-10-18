@@ -5,8 +5,7 @@ namespace App\Services;
 use App\Models\CustomerInteraction;
 use App\Models\Employee;
 use App\Models\EmployeeTimesheet;
-use App\Models\GroupSession;
-use App\Models\IndividualSession;
+use App\Models\Session;
 use App\Models\Product;
 use App\Models\ProductCost;
 use App\Models\ProductRevenue;
@@ -113,35 +112,19 @@ class GeneralOverviewData
         $weekStart = $now->startOfWeek();
         $weekEnd = $now->endOfWeek();
 
-        $groupSessions = GroupSession::query()
-            ->with(['group:id,title', 'course:id,title', 'teacher:id,full_name'])
-            ->whereBetween('start_on', [$weekStart, $weekEnd])
-            ->get()
-            ->map(fn (GroupSession $session): array => [
-                'type' => 'Group session',
-                'title' => trim(($session->group?->title ?? 'Group') . ' · ' . ($session->course?->title ?? 'Course')),
-                'teacher' => $session->teacher?->full_name ?? 'Unassigned',
-                'starts_at' => CarbonImmutable::parse($session->start_on, config('app.timezone')),
-                'ends_at' => CarbonImmutable::parse($session->end_on, config('app.timezone')),
-            ]);
-
-        $individualRecords = IndividualSession::query()
-            ->with(['course:id,title', 'customer:id,name'])
+        return Session::query()
+            ->with(['group:id,title', 'course:id,title', 'teacher:id,full_name', 'customer:id,name'])
             ->whereBetween('starts_at', [$weekStart, $weekEnd])
-            ->get();
-        $individualTeachers = Employee::query()
-            ->whereIn('id', $individualRecords->pluck('teacher_id')->filter()->unique())
-            ->pluck('full_name', 'id');
-
-        $individualSessions = $individualRecords->map(fn (IndividualSession $session): array => [
-            'type' => 'Individual session',
-            'title' => trim(($session->course?->title ?? 'Course') . ' · ' . ($session->customer?->name ?? 'Customer')),
-            'teacher' => $individualTeachers->get($session->teacher_id, 'Unassigned'),
-            'starts_at' => CarbonImmutable::parse($session->starts_at, config('app.timezone')),
-            'ends_at' => CarbonImmutable::parse($session->ends_at, config('app.timezone')),
-        ]);
-
-        return $groupSessions->concat($individualSessions)
+            ->get()
+            ->map(fn (Session $session): array => [
+                'type' => $session->session_type === Session::TYPE_GROUP ? 'Group session' : 'Individual session',
+                'title' => $session->session_type === Session::TYPE_GROUP
+                    ? trim(($session->group?->title ?? 'Group') . ' · ' . ($session->course?->title ?? 'Course'))
+                    : trim(($session->course?->title ?? 'Course') . ' · ' . ($session->customer?->name ?? 'Customer')),
+                'teacher' => $session->teacher?->full_name ?? 'Unassigned',
+                'starts_at' => CarbonImmutable::parse($session->starts_at, config('app.timezone')),
+                'ends_at' => CarbonImmutable::parse($session->ends_at, config('app.timezone')),
+            ])
             ->sortBy(fn (array $session): int => $session['starts_at']->getTimestamp())
             ->values();
     }

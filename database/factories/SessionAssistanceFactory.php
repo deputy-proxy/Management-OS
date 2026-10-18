@@ -24,7 +24,7 @@ class SessionAssistanceFactory extends Factory
     public function definition(): array
     {
         return [
-            'group_session_id' => \App\Models\GroupSession::factory(),
+            'session_id' => \App\Models\Session::factory(),
             'teacher_id' => \App\Models\Employee::factory(),
             'assistance_date' => $this->faker->date(),
             'status' => $this->faker->word(),

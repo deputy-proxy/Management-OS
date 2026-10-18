@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources\SessionAssistances\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
-
 
 class SessionAssistancesTable
 {
@@ -18,8 +19,8 @@ class SessionAssistancesTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('groupSession.id')
-                    ->label('Group Session')
+                Tables\Columns\TextColumn::make('session.identifier')
+                    ->label('Session')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('teacher.full_name')
@@ -41,8 +42,8 @@ class SessionAssistancesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
