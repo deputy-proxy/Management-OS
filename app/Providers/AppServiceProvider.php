@@ -75,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
             'event_price' => \App\Models\EventPrice::class,
             'group' => \App\Models\Group::class,
             'session' => \App\Models\Session::class,
+            'test_simulation' => \App\Models\TestSimulation::class,
             'process' => \App\Models\Process::class,
             'legal_document' => \App\Models\LegalDocument::class,
             'project' => \App\Models\Project::class,

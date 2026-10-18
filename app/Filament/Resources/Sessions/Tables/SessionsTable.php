@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sessions\Tables;
 
+use App\Filament\Resources\EmployeePaySlips\Actions\AddToPaySlipAction;
 use App\Filament\Resources\Sessions\Actions\InputSessionAttendanceAction;
 use App\Filament\Resources\Sessions\Actions\ProvideSessionFeedbackAction;
 use App\Filament\Resources\Tasks\Actions\TasksAction;
@@ -10,7 +11,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -38,7 +38,8 @@ class SessionsTable
                 TasksAction::make(),
                 InputSessionAttendanceAction::make(),
                 ProvideSessionFeedbackAction::make()->visible(fn (Session $record): bool => $record->session_type === Session::TYPE_GROUP && ProvideSessionFeedbackAction::canManage($record)),
+                AddToPaySlipAction::make(),
                 CommentsAction::make(),
-            ])->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make(), ForceDeleteBulkAction::make(), RestoreBulkAction::make()])]);
+            ])->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make(), RestoreBulkAction::make()])]);
     }
 }

@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Employee;
 use App\Models\EmployeeContract;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class EmployeeContractFactory extends Factory
 {
@@ -15,6 +14,7 @@ class EmployeeContractFactory extends Factory
      * @var class-string<EmployeeContract>
      */
     protected $model = EmployeeContract::class;
+
     /**
      * Define the model's default state.
      *
@@ -23,13 +23,13 @@ class EmployeeContractFactory extends Factory
     public function definition(): array
     {
         return [
-            'employee_id' => \App\Models\Employee::factory(),
-            'start_date' => $this->faker->date(),
-            'end_date' => $this->faker->date(),
-            'contract_type' => $this->faker->word(),
-            'base_salary' => $this->faker->randomNumber(),
-            'hourly_rate' => $this->faker->url(),
-            'clauses' => $this->faker->word()
+            'employee_id' => Employee::factory(),
+            'start_date' => now()->subMonth()->toDateString(),
+            'end_date' => now()->addYear()->toDateString(),
+            'contract_type' => 'full_time',
+            'base_salary' => $this->faker->randomFloat(2, 1000, 10000),
+            'hourly_rate' => $this->faker->randomFloat(2, 10, 100),
+            'clauses' => [],
         ];
     }
 }

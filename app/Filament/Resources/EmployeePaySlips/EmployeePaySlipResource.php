@@ -29,7 +29,7 @@ class EmployeePaySlipResource extends Resource
 
     protected static ?string $model = EmployeePaySlip::class;
 
-    protected static ?string $recordTitleAttribute = 'title';
+    protected static ?string $recordTitleAttribute = 'month';
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -109,16 +109,24 @@ class EmployeePaySlipResource extends Resource
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
+        if ($record->status === 'Paid') {
+            return Response::deny('Paid payslips are locked.');
+        }
+
         return hexa()->can('employee_pay_slip.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
     }
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
+        if (! $record->isOpen() || $record->lineItems()->exists()) {
+            return Response::deny('Payslips with source items or a locked status cannot be deleted.');
+        }
+
         return hexa()->can('employee_pay_slip.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete an employee pay slip.'));
     }
 
     public static function getDeleteAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('employee_pay_slip.delete') ? Response::allow() : Response::deny(__('You do not have permission to delete employee pay slips.'));
+        return Response::deny('Payslips must be checked individually before deletion.');
     }
 }

@@ -85,6 +85,12 @@ class EmployeeHolidayForm
                             ->required(),
                         Forms\Components\DatePicker::make('end_date')
                             ->required(),
+                        Forms\Components\TextInput::make('hours_per_day')
+                            ->label('Paid Hours per Weekday')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(8)
+                            ->required(),
                     ])
                     ->columns(2),
 
