@@ -57,6 +57,16 @@ class Session extends Model implements Commentable, Eventable
         return $this->belongsTo(Employee::class);
     }
 
+    public function progressUpdates(): HasMany
+    {
+        return $this->hasMany(ProgressUpdate::class, 'session_id');
+    }
+
+    public function testSubmissions(): HasMany
+    {
+        return $this->hasMany(TestSubmission::class, 'session_id');
+    }
+
     public function sessionAttendances(): HasMany
     {
         return $this->hasMany(SessionAttendance::class, 'session_id');

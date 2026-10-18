@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\StudentsDashboard;
+use App\Models\Group;
 use App\Models\Project;
 use App\Models\ProjectPhase;
 use App\Models\Student;
+use App\Models\StudentGroupMembership;
 use App\Models\User;
 use App\Services\StudentsDashboardData;
 use Carbon\CarbonImmutable;
@@ -37,6 +39,21 @@ class StudentsDashboardDataTest extends TestCase
         $this->assertSame(1, $summary['enrollment_trend']->firstWhere('date', '2026-10-18')['count']);
         $this->assertSame(2, $summary['enrollment_trend']->sum('count'));
         $this->assertSame(['Boundary Student'], $summary['recent_students']->pluck('full_name')->all());
+    }
+
+    public function test_dashboard_counts_only_memberships_effective_on_the_current_date(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));
+        $group = Group::factory()->create();
+        $active = Student::factory()->create();
+        StudentGroupMembership::query()->create(['student_id' => $active->id, 'group_id' => $group->id, 'started_on' => '2026-10-01']);
+        $endedStudent = Student::factory()->create();
+        StudentGroupMembership::query()->create(['student_id' => $endedStudent->id, 'group_id' => $group->id, 'started_on' => '2026-01-01', 'ended_on' => '2026-10-17']);
+
+        $summary = app(StudentsDashboardData::class)->summary($now);
+
+        $this->assertSame(1, $summary['current_group_memberships']);
+        $this->assertSame(1, $summary['groups_with_current_memberships']);
     }
 
     public function test_enrollment_trend_supports_7_30_and_90_day_ranges_and_normalizes_invalid_periods(): void
@@ -105,6 +122,8 @@ class StudentsDashboardDataTest extends TestCase
         $this->assertSame(0, $summary['total_students']);
         $this->assertSame(0, $summary['current_students']);
         $this->assertSame(0, $summary['deleted_students']);
+        $this->assertSame(0, $summary['current_group_memberships']);
+        $this->assertSame(0, $summary['groups_with_current_memberships']);
         $this->assertCount(30, $summary['enrollment_trend']);
         $this->assertSame(0, $summary['enrollment_trend']->sum('count'));
         $this->assertCount(0, $summary['recent_students']);
@@ -125,6 +144,8 @@ class StudentsDashboardDataTest extends TestCase
         $this->assertNull($summary['total_students']);
         $this->assertNull($summary['current_students']);
         $this->assertNull($summary['deleted_students']);
+        $this->assertNull($summary['current_group_memberships']);
+        $this->assertNull($summary['groups_with_current_memberships']);
         $this->assertCount(0, $summary['enrollment_trend']);
         $this->assertCount(0, $summary['recent_students']);
         $this->assertCount(0, $summary['overdue_student_tasks']);

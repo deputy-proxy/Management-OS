@@ -9,7 +9,6 @@ use App\Filament\Resources\Tasks\Actions\TasksAction;
 use App\Models\Session;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
@@ -34,12 +33,12 @@ class SessionsTable
         ])->filters([Tables\Filters\TrashedFilter::make()])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()->disabled(fn (Session $record): bool => $record->sessionAttendances()->exists() || $record->employeeTimesheets()->exists()),
                 TasksAction::make(),
                 InputSessionAttendanceAction::make(),
                 ProvideSessionFeedbackAction::make()->visible(fn (Session $record): bool => $record->session_type === Session::TYPE_GROUP && ProvideSessionFeedbackAction::canManage($record)),
                 AddToPaySlipAction::make(),
                 CommentsAction::make(),
-            ])->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make(), RestoreBulkAction::make()])]);
+            ])->toolbarActions([BulkActionGroup::make([RestoreBulkAction::make()])]);
     }
 }

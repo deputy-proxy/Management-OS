@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Sessions\Actions;
 use App\Models\Employee;
 use App\Models\Session;
 use App\Models\SessionAttendance;
+use App\Services\Academic\SessionRosterService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -30,14 +31,21 @@ class InputSessionAttendanceAction
             ->visible(fn (Session $record): bool => static::canManage($record))
             ->modalHeading(fn (Session $record): string => 'Attendance: '.$record->identifier)
             ->modalSubmitActionLabel('Save attendance')
-            ->fillForm(fn (Session $record): array => $record->session_type === Session::TYPE_INDIVIDUAL
-                ? ['customer_name' => $record->customer?->name ?? 'Unknown customer', 'attendance_status' => $record->attendance_status]
-                : ['students' => $record->sessionAttendances()->with('student')->orderBy('student_id')->get()
+            ->fillForm(function (Session $record): array {
+                if ($record->session_type === Session::TYPE_INDIVIDUAL) {
+                    return ['customer_name' => $record->customer?->name ?? 'Unknown customer', 'attendance_status' => $record->attendance_status];
+                }
+
+                $roster = app(SessionRosterService::class);
+                $roster->synchronize($record);
+
+                return ['students' => $roster->eligibleAttendances($record)->with('student')->orderBy('student_id')->get()
                     ->map(fn (SessionAttendance $attendance): array => [
                         'attendance_id' => $attendance->getKey(),
                         'student_name' => $attendance->student?->full_name ?? 'Unknown student',
                         'status' => $attendance->status,
-                    ])->all()])
+                    ])->all()];
+            })
             ->schema(fn (Session $record): array => $record->session_type === Session::TYPE_INDIVIDUAL ? [
                 TextInput::make('customer_name')->label('Participant')->disabled()->dehydrated(),
                 Select::make('attendance_status')->label('Attendance Status')->options(static::statuses())->required(),
@@ -67,9 +75,17 @@ class InputSessionAttendanceAction
 
                     return;
                 }
+                $roster = app(SessionRosterService::class);
+                $roster->synchronize($record);
+                $eligibleStudentIds = $roster->eligibleStudentIds($record);
                 $rows = collect($data['students'] ?? []);
                 $ids = $rows->pluck('attendance_id')->map(fn ($id): int => (int) $id);
-                $actualIds = $record->sessionAttendances()->whereIn('id', $ids)->pluck('id')->map(fn ($id): int => (int) $id);
+                $actualIds = $roster->eligibleAttendances($record)->whereIn('id', $ids)->pluck('id')->map(fn ($id): int => (int) $id);
+                $submittedStudentIds = $record->sessionAttendances()->whereIn('id', $ids)->pluck('student_id')->map(fn ($id): int => (int) $id);
+
+                if ($submittedStudentIds->contains(fn (int $id): bool => ! in_array($id, $eligibleStudentIds, true))) {
+                    throw ValidationException::withMessages(['students' => 'Attendance can only be recorded for students who were members of this group on the session date.']);
+                }
 
                 if ($ids->count() !== $actualIds->count() || $ids->unique()->count() !== $ids->count()) {
                     throw ValidationException::withMessages(['students' => 'Attendance rows must belong to this session. Refresh and try again.']);

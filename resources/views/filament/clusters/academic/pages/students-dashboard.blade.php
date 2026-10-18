@@ -30,6 +30,18 @@
                         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Retained records marked deleted; not interpreted as inactive students.</p>
                     </x-filament::section>
                 </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <x-filament::section>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Current student-group memberships</p>
+                        <p class="mt-2 text-3xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ number_format($dashboard['current_group_memberships']) }}</p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Memberships effective today, including memberships in multiple groups when recorded.</p>
+                    </x-filament::section>
+                    <x-filament::section>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Groups with current members</p>
+                        <p class="mt-2 text-3xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ number_format($dashboard['groups_with_current_memberships']) }}</p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Distinct groups with at least one membership effective today.</p>
+                    </x-filament::section>
+                </div>
                 <div class="flex flex-wrap gap-3">
                     @if ($dashboard['students_url'])
                         <x-filament::button tag="a" :href="$dashboard['students_url']" icon="heroicon-m-users">View students</x-filament::button>
@@ -135,7 +147,7 @@
                 <ul class="list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
                     <li>The student schema has no explicit active/inactive, cohort, program, level, or location fields. Those breakdowns are omitted rather than inferred.</li>
                     <li>Gender is free text, so it is not treated as a normalized distribution category.</li>
-                    <li>Enrollment trend counts all student records created in the selected period, including records later soft-deleted. The recent-additions list includes current records only.</li>
+                    <li>Enrollment trend counts student records created in the selected period, not group enrollment. Current group enrollment metrics use effective-dated student-group memberships as the canonical record.</li>
                     <li>Student metrics and quick links require <code>student.index</code>; creation requires <code>student.create</code>. The dashboard gate alone does not grant resource access.</li>
                 </ul>
             </x-filament::section>

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Sessions\Pages;
 
 use App\Filament\Resources\Sessions\SessionResource;
 use App\Models\Session;
+use App\Services\Academic\SessionLifecycleService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
@@ -19,6 +20,9 @@ class EditSession extends EditRecord
             throw ValidationException::withMessages(['session_type' => 'A session type cannot be changed after the session is created.']);
         }
 
+        app(SessionLifecycleService::class)->validateUpdate($this->record, $data);
+        SessionResource::validateGroupAssignment($data);
+
         if ($this->record->session_type === Session::TYPE_GROUP) {
             $data['customer_id'] = null;
         } else {
@@ -31,7 +35,9 @@ class EditSession extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),            CommentsAction::make(),
+            Actions\DeleteAction::make()
+                ->disabled(fn (Session $record): bool => $record->sessionAttendances()->exists() || $record->employeeTimesheets()->exists()),
+            CommentsAction::make(),
 
         ];
     }

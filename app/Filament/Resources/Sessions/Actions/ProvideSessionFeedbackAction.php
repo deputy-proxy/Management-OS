@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Sessions\Actions;
 use App\Models\Employee;
 use App\Models\Session;
 use App\Models\SessionAttendance;
+use App\Services\Academic\SessionRosterService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -36,8 +37,11 @@ class ProvideSessionFeedbackAction
             ->visible(fn (Session $record): bool => static::canManage($record))
             ->modalHeading(fn (Session $record): string => 'Post-session feedback: '.$record->identifier)
             ->modalSubmitActionLabel('Save feedback')
-            ->fillForm(fn (Session $record): array => [
-                'students' => $record->sessionAttendances()
+            ->fillForm(function (Session $record): array {
+                $roster = app(SessionRosterService::class);
+                $roster->synchronize($record);
+
+                return ['students' => $roster->eligibleAttendances($record)
                     ->with('student')
                     ->orderBy('id')
                     ->get()
@@ -47,8 +51,8 @@ class ProvideSessionFeedbackAction
                         'achievement_badge' => $attendance->achievement_badge,
                         'feedback' => $attendance->feedback,
                     ])
-                    ->all(),
-            ])
+                    ->all()];
+            })
             ->schema([
                 Repeater::make('students')
                     ->label('Students in this session')
@@ -80,9 +84,11 @@ class ProvideSessionFeedbackAction
             ->action(function (Session $record, array $data): void {
                 abort_unless(static::canManage($record), 403);
 
+                $roster = app(SessionRosterService::class);
+                $roster->synchronize($record);
                 $rows = collect($data['students'] ?? []);
                 $attendanceIds = $rows->pluck('attendance_id')->map(fn ($id): int => (int) $id);
-                $actualIds = $record->sessionAttendances()->whereIn('id', $attendanceIds)->pluck('id')->map(fn ($id): int => (int) $id);
+                $actualIds = $roster->eligibleAttendances($record)->whereIn('id', $attendanceIds)->pluck('id')->map(fn ($id): int => (int) $id);
 
                 if ($attendanceIds->count() !== $actualIds->count() || $attendanceIds->unique()->count() !== $attendanceIds->count()) {
                     throw ValidationException::withMessages([

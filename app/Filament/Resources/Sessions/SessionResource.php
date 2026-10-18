@@ -7,6 +7,7 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 use App\Filament\Resources\Sessions\Schemas\SessionForm;
 use App\Filament\Resources\Sessions\Schemas\SessionInfolist;
 use App\Filament\Resources\Sessions\Tables\SessionsTable;
+use App\Models\Group;
 use App\Models\Session;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,6 +17,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Validation\ValidationException;
 use UnitEnum;
 
 class SessionResource extends Resource
@@ -104,6 +106,26 @@ class SessionResource extends Resource
         return (hexa()->can('session.delete') || ($canDeleteGroup && $canDeleteIndividual) || $canDeleteVisibleTypes)
             ? Response::allow()
             : Response::deny(__('You do not have permission to delete these sessions.'));
+    }
+
+    public static function validateGroupAssignment(array $data): void
+    {
+        if (($data['session_type'] ?? null) !== Session::TYPE_GROUP) {
+            return;
+        }
+
+        $group = isset($data['group_id']) ? Group::query()->find($data['group_id']) : null;
+        if ($group === null) {
+            throw ValidationException::withMessages(['group_id' => 'Choose an existing group.']);
+        }
+
+        if ((int) $group->course_id !== (int) ($data['course_id'] ?? 0)) {
+            throw ValidationException::withMessages(['course_id' => 'A group session must use the course assigned to its group.']);
+        }
+
+        if ($group->teacher_id === null || (int) $group->teacher_id !== (int) ($data['teacher_id'] ?? 0)) {
+            throw ValidationException::withMessages(['teacher_id' => 'A group session must use the teacher assigned to its group. Assign a teacher to the group first.']);
+        }
     }
 
     public static function canCreateType(?string $type): bool

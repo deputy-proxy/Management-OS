@@ -14,6 +14,11 @@ class ProgressUpdateForm
                 Forms\Components\Select::make('student_id')
                     ->relationship('student', 'full_name')
                     ->required(),
+                Forms\Components\Select::make('session_id')
+                    ->relationship('session', 'identifier')
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Optional: link this progress update to the group session that provides its academic context.'),
                 Forms\Components\Select::make('teacher_id')
                     ->relationship('teacher', 'full_name')
                     ->required(),

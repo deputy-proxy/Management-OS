@@ -1,14 +1,22 @@
 # Session attendance
 
-Attendance input is available from the unified Sessions resource for both group and individual session types. It is an edit action over existing session participants, not an enrollment editor.
+Attendance input is available from the unified Sessions resource for group and individual session types.
 
-## Statuses and edit rules
+## Group sessions
 
-- `present` — participant attended.
-- `absent` — participant did not attend.
-- `excused` — absence was excused.
-- `NULL` — attendance has not yet been recorded.
+The canonical roster comes from `student_group_memberships`. A student is eligible when membership is effective on the session's `starts_at` calendar date, inclusive of both membership boundary dates. Opening attendance/feedback synchronizes missing `session_attendances` rows for that roster. Synchronization is idempotent and never deletes historical attendance rows.
 
-The assigned teacher can correct attendance later; there is no time-based lock in the current schema. The scheduled session date/time remains the source of when the session occurred. Group sessions expose only existing `session_attendances` rows for that session, and the action does not create or delete participant rows. Individual sessions have one `customer_id`, so the status is stored on that session record. Repeated saves update the same record.
+The actions display and accept only eligible rows. A submitted row must belong to the selected session and to a student eligible on that session date. The database additionally enforces one active attendance row per session/student. Existing historical rows for students without an effective membership are retained but are not editable through the standard attendance/feedback actions until reconciled.
 
-Both session types now share the `Session` model and `scheduled_sessions` table. Group attendance remains normalized in `session_attendances`; individual attendance is stored on the session row because an individual session has one customer participant.
+## Individual sessions
+
+An individual session has one `customer_id`; attendance is stored in `scheduled_sessions.attendance_status` rather than a group attendance row.
+
+## Statuses
+
+- `present`: participant attended.
+- `absent`: participant did not attend.
+- `excused`: absence was excused.
+- `NULL`: attendance has not yet been recorded.
+
+The assigned teacher can correct eligible attendance later; there is no time-based lock in the current schema. Feedback and achievement badges are stored on the same group participation row, so repeated saves update rather than duplicate the record.

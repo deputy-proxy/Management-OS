@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
+use App\Services\Academic\AcademicSessionLinkValidator;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +19,7 @@ use App\Models\Concerns\HasTasks;
 
 class ProgressUpdate extends Model implements Commentable
 {
+
     use HasPanelSearchTitle;
 
     use LogsActivity;
@@ -26,6 +28,17 @@ class ProgressUpdate extends Model implements Commentable
     use SoftDeletes;
     use HasComments;
     use HasTasks;
+
+    protected static function booted(): void
+    {
+        static::saving(function (ProgressUpdate $record): void {
+            app(AcademicSessionLinkValidator::class)->validate(
+                $record->session_id === null ? null : (int) $record->session_id,
+                $record->student_id === null ? null : (int) $record->student_id,
+            );
+        });
+    }
+
 
     public function tasks(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
@@ -39,12 +52,17 @@ class ProgressUpdate extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'student_id', 'teacher_id', 'update', 'update_date'
+        'student_id', 'teacher_id', 'session_id', 'update', 'update_date'
     ];
 
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(Session::class);
     }
 
     public function teacher(): BelongsTo

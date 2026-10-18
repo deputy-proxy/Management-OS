@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Sessions\Schemas;
 use App\Models\Course;
 use App\Models\Group;
 use App\Models\Session;
+use App\Services\Academic\SessionLifecycleService;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Schemas\Components\Utilities\Get;
@@ -26,6 +27,8 @@ class SessionForm
                 ->afterStateUpdated(function (Set $set): void {
                     $set('group_id', null);
                     $set('customer_id', null);
+                    $set('course_id', null);
+                    $set('teacher_id', null);
                     $set('identifier', null);
                 })
                 ->required(),
@@ -34,7 +37,12 @@ class SessionForm
                 ->visible(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
                 ->required(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
                 ->live()
-                ->afterStateUpdated(fn (Get $get, Set $set) => static::updateGroupIdentifier($get, $set)),
+                ->afterStateUpdated(function (Get $get, Set $set): void {
+                    $group = $get('group_id') ? Group::find($get('group_id')) : null;
+                    $set('course_id', $group?->course_id);
+                    $set('teacher_id', $group?->teacher_id);
+                    static::updateGroupIdentifier($get, $set);
+                }),
             Forms\Components\Select::make('customer_id')
                 ->relationship('customer', 'name')
                 ->visible(fn (Get $get): bool => $get('session_type') === Session::TYPE_INDIVIDUAL)
@@ -42,15 +50,23 @@ class SessionForm
             Forms\Components\Select::make('course_id')
                 ->relationship('course', 'title')
                 ->live()
+                ->disabled(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
+                ->dehydrated()
                 ->afterStateUpdated(fn (Get $get, Set $set) => static::updateGroupIdentifier($get, $set))
                 ->required(),
-            Forms\Components\Select::make('teacher_id')->relationship('teacher', 'full_name')->required(),
+            Forms\Components\Select::make('teacher_id')->relationship('teacher', 'full_name')
+                ->disabled(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
+                ->dehydrated()
+                ->required(),
             Forms\Components\DateTimePicker::make('starts_at')
                 ->live()
                 ->afterStateUpdated(fn (Get $get, Set $set) => static::updateGroupIdentifier($get, $set))
                 ->required(),
             Forms\Components\DateTimePicker::make('ends_at')->afterOrEqual('starts_at')->required(),
-            Forms\Components\TextInput::make('status')->required(),
+            Forms\Components\Select::make('status')
+                ->options(fn (): array => app(SessionLifecycleService::class)->statuses())
+                ->default('scheduled')
+                ->required(),
             Forms\Components\TextInput::make('identifier')
                 ->required(fn (Get $get): bool => $get('session_type') === Session::TYPE_INDIVIDUAL)
                 ->disabled(fn (Get $get): bool => $get('session_type') === Session::TYPE_GROUP)
