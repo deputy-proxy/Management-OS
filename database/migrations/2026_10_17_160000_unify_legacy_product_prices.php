@@ -26,12 +26,16 @@ return new class extends Migration
         $this->copyLegacyPrices('course_prices', 'course', 'amount', null, 'course_id', 'start_on', 'end_on');
         $this->copyLegacyPrices('event_prices', 'event', 'amount', 'currency', 'event_id');
         $this->copyLegacyPrices('workshop_prices', 'workshop', 'amount', 'currency', 'workshop_id', 'start_on', 'end_on');
-        DB::table('product_prices')->where('legacy_source_type', 'event_prices')->orderBy('id')->get()->each(function ($price) {
-            DB::table('events')->where('event_price_id', $price->legacy_source_id)->update(['event_price_id' => $price->id]);
-        });
-        DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->orderBy('id')->get()->each(function ($price) {
-            DB::table('workshops')->where('workshop_price_id', (string) $price->legacy_source_id)->update(['workshop_price_id' => (string) $price->id]);
-        });
+        if (Schema::hasColumn('events', 'event_price_id')) {
+            DB::table('product_prices')->where('legacy_source_type', 'event_prices')->orderBy('id')->get()->each(function ($price) {
+                DB::table('events')->where('event_price_id', $price->legacy_source_id)->update(['event_price_id' => $price->id]);
+            });
+        }
+        if (Schema::hasColumn('workshops', 'workshop_price_id')) {
+            DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->orderBy('id')->get()->each(function ($price) {
+                DB::table('workshops')->where('workshop_price_id', (string) $price->legacy_source_id)->update(['workshop_price_id' => (string) $price->id]);
+            });
+        }
 
         // The old Camp schema never stored a currency code, so it remains unknown.
         DB::table('camps')->orderBy('id')->chunkById(200, function ($camps) {
@@ -90,19 +94,23 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::table('product_prices')->whereNull('currency')->whereNull('legacy_source_type')->exists()) {
-            throw new \RuntimeException('Cannot roll back Product Prices while non-legacy records have an unknown currency.');
+            throw new RuntimeException('Cannot roll back Product Prices while non-legacy records have an unknown currency.');
         }
 
         if (DB::table('product_prices')->whereNull('legacy_source_type')->where('price', '>', 999999.99)->exists()) {
-            throw new \RuntimeException('Cannot roll back Product Prices while a non-legacy amount exceeds the old column precision.');
+            throw new RuntimeException('Cannot roll back Product Prices while a non-legacy amount exceeds the old column precision.');
         }
 
-        DB::table('product_prices')->where('legacy_source_type', 'event_prices')->orderBy('id')->get()->each(function ($price) {
-            DB::table('events')->where('event_price_id', $price->id)->update(['event_price_id' => $price->legacy_source_id]);
-        });
-        DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->orderBy('id')->get()->each(function ($price) {
-            DB::table('workshops')->where('workshop_price_id', (string) $price->id)->update(['workshop_price_id' => (string) $price->legacy_source_id]);
-        });
+        if (Schema::hasColumn('events', 'event_price_id')) {
+            DB::table('product_prices')->where('legacy_source_type', 'event_prices')->orderBy('id')->get()->each(function ($price) {
+                DB::table('events')->where('event_price_id', $price->id)->update(['event_price_id' => $price->legacy_source_id]);
+            });
+        }
+        if (Schema::hasColumn('workshops', 'workshop_price_id')) {
+            DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->orderBy('id')->get()->each(function ($price) {
+                DB::table('workshops')->where('workshop_price_id', (string) $price->id)->update(['workshop_price_id' => (string) $price->legacy_source_id]);
+            });
+        }
         DB::table('product_prices')
             ->whereIn('legacy_source_type', ['course_prices', 'event_prices', 'workshop_prices', 'camps.camp_price'])
             ->delete();

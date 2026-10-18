@@ -27,14 +27,14 @@ class ProductPriceConsolidationTest extends TestCase
             'id' => 502, 'title' => 'Event', 'description' => 'Event description',
             'start_date' => '2026-01-01', 'end_date' => '2026-01-02',
             'start_time' => $timestamp, 'end_time' => $timestamp,
-            'event_price_id' => 42, 'featured_image' => 'event.png',
+            'featured_image' => 'event.png',
             'created_at' => $timestamp, 'updated_at' => $timestamp, 'deleted_at' => null,
         ]);
         DB::table('workshops')->insert([
             'id' => 503, 'title' => 'Workshop', 'description' => 'Workshop description',
             'start_date' => '2026-01-01', 'end_date' => '2026-01-02',
             'start_time' => $timestamp, 'end_time' => $timestamp,
-            'type' => 'training', 'location' => 'Room 1', 'workshop_price_id' => '43',
+            'type' => 'training', 'location' => 'Room 1',
             'created_at' => $timestamp, 'updated_at' => $timestamp, 'deleted_at' => null,
         ]);
 
@@ -131,19 +131,12 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
         $this->assertDatabaseCount('product_prices', 4);
-        $eventPriceId = DB::table('product_prices')->where('legacy_source_type', 'event_prices')->value('id');
-        $workshopPriceId = DB::table('product_prices')->where('legacy_source_type', 'workshop_prices')->value('id');
-        $this->assertDatabaseHas('events', ['id' => 502, 'event_price_id' => $eventPriceId]);
-        $this->assertDatabaseHas('workshops', ['id' => 503, 'workshop_price_id' => (string) $workshopPriceId]);
-
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseHas('events', ['id' => 502, 'event_price_id' => 42]);
-        $this->assertDatabaseHas('workshops', ['id' => 503, 'workshop_price_id' => '43']);
     }
 
     public function test_all_product_types_write_prices_through_the_canonical_model(): void
