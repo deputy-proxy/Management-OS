@@ -12,19 +12,12 @@ use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Students\StudentResource;
 use App\Filament\Resources\Tasks\TaskResource;
 use App\Services\AdminOverviewDashboardData;
+use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Hexters\HexaLite\HasHexaLite;
-use UnitEnum;
 
-class OverviewDashboard extends Page
+class OverviewDashboard extends BaseDashboard
 {
-    protected static string|UnitEnum|null $navigationGroup = 'Overview';
-
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
-
-    protected static ?int $navigationSort = -1;
-
     protected string $view = 'filament.pages.overview-dashboard';
 
     use HasHexaLite;
@@ -36,10 +29,6 @@ class OverviewDashboard extends Page
         ];
     }
 
-    public static function canAccess(): bool
-    {
-        return hexa()->can('overview-dashboard.view');
-    }
 
     /**
      * Overview links are metadata-only. Each destination is checked against its
