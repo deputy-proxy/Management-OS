@@ -5,6 +5,7 @@ namespace Hexters\HexaLite\Helpers;
 use Exception;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -45,14 +46,17 @@ class HexaHelper
         if (method_exists($user, 'roles')) {
             if (! empty($user->roles)) {
                 $gates = [];
+
                 foreach ($user->roles as $role) {
                     if (is_array($role->access)) {
-                        foreach ($role->access as $access) {
-                            $gates[] = $access;
-                        }
+                        $gates = array_merge($gates, Arr::flatten($role->access));
                     }
                 }
-                $permissions = is_array($permissions) ? $permissions : [$permissions];
+
+                $gates = array_values(array_filter($gates, 'is_string'));
+                $permissions = Arr::flatten(is_array($permissions) ? $permissions : [$permissions]);
+                $permissions = array_values(array_filter($permissions, 'is_string'));
+
                 return ! empty(array_intersect($gates, $permissions));
             }
             return true;
