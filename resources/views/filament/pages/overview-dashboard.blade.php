@@ -87,7 +87,7 @@
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <?php foreach ($this->getOverviewItems() as $item): ?>
-                    @php
+                    <?php
                         $pageClass = $item['page'];
                         $canOpen = $this->canOpenOverview($pageClass);
                         $overviewStatus = $canOpen ? 'Available' : ($item['scope'] === 'Available' ? 'Restricted' : 'Planned');
@@ -96,7 +96,7 @@
                             : ($item['scope'] === 'Available'
                                 ? 'You do not have permission to open this overview.'
                                 : 'This overview is tracked in its own issue.');
-                    @endphp
+                    ?>
                     <div class="fi-section rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                         <div class="flex h-full flex-col gap-3">
                             <div class="flex items-start justify-between gap-3">
