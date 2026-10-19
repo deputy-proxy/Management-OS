@@ -86,7 +86,7 @@
                 <p class="text-sm text-gray-600 dark:text-gray-300">Open a domain dashboard for its detailed operational analysis. Each destination enforces its own access check.</p>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                @foreach ($this->getOverviewItems() as $item)
+                <?php foreach ($this->getOverviewItems() as $item): ?>
                     @php
                         $pageClass = $item['page'];
                         $canOpen = $this->canOpenOverview($pageClass);
@@ -114,7 +114,7 @@
                             >{{ $overviewAction }}</a>
                         </div>
                     </div>
-                @endforeach
+                <?php endforeach; ?>
             </div>
         </section>
     </div>
