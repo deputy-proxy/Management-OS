@@ -6,6 +6,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Hexters\HexaLite\Resources\Roles\RoleResource;
 use Hexters\HexaLite\Resources\Roles\Widgets\RoleUsersWidget;
+use Illuminate\Support\Str;
 
 class EditRole extends EditRecord
 {
