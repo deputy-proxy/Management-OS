@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
@@ -35,7 +36,7 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
     use CanComment;
     use HasApiTokens;
     use AuthenticationLoggable;
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -70,6 +71,7 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
             'password' => 'hashed',
         ];
     }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logOnly([])->logOnlyDirty()->logEmptyChanges();
@@ -97,10 +99,17 @@ class User extends Authenticatable implements Commentator, HasAvatar, FilamentUs
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // HexaLite treats users without assigned roles as superadmins. That behavior is
-        // useful inside its permission helper, but must never grant panel admission.
-        // Require an explicitly assigned role with at least one configured permission.
-        return $this->roles()->get()->contains(function ($role): bool {
+        $roles = $this->roles()->get();
+        $ownerRole = trim((string) config('hexa.super_admin_role', 'Owner'));
+
+        if ($ownerRole !== '' && $roles->contains(
+            fn ($role) => Str::lower(trim((string) $role->name)) === Str::lower($ownerRole)
+        )) {
+            return true;
+        }
+
+        // Non-owner accounts must have an explicit, non-empty permission set.
+        return $roles->contains(function ($role): bool {
             $permissions = Arr::flatten($role->access ?? []);
 
             return collect($permissions)->contains(
