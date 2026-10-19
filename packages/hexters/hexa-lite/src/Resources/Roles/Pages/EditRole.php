@@ -34,7 +34,28 @@ class EditRole extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $data['gates'] = $data['access'];
+        $savedAccess = is_array($data['access'] ?? null) ? $data['access'] : [];
+        $gates = [];
+
+        foreach (collect(config('hexa-lite-roles', [])) as $role) {
+            if (! is_array($role) || ! is_array($role['names'] ?? null)) {
+                continue;
+            }
+
+            $key = Str::slug((string) ($role['name'] ?? ''), '_');
+            if ($key === '') {
+                continue;
+            }
+
+            $validOptions = array_keys($role['names']);
+            $savedSelections = $savedAccess[$key] ?? [];
+
+            $gates[$key] = is_array($savedSelections)
+                ? array_values(array_intersect($savedSelections, $validOptions))
+                : [];
+        }
+
+        $data['gates'] = $gates;
 
         return $data;
     }
