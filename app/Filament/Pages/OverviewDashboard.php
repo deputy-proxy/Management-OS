@@ -29,10 +29,6 @@ class OverviewDashboard extends BaseDashboard
         ];
     }
 
-    public static function canAccess(): bool
-    {
-        return hexa()->can('overview-dashboard.view');
-    }
 
     /**
      * Overview links are metadata-only. Each destination is checked against its
