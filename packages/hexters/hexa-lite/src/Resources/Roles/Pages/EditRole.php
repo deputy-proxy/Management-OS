@@ -6,6 +6,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Hexters\HexaLite\Resources\Roles\RoleResource;
 use Hexters\HexaLite\Resources\Roles\Widgets\RoleUsersWidget;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class EditRole extends EditRecord
@@ -35,6 +36,11 @@ class EditRole extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $savedAccess = is_array($data['access'] ?? null) ? $data['access'] : [];
+        $savedSelections = collect(Arr::flatten($savedAccess))
+            ->filter(fn ($gate): bool => is_string($gate))
+            ->unique()
+            ->values()
+            ->all();
         $gates = [];
 
         foreach (collect(config('hexa-lite-roles', [])) as $role) {
@@ -48,11 +54,7 @@ class EditRole extends EditRecord
             }
 
             $validOptions = array_keys($role['names']);
-            $savedSelections = $savedAccess[$key] ?? [];
-
-            $gates[$key] = is_array($savedSelections)
-                ? array_values(array_intersect($savedSelections, $validOptions))
-                : [];
+            $gates[$key] = array_values(array_intersect($savedSelections, $validOptions));
         }
 
         $data['gates'] = $gates;
