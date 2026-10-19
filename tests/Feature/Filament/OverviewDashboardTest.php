@@ -8,6 +8,7 @@ use App\Filament\Pages\GeneralDashboard;
 use App\Filament\Pages\OverviewDashboard;
 use App\Filament\Pages\PortfolioOverview;
 use App\Filament\Pages\TasksAndProjects;
+use Filament\Pages\Dashboard;
 use Filament\Pages\Page;
 use Tests\TestCase;
 
@@ -17,7 +18,7 @@ class OverviewDashboardTest extends TestCase
     {
         $page = new OverviewDashboard;
 
-        $this->assertInstanceOf(\Filament\Pages\Dashboard::class, $page);
+        $this->assertInstanceOf(Dashboard::class, $page);
         $this->assertSame('/', $page::getRoutePath());
     }
 
