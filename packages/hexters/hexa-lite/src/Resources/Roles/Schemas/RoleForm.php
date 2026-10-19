@@ -8,7 +8,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\GridDirection;
 use Illuminate\Support\Str;
 
 class RoleForm
@@ -41,12 +40,12 @@ class RoleForm
                     ->collapsed(false)
                     ->schema([
                         CheckboxList::make("gates.{$key}")
-                            ->searchable()
-                            ->columns(2)
-                            ->gridDirection(GridDirection::Row)
                             ->hiddenLabel()
                             ->bulkToggleable()
-                            ->options($role['names']),
+                            ->options(fn (): array => collect($role['names'] ?? [])
+                                ->filter(fn ($label, $gate): bool => is_string($gate) && is_scalar($label))
+                                ->map(fn ($label): string => (string) $label)
+                                ->all()),
                     ]);
             })->values()->all();
 
