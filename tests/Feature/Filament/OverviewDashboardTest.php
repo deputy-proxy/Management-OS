@@ -17,7 +17,7 @@ class OverviewDashboardTest extends TestCase
     {
         $page = new OverviewDashboard;
 
-        $this->assertInstanceOf(\\Filament\\Pages\\Dashboard::class, $page);
+        $this->assertInstanceOf(\Filament\Pages\Dashboard::class, $page);
         $this->assertSame('/', $page::getRoutePath());
     }
 
