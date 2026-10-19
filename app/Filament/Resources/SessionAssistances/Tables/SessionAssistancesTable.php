@@ -29,7 +29,29 @@ class SessionAssistancesTable
                     ->searchable(),
                 Tables\Columns\TextColumn::make('assistance_date')->dateTime(),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('review'),
+                Tables\Columns\TextColumn::make('review')
+                    ->formatStateUsing(static function (mixed $state): string {
+                        if (! is_array($state)) {
+                            return is_string($state) ? $state : '';
+                        }
+
+                        return collect($state)
+                            ->map(static function (mixed $block): string {
+                                $data = is_array($block) && is_array($block['data'] ?? null)
+                                    ? $block['data']
+                                    : (is_array($block) ? $block : []);
+
+                                return collect([
+                                    isset($data['criterion']) ? 'Criterion: '.$data['criterion'] : null,
+                                    isset($data['grade']) ? 'Grade: '.$data['grade'] : null,
+                                    isset($data['comment']) ? 'Comment: '.$data['comment'] : null,
+                                ])
+                                    ->filter()
+                                    ->implode(' | ');
+                            })
+                            ->filter()
+                            ->implode('; ');
+                    }),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
