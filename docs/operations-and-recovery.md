@@ -107,7 +107,7 @@ It fails for missing, unreadable or empty artifacts and prints a SHA-256 digest 
 
 ## Deployment and migration procedure
 
-1. Confirm the release SHA, reviewed PR, green required CI checks, environment configuration, secrets availability and a fresh verified restorable backup.
+1. Confirm the release SHA, reviewed PR, green required CI checks, environment configuration, secrets availability and a fresh verified restorable backup. Verify the effective production environment reports `APP_ENV=production` and **Debug Mode disabled** with `php artisan about`; do not rely on the `.env.example` default to override a hosting-panel environment variable. The committed example keeps `APP_DEBUG=false` to avoid making unsafe debug output the default in newly provisioned environments. Enable debug output only in a local development environment, never in production.
 2. Review migrations for locks, generated-column/index support, foreign-key behavior, table size and data preflight. The current CI migration gate uses SQLite and does not prove production MySQL/InnoDB or other-engine behavior. Test risky migrations against a staging clone running the production engine/version.
 3. Deploy the immutable release using the actual hosting provider's approved process. Do not run migrations concurrently from multiple replicas. Run `php artisan migrate --force` once under a single authorized deploy step after the backup and preflight are verified.
 4. Rebuild/refresh Laravel config, route and view caches using the platform's established release procedure; restart long-lived queue workers with `php artisan queue:restart` after deploy. Confirm worker processes actually restart.
