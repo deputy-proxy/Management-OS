@@ -1,17 +1,17 @@
 <?php
 
-namespace App\\Filament\\Resources\\SessionAssistances\\Tables;
+namespace App\Filament\Resources\SessionAssistances\Tables;
 
-use App\\Filament\\Resources\\EmployeePaySlips\\Actions\\AddToPaySlipAction;
-use App\\Filament\\Resources\\Tasks\\Actions\\TasksAction;
-use Filament\\Actions\\BulkActionGroup;
-use Filament\\Actions\\DeleteAction;
-use Filament\\Actions\\DeleteBulkAction;
-use Filament\\Actions\\EditAction;
-use Filament\\Actions\\RestoreBulkAction;
-use Filament\\Tables;
-use Filament\\Tables\\Table;
-use Relaticle\\Comments\\Filament\\Actions\\CommentsAction;
+use App\Filament\Resources\EmployeePaySlips\Actions\AddToPaySlipAction;
+use App\Filament\Resources\Tasks\Actions\TasksAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class SessionAssistancesTable
 {
@@ -19,17 +19,17 @@ class SessionAssistancesTable
     {
         return $table
             ->columns([
-                Tables\\Columns\\TextColumn::make('session.identifier')
+                Tables\Columns\TextColumn::make('session.identifier')
                     ->label('Session')
                     ->sortable()
                     ->searchable(),
-                Tables\\Columns\\TextColumn::make('teacher.full_name')
+                Tables\Columns\TextColumn::make('teacher.full_name')
                     ->label('Teacher')
                     ->sortable()
                     ->searchable(),
-                Tables\\Columns\\TextColumn::make('assistance_date')->dateTime(),
-                Tables\\Columns\\TextColumn::make('status'),
-                Tables\\Columns\\TextColumn::make('review')
+                Tables\Columns\TextColumn::make('assistance_date')->dateTime(),
+                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('review')
                     ->formatStateUsing(static function (mixed $state): string {
                         if (! is_array($state)) {
                             return is_string($state) ? $state : '';
@@ -54,7 +54,7 @@ class SessionAssistancesTable
                     }),
             ])
             ->filters([
-                Tables\\Filters\\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([EditAction::make(),
                 DeleteAction::make(),
