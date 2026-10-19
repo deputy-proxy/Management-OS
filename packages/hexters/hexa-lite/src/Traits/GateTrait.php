@@ -1,11 +1,12 @@
 <?php
 
-namespace Hexters\HexaLite\Traits;
+namespace Hexters\\HexaLite\\Traits;
 
-use Filament\Facades\Filament;
-use Filament\Panel;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Gate;
+use Filament\\Facades\\Filament;
+use Filament\\Panel;
+use Illuminate\\Support\\Facades\\Config;
+use Illuminate\\Support\\Facades\\Gate;
+use Illuminate\\Support\\Str;
 
 trait GateTrait
 {
@@ -67,30 +68,39 @@ trait GateTrait
                 collect($gates)
                     ->each(function ($gate) use ($panel) {
                         Gate::define($gate, function ($user) use ($gate, $panel) {
+                            if (! method_exists($user, 'roles')) {
+                                return false;
+                            }
 
-                            if (method_exists($user, 'roles')) {
+                            if ($tenant = Filament::getTenant()) {
+                                $roles = $user->roles()->whereBelongsTo($tenant)->get();
+                            } else {
+                                $roles = $user->roles;
+                            }
 
-                                if ($tenant = Filament::getTenant()) {
-                                    $roles = $user->roles()->whereBelongsTo($tenant)->get();
-                                } else {
-                                    $roles = $user->roles;
-                                }
-
-                                if (count($roles) > 0) {
-                                    $gates = [];
-                                    foreach ($this->mergeAccess($roles->pluck('access')) as $accesss) {
-                                        foreach ($accesss as $access) {
-                                            $gates[] = $access;
-                                        }
-                                    }
-                                    return in_array($gate, $gates);
-                                }
-
-                                // Superadmin access
+                            // The configured owner role is the explicit superadmin role.
+                            // This keeps navigation and authorization in sync even if a
+                            // newly registered resource adds permission keys to the app.
+                            $ownerRole = (string) config('hexa.super_admin_role', 'Owner');
+                            if ($ownerRole !== '' && $roles->contains(
+                                fn ($role) => Str::lower(trim((string) $role->name)) === Str::lower(trim($ownerRole))
+                            )) {
                                 return true;
                             }
 
-                            return false;
+                            if ($roles->isNotEmpty()) {
+                                $allowedGates = [];
+                                foreach ($this->mergeAccess($roles->pluck('access')) as $accessGroup) {
+                                    foreach ($accessGroup as $access) {
+                                        $allowedGates[] = $access;
+                                    }
+                                }
+
+                                return in_array($gate, $allowedGates, true);
+                            }
+
+                            // Preserve HexaLite's existing no-role superadmin behavior.
+                            return true;
                         });
                     });
             });
