@@ -13,6 +13,14 @@ use Tests\TestCase;
 
 class OverviewDashboardTest extends TestCase
 {
+    public function test_overview_dashboard_is_the_filament_home_dashboard(): void
+    {
+        $page = new OverviewDashboard;
+
+        $this->assertInstanceOf(\\Filament\\Pages\\Dashboard::class, $page);
+        $this->assertSame('/', $page::getRoutePath());
+    }
+
     public function test_overview_catalog_documents_all_child_overviews(): void
     {
         $items = app(OverviewDashboard::class)->getOverviewItems();
