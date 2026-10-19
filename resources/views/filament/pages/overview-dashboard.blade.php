@@ -90,24 +90,30 @@
                     @php
                         $pageClass = $item['page'];
                         $canOpen = $this->canOpenOverview($pageClass);
+                        $overviewStatus = $canOpen ? 'Available' : ($item['scope'] === 'Available' ? 'Restricted' : 'Planned');
+                        $overviewAction = $canOpen
+                            ? 'Open overview'
+                            : ($item['scope'] === 'Available'
+                                ? 'You do not have permission to open this overview.'
+                                : 'This overview is tracked in its own issue.');
                     @endphp
-                    <x-filament::section>
+                    <div class="fi-section rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                         <div class="flex h-full flex-col gap-3">
                             <div class="flex items-start justify-between gap-3">
                                 <h3 class="text-base font-semibold text-gray-950 dark:text-white">{{ $item['title'] }}</h3>
-                                <x-filament::badge :color="$canOpen ? 'success' : 'gray'">
-                                    {{ $canOpen ? 'Available' : ($item['scope'] === 'Available' ? 'Restricted' : 'Planned') }}
-                                </x-filament::badge>
+                                <span class="fi-badge inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $canOpen ? 'bg-success-50 text-success-700 dark:bg-success-400/10 dark:text-success-400' : 'bg-gray-50 text-gray-700 dark:bg-white/5 dark:text-gray-300' }}">
+                                    {{ $overviewStatus }}
+                                </span>
                             </div>
                             <p class="text-sm text-gray-600 dark:text-gray-300">{{ $item['description'] }}</p>
                             <p class="mt-auto text-xs text-gray-500 dark:text-gray-400">Owner: {{ $item['owner'] }}</p>
-                            @if ($canOpen)
-                                <x-filament::link :href="$pageClass::getUrl()" icon="heroicon-m-arrow-top-right-on-square">Open overview</x-filament::link>
-                            @else
-                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ $item['scope'] === 'Available' ? 'You do not have permission to open this overview.' : 'This overview is tracked in its own issue.' }}</span>
-                            @endif
+                            <a
+                                href="{{ $canOpen ? $pageClass::getUrl() : '#' }}"
+                                aria-disabled="{{ $canOpen ? 'false' : 'true' }}"
+                                class="text-sm font-medium text-primary-600 dark:text-primary-400 {{ $canOpen ? 'hover:underline' : 'pointer-events-none opacity-70' }}"
+                            >{{ $overviewAction }}</a>
                         </div>
-                    </x-filament::section>
+                    </div>
                 @endforeach
             </div>
         </section>
