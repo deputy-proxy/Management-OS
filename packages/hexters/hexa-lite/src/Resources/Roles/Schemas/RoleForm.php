@@ -38,7 +38,7 @@ class RoleForm
             $permissionSections = $roles->map(function ($role) {
                 $key = Str::slug($role['name'], '_');
                 return Section::make(ucfirst($role['name']))
-                    ->collapsed(true)
+                    ->collapsed(false)
                     ->schema([
                         CheckboxList::make("gates.{$key}")
                             ->searchable()
