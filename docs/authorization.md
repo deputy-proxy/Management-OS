@@ -2,6 +2,8 @@
 
 ## Panel admission
 
+The role name configured by `HEXA_SUPER_ADMIN_ROLE` (default: `Owner`) is the explicit superadministrator role. It can enter the panel and bypass individual HexaLite permission keys, including newly added resource permissions. Keep this role assigned only to trusted system owners. Role-name matching is case-insensitive.
+
 The `/admin` Filament panel uses the application's existing HexaLite role/permission model. `App\Models\User::canAccessPanel()` denies access unless the account has at least one assigned `web` role containing at least one non-empty permission. Authentication alone is not sufficient. A role with an empty permission set is not an access grant.
 
 This explicit admission check is important because the bundled HexaLite helper treats users without roles as superadmins when evaluating individual permissions. That helper behavior must not be used as the panel-admission rule.

@@ -9,6 +9,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Super administrator role
+    |--------------------------------------------------------------------------
+    |
+    | This exact role name (matched case-insensitively) bypasses individual
+    | permission keys. Keep it restricted to trusted system owners.
+    |
+    */
+    'super_admin_role' => env('HEXA_SUPER_ADMIN_ROLE', 'Owner'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Navigation Configuration
     |--------------------------------------------------------------------------
     |
