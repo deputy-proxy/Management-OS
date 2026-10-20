@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Camp;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CampFactory extends Factory
 {
@@ -28,8 +26,6 @@ class CampFactory extends Factory
             'location' => $this->faker->word(),
             'start_on' => $this->faker->date(),
             'end_on' => $this->faker->date(),
-            'camp_price' => $this->faker->randomFloat(2, 10, 1000),
-            'camp_price_id' => \App\Models\CampPrice::factory()
         ];
     }
 }
