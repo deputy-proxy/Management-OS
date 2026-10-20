@@ -108,7 +108,7 @@ border-bottom: none !important;
 }
 
 .fi-main {
-  @apply dark:bg-gray-900/80 dark:border-gray-800 border-gray-300 border max-w-none px-4 py-2 rounded-md;
+  @apply dark:bg-black dark:border-gray-800 border-gray-300 border max-w-none px-4 py-2 rounded-md;
   @apply h-[calc(100vh-4rem-4rem)] overflow-y-scroll;
 }
 
