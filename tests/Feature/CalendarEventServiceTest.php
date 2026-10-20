@@ -62,7 +62,6 @@ class CalendarEventServiceTest extends TestCase
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
-        $this->assertCount(1, $events);
         $this->assertCount(0, $events);
     }
 
