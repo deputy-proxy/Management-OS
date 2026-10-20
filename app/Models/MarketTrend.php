@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
 class MarketTrend extends Model
 {
-    /** @var array<int, string> */
+    /** @var list<string> */
     protected $fillable = [
         'name',
         'category',
@@ -48,11 +49,7 @@ class MarketTrend extends Model
     protected static function booted(): void
     {
         static::saving(function (self $marketTrend): void {
-            if (
-                $marketTrend->period_start !== null
-                && $marketTrend->period_end !== null
-                && $marketTrend->period_start->gt($marketTrend->period_end)
-            ) {
+            if (Carbon::parse((string) $marketTrend->period_start)->gt(Carbon::parse((string) $marketTrend->period_end))) {
                 throw new InvalidArgumentException('The market trend period start must be on or before its end.');
             }
 
