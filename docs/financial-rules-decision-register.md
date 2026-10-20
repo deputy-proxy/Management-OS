@@ -79,15 +79,6 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - Keep unallocated amounts and rounding residuals visible and flagged. Do not silently redistribute a remainder.
 - Preserve historical costs. Existing implementation behavior is not itself policy approval; future implementation must follow these rules and include validation and tests.
 
-## Decision 9: Discounts and credit notes
-
-**Status:** Approved by company owner; statutory/accounting validation pending where applicable.
-
-- **Discounts:** Preserve original and discounted values, explicitly record the discount, and keep changes auditable.
-- **Credit notes and corrections:** Use linked credit notes for financial corrections and preserve the original invoice. Permit non-financial metadata edits under an audit trail.
-- **VAT/tax handling:** The owner states that company invoices will never have VAT. Do not infer VAT, apply a VAT rate, or silently recalculate historical tax values. The general principle of explicit approved values and no inference is retained, but VAT-bearing invoice assumptions are not applicable to the owner's stated business policy.
-- **Guardrails:** Treat the no-VAT statement as company-owner business policy, not a compliance conclusion. Confirm Romanian tax/invoicing treatment with a qualified specialist where applicable. Preserve historical invoice values. No schema migration or historical-data backfill is authorized.
-
 ## Decision 8: Transfers and transaction fees
 
 **Status:** Approved by company owner; accounting validation pending where applicable.
@@ -96,6 +87,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Bank/payment-provider fees:** Record fees explicitly and separately from principal, with traceability and controls to prevent double-counting.
 - **Currencies and differences:** Support same-currency and explicitly documented cross-currency transfers. Do not perform automatic FX conversion. For cross-currency transfers, record source and destination amounts and the applied exchange rate explicitly.
 - **Guardrails:** Define how transfers and fees affect balances and operational reports; preserve links between the transfer record and account entries. Validate accounting/tax treatment with a qualified specialist where applicable. No schema migration or historical-data backfill is authorized.
+
+## Decision 9: Discounts and credit notes
+
+**Status:** Approved by company owner; statutory/accounting validation pending where applicable.
+
+- **Discounts:** Preserve original and discounted values, explicitly record the discount, and keep changes auditable.
+- **Credit notes and corrections:** Use linked credit notes for financial corrections and preserve the original invoice. Permit non-financial metadata edits under an audit trail.
+- **VAT/tax handling:** The owner states that company invoices will never have VAT. Do not infer VAT, apply a VAT rate, or silently recalculate historical tax values. The general principle of explicit approved values and no inference is retained, but VAT-bearing invoice assumptions are not applicable to the owner's stated business policy.
+- **Guardrails:** Treat the no-VAT statement as company-owner business policy, not a compliance conclusion. Confirm Romanian tax/invoicing treatment with a qualified specialist where applicable. Preserve historical invoice values. No schema migration or historical-data backfill is authorized.
 
 ## Register summary
 
