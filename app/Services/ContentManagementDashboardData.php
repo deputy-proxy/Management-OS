@@ -86,7 +86,7 @@ class ContentManagementDashboardData
                     ])->all();
             }
 
-            if ($type['schedule_field'] !== null) {
+            {
                 $scheduleField = $type['schedule_field'];
                 $upcomingQuery = $model::query()
                     ->whereDate($scheduleField, '>=', $today->toDateString())
