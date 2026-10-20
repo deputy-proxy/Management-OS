@@ -8,7 +8,6 @@ use App\Models\Competition;
 use App\Models\CompetitionEntry;
 use App\Models\Competitor;
 use App\Models\CompetitorOffer;
-use App\Models\ContentTemplate;
 use App\Models\Course;
 use App\Models\CourseMaterial;
 use App\Models\Customer;
@@ -103,7 +102,6 @@ class DomainModelServiceProvider extends ServiceProvider
             'job_description' => JobDescription::class,
             'competition' => Competition::class,
             'competition_entry' => CompetitionEntry::class,
-            'content_template' => ContentTemplate::class,
             'customer' => Customer::class,
             'customer_contract' => CustomerContract::class,
             'customer_interaction' => CustomerInteraction::class,
