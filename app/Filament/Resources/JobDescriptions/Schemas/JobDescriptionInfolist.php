@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\JobDescriptions\Schemas;
 
-use Filament\Infolists;
+use Filament\Infolists\Components\KeyValueEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
 class JobDescriptionInfolist
@@ -11,12 +12,13 @@ class JobDescriptionInfolist
     {
         return $schema
             ->components([
-                \Filament\Infolists\Components\TextEntry::make('job_title'),
-                \Filament\Infolists\Components\TextEntry::make('job_level'),
-                \Filament\Infolists\Components\TextEntry::make('job_role'),
-                \Filament\Infolists\Components\KeyValueEntry::make('relevant_indicators'),
-                \Filament\Infolists\Components\TextEntry::make('document_code'),
-                \Filament\Infolists\Components\TextEntry::make('document'),
+                TextEntry::make('job_title'),
+                TextEntry::make('job_level'),
+                TextEntry::make('job_role'),
+                TextEntry::make('lineManager.job_title')->label('Line Manager')->placeholder('Not assigned'),
+                KeyValueEntry::make('relevant_indicators'),
+                TextEntry::make('document_code'),
+                TextEntry::make('document'),
             ]);
     }
 }

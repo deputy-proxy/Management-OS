@@ -3,20 +3,17 @@
 namespace App\Filament\Resources\EmployeeEvaluationForms\Pages;
 
 use App\Filament\Resources\EmployeeEvaluationForms\EmployeeEvaluationFormResource;
-use Filament\Actions;
+use App\Services\EmployeeEvaluationScoringService;
 use Filament\Resources\Pages\EditRecord;
-use Relaticle\Comments\Filament\Actions\CommentsAction;
 
 class EditEmployeeEvaluationForm extends EditRecord
 {
     protected static string $resource = EmployeeEvaluationFormResource::class;
 
-    protected function getHeaderActions(): array
+    protected function mutateFormDataBeforeSave(array $data): array
     {
-        return [
-            Actions\DeleteAction::make(),            CommentsAction::make(),
+        app(EmployeeEvaluationScoringService::class)->validateTemplate($data['criteria'] ?? []);
 
-        ];
+        return $data;
     }
 }
-
