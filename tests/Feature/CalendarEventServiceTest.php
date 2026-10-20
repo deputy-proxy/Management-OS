@@ -76,7 +76,6 @@ class CalendarEventServiceTest extends TestCase
         $this->assertSame('Visible competition · Competition', $events->sole()->getTitle());
     }
 
-
     public function test_completed_evaluations_use_performed_date_even_when_due_date_is_outside_range(): void
     {
         Gate::before(fn (): bool => true);
