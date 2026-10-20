@@ -29,15 +29,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - Keep payment method as metadata separate from direction and transaction type.
 - Define allowed types, relationships, and reporting/balance effects before implementation. Specialist validation where applicable.
 
-## Decision 3: Invoice totals and VAT
+## Decision 3: Invoice totals and tax treatment
 
-**Status:** Approved by company owner; Romanian VAT validation pending where applicable.
+**Status:** Company-owner business policy recorded; statutory treatment requires qualified Romanian accounting/tax validation where applicable.
 
-- Gross equals net plus VAT under the approved rounding rule.
-- Use explicit source/approved VAT values; never guess a missing VAT rate.
-- Calculate at higher precision and round invoice totals at the end, half-up at the defined step.
-- Preserve legacy stored values and flag discrepancies; do not silently correct them.
-- Define canonical field units and the total equation before implementation. Validate VAT rates, exemptions, tax treatment, and statutory rounding with a qualified Romanian specialist where applicable.
+- The company owner states that company invoices will never have VAT.
+- Do not infer or apply a VAT rate, and do not silently recalculate historical tax values.
+- Preserve existing stored invoice values and flag discrepancies; do not silently correct them.
+- Define canonical field units and the applicable invoice-total calculation before implementation.
+- The owner's no-VAT statement is a business-policy assumption, not by itself proof of a statutory exemption or compliance. Confirm the actual Romanian invoicing/tax treatment with a qualified specialist where applicable.
 
 ## Decision 4: Payment allocation and settlement
 
@@ -79,6 +79,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - Keep unallocated amounts and rounding residuals visible and flagged. Do not silently redistribute a remainder.
 - Preserve historical costs. Existing implementation behavior is not itself policy approval; future implementation must follow these rules and include validation and tests.
 
+## Decision 9: Discounts and credit notes
+
+**Status:** Approved by company owner; statutory/accounting validation pending where applicable.
+
+- **Discounts:** Preserve original and discounted values, explicitly record the discount, and keep changes auditable.
+- **Credit notes and corrections:** Use linked credit notes for financial corrections and preserve the original invoice. Permit non-financial metadata edits under an audit trail.
+- **VAT/tax handling:** The owner states that company invoices will never have VAT. Do not infer VAT, apply a VAT rate, or silently recalculate historical tax values. The general principle of explicit approved values and no inference is retained, but VAT-bearing invoice assumptions are not applicable to the owner's stated business policy.
+- **Guardrails:** Treat the no-VAT statement as company-owner business policy, not a compliance conclusion. Confirm Romanian tax/invoicing treatment with a qualified specialist where applicable. Preserve historical invoice values. No schema migration or historical-data backfill is authorized.
+
 ## Decision 8: Transfers and transaction fees
 
 **Status:** Approved by company owner; accounting validation pending where applicable.
@@ -94,18 +103,19 @@ The company owner approved the business decisions below. Add the owner's name/ro
 |---|---|---|
 | Currency and precision | RON default; explicit other currencies; fixed-precision decimals; half-up rounding at defined workflow steps; no automatic FX | Audit field meanings before conversion/migration; report currencies separately |
 | Transactions | Explicit money-in/money-out; non-negative amount; linked refunds/reversals; payment method is metadata | Preserve original events; define types, links, and report/balance effects |
-| Invoices and VAT | Gross = net + VAT; explicit VAT only; higher-precision calculation then final half-up rounding; preserve and flag legacy discrepancies | Canonical field units/equation and Romanian VAT validation |
+| Invoices and tax treatment | Owner states invoices will never have VAT; no inferred VAT/rate or silent historical recalculation; preserve and flag legacy discrepancies | Define invoice field units/calculation; validate actual Romanian tax treatment with a qualified specialist; owner policy is not proof of statutory exemption |
 | Payment allocation | One full-balance payment; reject over-allocation; deterministic auditable allocation; explicit authorized paid confirmation | Define precedence, idempotency, permissions, rounding, and reversal/refund effects |
 | Statuses | Explicit invoice, transaction, and tax status semantics; preserve legacy status values | Map unknown values for review; define transitions, permissions, audit events |
 | Reporting | Separate cash/accrual operational views; preserve dates; per-report date selection; Europe/Bucharest timezone | Explicit report date field and cutoff; Romanian accounting validation |
 | Product costs | Identifiable direct costs assigned directly; overhead via approved percentages totaling exactly 100%; remainders visible/flagged | Preserve historical costs; test percentage totals and residual handling |
 | Transfers and fees | Transfer record plus linked account entries; explicit fee records without double-counting; documented cross-currency amounts/rate; no automatic FX | Trace transfer/account entries and fee links; define balance/report effects |
+| Discounts and credit notes | Preserve original and discounted values; explicitly record discounts; linked credit notes for financial corrections; audit non-financial metadata edits; no VAT inference | Preserve historical invoice values; validate tax treatment; no schema migration or historical backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Cross-cutting implementation controls
 
 1. **No schema migration or historical-data backfill is authorized by these decisions.** Any later proposal requires audited field mappings, before/after totals, reconciliation tests, and a recovery plan, reviewed and approved before execution.
 2. Preserve legacy values and financial events; do not silently rewrite, normalize, or redistribute them.
-3. Obtain independent review and qualified Romanian accounting/tax specialist validation for applicable statutory treatment, including VAT and payroll.
+3. Obtain independent review and qualified Romanian accounting/tax specialist validation for applicable statutory treatment, including invoice tax treatment and payroll.
 4. Convert approved policy into canonical data contracts, validation rules, tests, and dependent implementation issues before changing financial behavior.
 5. Existing integer fields, rounding calls, free-text statuses, relationships, and dashboard groupings describe current code behavior; they do not prove approved accounting semantics.
