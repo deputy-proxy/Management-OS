@@ -111,6 +111,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Transfers and fees | Transfer record plus linked account entries; explicit fee records without double-counting; documented cross-currency amounts/rate; no automatic FX | Trace transfer/account entries and fee links; define balance/report effects |
 | Discounts and credit notes | Preserve original and discounted values; explicitly record discounts; linked credit notes for financial corrections; audit non-financial metadata edits; no VAT inference | Preserve historical invoice values; validate tax treatment; no schema migration or historical backfill |
 | Vendor invoices and legacy currency | Canonical payable total; validate other fields; new invoices default RON; legacy currency unknown until verified; preserve/flag inconsistent totals | Document field meanings and validation; no silent recalculation, migration, or backfill |
+| Monetary precision and rounding | Two-decimal monetary values; higher-precision invoice calculation then round final total; allocation remainders visible and flagged | Clarify/test intermediate vs persisted precision; no silent redistribution or migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -121,6 +122,16 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Missing legacy currency:** Default new invoices to RON, but leave legacy currency unknown until verified from source records.
 - **Inconsistent stored totals:** Preserve stored totals and flag discrepancies for review. Do not automatically recalculate or overwrite historical values.
 - **Guardrails:** Document canonical field meanings and validation rules before implementation. No schema migration or historical-data backfill is authorized by this decision. Any later conversion or correction requires an audited mapping and approved plan.
+
+## Decision 11: Monetary precision, invoice rounding, and allocation remainders
+
+**Status:** Approved by company owner.
+
+- **Monetary precision:** Store and calculate monetary values to two decimal places.
+- **Invoice rounding:** Calculate using higher precision, then round the final invoice total.
+- **Allocation remainders:** Keep any remainder visible and flagged for review; do not distribute it automatically.
+- **Implementation clarification:** The technical contract must distinguish intermediate calculation precision from persisted monetary values, since the approved choices specify higher-precision invoice-total calculation alongside two-decimal monetary storage/calculation. Document and test this distinction before implementation.
+- **Guardrails:** No silent changes to existing values, schema migration, or historical-data backfill are authorized by this decision. Qualified Romanian accounting/tax review remains pending where applicable.
 
 ## Cross-cutting implementation controls
 
