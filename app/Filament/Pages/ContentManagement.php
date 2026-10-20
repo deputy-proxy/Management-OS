@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Filament\Clusters\Marketing\MarketingCluster;
 use App\Filament\Resources\Articles\ArticleResource;
 use App\Filament\Resources\CompetitionEntries\CompetitionEntryResource;
-use App\Filament\Resources\ContentTemplates\ContentTemplateResource;
 use App\Filament\Resources\Newsletters\NewsletterResource;
 use App\Filament\Resources\PaidCampaigns\PaidCampaignResource;
 use App\Filament\Resources\ProductReviews\ProductReviewResource;
@@ -37,7 +36,6 @@ class ContentManagement extends Page
             'newsletters' => [NewsletterResource::class, 'newsletter.index', 'newsletter.create'],
             'social_posts' => [SocialPostResource::class, 'social_post.index', 'social_post.create'],
             'paid_campaigns' => [PaidCampaignResource::class, 'paid_campaign.index', 'paid_campaign.create'],
-            'content_templates' => [ContentTemplateResource::class, 'content_template.index', 'content_template.create'],
         ];
         $reviewResourceMap = [
             'product_reviews' => [ProductReviewResource::class, 'product_review.index'],
