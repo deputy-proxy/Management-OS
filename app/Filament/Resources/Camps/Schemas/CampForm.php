@@ -21,13 +21,6 @@ class CampForm
                     ->required(),
                 Forms\Components\DatePicker::make('end_on')
                     ->required(),
-                Forms\Components\TextInput::make('price')
-                    ->label('Price')
-                    ->numeric()
-                    ->required(),
-                Forms\Components\TextInput::make('currency')
-                    ->label('Currency')
-                    ->maxLength(3),
             ]);
     }
 }
