@@ -65,7 +65,7 @@ This landing page intentionally omits revenue, performance, attendance, teacher 
 
 ## Marketing Content Management overview (#239)
 
-`App\Services\ContentManagementDashboardData` supplies the existing `ContentManagement` page. Primary inventory types are articles, newsletters, social posts, and paid campaigns; . Product reviews and competition entries appear in a separate moderation queue because they are public submissions, not editorial inventory.
+`App\Services\ContentManagementDashboardData` supplies the existing `ContentManagement` page. Primary inventory types are articles, newsletters, social posts, and paid campaigns. Product reviews and competition entries appear in a separate moderation queue because they are public submissions, not editorial inventory.
 
 - Each content type has its own current-record count, soft-deleted count, and raw status distribution. Status buckets are grouped by exact stored value and only count non-deleted records. Status strings are free text, so no shared draft/scheduled/published/failed lifecycle is inferred across types.
 - Upcoming lists use the type-specific date field: `scheduled_on` for articles, newsletters, and social posts; `scheduled_to_start_on` for paid campaigns. The date-only window is today through 29 days after today inclusive (30 calendar dates), based on `config('app.timezone')`. The stored status is displayed unchanged; a future date alone does not mean a record is queued for publication.
