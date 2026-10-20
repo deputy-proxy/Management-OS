@@ -74,7 +74,7 @@ class ContentManagementDashboardData
             $contentTypes[$key]['current_count'] = $model::query()->count();
             $contentTypes[$key]['soft_deleted_count'] = $model::onlyTrashed()->count();
 
-            if ($type['has_status']) {
+            {
                 $contentTypes[$key]['status_buckets'] = $model::query()
                     ->selectRaw('status, COUNT(*) as status_count')
                     ->groupBy('status')
