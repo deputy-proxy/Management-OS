@@ -113,6 +113,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Vendor invoices and legacy currency | Canonical payable total; validate other fields; new invoices default RON; legacy currency unknown until verified; preserve/flag inconsistent totals | Document field meanings and validation; no silent recalculation, migration, or backfill |
 | Monetary precision and rounding | Two-decimal monetary values; higher-precision invoice calculation then round final total; allocation remainders visible and flagged | Clarify/test intermediate vs persisted precision; no silent redistribution or migration/backfill |
 | Payroll | Recalculate from approved inputs; authorized linked corrections for finalized results; provisional estimates only until qualified statutory validation | Preserve audit trail; statutory payroll release blocked pending qualified review |
+| Reconciliation discrepancies | Severity-based warnings/blocks; designated approvers with reasons/audit trail; unresolved items and qualified totals visible | Define severity/block criteria, permissions, evidence, and report qualification |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -142,6 +143,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Finalized payroll corrections:** Preserve the original and create linked corrections, with an audit trail and authorization for every correction to finalized payroll.
 - **Statutory rules:** Company-defined rules may be used for provisional internal estimates, but statutory payroll release remains blocked until qualified Romanian payroll/accounting specialist validation is complete.
 - **Guardrails:** Do not silently overwrite finalized payroll. Clearly distinguish provisional estimates from statutory payroll outputs. This is company-owner policy, not independent specialist validation; the statutory-release blocker remains until qualified review is obtained.
+
+## Decision 13: Financial reconciliation and discrepancies
+
+**Status:** Approved by company owner.
+
+- **Discrepancy response:** Classify discrepancies by severity. Use warnings for review and block material or safety-critical issues.
+- **Resolution authority:** Designated approvers may resolve discrepancies, with a recorded reason and audit trail. Require specialist approval where statutory treatment is involved.
+- **Reporting:** Show unresolved discrepancies explicitly and clearly qualify affected totals.
+- **Implementation guardrails:** Define severity categories, blocking criteria, approver permissions, required resolution evidence, and how qualified totals are displayed before implementation. Do not silently suppress discrepancies or label affected totals as fully reconciled.
 
 ## Cross-cutting implementation controls
 
