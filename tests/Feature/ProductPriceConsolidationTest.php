@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Camp;
 use App\Models\Course;
 use App\Models\Event;
 use App\Models\ProductPrice;
@@ -102,7 +103,7 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseCount('product_prices', 4);
+        $this->assertDatabaseCount('product_prices', 3);
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
@@ -141,7 +142,7 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('course_prices', 0);
         $this->assertDatabaseCount('event_prices', 0);
         $this->assertDatabaseCount('workshop_prices', 0);
-        $this->assertDatabaseCount('product_prices', 3);
+        $this->assertDatabaseCount('product_prices', 4);
     }
 
     public function test_effective_price_lookup_respects_historical_validity_and_prefers_latest_start_date(): void
