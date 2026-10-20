@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Competition;
-use App\Models\ContentTemplate;
 use App\Models\CustomerInteraction;
 use App\Models\CustomerInvoice;
 use App\Models\EmployeeEvaluation;
@@ -44,7 +43,6 @@ class HolidaysWidget extends CalendarWidget
     protected function getEloquentQuery(string $model): Builder
     {
         if (! in_array($model, [
-            ContentTemplate::class,
             Competition::class,
             CustomerInteraction::class,
             CustomerInvoice::class,
