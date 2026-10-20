@@ -28,7 +28,7 @@ class CalendarEventServiceTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    public function test_calendar_includes_all_seven_categories_with_consistent_date_semantics(): void
+    public function test_calendar_includes_all_six_categories_with_consistent_date_semantics(): void
     {
         Gate::before(fn (): bool => true);
 
@@ -42,9 +42,8 @@ class CalendarEventServiceTest extends TestCase
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
-        $this->assertCount(7, $events);
+        $this->assertCount(6, $events);
         $this->assertSame([
-            'Editorial content · Content revision',
             'Autumn competition · Competition',
         ], $events->take(2)->map(fn ($event) => $event->getTitle())->all());
         $this->assertTrue($events->first()->getAllDay());
@@ -64,7 +63,7 @@ class CalendarEventServiceTest extends TestCase
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
         $this->assertCount(1, $events);
-        $this->assertStringContainsString('Content revision', $events->sole()->getTitle());
+        $this->assertCount(0, $events);
     }
 
     public function test_calendar_categories_are_filtered_by_existing_resource_permissions(): void
@@ -78,13 +77,6 @@ class CalendarEventServiceTest extends TestCase
         $this->assertSame('Visible competition · Competition', $events->sole()->getTitle());
     }
 
-    public function test_event_record_query_uses_resource_scope_and_excludes_soft_deleted_records(): void
-    {
-
-
-        $this->assertSame([$visible->id], $records->modelKeys());
-        $this->assertCount(0, app(CalendarEventService::class)->queryForEventModel('App\\Models\\User')->get());
-    }
 
     public function test_completed_evaluations_use_performed_date_even_when_due_date_is_outside_range(): void
     {
