@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('template_for');
             $table->string('link');
-            $table->date('last_revision')->nullable();
+            $table->date('last_revision');
             $table->timestamps();
             $table->softDeletes();
         });
