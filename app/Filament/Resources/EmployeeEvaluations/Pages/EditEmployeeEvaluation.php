@@ -73,6 +73,10 @@ class EditEmployeeEvaluation extends EditRecord
                 ->modalDescription('Submitting calculates the final percentage and emails the employee a secure acknowledgment link with a seven-day deadline.')
                 ->visible(fn (): bool => in_array($this->evaluationRecord()->status, ['Draft', 'In Progress'], true))
                 ->action(function (): void {
+                    // Persist and validate the current form state before the workflow reads the evaluation.
+                    // Otherwise the service can submit stale criteria instead of the answers on screen.
+                    $this->save(false, false);
+
                     app(EmployeeEvaluationWorkflowService::class)->submit($this->evaluationRecord());
 
                     Notification::make()
