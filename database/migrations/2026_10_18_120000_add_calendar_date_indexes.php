@@ -8,10 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('content_templates', function (Blueprint $table): void {
-            $table->index('last_revision', 'content_templates_calendar_date_index');
-        });
-
         Schema::table('competitions', function (Blueprint $table): void {
             $table->index('start_on', 'competitions_calendar_start_index');
             $table->index('end_on', 'competitions_calendar_end_index');

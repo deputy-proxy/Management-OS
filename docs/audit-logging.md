@@ -19,7 +19,6 @@
 | `CompetitionEntry` | `competition_id`, `privacy_consented_at`, `status` | explicit allowlist |
 | `Competitor` | `name`, `site`, `instagram`, `facebook`, `linkedin`, `tiktok` | explicit allowlist |
 | `CompetitorOffer` | `title`, `competitor_id`, `offer_type`, `offer_price`, `last_check`, `status` | explicit allowlist |
-| `ContentTemplate` | `title`, `template_for`, `link`, `last_revision` | explicit allowlist |
 | `Course` | `title` | explicit allowlist |
 | `CourseMaterial` | `title`, `course_id`, `added_by` | explicit allowlist |
 | `Customer` | `customer_type` | explicit allowlist |

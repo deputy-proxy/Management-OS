@@ -6,7 +6,6 @@ The admin dashboard calendar uses the Guava Calendar widget in a month view and 
 
 | Category | Source model and date | Display rule |
 | --- | --- | --- |
-| Content | `ContentTemplate.last_revision` | All-day marker on the recorded last-revision date, titled with the content title. This is a revision-history date, not an inferred deadline. |
 | Competitions | `Competition.start_on` through `end_on` | All-day, multi-day range. The stored end date is inclusive; the calendar end is exclusive, so the last day remains visible. |
 | Customer interactions | `CustomerInteraction.timestamp` | Timed 30-minute calendar block at the recorded interaction timestamp, labeled with customer and reason. Thirty minutes is a display duration only, not a persisted appointment length. |
 | Invoices | `CustomerInvoice.month` | All-day billing-period marker on the stored month date, labeled with customer and invoice status. No payment or due date is inferred from the status. |

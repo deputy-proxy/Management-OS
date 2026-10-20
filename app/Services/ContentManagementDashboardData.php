@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Article;
 use App\Models\CompetitionEntry;
-use App\Models\ContentTemplate;
 use App\Models\Newsletter;
 use App\Models\PaidCampaign;
 use App\Models\ProductReview;
@@ -45,11 +44,6 @@ class ContentManagementDashboardData
                 'create_permission' => 'paid_campaign.create', 'schedule_field' => 'scheduled_to_start_on',
                 'publication_field' => null, 'publication_status' => null, 'has_status' => true,
             ],
-            'content_templates' => [
-                'label' => 'Content templates', 'model' => ContentTemplate::class, 'permission' => 'content_template.index',
-                'create_permission' => 'content_template.create', 'schedule_field' => null,
-                'publication_field' => null, 'publication_status' => null, 'has_status' => false,
-            ],
         ];
 
         foreach ($contentTypes as $key => $type) {
@@ -80,7 +74,7 @@ class ContentManagementDashboardData
             $contentTypes[$key]['current_count'] = $model::query()->count();
             $contentTypes[$key]['soft_deleted_count'] = $model::onlyTrashed()->count();
 
-            if ($type['has_status']) {
+            {
                 $contentTypes[$key]['status_buckets'] = $model::query()
                     ->selectRaw('status, COUNT(*) as status_count')
                     ->groupBy('status')
@@ -92,7 +86,7 @@ class ContentManagementDashboardData
                     ])->all();
             }
 
-            if ($type['schedule_field'] !== null) {
+            {
                 $scheduleField = $type['schedule_field'];
                 $upcomingQuery = $model::query()
                     ->whereDate($scheduleField, '>=', $today->toDateString())

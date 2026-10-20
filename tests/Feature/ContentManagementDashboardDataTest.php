@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Filament\Pages\ContentManagement;
 use App\Models\Article;
 use App\Models\CompetitionEntry;
-use App\Models\ContentTemplate;
 use App\Models\Newsletter;
 use App\Models\PaidCampaign;
 use App\Models\ProductReview;
@@ -41,7 +40,6 @@ class ContentManagementDashboardDataTest extends TestCase
             'status' => 'published', 'scheduled_on' => $today->addDays(4)->toDateString(), 'published_on' => $today->toDateString(),
         ]);
         PaidCampaign::factory()->create(['status' => 'active', 'scheduled_to_start_on' => $today->addDays(5)->toDateString()]);
-        ContentTemplate::factory()->create();
         ProductReview::factory()->create(['status' => 'pending_review']);
         CompetitionEntry::factory()->create(['status' => 'pending_review']);
 
@@ -60,8 +58,6 @@ class ContentManagementDashboardDataTest extends TestCase
         $this->assertSame(['published' => 1], $this->statusCounts($summary['content_types']['social_posts']['status_buckets']));
         $this->assertSame(1, $summary['content_types']['paid_campaigns']['upcoming_count']);
         $this->assertSame(['active' => 1], $this->statusCounts($summary['content_types']['paid_campaigns']['status_buckets']));
-        $this->assertSame(2, $summary['content_types']['content_templates']['current_count']);
-        $this->assertFalse($summary['content_types']['content_templates']['has_status']);
         $this->assertSame(1, $summary['review_queues']['product_reviews']['pending_count']);
         $this->assertSame(1, $summary['review_queues']['competition_entries']['pending_count']);
         $this->assertSame('October 18, 2026', $summary['as_of']);
@@ -155,7 +151,6 @@ class ContentManagementDashboardDataTest extends TestCase
         $this->actingAs(User::factory()->create());
         Gate::before(fn ($user, string $ability): ?bool => match ($ability) {
             'article.index', 'product_review.index' => true,
-            'article.create', 'newsletter.index', 'social_post.index', 'paid_campaign.index', 'content_template.index', 'competition_entry.index' => false,
             'social_post.create' => true,
             default => null,
         });
@@ -200,7 +195,6 @@ class ContentManagementDashboardDataTest extends TestCase
             'newsletter.index' => true, 'newsletter.create' => true,
             'social_post.index' => true, 'social_post.create' => true,
             'paid_campaign.index' => true, 'paid_campaign.create' => true,
-            'content_template.index' => true, 'content_template.create' => true,
             'product_review.index' => true, 'competition_entry.index' => true,
         ];
     }

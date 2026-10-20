@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Competition;
-use App\Models\ContentTemplate;
 use App\Models\CustomerInteraction;
 use App\Models\CustomerInvoice;
 use App\Models\EmployeeEvaluation;
@@ -29,11 +28,10 @@ class CalendarEventServiceTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    public function test_calendar_includes_all_seven_categories_with_consistent_date_semantics(): void
+    public function test_calendar_includes_all_six_categories_with_consistent_date_semantics(): void
     {
         Gate::before(fn (): bool => true);
 
-        ContentTemplate::factory()->create(['title' => 'Editorial content', 'last_revision' => '2026-10-10']);
         Competition::factory()->create(['title' => 'Autumn competition', 'start_on' => '2026-10-10', 'end_on' => '2026-10-12']);
         CustomerInteraction::factory()->create(['reason' => 'Billing Question', 'timestamp' => '2026-10-10 10:00:00']);
         CustomerInvoice::factory()->create(['month' => '2026-10-01', 'status' => 'Sent']);
@@ -44,11 +42,10 @@ class CalendarEventServiceTest extends TestCase
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
-        $this->assertCount(7, $events);
+        $this->assertCount(6, $events);
         $this->assertSame([
-            'Editorial content · Content revision',
             'Autumn competition · Competition',
-        ], $events->take(2)->map(fn ($event) => $event->getTitle())->all());
+        ], $events->take(1)->map(fn ($event) => $event->getTitle())->all());
         $this->assertTrue($events->first()->getAllDay());
         $competition = $events->first(fn ($event) => str_contains((string) $event->getTitle(), 'Competition'));
         $this->assertSame('2026-10-13', $competition->getEnd()->toDateString(), 'Multi-day all-day end is exclusive in FullCalendar.');
@@ -61,40 +58,22 @@ class CalendarEventServiceTest extends TestCase
     {
         Gate::before(fn (): bool => true);
 
-        ContentTemplate::factory()->create(['last_revision' => '2026-10-31']);
-        ContentTemplate::factory()->create(['last_revision' => '2026-11-01']);
-        ContentTemplate::factory()->create(['last_revision' => '2026-10-15'])->delete();
         Session::factory()->create(['starts_at' => '2026-10-31 23:00:00', 'ends_at' => '2026-11-01 01:00:00', 'status' => 'cancelled']);
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
-        $this->assertCount(1, $events);
-        $this->assertStringContainsString('Content revision', $events->sole()->getTitle());
+        $this->assertCount(0, $events);
     }
 
     public function test_calendar_categories_are_filtered_by_existing_resource_permissions(): void
     {
         Gate::before(fn ($user, string $ability): bool => $ability === 'competition.index');
         Competition::factory()->create(['title' => 'Visible competition', 'start_on' => '2026-10-10', 'end_on' => '2026-10-12']);
-        ContentTemplate::factory()->create(['title' => 'Hidden content', 'last_revision' => '2026-10-10']);
 
         $events = app(CalendarEventService::class)->events($this->fetchInfo());
 
         $this->assertCount(1, $events);
         $this->assertSame('Visible competition · Competition', $events->sole()->getTitle());
-        $this->assertCount(0, app(CalendarEventService::class)->queryForEventModel(ContentTemplate::class)->get());
-    }
-
-    public function test_event_record_query_uses_resource_scope_and_excludes_soft_deleted_records(): void
-    {
-        Gate::before(fn ($user, string $ability): bool => $ability === 'content_template.index');
-        $visible = ContentTemplate::factory()->create(['last_revision' => '2026-10-10']);
-        ContentTemplate::factory()->create(['last_revision' => '2026-10-10'])->delete();
-
-        $records = app(CalendarEventService::class)->queryForEventModel(ContentTemplate::class)->get();
-
-        $this->assertSame([$visible->id], $records->modelKeys());
-        $this->assertCount(0, app(CalendarEventService::class)->queryForEventModel('App\\Models\\User')->get());
     }
 
     public function test_completed_evaluations_use_performed_date_even_when_due_date_is_outside_range(): void

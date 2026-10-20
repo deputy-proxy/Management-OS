@@ -15,9 +15,6 @@ class SocialPostForm
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required(),
-                Forms\Components\Select::make('content_template_id')
-                    ->relationship('contentTemplate', 'title')
-                    ->required(),
                 Forms\Components\TextInput::make('network')
                     ->required(),
                 Forms\Components\DatePicker::make('scheduled_on')

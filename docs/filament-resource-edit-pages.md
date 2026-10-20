@@ -36,7 +36,6 @@ There are 78 resource edit pages at the time of this audit. The remaining migrat
 - [ ] Competitions
 - [ ] CompetitorOffers
 - [ ] Competitors
-- [ ] ContentTemplates
 - [ ] CourseMaterials
 - [ ] Courses
 - [ ] CustomerContracts

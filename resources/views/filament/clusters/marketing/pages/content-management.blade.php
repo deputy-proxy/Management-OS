@@ -170,7 +170,6 @@
                     <li>Status values for articles, newsletters, social posts, and paid campaigns are grouped and displayed exactly as stored. These fields are free text, so statuses are not mapped into a shared lifecycle.</li>
                     <li>Inventory status distributions, upcoming records, and recent publications exclude soft-deleted records; soft-deleted counts are shown separately.</li>
                     <li>Upcoming lists use <code>scheduled_on</code> for articles, newsletters, and social posts, and <code>scheduled_to_start_on</code> for paid campaigns. A future date alone does not guarantee that a record is queued for publication.</li>
-                    <li>Content templates have no status field. Product reviews and competition entries use the explicit <code>pending_review</code> state and are counted independently.</li>
                     <li>Reach, clicks, opens, reactions, and engagement rates are unavailable because the supported content schemas do not store those measurements.</li>
                     <li>Every count and quick link requires the matching resource list/create permission. The <code>content-management.view</code> page gate does not grant access to content records.</li>
                 </ul>

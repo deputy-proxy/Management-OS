@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -39,13 +38,9 @@ class SocialPost extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'title', 'description', 'content_template_id', 'network', 'scheduled_on', 'published_on', 'status'
+        'title', 'description', 'network', 'scheduled_on', 'published_on', 'status'
     ];
 
-    public function contentTemplate(): BelongsTo
-    {
-        return $this->belongsTo(ContentTemplate::class);
-    }
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logOnly(['title', 'network', 'scheduled_on', 'published_on', 'status'])->logOnlyDirty()->dontLogEmptyChanges();

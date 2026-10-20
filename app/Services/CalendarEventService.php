@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Filament\Resources\Competitions\CompetitionResource;
-use App\Filament\Resources\ContentTemplates\ContentTemplateResource;
 use App\Filament\Resources\CustomerInteractions\CustomerInteractionResource;
 use App\Filament\Resources\CustomerInvoices\CustomerInvoiceResource;
 use App\Filament\Resources\EmployeeEvaluations\EmployeeEvaluationResource;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Sessions\SessionResource;
 use App\Models\Competition;
-use App\Models\ContentTemplate;
 use App\Models\CustomerInteraction;
 use App\Models\CustomerInvoice;
 use App\Models\EmployeeEvaluation;
@@ -31,7 +29,6 @@ class CalendarEventService
 
     /** @var array<class-string<Model>, array{permission: string, resource: class-string}> */
     private const CATEGORIES = [
-        ContentTemplate::class => ['permission' => 'content_template.index', 'resource' => ContentTemplateResource::class],
         Competition::class => ['permission' => 'competition.index', 'resource' => CompetitionResource::class],
         CustomerInteraction::class => ['permission' => 'customer_interaction.index', 'resource' => CustomerInteractionResource::class],
         CustomerInvoice::class => ['permission' => 'customer_invoice.index', 'resource' => CustomerInvoiceResource::class],
@@ -46,17 +43,6 @@ class CalendarEventService
         $start = $info->start;
         $end = $info->end;
         $events = collect();
-
-        if ($this->canView(ContentTemplate::class)) {
-            ContentTemplateResource::getEloquentQuery()
-                ->whereNull('deleted_at')
-                ->where('last_revision', '>=', $start->toDateString())
-                ->where('last_revision', '<', $end->toDateString())
-                ->orderBy('last_revision')
-                ->limit(self::RANGE_LIMIT)
-                ->get()
-                ->each(fn (ContentTemplate $record) => $events->push($this->allDay($record, $record->title.' · Content revision', $record->last_revision, '#64748b')));
-        }
 
         if ($this->canView(Competition::class)) {
             CompetitionResource::getEloquentQuery()

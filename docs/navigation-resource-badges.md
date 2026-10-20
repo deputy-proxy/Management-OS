@@ -41,7 +41,6 @@ The following resources have no badge because their current models/resources do 
 - `app/Filament/Resources/Competitions/CompetitionResource.php`
 - `app/Filament/Resources/CompetitorOffers/CompetitorOfferResource.php`
 - `app/Filament/Resources/Competitors/CompetitorResource.php`
-- `app/Filament/Resources/ContentTemplates/ContentTemplateResource.php`
 - `app/Filament/Resources/CourseMaterials/CourseMaterialResource.php`
 - `app/Filament/Resources/Courses/CourseResource.php`
 - `app/Filament/Resources/CustomerContracts/CustomerContractResource.php`
