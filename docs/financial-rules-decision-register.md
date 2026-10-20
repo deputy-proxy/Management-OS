@@ -79,6 +79,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - Keep unallocated amounts and rounding residuals visible and flagged. Do not silently redistribute a remainder.
 - Preserve historical costs. Existing implementation behavior is not itself policy approval; future implementation must follow these rules and include validation and tests.
 
+## Decision 8: Transfers and transaction fees
+
+**Status:** Approved by company owner; accounting validation pending where applicable.
+
+- **Transfers between company accounts:** Use a transfer record plus linked account entries.
+- **Bank/payment-provider fees:** Record fees explicitly and separately from principal, with traceability and controls to prevent double-counting.
+- **Currencies and differences:** Support same-currency and explicitly documented cross-currency transfers. Do not perform automatic FX conversion. For cross-currency transfers, record source and destination amounts and the applied exchange rate explicitly.
+- **Guardrails:** Define how transfers and fees affect balances and operational reports; preserve links between the transfer record and account entries. Validate accounting/tax treatment with a qualified specialist where applicable. No schema migration or historical-data backfill is authorized.
+
 ## Register summary
 
 | Area | Approved rule | Required guardrail |
@@ -90,6 +99,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Statuses | Explicit invoice, transaction, and tax status semantics; preserve legacy status values | Map unknown values for review; define transitions, permissions, audit events |
 | Reporting | Separate cash/accrual operational views; preserve dates; per-report date selection; Europe/Bucharest timezone | Explicit report date field and cutoff; Romanian accounting validation |
 | Product costs | Identifiable direct costs assigned directly; overhead via approved percentages totaling exactly 100%; remainders visible/flagged | Preserve historical costs; test percentage totals and residual handling |
+| Transfers and fees | Transfer record plus linked account entries; explicit fee records without double-counting; documented cross-currency amounts/rate; no automatic FX | Trace transfer/account entries and fee links; define balance/report effects |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Cross-cutting implementation controls
