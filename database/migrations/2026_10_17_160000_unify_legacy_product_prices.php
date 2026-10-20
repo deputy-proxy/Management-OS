@@ -37,26 +37,28 @@ return new class extends Migration
             });
         }
 
-        // The old Camp schema never stored a currency code, so it remains unknown.
-        DB::table('camps')->orderBy('id')->chunkById(200, function ($camps) {
-            foreach ($camps as $camp) {
-                DB::table('product_prices')->updateOrInsert(
-                    ['legacy_source_type' => 'camps.camp_price', 'legacy_source_id' => $camp->id],
-                    [
-                        'price' => $camp->camp_price,
-                        'currency' => null,
-                        'priceable_type' => 'camp',
-                        'priceable_id' => $camp->id,
-                        'price_type' => 'standard',
-                        'valid_from' => $camp->start_on,
-                        'valid_until' => $camp->end_on,
-                        'created_at' => $camp->created_at,
-                        'updated_at' => $camp->updated_at,
-                        'deleted_at' => $camp->deleted_at,
-                    ],
-                );
-            }
-        });
+        // Preserve legacy Camp prices on installations that still have the old column.
+        if (Schema::hasColumn('camps', 'camp_price')) {
+            DB::table('camps')->orderBy('id')->chunkById(200, function ($camps) {
+                foreach ($camps as $camp) {
+                    DB::table('product_prices')->updateOrInsert(
+                        ['legacy_source_type' => 'camps.camp_price', 'legacy_source_id' => $camp->id],
+                        [
+                            'price' => $camp->camp_price,
+                            'currency' => null,
+                            'priceable_type' => 'camp',
+                            'priceable_id' => $camp->id,
+                            'price_type' => 'standard',
+                            'valid_from' => $camp->start_on,
+                            'valid_until' => $camp->end_on,
+                            'created_at' => $camp->created_at,
+                            'updated_at' => $camp->updated_at,
+                            'deleted_at' => $camp->deleted_at,
+                        ],
+                    );
+                }
+            });
+        }
     }
 
     private function copyLegacyPrices(

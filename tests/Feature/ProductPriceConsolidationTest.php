@@ -68,20 +68,6 @@ class ProductPriceConsolidationTest extends TestCase
             'updated_at' => $timestamp,
             'deleted_at' => null,
         ]);
-        DB::table('camps')->insert([
-            'id' => 504,
-            'title' => 'Camp',
-            'description' => 'Camp description',
-            'location' => 'Somewhere',
-            'start_on' => '2026-07-01',
-            'end_on' => '2026-07-07',
-            'camp_price' => 880,
-            'camp_price_id' => 1,
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-            'deleted_at' => null,
-        ]);
-
         $migration->up();
 
         $this->assertDatabaseHas('product_prices', [
@@ -114,23 +100,10 @@ class ProductPriceConsolidationTest extends TestCase
             'valid_from' => '2026-03-01',
             'valid_until' => '2026-03-31',
         ]);
-        $this->assertDatabaseHas('product_prices', [
-            'legacy_source_type' => 'camps.camp_price',
-            'legacy_source_id' => 504,
-            'price' => 880,
-            'currency' => null,
-            'priceable_type' => 'camp',
-            'priceable_id' => 504,
-            'valid_from' => '2026-07-01',
-            'valid_until' => '2026-07-07',
-        ]);
-
-        $this->assertSame('880.00', Camp::query()->findOrFail(504)->productPrice->price);
-
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseCount('product_prices', 4);
+        $this->assertDatabaseCount('product_prices', 3);
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
@@ -141,11 +114,12 @@ class ProductPriceConsolidationTest extends TestCase
 
     public function test_all_product_types_write_prices_through_the_canonical_model(): void
     {
+        $camp = Camp::factory()->create();
         $course = Course::factory()->create();
         $event = Event::factory()->create();
         $workshop = Workshop::factory()->create();
 
-        foreach ([[$course, 'course', '125.50', 'RON'], [$event, 'event', '49.00', 'EUR'], [$workshop, 'workshop', '75.00', 'RON']] as [$owner, $type, $amount, $currency]) {
+        foreach ([[$camp, 'camp', '880.00', 'RON'], [$course, 'course', '125.50', 'RON'], [$event, 'event', '49.00', 'EUR'], [$workshop, 'workshop', '75.00', 'RON']] as [$owner, $type, $amount, $currency]) {
             $price = $owner->productPrices()->create([
                 'price' => $amount,
                 'currency' => $currency,
@@ -168,7 +142,7 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('course_prices', 0);
         $this->assertDatabaseCount('event_prices', 0);
         $this->assertDatabaseCount('workshop_prices', 0);
-        $this->assertDatabaseCount('product_prices', 3);
+        $this->assertDatabaseCount('product_prices', 4);
     }
 
     public function test_effective_price_lookup_respects_historical_validity_and_prefers_latest_start_date(): void
