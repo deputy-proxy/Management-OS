@@ -112,6 +112,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Discounts and credit notes | Preserve original and discounted values; explicitly record discounts; linked credit notes for financial corrections; audit non-financial metadata edits; no VAT inference | Preserve historical invoice values; validate tax treatment; no schema migration or historical backfill |
 | Vendor invoices and legacy currency | Canonical payable total; validate other fields; new invoices default RON; legacy currency unknown until verified; preserve/flag inconsistent totals | Document field meanings and validation; no silent recalculation, migration, or backfill |
 | Monetary precision and rounding | Two-decimal monetary values; higher-precision invoice calculation then round final total; allocation remainders visible and flagged | Clarify/test intermediate vs persisted precision; no silent redistribution or migration/backfill |
+| Payroll | Recalculate from approved inputs; authorized linked corrections for finalized results; provisional estimates only until qualified statutory validation | Preserve audit trail; statutory payroll release blocked pending qualified review |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -132,6 +133,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Allocation remainders:** Keep any remainder visible and flagged for review; do not distribute it automatically.
 - **Implementation clarification:** The technical contract must distinguish intermediate calculation precision from persisted monetary values, since the approved choices specify higher-precision invoice-total calculation alongside two-decimal monetary storage/calculation. Document and test this distinction before implementation.
 - **Guardrails:** No silent changes to existing values, schema migration, or historical-data backfill are authorized by this decision. Qualified Romanian accounting/tax review remains pending where applicable.
+
+## Decision 12: Payroll calculation, corrections, and statutory release
+
+**Status:** Approved by company owner.
+
+- **Payroll calculation source:** Recalculate from approved inputs, but require review and explicit authorization before replacing previously finalized payroll results.
+- **Finalized payroll corrections:** Preserve the original and create linked corrections, with an audit trail and authorization for every correction to finalized payroll.
+- **Statutory rules:** Company-defined rules may be used for provisional internal estimates, but statutory payroll release remains blocked until qualified Romanian payroll/accounting specialist validation is complete.
+- **Guardrails:** Do not silently overwrite finalized payroll. Clearly distinguish provisional estimates from statutory payroll outputs. This is company-owner policy, not independent specialist validation; the statutory-release blocker remains until qualified review is obtained.
 
 ## Cross-cutting implementation controls
 
