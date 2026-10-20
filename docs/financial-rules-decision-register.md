@@ -110,7 +110,17 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Product costs | Identifiable direct costs assigned directly; overhead via approved percentages totaling exactly 100%; remainders visible/flagged | Preserve historical costs; test percentage totals and residual handling |
 | Transfers and fees | Transfer record plus linked account entries; explicit fee records without double-counting; documented cross-currency amounts/rate; no automatic FX | Trace transfer/account entries and fee links; define balance/report effects |
 | Discounts and credit notes | Preserve original and discounted values; explicitly record discounts; linked credit notes for financial corrections; audit non-financial metadata edits; no VAT inference | Preserve historical invoice values; validate tax treatment; no schema migration or historical backfill |
+| Vendor invoices and legacy currency | Canonical payable total; validate other fields; new invoices default RON; legacy currency unknown until verified; preserve/flag inconsistent totals | Document field meanings and validation; no silent recalculation, migration, or backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
+
+## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
+
+**Status:** Approved by company owner.
+
+- **Vendor invoice fields:** Define one canonical payable total and validate other amount fields against it. Preserve discrepancies for review rather than silently resolving them.
+- **Missing legacy currency:** Default new invoices to RON, but leave legacy currency unknown until verified from source records.
+- **Inconsistent stored totals:** Preserve stored totals and flag discrepancies for review. Do not automatically recalculate or overwrite historical values.
+- **Guardrails:** Document canonical field meanings and validation rules before implementation. No schema migration or historical-data backfill is authorized by this decision. Any later conversion or correction requires an audited mapping and approved plan.
 
 ## Cross-cutting implementation controls
 
