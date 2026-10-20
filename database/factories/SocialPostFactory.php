@@ -26,7 +26,6 @@ class SocialPostFactory extends Factory
         return [
             'title' => $this->faker->sentence(),
             'description' => $this->faker->paragraphs(3, true),
-            'content_template_id' => \App\Models\ContentTemplate::factory(),
             'network' => $this->faker->word(),
             'scheduled_on' => $this->faker->date(),
             'published_on' => $this->faker->date(),
