@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\MarketTrend;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Tests\TestCase;
@@ -78,7 +79,7 @@ class MarketTrendTest extends TestCase
 
         MarketTrend::create($attributes);
 
-        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
 
         MarketTrend::create($attributes);
     }
