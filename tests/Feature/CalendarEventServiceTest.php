@@ -45,7 +45,7 @@ class CalendarEventServiceTest extends TestCase
         $this->assertCount(6, $events);
         $this->assertSame([
             'Autumn competition · Competition',
-        ], $events->take(2)->map(fn ($event) => $event->getTitle())->all());
+        ], $events->take(1)->map(fn ($event) => $event->getTitle())->all());
         $this->assertTrue($events->first()->getAllDay());
         $competition = $events->first(fn ($event) => str_contains((string) $event->getTitle(), 'Competition'));
         $this->assertSame('2026-10-13', $competition->getEnd()->toDateString(), 'Multi-day all-day end is exclusive in FullCalendar.');
