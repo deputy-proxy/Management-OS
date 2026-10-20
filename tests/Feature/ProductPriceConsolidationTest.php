@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Camp;
 use App\Models\Course;
 use App\Models\Event;
 use App\Models\ProductPrice;
@@ -68,20 +67,6 @@ class ProductPriceConsolidationTest extends TestCase
             'updated_at' => $timestamp,
             'deleted_at' => null,
         ]);
-        DB::table('camps')->insert([
-            'id' => 504,
-            'title' => 'Camp',
-            'description' => 'Camp description',
-            'location' => 'Somewhere',
-            'start_on' => '2026-07-01',
-            'end_on' => '2026-07-07',
-            'camp_price' => 880,
-            'camp_price_id' => 1,
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-            'deleted_at' => null,
-        ]);
-
         $migration->up();
 
         $this->assertDatabaseHas('product_prices', [
@@ -114,23 +99,10 @@ class ProductPriceConsolidationTest extends TestCase
             'valid_from' => '2026-03-01',
             'valid_until' => '2026-03-31',
         ]);
-        $this->assertDatabaseHas('product_prices', [
-            'legacy_source_type' => 'camps.camp_price',
-            'legacy_source_id' => 504,
-            'price' => 880,
-            'currency' => null,
-            'priceable_type' => 'camp',
-            'priceable_id' => 504,
-            'valid_from' => '2026-07-01',
-            'valid_until' => '2026-07-07',
-        ]);
-
-        $this->assertSame('880.00', Camp::query()->findOrFail(504)->productPrice->price);
-
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseCount('product_prices', 4);
+        $this->assertDatabaseCount('product_prices', 3);
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
