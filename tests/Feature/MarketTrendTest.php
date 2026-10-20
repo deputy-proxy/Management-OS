@@ -102,7 +102,7 @@ class MarketTrendTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function validAttributes(array $overrides = []): array
