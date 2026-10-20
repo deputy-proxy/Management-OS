@@ -102,7 +102,7 @@ class ProductPriceConsolidationTest extends TestCase
         $this->assertDatabaseCount('course_prices', 1);
         $this->assertDatabaseCount('event_prices', 1);
         $this->assertDatabaseCount('workshop_prices', 1);
-        $this->assertDatabaseCount('product_prices', 3);
+        $this->assertDatabaseCount('product_prices', 4);
         $migration->down();
 
         $this->assertDatabaseCount('product_prices', 0);
@@ -113,11 +113,12 @@ class ProductPriceConsolidationTest extends TestCase
 
     public function test_all_product_types_write_prices_through_the_canonical_model(): void
     {
+        $camp = Camp::factory()->create();
         $course = Course::factory()->create();
         $event = Event::factory()->create();
         $workshop = Workshop::factory()->create();
 
-        foreach ([[$course, 'course', '125.50', 'RON'], [$event, 'event', '49.00', 'EUR'], [$workshop, 'workshop', '75.00', 'RON']] as [$owner, $type, $amount, $currency]) {
+        foreach ([[$camp, 'camp', '880.00', 'RON'], [$course, 'course', '125.50', 'RON'], [$event, 'event', '49.00', 'EUR'], [$workshop, 'workshop', '75.00', 'RON']] as [$owner, $type, $amount, $currency]) {
             $price = $owner->productPrices()->create([
                 'price' => $amount,
                 'currency' => $currency,
