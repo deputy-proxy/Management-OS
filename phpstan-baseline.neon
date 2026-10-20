@@ -505,12 +505,6 @@ parameters:
 			path: app/Models/CompetitorOffer.php
 
 		-
-			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\ContentTemplate\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: app/Models/ContentTemplate.php
-
-		-
 			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Course\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
 			identifier: property.phpDocType
 			count: 1
@@ -1028,12 +1022,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\Competition\)\: Illuminate\\Support\\Collection\<int\|string, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/CalendarEventService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(App\\Models\\ContentTemplate\)\: Illuminate\\Support\\Collection\<int\|string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Services/CalendarEventService.php
