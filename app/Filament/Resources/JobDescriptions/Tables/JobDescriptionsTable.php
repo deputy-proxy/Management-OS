@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources\JobDescriptions\Tables;
 
+use App\Filament\Resources\Tasks\Actions\TasksAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Relaticle\Comments\Filament\Actions\CommentsAction;
-use App\Filament\Resources\Tasks\Actions\TasksAction;
-
 
 class JobDescriptionsTable
 {
@@ -22,8 +23,9 @@ class JobDescriptionsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('job_level'),
+                Tables\Columns\TextColumn::make('lineManager.job_title')->label('Line Manager')->placeholder('Not assigned')->searchable(),
                 Tables\Columns\TextColumn::make('job_role'),
-                //Tables\Columns\TextColumn::make('relevant_indicators'),
+                // Tables\Columns\TextColumn::make('relevant_indicators'),
                 Tables\Columns\TextColumn::make('document_code'),
                 Tables\Columns\TextColumn::make('document'),
             ])
@@ -38,8 +40,8 @@ class JobDescriptionsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

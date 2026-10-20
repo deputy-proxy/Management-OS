@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeEvaluationAcknowledgmentController;
 use App\Http\Controllers\Health\ReadinessController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSubmissionController;
@@ -17,3 +18,11 @@ Route::prefix('public')->name('public.')->middleware('throttle:5,1')->group(func
     Route::get('/reviews/create', [PublicSubmissionController::class, 'reviewForm'])->name('reviews.create');
     Route::post('/reviews', [PublicSubmissionController::class, 'submitReview'])->name('reviews.store');
 });
+
+Route::prefix('employee-evaluations/{evaluation}/acknowledge')
+    ->name('employee-evaluations.acknowledge.')
+    ->middleware('throttle:10,1')
+    ->group(function (): void {
+        Route::get('/{token}', [EmployeeEvaluationAcknowledgmentController::class, 'show'])->name('show');
+        Route::post('/{token}', [EmployeeEvaluationAcknowledgmentController::class, 'store'])->name('store');
+    });

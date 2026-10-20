@@ -1,14 +1,14 @@
 <?php
+
 namespace App\Filament\Resources\EmployeeEvaluationForms\Schemas;
 
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class EmployeeEvaluationFormForm
 {
@@ -16,7 +16,6 @@ class EmployeeEvaluationFormForm
     {
         return $schema
             ->components([
-
                 Section::make('Evaluation Target')
                     ->description('The job description this evaluation form applies to.')
                     ->schema([
@@ -27,14 +26,12 @@ class EmployeeEvaluationFormForm
                             ->required()
                             ->columnSpanFull(),
                     ]),
-
                 Section::make('Evaluation Criteria')
-                    ->description('Define the criteria evaluators will use to assess the employee.')
+                    ->description('Weighted rated and Yes/No criteria must total exactly 100%. Text feedback is unweighted.')
                     ->schema([
                         Builder::make('criteria')
                             ->label('Evaluation Criteria')
                             ->blocks([
-
                                 Block::make('rated_criterion')
                                     ->label('Rated Criterion (1–5 scale)')
                                     ->icon('heroicon-o-star')
@@ -46,8 +43,9 @@ class EmployeeEvaluationFormForm
                                         TextInput::make('weight')
                                             ->label('Weight (%)')
                                             ->numeric()
-                                            ->minValue(0)
+                                            ->minValue(0.0001)
                                             ->maxValue(100)
+                                            ->required()
                                             ->suffix('%'),
                                         Textarea::make('description')
                                             ->label('Description / Guidance')
@@ -56,7 +54,6 @@ class EmployeeEvaluationFormForm
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(2),
-
                                 Block::make('text_feedback')
                                     ->label('Text Feedback (Open-ended)')
                                     ->icon('heroicon-o-chat-bubble-left-ellipsis')
@@ -72,7 +69,6 @@ class EmployeeEvaluationFormForm
                                             ->rows(2)
                                             ->columnSpanFull(),
                                     ]),
-
                                 Block::make('yes_no')
                                     ->label('Yes / No Question')
                                     ->icon('heroicon-o-check-circle')
@@ -82,20 +78,26 @@ class EmployeeEvaluationFormForm
                                             ->placeholder('e.g. Did the employee meet all deadlines?')
                                             ->required()
                                             ->columnSpanFull(),
+                                        TextInput::make('weight')
+                                            ->label('Weight (%)')
+                                            ->numeric()
+                                            ->minValue(0.0001)
+                                            ->maxValue(100)
+                                            ->required()
+                                            ->suffix('%'),
                                         Textarea::make('description')
                                             ->label('Description / Guidance')
                                             ->placeholder('Optional guidance for the evaluator...')
                                             ->rows(2)
                                             ->columnSpanFull(),
-                                    ]),
-
+                                    ])
+                                    ->columns(2),
                             ])
                             ->addActionLabel('Add Criterion')
                             ->reorderable()
                             ->collapsible()
                             ->required(),
                     ]),
-
             ]);
     }
 }

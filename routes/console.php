@@ -17,3 +17,13 @@ Schedule::command('employee-payslips:generate')
     ->monthlyOn(1, '00:05')
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();
+
+Schedule::command('evaluations:generate-annual')
+    ->yearlyOn(2, 1, '00:15')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
+
+Schedule::command('evaluations:process-approval-timeouts')
+    ->everyMinute()
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
