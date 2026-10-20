@@ -21,7 +21,7 @@ class ProductableObserverTest extends TestCase
     {
         $models = [
             Course::factory()->create(['title' => 'Course product']),
-            Camp::query()->forceCreate(['title' => 'Camp product', 'description' => 'Description', 'location' => 'Satu Mare', 'start_on' => '2026-06-01', 'end_on' => '2026-06-02', 'camp_price' => 0, 'camp_price_id' => 'legacy-camp-price']),
+            Camp::query()->forceCreate(['title' => 'Camp product', 'description' => 'Description', 'location' => 'Satu Mare', 'start_on' => '2026-06-01', 'end_on' => '2026-06-02']),
             Event::query()->create(['title' => 'Event product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'featured_image' => 'event.jpg']),
             Workshop::query()->create(['title' => 'Workshop product', 'description' => 'Description', 'start_date' => '2026-06-01', 'end_date' => '2026-06-02', 'start_time' => '2026-06-01 09:00:00', 'end_time' => '2026-06-02 17:00:00', 'type' => 'training', 'location' => 'Satu Mare']),
         ];
