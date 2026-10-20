@@ -20,10 +20,6 @@ class SocialPostsTable
             ->columns([
                 Tables\Columns\TextColumn::make('title'),
                 Tables\Columns\TextColumn::make('description'),
-                Tables\Columns\TextColumn::make('contentTemplate.title')
-                    ->label('Content Template')
-                    ->sortable()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('network'),
                 Tables\Columns\TextColumn::make('scheduled_on')->dateTime(),
                 Tables\Columns\TextColumn::make('published_on')->dateTime(),
