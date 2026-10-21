@@ -119,6 +119,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Reporting scope | Operational dashboards only; preserve and flag unknowns; disclose reconciliation checks, unresolved discrepancies, and limitations; no accounting reconciliation reports in this requirement | Do not conflate calculation with reconciliation; not statutory financial statements |
 | Financial exports | Explicit per-data/operation export permission; preserve source values with unknown/discrepancy indicators; audit user, timestamp, scope, format, and outcome | Apply privacy/retention controls; no estimating or silent normalization |
 | Financial notifications | Configurable overdue/failed-payment/material-discrepancy/approval events; recorded due dates only; Europe/Bucharest reporting timezone; log/retry/expose delivery failures | Define event criteria, retry policy, and operator visibility; never infer missing due dates |
+| Identifiers and duplicates | Scoped identifier uniqueness; preserve external IDs; flag and preserve possible duplicates for review; idempotent retries with attempt audit trail | Define uniqueness and detection criteria; no automatic merge or duplicate financial effects |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -202,6 +203,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Due dates and overdue status:** Use recorded due dates, flag missing dates, and apply the approved `Europe/Bucharest` business reporting timezone.
 - **Delivery failures:** Log failures, retry under a defined policy, and expose unresolved delivery failures to authorized operators.
 - **Implementation guardrails:** Do not infer missing due dates. Define configurable event criteria, retry limits/backoff, and operator visibility before implementation. Keep delivery failure status distinct from successful delivery.
+
+## Decision 19: Financial identifiers and duplicate records
+
+**Status:** Approved by company owner.
+
+- **Identifier uniqueness:** Define uniqueness by record type and relevant business scope; preserve original external identifiers and detect conflicts.
+- **Possible duplicates:** Flag possible duplicates for review and preserve both records until resolved.
+- **Repeated imports and retries:** Use a defined idempotency key or source identity so retries do not create duplicate financial effects; preserve audit evidence of attempts.
+- **Implementation guardrails:** Define uniqueness scopes and duplicate-detection criteria before implementation. Do not automatically merge possible duplicates or discard source identifiers. Idempotency must prevent duplicate financial effects without erasing the history of repeated attempts.
 
 ## Cross-cutting implementation controls
 
