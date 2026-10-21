@@ -123,6 +123,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Financial periods | Date field defined per report/event; owner selected automatic rewrite of original-period figures after correction; authorized period close with audit history | Historical rewrite blocked pending clarification due to conflict with preservation/correction policy and specialist review |
 | Finalized-period corrections | Preserve original and period history; linked correction in current open period; block unresolved treatment pending approval; Decision 21 supersedes automatic rewrite selection | No automatic rewrite of finalized-period figures; audit link to original required |
 | Retention | Category-based periods subject to Romanian accounting/legal review; owner selected indefinite archiving; conflicting deletion requests blocked pending authorized review | Blanket indefinite retention blocked pending privacy and category-specific legal review |
+| Outages and recovery | Atomic operations where possible; preserve failure evidence; idempotent retries; documented restore with integrity/totals/event reconciliation; authorized operator resumes after checks | Record recovery outcome and verify financial integrity before resuming |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -241,6 +242,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Retention deadline:** The company owner selected archiving records indefinitely without further review.
 - **Conflicting deletion request:** Block deletion until the conflict is reviewed and resolved by an authorized person.
 - **Implementation guardrails / clarification needed:** Indefinite retention may conflict with data minimization, privacy, or category-specific legal obligations. Record the owner's choice, but do not implement indefinite retention as a blanket rule until qualified review establishes which categories may be retained indefinitely and which require deletion or anonymization. Deletion requests that conflict with retention requirements remain blocked pending authorized review.
+
+## Decision 23: Financial system outages and recovery
+
+**Status:** Approved by company owner.
+
+- **Partial failure:** Use atomic transactions where possible, preserve failure evidence, and prevent retries from creating duplicate financial effects.
+- **Data recovery:** Restore using a documented procedure, validate integrity and financial totals, reconcile affected events, and record the recovery outcome.
+- **Resume processing:** An authorized operator may confirm technical recovery and required integrity checks have passed before financial processing resumes.
+- **Implementation guardrails:** Document failure handling and recovery steps, verify financial integrity and affected events before resuming, and use idempotency controls for retries. The approved resumption authority is an authorized operator after required technical and integrity checks; do not add an extra finance-approver gate unless separately approved.
 
 ## Cross-cutting implementation controls
 
