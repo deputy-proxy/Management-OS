@@ -121,6 +121,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Financial notifications | Configurable overdue/failed-payment/material-discrepancy/approval events; recorded due dates only; Europe/Bucharest reporting timezone; log/retry/expose delivery failures | Define event criteria, retry policy, and operator visibility; never infer missing due dates |
 | Identifiers and duplicates | Scoped identifier uniqueness; preserve external IDs; flag and preserve possible duplicates for review; idempotent retries with attempt audit trail | Define uniqueness and detection criteria; no automatic merge or duplicate financial effects |
 | Financial periods | Date field defined per report/event; owner selected automatic rewrite of original-period figures after correction; authorized period close with audit history | Historical rewrite blocked pending clarification due to conflict with preservation/correction policy and specialist review |
+| Finalized-period corrections | Preserve original and period history; linked correction in current open period; block unresolved treatment pending approval; Decision 21 supersedes automatic rewrite selection | No automatic rewrite of finalized-period figures; audit link to original required |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -222,6 +223,14 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Corrections after period finalization:** The company owner selected automatic rewriting of the original period's figures when a correction is made.
 - **Period close:** Require an authorized user to finalize the period, retain close history, and audit any reopening.
 - **Implementation blocker / clarification required:** Automatic rewriting of original-period figures conflicts with prior approved requirements to preserve historical financial records, retain linked corrections, and audit changes. Record the owner's current selection, but do not implement automatic historical rewrites until the intended behavior is clarified and applicable Romanian accounting/tax requirements are reviewed by a qualified specialist. Period finalization and reopening must remain auditable.
+
+## Decision 21: Corrections after a finalized period
+
+**Status:** Approved by company owner; supersedes the conflicting correction selection in Decision 20.
+
+- **Correction period:** Preserve the original record and period history; record a linked correction in the current open period.
+- **Unresolved correction treatment:** Preserve original data and block the affected correction until its treatment is approved.
+- **Resolution of Decision 20 conflict:** Do not rewrite finalized-period figures automatically. Preserve historical records, use linked corrections in the current open period, and keep corrections blocked until treatment is approved where unresolved or specialist review is required. Maintain an auditable link between the correction and original record.
 
 ## Cross-cutting implementation controls
 
