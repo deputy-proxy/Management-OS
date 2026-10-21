@@ -128,6 +128,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Upload formats and source files | Explicitly approved formats/templates by upload purpose; retain original upload with metadata subject to approved retention/access policy; reject unexpected structures unless an approved versioned mapping exists | Define supported templates and mapping governance; validate retention, access, and privacy; no migration/backfill |
 | Retained upload file access and retention | General financial-record access permits viewing/downloading; audit uploads only; owner selects indefinite retention for all upload types | Privacy, security, and category-specific Romanian legal/accounting retention review required; no migration/backfill |
 | Upload security and file limits | Reject suspected malicious/failed-scan files without retaining them; block import if scan unavailable/inconclusive pending required checks or authorized review; warn on large files but allow | Define security checks and review flow; size/complexity thresholds remain unspecified; no migration/backfill |
+| Upload duplicates and financial conflicts | Flag potential duplicates and preserve both pending review; block conflicting financial changes for authorized review; detect repeated uploads and prevent duplicate effects while recording attempts | Define duplicate/conflict criteria and idempotency identity; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -301,6 +302,15 @@ Existing guardrails remain in force: no schema migration or historical-data back
 - **Unavailable or inconclusive scanning:** Block import until required checks pass or an authorized review resolves the issue.
 - **Large files:** Warn when files are large but allow them to proceed. This decision does not define numeric file-size or complexity limits.
 - **Implementation guardrails:** Define appropriate security checks and the authorized review path before implementation. Do not bypass required checks because scanning is unavailable or inconclusive. Specify operational limits separately if needed. No schema migration or historical-data backfill is authorized.
+
+## Decision 28: Upload duplicates, conflicting values, and repeated submissions
+
+**Status:** Approved by company owner.
+
+- **Potential duplicate rows:** Flag potential duplicates for review and preserve both records until the issue is resolved. Do not automatically merge or silently discard either record.
+- **Conflicting financial values:** Block a conflicting change to an existing financial record and require authorized review. Preserve the existing value and the proposed change for review.
+- **Repeated uploads:** Detect repeated submissions of the same upload, prevent duplicate financial effects, and record the repeated attempt in the audit trail.
+- **Implementation guardrails:** Define duplicate/conflict detection criteria and a stable upload/source identity for idempotency before implementation. No schema migration or historical-data backfill is authorized.
 
 ## Cross-cutting implementation controls
 
