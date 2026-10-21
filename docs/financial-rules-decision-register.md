@@ -117,6 +117,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Deletion and archival | Owner approves authorized deletion of used records and permanent deletion of unused mistaken records; archived records excluded from operational views but retained for audit/history | Destructive deletion of used financial/payroll records blocked pending qualified Romanian accounting/legal retention review |
 | Permissions and approvals | Operation-specific role permissions; designated approver for consequential actions; self-approval allowed where role permits; no monetary thresholds defined | Document role/action matrix and audit approvals; validate applicable statutory/external controls |
 | Reporting scope | Operational dashboards only; preserve and flag unknowns; disclose reconciliation checks, unresolved discrepancies, and limitations; no accounting reconciliation reports in this requirement | Do not conflate calculation with reconciliation; not statutory financial statements |
+| Financial exports | Explicit per-data/operation export permission; preserve source values with unknown/discrepancy indicators; audit user, timestamp, scope, format, and outcome | Apply privacy/retention controls; no estimating or silent normalization |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -182,6 +183,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Missing or ambiguous data:** Preserve unknowns, flag them, and qualify affected totals. Do not fill gaps using an assumed interpretation.
 - **Default reporting scope:** Operational dashboards are the required default scope; accounting reconciliation reporting is out of scope for this requirement.
 - **Implementation guardrails:** Do not label successful calculation as reconciliation. Document the checks and report limitations used by operational dashboards. Do not expand this issue's scope into accounting reconciliation reports without a separate approved requirement. These operational dashboards are not statutory financial statements.
+
+## Decision 17: Financial data exports
+
+**Status:** Approved by company owner.
+
+- **Export access:** Users need explicit export permission for the relevant data and operation.
+- **Unknown or flagged values:** Preserve source values and include clear indicators for unknowns or flagged discrepancies.
+- **Export audit trail:** Record the user, timestamp, export scope and format, and outcome, subject to applicable privacy and retention controls.
+- **Implementation guardrails:** Do not estimate or silently normalize values in exports. Enforce export permission at the relevant operation and include enough metadata to audit what was exported and whether the export succeeded, while following applicable privacy and retention controls.
 
 ## Cross-cutting implementation controls
 
