@@ -127,6 +127,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Manual uploads | Preview accepted/rejected rows, warnings, and changes; reject entire file on blocking errors; authorized confirmation and audit trail before import | Define validation, blocking/warning rules, preview, and permissions; no migration/backfill |
 | Upload formats and source files | Explicitly approved formats/templates by upload purpose; retain original upload with metadata subject to approved retention/access policy; reject unexpected structures unless an approved versioned mapping exists | Define supported templates and mapping governance; validate retention, access, and privacy; no migration/backfill |
 | Retained upload file access and retention | General financial-record access permits viewing/downloading; audit uploads only; owner selects indefinite retention for all upload types | Privacy, security, and category-specific Romanian legal/accounting retention review required; no migration/backfill |
+| Upload security and file limits | Reject suspected malicious/failed-scan files without retaining them; block import if scan unavailable/inconclusive pending required checks or authorized review; warn on large files but allow | Define security checks and review flow; size/complexity thresholds remain unspecified; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -291,6 +292,15 @@ Existing guardrails remain in force: no schema migration or historical-data back
 - **Audit events:** Audit upload events. This decision does not require separate audit records for subsequent views or downloads.
 - **Retention:** The company owner selected indefinite retention of original uploaded files for all upload types.
 - **Implementation guardrails:** Do not treat owner approval as resolving applicable privacy, security, data-minimization, or Romanian legal/accounting obligations. Before implementing broad access or blanket indefinite retention, obtain appropriate review and define any required safeguards or exceptions. Preserve upload audit records. No schema migration or historical-data backfill is authorized.
+
+## Decision 27: Upload security checks and file limits
+
+**Status:** Company-owner policy recorded; security implementation details remain to be defined.
+
+- **Failed or suspicious files:** Reject a file that fails security scanning or is suspected to be malicious, and do not retain it.
+- **Unavailable or inconclusive scanning:** Block import until required checks pass or an authorized review resolves the issue.
+- **Large files:** Warn when files are large but allow them to proceed. This decision does not define numeric file-size or complexity limits.
+- **Implementation guardrails:** Define appropriate security checks and the authorized review path before implementation. Do not bypass required checks because scanning is unavailable or inconclusive. Specify operational limits separately if needed. No schema migration or historical-data backfill is authorized.
 
 ## Cross-cutting implementation controls
 
