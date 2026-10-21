@@ -118,6 +118,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Permissions and approvals | Operation-specific role permissions; designated approver for consequential actions; self-approval allowed where role permits; no monetary thresholds defined | Document role/action matrix and audit approvals; validate applicable statutory/external controls |
 | Reporting scope | Operational dashboards only; preserve and flag unknowns; disclose reconciliation checks, unresolved discrepancies, and limitations; no accounting reconciliation reports in this requirement | Do not conflate calculation with reconciliation; not statutory financial statements |
 | Financial exports | Explicit per-data/operation export permission; preserve source values with unknown/discrepancy indicators; audit user, timestamp, scope, format, and outcome | Apply privacy/retention controls; no estimating or silent normalization |
+| Financial notifications | Configurable overdue/failed-payment/material-discrepancy/approval events; recorded due dates only; Europe/Bucharest reporting timezone; log/retry/expose delivery failures | Define event criteria, retry policy, and operator visibility; never infer missing due dates |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -192,6 +193,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Unknown or flagged values:** Preserve source values and include clear indicators for unknowns or flagged discrepancies.
 - **Export audit trail:** Record the user, timestamp, export scope and format, and outcome, subject to applicable privacy and retention controls.
 - **Implementation guardrails:** Do not estimate or silently normalize values in exports. Enforce export permission at the relevant operation and include enough metadata to audit what was exported and whether the export succeeded, while following applicable privacy and retention controls.
+
+## Decision 18: Financial notifications and overdue items
+
+**Status:** Approved by company owner.
+
+- **Notification events:** Support configured events such as overdue invoices, failed payments, unresolved material discrepancies, and required approvals.
+- **Due dates and overdue status:** Use recorded due dates, flag missing dates, and apply the approved `Europe/Bucharest` business reporting timezone.
+- **Delivery failures:** Log failures, retry under a defined policy, and expose unresolved delivery failures to authorized operators.
+- **Implementation guardrails:** Do not infer missing due dates. Define configurable event criteria, retry limits/backoff, and operator visibility before implementation. Keep delivery failure status distinct from successful delivery.
 
 ## Cross-cutting implementation controls
 
