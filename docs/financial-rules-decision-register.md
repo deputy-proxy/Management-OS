@@ -129,6 +129,13 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Retained upload file access and retention | General financial-record access permits viewing/downloading; audit uploads only; owner selects indefinite retention for all upload types | Privacy, security, and category-specific Romanian legal/accounting retention review required; no migration/backfill |
 | Upload security and file limits | Reject suspected malicious/failed-scan files without retaining them; block import if scan unavailable/inconclusive pending required checks or authorized review; warn on large files but allow | Define security checks and review flow; size/complexity thresholds remain unspecified; no migration/backfill |
 | Upload duplicates and financial conflicts | Flag potential duplicates and preserve both pending review; block conflicting financial changes for authorized review; detect repeated uploads and prevent duplicate effects while recording attempts | Define duplicate/conflict criteria and idempotency identity; no migration/backfill |
+| Payment allocation and balance mismatches | Deterministic configured allocation order with preview/authorized confirmation; flag payment/invoice mismatches and do not mark paid without authorized confirmation | Define allocation ordering, preview and mismatch handling; no migration/backfill |
+| Transaction types and invoice states | Distinct or linked workflows for money-in/out, refunds, reversals, transfers, and fees; documented invoice transitions with authorized paid confirmation and audit | Define types, state machine, permissions, and audit events; no migration/backfill |
+| Finalized-period correction and reopening | Preserve original; linked corrections in current open period; authorized role, reason, audit trail, and close/reopen history | No automatic finalized-period rewrite; unresolved corrections blocked; no migration/backfill |
+| Discrepancy severity and unknown values | Document severity rules; block material/safety-critical operations; preserve/flag unknowns and qualify affected totals | Define criteria and report qualification; no inference or silent suppression |
+| Import atomicity and confirmation | Reject whole file on blocking row errors; show warnings and require authorized confirmation; atomic processing where possible and safe retry/recovery | Record partial outcomes and verify integrity before resuming; no migration/backfill |
+| Financial permissions and notifications | Role/operation permissions and designated approval for consequential actions; log/retry notification failures and expose unresolved failures | Define role matrix, approvers, retry policy and operator visibility; no migration/backfill |
+| Upload audit evidence | Record upload identity, uploader, timestamp, preview/confirmation, outcome, accepted/rejected row references, and resulting changes | Define audit schema and access/retention controls; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -311,6 +318,124 @@ Existing guardrails remain in force: no schema migration or historical-data back
 - **Conflicting financial values:** Block a conflicting change to an existing financial record and require authorized review. Preserve the existing value and the proposed change for review.
 - **Repeated uploads:** Detect repeated submissions of the same upload, prevent duplicate financial effects, and record the repeated attempt in the audit trail.
 - **Implementation guardrails:** Define duplicate/conflict detection criteria and a stable upload/source identity for idempotency before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 29: Payment allocation order
+
+**Status:** Approved by company owner.
+
+- Use an explicitly configured, deterministic allocation order when multiple invoices are eligible.
+- Show the proposed allocation for authorized confirmation before applying it.
+- Define the order, preview, authorization, and audit behavior before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 30: Payment and invoice balance mismatch
+
+**Status:** Approved by company owner.
+
+- Flag a mismatch between a payment and an invoice's outstanding balance for review.
+- Do not mark an invoice paid without explicit authorized settlement confirmation.
+- Preserve the mismatch and its review outcome in the audit trail. No schema migration or historical-data backfill is authorized.
+
+## Decision 31: Supported transaction workflows
+
+**Status:** Approved by company owner.
+
+- Support explicit money-in and money-out transactions, refunds, reversals, account transfers, and fees as distinct transaction types or linked workflows.
+- Define relationships and balance/reporting effects for each workflow before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 32: Invoice lifecycle transitions
+
+**Status:** Approved by company owner.
+
+- Document permitted invoice state transitions.
+- Paid status requires authorized confirmation; every state transition must be audited.
+- Define transition permissions and audit events before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 33: Corrections to finalized financial records
+
+**Status:** Approved by company owner.
+
+- Preserve the finalized original and create a linked correction.
+- Block the correction when its treatment or required approval remains unresolved.
+- Maintain an audit link between original and correction. No schema migration or historical-data backfill is authorized.
+
+## Decision 34: Reopening finalized reporting periods
+
+**Status:** Approved by company owner.
+
+- Reopening requires a specifically authorized role, a recorded reason, an audit trail, and preserved period close/reopen history.
+- Define role permissions and evidence requirements before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 35: Reporting approved corrections
+
+**Status:** Approved by company owner.
+
+- Preserve finalized-period history.
+- Show approved linked corrections in the current open period rather than automatically rewriting finalized-period figures.
+- Keep the original and correction relationship visible and auditable. No schema migration or historical-data backfill is authorized.
+
+## Decision 36: Discrepancy severity and blocking
+
+**Status:** Approved by company owner.
+
+- Apply documented severity rules to discrepancies.
+- Block material or safety-critical operations and disclose unresolved discrepancies.
+- Define severity thresholds, blocking behavior, resolution authority, and report qualification before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 37: Unknown legacy values in reports
+
+**Status:** Approved by company owner.
+
+- Preserve and flag unknown or ambiguous values.
+- Qualify affected totals and do not infer missing values or silently exclude affected records.
+- Define visible indicators and qualification rules before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 38: Import files containing blocking errors
+
+**Status:** Approved by company owner.
+
+- Reject the entire file if any row has a blocking error.
+- Make no financial changes from a rejected file.
+- Present rejected rows and reasons in the preview/audit evidence. No schema migration or historical-data backfill is authorized.
+
+## Decision 39: Permitted import warnings
+
+**Status:** Approved by company owner.
+
+- Show permitted warnings in the upload preview.
+- Require explicit confirmation by an authorized user before applying the import.
+- Define which warnings are permitted and which must block import. No schema migration or historical-data backfill is authorized.
+
+## Decision 40: Partial import failure and recovery
+
+**Status:** Approved by company owner.
+
+- Use atomic processing where possible.
+- Where full atomicity is not technically possible, record partial outcomes, prevent duplicate financial effects on retry, and verify integrity before processing resumes.
+- Document recovery, reconciliation, and retry behavior. No schema migration or historical-data backfill is authorized.
+
+## Decision 41: Financial permissions and consequential actions
+
+**Status:** Approved by company owner.
+
+- Enforce permissions by operation and role.
+- Require designated approval for consequential actions and maintain an audit trail.
+- Define the role/action matrix and approval events before implementation; do not invent monetary thresholds. No schema migration or historical-data backfill is authorized.
+
+## Decision 42: Financial notification delivery failures
+
+**Status:** Approved by company owner.
+
+- Log notification delivery failures and retry under a defined policy.
+- Expose unresolved failures to authorized operators.
+- Define retry limits/backoff and operator visibility before implementation. No schema migration or historical-data backfill is authorized.
+
+## Decision 43: Financial upload audit evidence
+
+**Status:** Approved by company owner.
+
+- Record upload identity, uploader, timestamp, preview and confirmation, import outcome, accepted/rejected row references, and resulting changes.
+- Keep evidence sufficient to trace the upload and its financial effects, subject to applicable privacy and retention controls.
+- Define the audit fields and access controls before implementation. No schema migration or historical-data backfill is authorized.
 
 ## Cross-cutting implementation controls
 
