@@ -115,6 +115,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Payroll | Recalculate from approved inputs; authorized linked corrections for finalized results; provisional estimates only until qualified statutory validation | Preserve audit trail; statutory payroll release blocked pending qualified review |
 | Reconciliation discrepancies | Severity-based warnings/blocks; designated approvers with reasons/audit trail; unresolved items and qualified totals visible | Define severity/block criteria, permissions, evidence, and report qualification |
 | Deletion and archival | Owner approves authorized deletion of used records and permanent deletion of unused mistaken records; archived records excluded from operational views but retained for audit/history | Destructive deletion of used financial/payroll records blocked pending qualified Romanian accounting/legal retention review |
+| Permissions and approvals | Operation-specific role permissions; designated approver for consequential actions; self-approval allowed where role permits; no monetary thresholds defined | Document role/action matrix and audit approvals; validate applicable statutory/external controls |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -162,6 +163,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Unused mistaken records:** The company owner approves permanent deletion of records created by mistake before they have been used.
 - **Archived records in reports:** Exclude archived records from normal operational views while retaining them for audit and historical reporting.
 - **Statutory-retention blocker:** Deletion of financial or payroll records may conflict with statutory retention, audit-trail, accounting, tax, or employment requirements. Do not implement destructive deletion of used financial records or finalized payroll until a qualified Romanian accounting/legal specialist confirms the permitted scope, retention requirements, and any required immutable audit evidence. Until then, preserve existing records; this owner decision alone does not authorize destructive migration or bulk deletion.
+
+## Decision 15: Financial permissions and approval limits
+
+**Status:** Approved by company owner.
+
+- **Ordinary financial record access:** Users need explicit permissions for the relevant financial operation, limited by role.
+- **Consequential financial actions:** Payments, write-offs, and other consequential actions require a designated approver; this decision establishes no monetary thresholds.
+- **Self-approval:** A user may approve their own action when their role permits approval.
+- **Implementation guardrails:** Document permissions by operation and role, define which actions require designated approval, and audit approval identity and outcome. Do not invent monetary thresholds. Self-approval is explicitly allowed by this owner decision; statutory or external control requirements still need specialist validation where applicable.
 
 ## Cross-cutting implementation controls
 
