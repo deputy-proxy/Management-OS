@@ -20,11 +20,23 @@ The company owner confirmed on **2026-10-21**:
 
 The owner's name/signature has not been supplied in this packet. Add it if formal governance requires it.
 
+### Reviewer confirmation recorded
+
+On **2026-10-21**, the owner supplied the following reviewer details and reported conclusion:
+
+- **Reviewer:** Catalin Contes
+- **Qualification stated:** Certified Accountant
+- **Review date:** 21.10.2026
+- **Conclusion reported by owner:** Everything is correct; no conditions or requested changes.
+
+This records the owner's report of the review, not a directly submitted signature or separate written statement from the reviewer. The report does not itemize the reviewer's professional scope by section. It therefore must not be treated as independent legal/privacy/security approval or as a statutory payroll sign-off unless the reviewer explicitly confirms those areas are within their qualification and review scope. No dispositions or conditions were provided for the individual review-area checkboxes below, so those fields are not fabricated or pre-selected.
+
 | Approval | Status | Boundary |
 |---|---|---|
 | Company-owner policy, Decisions 1–43 | Approved in conversation on 2026-10-21 | Business policy only; not independent or statutory approval |
-| Romanian accounting/tax review | Pending written review | Must validate applicable accounting, invoicing, tax, and reporting implications |
-| Romanian payroll/accounting review | Pending written review | Must validate applicable payroll calculation and statutory release conditions |
+| Reviewer confirmation reported by owner | Reported as no issues or conditions on 2026-10-21 | Reviewer identity and qualification supplied by owner; detailed per-area scope and direct signed record not supplied |
+| Romanian accounting/tax review | Reviewer confirmation reported; formal section disposition not recorded | Applicable accounting, invoicing, tax, and reporting implications need an explicit scoped disposition in the record |
+| Romanian payroll/accounting review | Scope-specific disposition not recorded | Statutory payroll calculation and release still require explicit qualified review coverage |
 | Legal/privacy/security review | Pending written review where applicable | Must validate retention, deletion, upload-file access, and security obligations |
 | Canonical technical contract | Pending | Must map policy to field meanings, validation, compatibility, authorization, and audit behavior |
 | Migration/backfill/destructive changes | **Not authorized** | Requires a separately reviewed and approved plan, data evidence, reconciliation, and recovery plan |
@@ -41,12 +53,14 @@ The owner's name/signature has not been supplied in this packet. Add it if forma
 
 ### Reviewer identification
 
-- **Reviewer name:** __________________________________________
-- **Professional role / qualification:** _____________________________
-- **Organization / practice (if applicable):** ________________________
-- **Review date:** ______________________________________________
-- **Jurisdiction and scope covered:** _______________________________
-- **Documents/evidence reviewed:** ________________________________
+- **Reviewer name:** Catalin Contes
+- **Professional role / qualification:** Certified Accountant
+- **Organization / practice (if applicable):** Not provided
+- **Review date:** 21.10.2026
+- **Jurisdiction and scope covered:** Not separately itemized in the confirmation reported by the owner
+- **Documents/evidence reviewed:** Financial rules reviewer packet / Decisions 1–43, as reported by the owner
+- **Reported conclusion:** Everything is correct; no conditions or requested changes
+- **Direct signed statement / signature reference:** Not provided
 
 ## 3. Romanian accounting and tax review
 
