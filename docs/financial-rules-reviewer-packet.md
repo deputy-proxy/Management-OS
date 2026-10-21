@@ -29,17 +29,27 @@ On **2026-10-21**, the owner supplied the following reviewer details and reporte
 - **Review date:** 21.10.2026
 - **Conclusion reported by owner:** Everything is correct; no conditions or requested changes.
 
-This records the owner's report of the review, not a directly submitted signature or separate written statement from the reviewer. The report does not itemize the reviewer's professional scope by section. It therefore must not be treated as independent legal/privacy/security approval or as a statutory payroll sign-off unless the reviewer explicitly confirms those areas are within their qualification and review scope. No dispositions or conditions were provided for the individual review-area checkboxes below, so those fields are not fabricated or pre-selected.
+This records the owner's report, not direct inspection of the underlying email. On 2026-10-21 the owner clarified that the confirmation is in a company email stored in cloud storage, but did not provide a URL, message identifier, attachment, or other retrievable reference in this repository. The owner reports that the accountant's scope was accounting/financial semantics only; the topics or decision numbers covered were not supplied. The owner separately reports that Romanian tax/invoicing review, statutory payroll review, retention/deletion legal-accounting review, privacy review, and upload-security review were completed. No reviewer identities, qualifications, dates, findings, or evidence references were supplied for those separate review areas. These statements are recorded as owner-reported information only; they do not establish the reviewers' qualifications, scope, conditions, or written dispositions.
 
 | Approval | Status | Boundary |
 |---|---|---|
 | Company-owner policy, Decisions 1–43 | Approved in conversation on 2026-10-21 | Business policy only; not independent or statutory approval |
-| Reviewer confirmation reported by owner | Reported as no issues or conditions on 2026-10-21 | Reviewer identity and qualification supplied by owner; detailed per-area scope and direct signed record not supplied |
-| Romanian accounting/tax review | Reviewer confirmation reported; formal section disposition not recorded | Applicable accounting, invoicing, tax, and reporting implications need an explicit scoped disposition in the record |
-| Romanian payroll/accounting review | Scope-specific disposition not recorded | Statutory payroll calculation and release still require explicit qualified review coverage |
-| Legal/privacy/security review | Pending written review where applicable | Must validate retention, deletion, upload-file access, and security obligations |
-| Canonical technical contract | Pending | Must map policy to field meanings, validation, compatibility, authorization, and audit behavior |
+| Accountant review | Owner reports email confirmation and accounting/financial-semantics scope | Decision/topic coverage, reviewer-scope detail, and retrievable email reference not supplied |
+| Romanian tax/invoicing review | Owner reports review completed | Reviewer identity/qualification, date, scope, findings, and retrievable evidence reference not supplied; statutory treatment not independently verified here |
+| Statutory payroll review | Owner reports review completed | Qualified reviewer identity, effective-dated rule coverage, expected-result cases, and retrievable evidence reference not supplied |
+| Retention/deletion legal-accounting review | Owner reports review completed | Reviewer identity/qualification, category schedule, safeguards, and evidence reference not supplied |
+| Privacy review | Owner reports review completed | Reviewer identity/scope, approved safeguards, and evidence reference not supplied |
+| Upload-security review | Owner reports review completed | Reviewer identity/scope, required controls, and evidence reference not supplied |
+| Canonical technical contract | Pending downstream work | Must map policy to field meanings, validation, compatibility, authorization, and audit behavior |
 | Migration/backfill/destructive changes | **Not authorized** | Requires a separately reviewed and approved plan, data evidence, reconciliation, and recovery plan |
+
+### Owner-reported evidence update (2026-10-21)
+
+- **Evidence type:** Company email, reportedly stored in cloud storage.
+- **Evidence locator:** Not supplied to this repository; the email was not available for direct inspection during this closure check.
+- **Accountant scope:** Accounting/financial semantics; exact topics or decision numbers not supplied.
+- **Other review areas reported complete:** Romanian tax/invoicing, statutory payroll, retention/deletion legal-accounting, privacy, and upload security.
+- **Evidence limitation:** No separate reviewer identities/qualifications, review dates, per-area written dispositions, conditions, or retrievable references were supplied for these areas. Do not convert owner-reported “yes” responses into independently verified approvals.
 
 ## 2. Instructions for reviewers
 
@@ -57,10 +67,10 @@ This records the owner's report of the review, not a directly submitted signatur
 - **Professional role / qualification:** Certified Accountant
 - **Organization / practice (if applicable):** Not provided
 - **Review date:** 21.10.2026
-- **Jurisdiction and scope covered:** Not separately itemized in the confirmation reported by the owner
+- **Jurisdiction and scope covered:** Owner reports accounting/financial semantics; specific decision/topic coverage not supplied
 - **Documents/evidence reviewed:** Financial rules reviewer packet / Decisions 1–43, as reported by the owner
 - **Reported conclusion:** Everything is correct; no conditions or requested changes
-- **Direct signed statement / signature reference:** Not provided
+- **Written evidence reference:** Owner reports a company email stored in cloud storage; no retrievable link/message ID or attachment supplied to this repository
 
 ## 3. Romanian accounting and tax review
 
@@ -271,22 +281,22 @@ Use one row per unresolved item. Do not mark an item resolved without linking th
 
 | ID | Decision / topic | Required action or evidence | Owner | Status / due date | Evidence link |
 |---|---|---|---|---|---|
-| R-01 | VAT / invoice treatment | Written Romanian tax/invoicing finding |  | Blocked |  |
-| R-02 | Invoice field meanings / payable total | Field-by-field reviewed contract |  | Blocked |  |
-| R-03 | Currency / precision / rounding | Approved workflow-specific examples |  | Blocked |  |
-| R-04 | Payment / transfer / correction treatment | Written accounting review and state rules |  | Blocked |  |
-| R-05 | Payroll calculations / statutory release | Qualified payroll review and expected-result cases |  | Blocked |  |
-| R-06 | Retention / deletion / source-file access | Category schedule and approved safeguards |  | Blocked |  |
-| R-07 | Upload security / audit / recovery | Security and legal/privacy conditions resolved |  | Blocked |  |
-| R-08 | Legacy field mapping | Audited mappings or explicit unknown treatment |  | Blocked |  |
-| R-09 | Migration proposal | Before/after totals, reconciliation, recovery and separate approval |  | Not authorized |  |
+| R-01 | VAT / invoice treatment | Owner reports review complete; record reviewer identity, qualification, scope, date, findings, conditions, and retrievable evidence reference | Romanian tax/invoicing specialist | Evidence not supplied |  |
+| R-02 | Invoice field meanings / payable total | Field-by-field reviewed contract | Finance owner + engineering owner (#306) | Blocked |  |
+| R-03 | Currency / precision / rounding | Approved workflow-specific examples | Accountant for applicable accounting scope + engineering owner (#306/#307) | Blocked |  |
+| R-04 | Payment / transfer / correction treatment | Written accounting review and state rules | Accountant for applicable accounting scope + finance/engineering owners | Blocked |  |
+| R-05 | Payroll calculations / statutory release | Owner reports review complete; record qualified reviewer, effective-dated scope, expected-result cases, findings, conditions, and retrievable evidence reference | Qualified Romanian payroll specialist + payroll engineering owner | Evidence not supplied |  |
+| R-06 | Retention / deletion / source-file access | Owner reports review complete; record reviewer, category schedule, approved safeguards, conditions, and retrievable evidence reference | Romanian legal/accounting reviewer + privacy owner | Evidence not supplied |  |
+| R-07 | Upload security / audit / recovery | Owner reports review complete; record security/privacy/legal reviewers, required controls, recovery conditions, and retrievable evidence reference | Security owner + privacy/legal reviewers + engineering owner | Evidence not supplied |  |
+| R-08 | Legacy field mapping | Audited mappings or explicit unknown treatment | Engineering/data owner (#306) + finance owner | Blocked |  |
+| R-09 | Migration proposal | Before/after totals, reconciliation, recovery and separate approval | Engineering/data owner (#307) + finance owner; separate approval required | Not authorized |  |
 
 ### Final review disposition
 
-- [ ] All relevant specialist areas approved without conditions.
+- [ ] All relevant specialist areas approved without conditions (requires review evidence and scope to be recorded).
 - [ ] Approved with conditions; implementation may proceed only for explicitly cleared scope.
 - [ ] Not approved; listed policy decisions require revision.
-- [ ] Review incomplete; blockers remain.
+- [x] Owner reports several specialist reviews complete, but review evidence/scope is not retrievable or sufficiently itemized here; formal disposition remains incomplete.
 
 **Approved scope (be precise):**
 ____________________________________________________________________
