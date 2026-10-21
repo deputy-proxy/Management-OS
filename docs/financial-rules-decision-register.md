@@ -120,6 +120,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Financial exports | Explicit per-data/operation export permission; preserve source values with unknown/discrepancy indicators; audit user, timestamp, scope, format, and outcome | Apply privacy/retention controls; no estimating or silent normalization |
 | Financial notifications | Configurable overdue/failed-payment/material-discrepancy/approval events; recorded due dates only; Europe/Bucharest reporting timezone; log/retry/expose delivery failures | Define event criteria, retry policy, and operator visibility; never infer missing due dates |
 | Identifiers and duplicates | Scoped identifier uniqueness; preserve external IDs; flag and preserve possible duplicates for review; idempotent retries with attempt audit trail | Define uniqueness and detection criteria; no automatic merge or duplicate financial effects |
+| Financial periods | Date field defined per report/event; owner selected automatic rewrite of original-period figures after correction; authorized period close with audit history | Historical rewrite blocked pending clarification due to conflict with preservation/correction policy and specialist review |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -212,6 +213,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Possible duplicates:** Flag possible duplicates for review and preserve both records until resolved.
 - **Repeated imports and retries:** Use a defined idempotency key or source identity so retries do not create duplicate financial effects; preserve audit evidence of attempts.
 - **Implementation guardrails:** Define uniqueness scopes and duplicate-detection criteria before implementation. Do not automatically merge possible duplicates or discard source identifiers. Idempotency must prevent duplicate financial effects without erasing the history of repeated attempts.
+
+## Decision 20: Financial periods and month-end reporting
+
+**Status:** Approved by company owner; correction behavior has an implementation blocker.
+
+- **Reporting period date:** Define the date field by report and event type, document it, and preserve relevant dates separately.
+- **Corrections after period finalization:** The company owner selected automatic rewriting of the original period's figures when a correction is made.
+- **Period close:** Require an authorized user to finalize the period, retain close history, and audit any reopening.
+- **Implementation blocker / clarification required:** Automatic rewriting of original-period figures conflicts with prior approved requirements to preserve historical financial records, retain linked corrections, and audit changes. Record the owner's current selection, but do not implement automatic historical rewrites until the intended behavior is clarified and applicable Romanian accounting/tax requirements are reviewed by a qualified specialist. Period finalization and reopening must remain auditable.
 
 ## Cross-cutting implementation controls
 
