@@ -125,6 +125,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Retention | Category-based periods subject to Romanian accounting/legal review; owner selected indefinite archiving; conflicting deletion requests blocked pending authorized review | Blanket indefinite retention blocked pending privacy and category-specific legal review |
 | Outages and recovery | Atomic operations where possible; preserve failure evidence; idempotent retries; documented restore with integrity/totals/event reconciliation; authorized operator resumes after checks | Record recovery outcome and verify financial integrity before resuming |
 | Manual uploads | Preview accepted/rejected rows, warnings, and changes; reject entire file on blocking errors; authorized confirmation and audit trail before import | Define validation, blocking/warning rules, preview, and permissions; no migration/backfill |
+| Upload formats and source files | Explicitly approved formats/templates by upload purpose; retain original upload with metadata subject to approved retention/access policy; reject unexpected structures unless an approved versioned mapping exists | Define supported templates and mapping governance; validate retention, access, and privacy; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -271,6 +272,15 @@ Existing guardrails remain in force: no schema migration or historical-data back
 - **Mixed valid/invalid rows:** Reject the entire file if any row has a blocking error; allow warnings only where explicitly permitted.
 - **Import confirmation:** Apply uploaded data only after an authorized user confirms the preview, and record the upload and resulting changes in an audit trail.
 - **Implementation guardrails:** Define file/row validation, blocking errors versus permitted warnings, preview contents, and authorization rules before implementation. Do not silently skip invalid rows or change financial records before authorized confirmation. No schema migration or historical-data backfill is authorized by this decision.
+
+## Decision 25: Manual upload formats and source records
+
+**Status:** Approved by company owner; retention, access, and privacy controls require appropriate review.
+
+- **Supported formats:** Support only explicitly approved file formats and templates for each upload purpose. Reject unsupported formats.
+- **Original source file:** Retain the original uploaded file together with upload metadata, subject to an approved retention and access policy.
+- **Unexpected structure:** Reject unexpected file structures by default. Permit only explicitly approved, versioned mappings; do not guess or silently map columns.
+- **Implementation guardrails:** Define supported formats/templates by upload purpose, versioning and approval of mappings, and access/retention controls before implementation. Apply the Decision 24 preview, blocking-error, and authorized-confirmation requirements. No schema migration or historical-data backfill is authorized.
 
 ## Cross-cutting implementation controls
 
