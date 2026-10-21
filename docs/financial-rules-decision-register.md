@@ -1,10 +1,14 @@
 # Financial Rules Decision Register
 
-**Status:** Company-owner business decisions recorded; independent review and Romanian accounting/tax specialist validation remain pending where applicable.  
+**Status:** Company-owner business decisions recorded. The owner reports completion of several specialist reviews, but the underlying email is not linked or available here and per-area reviewer scope/evidence is incomplete; do not treat those reports as independently verified approvals.
 **Issue:** [#304](https://github.com/deputy-proxy/Management-OS/issues/304)  
 **Scope:** Management-OS operational financial semantics. This register does not certify statutory accounting, tax, payroll, or general-ledger compliance.
 
 ## Approval record
+
+### Specialist-review evidence note (2026-10-21)
+
+The owner reports that an accountant confirmed the decisions by company email stored in cloud storage. The owner describes the accountant's scope as accounting/financial semantics, but did not supply the specific decisions/topics covered or a retrievable email URL/message identifier/attachment. The owner separately reports completion of Romanian tax/invoicing, statutory payroll, retention/deletion legal-accounting, privacy, and upload-security reviews. Reviewer identities/qualifications, dates, scopes, findings, conditions, and retrievable evidence references for those separate reviews were not supplied to this repository. This is an accurate record of owner-reported status, not independent verification or a compliance certification. Applicable specialist-sensitive implementation remains blocked until the evidence and relevant scope/conditions are documented.
 
 The company owner approved the business decisions below. Add the owner's name/role and formal approval date if required by project governance. This record does not claim that a qualified Romanian accounting/tax specialist or independent reviewer has approved statutory treatment.
 
