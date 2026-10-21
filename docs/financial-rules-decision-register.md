@@ -1,6 +1,6 @@
 # Financial Rules Decision Register
 
-**Status:** Company-owner business decisions recorded. The owner reports completion of several specialist reviews, but the underlying email is not linked or available here and per-area reviewer scope/evidence is incomplete; do not treat those reports as independently verified approvals.
+**Status:** Company-owner business decisions recorded. On 2026-10-21, the owner explicitly attested that the company email, accountant scope information, and specialist-review details described in the closure record are authentic. This is owner-attested evidence, not direct repository inspection or an independent audit.
 **Issue:** [#304](https://github.com/deputy-proxy/Management-OS/issues/304)  
 **Scope:** Management-OS operational financial semantics. This register does not certify statutory accounting, tax, payroll, or general-ledger compliance.
 
@@ -8,7 +8,7 @@
 
 ### Specialist-review evidence note (2026-10-21)
 
-The owner reports that an accountant confirmed the decisions by company email stored in cloud storage. The owner describes the accountant's scope as accounting/financial semantics, but did not supply the specific decisions/topics covered or a retrievable email URL/message identifier/attachment. The owner separately reports completion of Romanian tax/invoicing, statutory payroll, retention/deletion legal-accounting, privacy, and upload-security reviews. Reviewer identities/qualifications, dates, scopes, findings, conditions, and retrievable evidence references for those separate reviews were not supplied to this repository. This is an accurate record of owner-reported status, not independent verification or a compliance certification. Applicable specialist-sensitive implementation remains blocked until the evidence and relevant scope/conditions are documented.
+The owner attests that the company email stored in cloud storage, the accountant's accounting/financial-semantics scope information, and the separate specialist-review details are authentic. The accountant's specific decision/topic list and the email locator are not reproduced in this repository, and the individual reviewer details are not independently inspected here. For #304, this owner attestation is recorded as confirmation of review authenticity; it is not represented as an independent audit or a statutory compliance certification. Downstream implementation must still observe the specialist-sensitive safeguards and technical gates documented in the readiness matrix.
 
 The company owner approved the business decisions below. Add the owner's name/role and formal approval date if required by project governance. This record does not claim that a qualified Romanian accounting/tax specialist or independent reviewer has approved statutory treatment.
 
