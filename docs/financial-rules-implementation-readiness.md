@@ -70,8 +70,8 @@ The canonical contract should define, without assuming a migration:
 ### Policy and review
 - [x] Company-owner decisions are recorded through Decision 43 in the decision register.
 - [x] No schema migration or historical-data backfill is authorized by these decisions.
-- [ ] Independent review and qualified Romanian accounting/tax/payroll review are documented for applicable statutory-sensitive rules.
-- [ ] Qualified Romanian legal/accounting/privacy review resolves retention, deletion, and source-file access constraints.
+- [ ] Owner-reported accountant review is mapped to exact decisions/topics and supported by a retrievable email reference; Romanian tax/invoicing and statutory payroll reviews are reported complete by the owner, but reviewer identity/qualification, scope, date, findings, conditions, and retrievable evidence are not recorded here.
+- [ ] Owner reports retention/deletion legal-accounting, privacy, and upload-security reviews complete; reviewer identity/scope, approved safeguards/controls, conditions, and retrievable evidence are not recorded here.
 - [ ] Any remaining conflicting policy statements are reconciled before implementation; the malicious-file no-retention rule is an explicit exception to the general original-upload retention policy.
 
 ### Technical specification
@@ -95,6 +95,8 @@ The canonical contract should define, without assuming a migration:
 3. **Canonical contract (#306):** only after prerequisite issues are completed, map fields and compatibility behavior to the approved semantics. Do not begin schema implementation while blockers remain.
 4. **Currency/precision migration plan:** only after the contract, audited legacy mappings, before/after totals, tests and recovery plan are approved. The verified migration-plan issue is [#307](https://github.com/deputy-proxy/Management-OS/issues/307). Schema implementation is [#308](https://github.com/deputy-proxy/Management-OS/issues/308).
 
-## Current readiness conclusion
+## Issue #304 closure assessment versus downstream readiness
 
-**Policy register complete through Decision 43; issue readiness remains blocked.** The principal remaining work is specialist review, technical mapping/specification, and evidence that existing behavior can safely transition to the approved rules. This document does not certify accounting/tax/payroll compliance and does not authorize migration, backfill, destructive deletion, or broad runtime behavior changes.
+Issue #304 is a policy/traceability issue, not the implementation issue for the canonical contract or migration. Technical-contract, legacy-mapping, test, reconciliation, and migration checklist items below are downstream gates; their remaining open status is not by itself a reason to keep #304 open when the policy and blockers are documented and dependent work is explicitly blocked. The remaining #304-specific question is whether the compliance-sensitive specialist review criterion can be evidenced as appropriate, not whether #306/#307 work is already finished.
+
+**Policy register complete through Decision 43; downstream implementation readiness remains blocked.** The owner reports that accounting, tax/invoicing, payroll, retention/legal-accounting, privacy, and upload-security reviews were completed, and reports that the accountant confirmed by company email stored in cloud storage. The email is not linked or available for direct inspection here; accountant decision-level scope and the identities, qualifications, dates, findings, conditions, and evidence references for the other reported reviews are not recorded. Treat those as owner-reported assertions, not independently verified approval records. Technical mapping/specification, legacy treatment, examples, and migration/recovery evidence remain downstream work; no schema migration, backfill, destructive deletion, or broad runtime behavior change is authorized. This document does not certify accounting/tax/payroll compliance and does not authorize migration, backfill, destructive deletion, or broad runtime behavior changes.
