@@ -116,6 +116,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Reconciliation discrepancies | Severity-based warnings/blocks; designated approvers with reasons/audit trail; unresolved items and qualified totals visible | Define severity/block criteria, permissions, evidence, and report qualification |
 | Deletion and archival | Owner approves authorized deletion of used records and permanent deletion of unused mistaken records; archived records excluded from operational views but retained for audit/history | Destructive deletion of used financial/payroll records blocked pending qualified Romanian accounting/legal retention review |
 | Permissions and approvals | Operation-specific role permissions; designated approver for consequential actions; self-approval allowed where role permits; no monetary thresholds defined | Document role/action matrix and audit approvals; validate applicable statutory/external controls |
+| Reporting scope | Operational dashboards only; preserve and flag unknowns; disclose reconciliation checks, unresolved discrepancies, and limitations; no accounting reconciliation reports in this requirement | Do not conflate calculation with reconciliation; not statutory financial statements |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -172,6 +173,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Consequential financial actions:** Payments, write-offs, and other consequential actions require a designated approver; this decision establishes no monetary thresholds.
 - **Self-approval:** A user may approve their own action when their role permits approval.
 - **Implementation guardrails:** Document permissions by operation and role, define which actions require designated approval, and audit approval identity and outcome. Do not invent monetary thresholds. Self-approval is explicitly allowed by this owner decision; statutory or external control requirements still need specialist validation where applicable.
+
+## Decision 16: Financial reporting and reconciliation scope
+
+**Status:** Approved by company owner.
+
+- **Reconciliation status:** A report may be marked reconciled only when it passes defined reconciliation checks and discloses unresolved discrepancies and limitations.
+- **Missing or ambiguous data:** Preserve unknowns, flag them, and qualify affected totals. Do not fill gaps using an assumed interpretation.
+- **Default reporting scope:** Operational dashboards are the required default scope; accounting reconciliation reporting is out of scope for this requirement.
+- **Implementation guardrails:** Do not label successful calculation as reconciliation. Document the checks and report limitations used by operational dashboards. Do not expand this issue's scope into accounting reconciliation reports without a separate approved requirement. These operational dashboards are not statutory financial statements.
 
 ## Cross-cutting implementation controls
 
