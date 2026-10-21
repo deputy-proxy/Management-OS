@@ -114,6 +114,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Monetary precision and rounding | Two-decimal monetary values; higher-precision invoice calculation then round final total; allocation remainders visible and flagged | Clarify/test intermediate vs persisted precision; no silent redistribution or migration/backfill |
 | Payroll | Recalculate from approved inputs; authorized linked corrections for finalized results; provisional estimates only until qualified statutory validation | Preserve audit trail; statutory payroll release blocked pending qualified review |
 | Reconciliation discrepancies | Severity-based warnings/blocks; designated approvers with reasons/audit trail; unresolved items and qualified totals visible | Define severity/block criteria, permissions, evidence, and report qualification |
+| Deletion and archival | Owner approves authorized deletion of used records and permanent deletion of unused mistaken records; archived records excluded from operational views but retained for audit/history | Destructive deletion of used financial/payroll records blocked pending qualified Romanian accounting/legal retention review |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -152,6 +153,15 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Resolution authority:** Designated approvers may resolve discrepancies, with a recorded reason and audit trail. Require specialist approval where statutory treatment is involved.
 - **Reporting:** Show unresolved discrepancies explicitly and clearly qualify affected totals.
 - **Implementation guardrails:** Define severity categories, blocking criteria, approver permissions, required resolution evidence, and how qualified totals are displayed before implementation. Do not silently suppress discrepancies or label affected totals as fully reconciled.
+
+## Decision 14: Financial record deletion and archival
+
+**Status:** Approved by company owner, with statutory-retention implementation blocker.
+
+- **Records already used in a financial event:** The company owner approves allowing deletion by authorized users, including records used in transactions, invoices, payments, or finalized payroll.
+- **Unused mistaken records:** The company owner approves permanent deletion of records created by mistake before they have been used.
+- **Archived records in reports:** Exclude archived records from normal operational views while retaining them for audit and historical reporting.
+- **Statutory-retention blocker:** Deletion of financial or payroll records may conflict with statutory retention, audit-trail, accounting, tax, or employment requirements. Do not implement destructive deletion of used financial records or finalized payroll until a qualified Romanian accounting/legal specialist confirms the permitted scope, retention requirements, and any required immutable audit evidence. Until then, preserve existing records; this owner decision alone does not authorize destructive migration or bulk deletion.
 
 ## Cross-cutting implementation controls
 
