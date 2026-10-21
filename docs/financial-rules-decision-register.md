@@ -126,6 +126,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Outages and recovery | Atomic operations where possible; preserve failure evidence; idempotent retries; documented restore with integrity/totals/event reconciliation; authorized operator resumes after checks | Record recovery outcome and verify financial integrity before resuming |
 | Manual uploads | Preview accepted/rejected rows, warnings, and changes; reject entire file on blocking errors; authorized confirmation and audit trail before import | Define validation, blocking/warning rules, preview, and permissions; no migration/backfill |
 | Upload formats and source files | Explicitly approved formats/templates by upload purpose; retain original upload with metadata subject to approved retention/access policy; reject unexpected structures unless an approved versioned mapping exists | Define supported templates and mapping governance; validate retention, access, and privacy; no migration/backfill |
+| Retained upload file access and retention | General financial-record access permits viewing/downloading; audit uploads only; owner selects indefinite retention for all upload types | Privacy, security, and category-specific Romanian legal/accounting retention review required; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -281,6 +282,15 @@ Existing guardrails remain in force: no schema migration or historical-data back
 - **Original source file:** Retain the original uploaded file together with upload metadata, subject to an approved retention and access policy.
 - **Unexpected structure:** Reject unexpected file structures by default. Permit only explicitly approved, versioned mappings; do not guess or silently map columns.
 - **Implementation guardrails:** Define supported formats/templates by upload purpose, versioning and approval of mappings, and access/retention controls before implementation. Apply the Decision 24 preview, blocking-error, and authorized-confirmation requirements. No schema migration or historical-data backfill is authorized.
+
+## Decision 26: Access to and retention of original upload files
+
+**Status:** Company-owner policy recorded; privacy, security, and applicable legal/accounting retention requirements remain subject to review.
+
+- **Access:** Any user with general financial-record access may view or download original uploaded files.
+- **Audit events:** Audit upload events. This decision does not require separate audit records for subsequent views or downloads.
+- **Retention:** The company owner selected indefinite retention of original uploaded files for all upload types.
+- **Implementation guardrails:** Do not treat owner approval as resolving applicable privacy, security, data-minimization, or Romanian legal/accounting obligations. Before implementing broad access or blanket indefinite retention, obtain appropriate review and define any required safeguards or exceptions. Preserve upload audit records. No schema migration or historical-data backfill is authorized.
 
 ## Cross-cutting implementation controls
 
