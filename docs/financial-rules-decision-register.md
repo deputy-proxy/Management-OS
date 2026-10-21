@@ -124,6 +124,7 @@ The company owner approved the business decisions below. Add the owner's name/ro
 | Finalized-period corrections | Preserve original and period history; linked correction in current open period; block unresolved treatment pending approval; Decision 21 supersedes automatic rewrite selection | No automatic rewrite of finalized-period figures; audit link to original required |
 | Retention | Category-based periods subject to Romanian accounting/legal review; owner selected indefinite archiving; conflicting deletion requests blocked pending authorized review | Blanket indefinite retention blocked pending privacy and category-specific legal review |
 | Outages and recovery | Atomic operations where possible; preserve failure evidence; idempotent retries; documented restore with integrity/totals/event reconciliation; authorized operator resumes after checks | Record recovery outcome and verify financial integrity before resuming |
+| Manual uploads | Preview accepted/rejected rows, warnings, and changes; reject entire file on blocking errors; authorized confirmation and audit trail before import | Define validation, blocking/warning rules, preview, and permissions; no migration/backfill |
 | Historical data | No automatic inference or silent rewriting | No schema migration or historical-data backfill under these decisions |
 
 ## Decision 10: Vendor invoice fields, missing currency, and inconsistent totals
@@ -261,6 +262,15 @@ There is no external financial integration. Financial data input is through manu
 The next requirements decision should define the manual-upload workflow: validate the source file and required fields, preview proposed changes, detect duplicate/conflicting records, preserve unknown values and source data, and define what must be rejected versus flagged for authorized review before financial records are changed.
 
 Existing guardrails remain in force: no schema migration or historical-data backfill is authorized by the decision register.
+
+## Decision 24: Manual financial uploads
+
+**Status:** Approved by company owner.
+
+- **Upload preview:** Validate the file and show a preview of accepted rows, rejected rows, warnings, and proposed changes before importing.
+- **Mixed valid/invalid rows:** Reject the entire file if any row has a blocking error; allow warnings only where explicitly permitted.
+- **Import confirmation:** Apply uploaded data only after an authorized user confirms the preview, and record the upload and resulting changes in an audit trail.
+- **Implementation guardrails:** Define file/row validation, blocking errors versus permitted warnings, preview contents, and authorization rules before implementation. Do not silently skip invalid rows or change financial records before authorized confirmation. No schema migration or historical-data backfill is authorized by this decision.
 
 ## Cross-cutting implementation controls
 
