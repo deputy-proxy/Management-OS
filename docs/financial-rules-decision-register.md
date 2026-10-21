@@ -252,6 +252,16 @@ The company owner approved the business decisions below. Add the owner's name/ro
 - **Resume processing:** An authorized operator may confirm technical recovery and required integrity checks have passed before financial processing resumes.
 - **Implementation guardrails:** Document failure handling and recovery steps, verify financial integrity and affected events before resuming, and use idempotency controls for retries. The approved resumption authority is an authorized operator after required technical and integrity checks; do not add an extra finance-approver gate unless separately approved.
 
+## Scope clarification: manual uploads only
+
+**Status:** Confirmed by company owner.
+
+There is no external financial integration. Financial data input is through manual uploads. Integration-specific questions in the proposed Decision 24 are not applicable and must not be treated as approved policy.
+
+The next requirements decision should define the manual-upload workflow: validate the source file and required fields, preview proposed changes, detect duplicate/conflicting records, preserve unknown values and source data, and define what must be rejected versus flagged for authorized review before financial records are changed.
+
+Existing guardrails remain in force: no schema migration or historical-data backfill is authorized by the decision register.
+
 ## Cross-cutting implementation controls
 
 1. **No schema migration or historical-data backfill is authorized by these decisions.** Any later proposal requires audited field mappings, before/after totals, reconciliation tests, and a recovery plan, reviewed and approved before execution.
