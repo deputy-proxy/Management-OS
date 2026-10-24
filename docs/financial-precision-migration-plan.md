@@ -229,6 +229,12 @@ The execution record must include:
 
 **Current impact status:** schema fields are inventoried above; real affected-row counts and before/after totals are pending the approved read-only audit. This plan must not be represented as quantified or execution-ready until those results are attached.
 
+## 5.1 Backfill implementation in #309
+
+`php artisan finance:normalize-data` is dry-run by default. It uses exact mappings in `config/financial-normalization.php`, includes soft-deleted rows, counts record-level and field-level changed/unchanged/rejected/quarantined outcomes, and applies only when invoked with `--apply`. Any rejected or quarantined field leaves the entire source record unchanged. Apply runs and per-field source snapshots/outcomes are recorded in `financial_normalization_runs` and `financial_normalization_items`; source columns and timestamps are preserved. Re-running with the same mapping is idempotent.
+
+The checked-in mapping registry deliberately has no approved legacy amount units, no default currency/classification maps, and no approved invoice semantic rules. Therefore populated rows with unresolved meanings are quarantined. This issue implements the controlled backfill mechanism, not an assertion that unresolved data has been normalized. Review [Financial Data Normalization Runbook](financial-normalization-runbook.md) before configuring a mapping.
+
 ## 6. Required tests before any backfill is enabled
 
 Use synthetic/sanitized fixtures only. The implementation PR must test:
