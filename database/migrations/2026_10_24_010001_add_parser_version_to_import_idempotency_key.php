@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // The composite source key may be the index MySQL selected to support the account FK.
+        // Add a dedicated FK index before replacing that composite key.
+        Schema::table('bank_statement_import_batches', function (Blueprint $table): void {
+            $table->index('financial_account_id', 'bank_statement_batch_account_fk_index');
+        });
+
         Schema::table('bank_statement_import_batches', function (Blueprint $table): void {
             $table->dropUnique('bank_statement_batch_account_source_unique');
             $table->unique(
