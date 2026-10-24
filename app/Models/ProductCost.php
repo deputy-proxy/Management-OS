@@ -24,13 +24,15 @@ class ProductCost extends Model
     /** @var array<int, string> */
     protected $fillable = [
         'product_id', 'product_resource_id', 'month',
-        'allocation_percent', 'resource_amount', 'allocated_amount',
+        'allocation_percent', 'resource_amount', 'allocated_amount', 'resource_amount_decimal', 'allocated_amount_decimal', 'currency_code',
     ];
 
     protected function casts(): array
     {
         return [
             'month' => 'date',
+            'resource_amount_decimal' => 'decimal:2',
+            'allocated_amount_decimal' => 'decimal:2',
         ];
     }
 

@@ -35,7 +35,12 @@ class FinancialAccountBalance extends Model implements Commentable
         return $this->morphMany(Activity::class, 'subject');
     }
     /** @var array<int, string> */
-    protected $fillable = ['financial_account_id', 'current_balance', 'currency', 'reported_on'];
+    protected $fillable = ['financial_account_id', 'current_balance', 'current_balance_decimal', 'currency', 'reported_on'];
+
+    protected function casts(): array
+    {
+        return ['current_balance_decimal' => 'decimal:2'];
+    }
 
     public function financialAccount(): BelongsTo
     {
@@ -44,6 +49,6 @@ class FinancialAccountBalance extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['financial_account_id', 'current_balance', 'currency', 'reported_on'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['financial_account_id', 'current_balance', 'current_balance_decimal', 'currency', 'reported_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }

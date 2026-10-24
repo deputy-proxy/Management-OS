@@ -40,11 +40,11 @@ class VendorInvoice extends Model implements Commentable
     }
 
 /** @var array<int, string> */
-    protected $fillable = ['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'month', 'status', 'invoice', 'amount', 'invoice_number', 'identifier'];
+    protected $fillable = ['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'amount_decimal', 'amount_without_vat_decimal', 'vat_decimal', 'currency_code', 'month', 'status', 'invoice', 'amount', 'invoice_number', 'identifier'];
 
     protected function casts(): array
     {
-        return ['month' => 'date'];
+        return ['month' => 'date', 'amount_decimal' => 'decimal:2', 'amount_without_vat_decimal' => 'decimal:2', 'vat_decimal' => 'decimal:2'];
     }
     public function vendor(): BelongsTo
     {
@@ -58,6 +58,6 @@ class VendorInvoice extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'month', 'status', 'amount', 'invoice_number', 'identifier'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['vendor_id', 'vendor_contract_id', 'amount_without_vat', 'vat', 'currency', 'amount_decimal', 'amount_without_vat_decimal', 'vat_decimal', 'currency_code', 'month', 'status', 'amount', 'invoice_number', 'identifier'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }
