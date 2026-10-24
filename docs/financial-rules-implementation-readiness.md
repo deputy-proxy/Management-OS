@@ -2,6 +2,7 @@
 
 **Issue:** [#304 Approve financial rules and monetary semantics](https://github.com/deputy-proxy/Management-OS/issues/304)
 **Decision source:** [Financial Rules Decision Register](financial-rules-decision-register.md)
+**Canonical field mapping:** [Financial Data Contract](financial-data-contract.md) — technical draft; legacy conversions and schema changes remain blocked pending the specified reviews and migration plan.
 **Branch:** `1-304`
 **Status:** Policy decisions recorded through Decision 43. This document is a traceability and readiness checklist, not approval to change financial schemas or historical data.
 
