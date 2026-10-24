@@ -35,7 +35,12 @@ class Transaction extends Model implements Commentable
         return $this->morphMany(Activity::class, 'subject');
     }
     /** @var array<int, string> */
-    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'];
+    protected $fillable = ['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'amount_decimal', 'currency_code', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'];
+
+    protected function casts(): array
+    {
+        return ['amount_decimal' => 'decimal:2'];
+    }
 
     public function financialAccount(): BelongsTo
     {
@@ -49,7 +54,7 @@ class Transaction extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['financial_account_id', 'vendor_invoice_id', 'transaction_type', 'amount', 'amount_decimal', 'currency_code', 'payment_method', 'timestamp', 'customer_invoice_id', 'tax_id'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function customerInvoice(): BelongsTo

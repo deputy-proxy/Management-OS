@@ -185,6 +185,25 @@ Before choosing target column precision, inspect maxima, minima and decimal scal
 
 The integer-to-decimal conversion factor is **not yet defined per field**. For a legacy integer value, do not assume either major currency units or minor units. A mapping requires source-document evidence and owner approval. If unit evidence is unavailable, retain the original value, mark the canonical value unresolved, and do not backfill it.
 
+## 3.1 Additive schema stage implemented in #308
+
+The #308 implementation adds nullable canonical storage alongside legacy values. It deliberately does not select or convert legacy units, infer currencies, change existing required fields, or switch existing readers/writers. The current columns remain the compatibility source until a separate mapping and consumer migration is approved.
+
+| Table | Additive nullable fields |
+| --- | --- |
+| `transactions` | `amount_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `customer_invoices` | `amount_without_vat_decimal DECIMAL(19,2)`, `vat_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `vendor_invoices` | `amount_decimal DECIMAL(19,2)`, `amount_without_vat_decimal DECIMAL(19,2)`, `vat_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `taxes` | `amount_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `financial_account_balances` | `current_balance_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `product_resources` | `amount_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `product_costs` | `resource_amount_decimal DECIMAL(19,2)`, `allocated_amount_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+| `product_revenues` | `amount_decimal DECIMAL(19,2)`, `currency_code CHAR(3)` |
+
+`DECIMAL(19,2)` is the provisional precision candidate from this plan, not a validated maximum-range guarantee. The additive columns are nullable so old rows remain valid and unknown legacy values stay unknown. The three-character currency field is a storage shape only; canonical ISO 4217 validation and writer enforcement are not enabled by this migration. `product_prices` already has decimal storage and nullable legacy currency after its earlier consolidation, so this migration does not alter it. Activity-pay/payslip tables remain outside this generic finance migration.
+
+The migration refuses to roll back if any new canonical field contains a value, rather than silently deleting data. It is additive and has no backfill. Existing models expose the new fields with two-decimal casts and activity-log coverage where the model already records changes; no existing forms, dashboard aggregation, reports, or calculations were switched to the new columns in this issue. Those consumers must be migrated in a later reviewed step after range and field-mapping evidence.
+
 ## 4. Staged rollout
 
 1. **Audit-only baseline:** capture schema version, table/active/soft-deleted counts, distinct currency/type/status values, amount ranges, relationship anomalies, and per-period totals grouped by verified currency/status. Sign off the report before writing any migration.
@@ -233,13 +252,13 @@ Use synthetic/sanitized fixtures only. The implementation PR must test:
 | Owner operational policy | Decisions 1-11 and related decisions in the financial rules decision register | Recorded; does not constitute statutory specialist approval. |
 | Canonical field mapping | [#306 contract](financial-data-contract.md), field meanings, unknown-value treatment and consumer inventory | Draft merged; per-field legacy conversion mapping still needs evidence. |
 | Qualified Romanian accounting/tax review | Applicable invoice/tax interpretations and independently checked examples | Required before applicable fiscal behavior or conversion is approved. |
-| Read-only data audit | Counts, value inventories, ranges, totals and relationship anomalies from approved target environment | Pending; not run by this development task. |
-| Migration approval | Deterministic mapping, staged rollout, before/after reconciliation, quarantine and tested recovery | Pending the data audit and reviews. |
-| Schema implementation | Approved field design and migration plan; tests and CI green | Separate issue #308; blocked until preceding gates pass. |
+| Read-only data audit | Counts, value inventories, ranges, totals and relationship anomalies from a populated designated test environment | Local CI audit recorded 0 rows; representative populated test-dataset audit pending. |
+| Migration approval | Deterministic mapping, staged rollout, before/after reconciliation, quarantine and tested recovery | Additive schema is implemented; mapping, backfill and reader switch remain pending audit/review. |
+| Schema implementation | Approved field design and migration plan; tests and CI green | #308 implements additive nullable storage only; legacy columns and consumers remain unchanged, with no backfill. |
 
 ## 8. Next steps
 
 1. Obtain authorization to run the aggregate-only audit against the designated staging/production-like database and attach the result counts/totals.
 2. Resolve legacy units and currency/status mappings with source evidence; keep unknowns quarantined.
 3. Update this plan with actual counts and reviewed before/after expectations, then record the accountable approvals.
-4. Proceed to #308 only after the contract, audit evidence and migration/recovery plan are approved. No schema change, amount scaling, currency fill or historical backfill is authorized by this document.
+4. Before any backfill or reader switch, complete the populated test-dataset audit, resolve field mappings, and obtain the applicable reviews. The #308 schema stage performs no amount scaling, currency fill or historical backfill.

@@ -40,7 +40,12 @@ class CustomerInvoice extends Model implements Commentable
     }
 
 /** @var array<int, string> */
-    protected $fillable = ['customer_id', 'customer_contract_id', 'amount_without_vat', 'vat', 'month', 'status', 'invoice', 'identifier'];
+    protected $fillable = ['customer_id', 'customer_contract_id', 'amount_without_vat', 'vat', 'amount_without_vat_decimal', 'vat_decimal', 'currency_code', 'month', 'status', 'invoice', 'identifier'];
+
+    protected function casts(): array
+    {
+        return ['amount_without_vat_decimal' => 'decimal:2', 'vat_decimal' => 'decimal:2'];
+    }
 
     public function customer(): BelongsTo
     {
@@ -54,7 +59,7 @@ class CustomerInvoice extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['amount_without_vat', 'vat', 'month', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['amount_without_vat', 'vat', 'amount_without_vat_decimal', 'vat_decimal', 'currency_code', 'month', 'status'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function productRevenue(): HasOne

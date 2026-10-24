@@ -23,13 +23,14 @@ class ProductRevenue extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'product_id', 'customer_invoice_id', 'month', 'amount',
+        'product_id', 'customer_invoice_id', 'month', 'amount', 'amount_decimal', 'currency_code',
     ];
 
     protected function casts(): array
     {
         return [
             'month' => 'date',
+            'amount_decimal' => 'decimal:2',
         ];
     }
 

@@ -20,11 +20,11 @@ class ProductResource extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'name', 'amount', 'month', 'resourceable_type', 'resourceable_id', 'allocated_percentage',
+        'name', 'amount', 'amount_decimal', 'currency_code', 'month', 'resourceable_type', 'resourceable_id', 'allocated_percentage',
     ];
     protected function casts(): array
     {
-        return ['month' => 'date'];
+        return ['month' => 'date', 'amount_decimal' => 'decimal:2'];
     }
 
     public function resourceable(): MorphTo
