@@ -6,7 +6,7 @@ final readonly class BankStatementTransactionCandidate
 {
     public function __construct(
         public string $operationDate,
-        public string $operationTime,
+        public ?string $operationTime,
         public ?string $valueDate,
         public string $description,
         public ?string $operationReference,
@@ -16,6 +16,8 @@ final readonly class BankStatementTransactionCandidate
         public string $currency,
         public int $sourcePage,
         public int $sourceRow,
+        public ?string $balanceAfter = null,
+        public ?string $counterparty = null,
     ) {}
 
     /** @return array<string, int|string|null> */
@@ -33,6 +35,8 @@ final readonly class BankStatementTransactionCandidate
             'currency' => $this->currency,
             'source_page' => $this->sourcePage,
             'source_row' => $this->sourceRow,
+            'balance_after' => $this->balanceAfter,
+            'counterparty' => $this->counterparty,
         ];
     }
 }
