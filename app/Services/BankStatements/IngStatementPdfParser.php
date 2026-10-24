@@ -219,6 +219,10 @@ final class IngStatementPdfParser
 
         $description = trim($row['prefix'].' '.$row['description']);
         $operationReference = $row['reference'];
+        $documentReference = null;
+        if (preg_match('/Bank\s+reference\s+([a-z0-9-]+)/iu', $description, $match)) {
+            $documentReference = $match[1];
+        }
 
         return new BankStatementTransactionCandidate(
             $row['date'],
@@ -226,7 +230,7 @@ final class IngStatementPdfParser
             null,
             $description,
             $operationReference,
-            null,
+            $documentReference,
             $row['direction'],
             $row['amount'],
             'RON',

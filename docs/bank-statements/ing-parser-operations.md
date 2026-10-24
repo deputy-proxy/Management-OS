@@ -26,3 +26,14 @@ Errors include `source_unavailable`, `unsupported_file_size`, `not_a_pdf`, `pdf_
 ## Fixture maintenance
 
 Committed PDFs/JSON use invented values only. The source report is intentionally excluded. The fixture test contract includes signed debit and positive credit semantics, comma-grouped amounts, multiline descriptions, a blank-text counterparty field, FX detail text, a separate fee row, page continuation and balance reconciliation. These tests do not establish support for other ING formats.
+
+
+## Canonical normalization preview
+
+```bash
+php artisan finance:normalize-ing-statement /path/to/statement.pdf
+```
+
+The normalizer maps positive credits to `money_in` and negative source debits to `money_out`, retaining a non-negative decimal-string amount and the source RON account currency. It carries the ING bank reference, any distinct `Bank reference` value, counterparty when present, signed balance-after value, source hash, parser version and page/row provenance. The source statement has no transaction-time field, so the normalized time remains null.
+
+Only explicit `Service Fee` rows are classified as `fee`. Rows labelled `Amount debited from credit line` are identified as `credit_line_movement` but always require review because their accounting relationship to nearby entries is not inferred. Other business types remain unresolved. Foreign-currency details and possible refund/reversal wording require review; no FX conversion, fee linkage, reversal classification, approval or posting is performed. Duplicate bank references are preserved as separate rows and reported as warnings rather than silently deduplicated.
