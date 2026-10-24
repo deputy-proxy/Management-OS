@@ -28,3 +28,14 @@ A non-zero exit code means parsing failed or one or more rows need investigation
 PDF extraction is provided by `smalot/pdfparser`; BCR field interpretation is isolated in `BcrStatementPdfParser`; each row is returned as a typed `BankStatementTransactionCandidate`. Amounts are normalized as decimal strings without binary floating-point conversion. Source SHA-256, parser version, page number and text-row index are retained. Candidate descriptions may contain sensitive source text, so callers must not log or expose full candidate arrays by default.
 
 The committed PDF/JSON fixture contains invented values and is for regression testing only. One owner-supplied statement was used to document the format and check statement-level and selected daily arithmetic, but parser behavior against every live BCR template, scanned PDFs, reversal semantics and foreign-currency normalization remains unverified. No candidate is automatically posted.
+
+
+## Canonical normalization preview
+
+```bash
+php artisan finance:normalize-bcr-statement /path/to/statement.pdf
+```
+
+Normalization maps statement credits to `money_in` and debits to `money_out`, retains a non-negative decimal-string amount and the account currency, and carries operation/value dates, references, source hash, parser version and page/row provenance. It never converts a foreign-currency amount or infers business classifications from a payment channel or free-text description.
+
+Only clearly labelled bank-fee rows are typed as `fee`. Other transaction types remain unresolved for review. Fee rows are linked to a principal only when the same explicit operation reference identifies exactly one money-out candidate. Unlinked/ambiguous processing fees, possible refunds/reversals and descriptions with foreign-currency details are flagged. `requires_review` blocks approval; this command never writes or posts financial records.

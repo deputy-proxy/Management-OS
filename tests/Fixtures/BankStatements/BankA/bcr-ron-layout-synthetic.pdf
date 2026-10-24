@@ -35,7 +35,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 1039 >>
+<< /Length 1053 >>
 stream
 BT
 /F1 9 Tf
@@ -48,7 +48,7 @@ BT
 (Data: 04-09-2026    Sold contabil initial: 110,00) Tj T*
 (04-09-2026 12:14  Payment - Referinta SYN-OP-002  25,00  0,00) Tj T*
 (Data Valorii: 04-09-2026    Document: SYN-DOC-002) Tj T*
-(04-09-2026 12:14  Processing fee - Referinta SYN-OP-002  0,50  0,00) Tj T*
+(04-09-2026 12:14  Comision Procesare - SYNTHETIC Referinta SYN-OP-002  0,50  0,00) Tj T*
 (Data Valorii: 04-09-2026    Document: SYN-DOC-002-FEE) Tj T*
 (Tranzactii finalizate: Debit 25,50  Credit 0,00) Tj T*
 (Sold contabil final: 84,50) Tj T*
@@ -74,5 +74,5 @@ xref
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-2335
+2349
 %%EOF
