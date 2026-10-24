@@ -1,0 +1,78 @@
+%PDF-1.4
+% synthetic fixture
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 703 >>
+stream
+BT
+/F1 9 Tf
+48 790 Td
+12 TL
+(SYNTHETIC TEST FIXTURE - NOT A REAL BANK STATEMENT) Tj T*
+(BANCA COMERCIALA ROMANA S.A. - EXTRAS DE CONT Nr. SYNTHETIC) Tj T*
+(pe perioada: 01-09-2026 - 30-09-2026) Tj T*
+(Cont nou: [SYNTHETIC]    Cod IBAN Nou: [SYNTHETIC]) Tj T*
+(Produse in valuta RON    Titular: SYNTHETIC ACCOUNT HOLDER) Tj T*
+() Tj T*
+(Data: 03-09-2026    Sold contabil initial: 100,00) Tj T*
+(Data operatiunii  Explicatie  Referinta Oper. / Document  Debit  Credit) Tj T*
+(03-09-2026 10:40  Credit payment - SYNTHETIC  SYN-OP-001  0,00  10,00) Tj T*
+(Data Valorii: 03-09-2026    Document: SYN-DOC-001) Tj T*
+(Tranzactii finalizate: Debit 0,00  Credit 10,00) Tj T*
+(Sold contabil final: 110,00) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 1031 >>
+stream
+BT
+/F1 9 Tf
+48 790 Td
+12 TL
+(SYNTHETIC TEST FIXTURE - PAGE 2 OF 2) Tj T*
+(BANCA COMERCIALA ROMANA S.A. - EXTRAS DE CONT \(continued\)) Tj T*
+(Data operatiunii  Explicatie  Referinta Oper. / Document  Debit  Credit) Tj T*
+() Tj T*
+(Data: 04-09-2026    Sold contabil initial: 110,00) Tj T*
+(04-09-2026 12:14  Payment - SYNTHETIC  SYN-OP-002  25,00  0,00) Tj T*
+(Data Valorii: 04-09-2026    Document: SYN-DOC-002) Tj T*
+(04-09-2026 12:14  Processing fee - SYNTHETIC  SYN-OP-002  0,50  0,00) Tj T*
+(Data Valorii: 04-09-2026    Document: SYN-DOC-002-FEE) Tj T*
+(Tranzactii finalizate: Debit 25,50  Credit 0,00) Tj T*
+(Sold contabil final: 84,50) Tj T*
+() Tj T*
+(Total tranzactii finalizate pe perioada: Debit 25,50  Credit 10,00) Tj T*
+(Sold contabil final la: 30-09-2026    84,50) Tj T*
+(Sold disponibil la: 01-10-2026    84,50) Tj T*
+() Tj T*
+(All account identifiers, names, references and amounts are invented for tests.) Tj T*
+(Layout labels are based on one owner-supplied BCR PDF; no source transaction data is present.) Tj T*
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000029 00000 n 
+0000000078 00000 n 
+0000000141 00000 n 
+0000000316 00000 n 
+0000001070 00000 n 
+0000001245 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2328
+%%EOF
