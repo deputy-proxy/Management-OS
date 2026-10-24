@@ -25,6 +25,8 @@ final readonly class NormalizedBankStatementTransaction
         public ?int $relatedSourcePage,
         public ?int $relatedSourceRow,
         public array $reviewReasons,
+        public ?string $balanceAfter = null,
+        public ?string $counterparty = null,
     ) {}
 
     /** @return array<string, int|string|bool|null|list<string>> */
@@ -47,6 +49,8 @@ final readonly class NormalizedBankStatementTransaction
             'source_row' => $this->sourceRow,
             'related_source_page' => $this->relatedSourcePage,
             'related_source_row' => $this->relatedSourceRow,
+            'balance_after' => $this->balanceAfter,
+            'counterparty' => $this->counterparty,
             'requires_review' => $this->reviewReasons !== [],
             'review_reasons' => $this->reviewReasons,
         ];
