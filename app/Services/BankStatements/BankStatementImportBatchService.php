@@ -22,6 +22,8 @@ final class BankStatementImportBatchService
             throw new InvalidArgumentException('Bank code is invalid.');
         }
 
+        $this->validateNormalizedResult($result);
+
         if (strtoupper((string) $account->currency) !== $result->currency) {
             throw new InvalidArgumentException('Statement currency does not match the selected financial account.');
         }
@@ -62,7 +64,7 @@ final class BankStatementImportBatchService
                 return $batch;
             });
         } catch (QueryException $exception) {
-            if (str_contains(strtolower($exception->getMessage()), 'bank_statement_batch_account_source_unique') || (str_contains(strtolower($exception->getMessage()), 'unique constraint failed') && str_contains(strtolower($exception->getMessage()), 'bank_statement_import_batches.financial_account_id'))) {
+            if (str_contains(strtolower($exception->getMessage()), 'bank_statement_batch_account_source_parser_unique') || (str_contains(strtolower($exception->getMessage()), 'unique constraint failed') && str_contains(strtolower($exception->getMessage()), 'bank_statement_import_batches.financial_account_id') && str_contains(strtolower($exception->getMessage()), 'bank_statement_import_batches.parser_version'))) {
                 throw new RuntimeException('This statement file has already been previewed for the selected account.', previous: $exception);
             }
 
@@ -70,7 +72,47 @@ final class BankStatementImportBatchService
         }
     }
 
-    /** @return array{requires_review: bool, potential_duplicate_line_count: int, duplicate_file: bool, findings: list<string>, source_payload_retention: string, posting_performed: bool} */
+    private function validateNormalizedResult(BankStatementNormalizationResult $result): void
+    {
+        if (! preg_match('/^[a-f0-9]{64}$/', $result->sourceSha256)) {
+            throw new InvalidArgumentException('Statement source fingerprint must be a SHA-256 hex digest.');
+        }
+        if (! preg_match('/^[a-z0-9._-]{1,64}$/i', $result->parserVersion)) {
+            throw new InvalidArgumentException('Parser version is invalid.');
+        }
+        if (! preg_match('/^[A-Z]{3}$/', $result->currency)) {
+            throw new InvalidArgumentException('Statement currency code is invalid.');
+        }
+        $start = \DateTimeImmutable::createFromFormat('!Y-m-d', $result->statementStart);
+        $end = \DateTimeImmutable::createFromFormat('!Y-m-d', $result->statementEnd);
+        if (! $start || ! $end || $start->format('Y-m-d') !== $result->statementStart || $end->format('Y-m-d') !== $result->statementEnd || $start > $end) {
+            throw new InvalidArgumentException('Statement period is invalid.');
+        }
+        if ($result->transactions === []) {
+            throw new InvalidArgumentException('A statement with no normalized transaction rows cannot be imported.');
+        }
+
+        foreach ($result->transactions as $transaction) {
+            if (! preg_match('/^\d{1,17}\.\d{2}$/', $transaction->amount) || ! preg_match('/[1-9]/', $transaction->amount)) {
+                throw new InvalidArgumentException('Normalized transaction amount must be a positive decimal with two fractional digits.');
+            }
+            if (! in_array($transaction->direction, ['money_in', 'money_out'], true)) {
+                throw new InvalidArgumentException('Normalized transaction direction is invalid.');
+            }
+            if ($transaction->currency !== $result->currency || $transaction->sourceSha256 !== $result->sourceSha256 || $transaction->parserVersion !== $result->parserVersion) {
+                throw new InvalidArgumentException('Normalized transaction provenance does not match its statement.');
+            }
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $transaction->transactionDate);
+            if (! $date || $date->format('Y-m-d') !== $transaction->transactionDate || $transaction->sourcePage < 1 || $transaction->sourceRow < 1) {
+                throw new InvalidArgumentException('Normalized transaction date or source row provenance is invalid.');
+            }
+            if (($transaction->transactionType !== null && mb_strlen($transaction->transactionType) > 64) || mb_strlen($transaction->classificationStatus) > 32 || ($transaction->operationReference !== null && mb_strlen($transaction->operationReference) > 128) || ($transaction->documentReference !== null && mb_strlen($transaction->documentReference) > 128)) {
+                throw new InvalidArgumentException('Normalized transaction metadata exceeds supported field limits.');
+            }
+        }
+    }
+
+    /** @return array{requires_review: bool, potential_duplicate_line_count: int, duplicate_file: bool, source_seen_with_different_parser_version: bool, findings: list<string>, source_payload_retention: string, posting_performed: bool} */
     public function previewDiagnostics(FinancialAccount $account, BankStatementNormalizationResult $result): array
     {
         $findings = [];
@@ -86,9 +128,18 @@ final class BankStatementImportBatchService
         $duplicateFile = BankStatementImportBatch::query()
             ->where('financial_account_id', $account->getKey())
             ->where('source_sha256', $result->sourceSha256)
+            ->where('parser_version', $result->parserVersion)
+            ->exists();
+        $sourceSeenWithDifferentParserVersion = BankStatementImportBatch::query()
+            ->where('financial_account_id', $account->getKey())
+            ->where('source_sha256', $result->sourceSha256)
+            ->where('parser_version', '!=', $result->parserVersion)
             ->exists();
         if ($duplicateFile) {
-            $findings[] = 'duplicate_statement_file_for_account';
+            $findings[] = 'duplicate_statement_file_for_account_and_parser_version';
+        }
+        if ($sourceSeenWithDifferentParserVersion) {
+            $findings[] = 'source_file_seen_with_different_parser_version';
         }
 
         $lineKeys = [];
@@ -121,9 +172,10 @@ final class BankStatementImportBatchService
         }
 
         return [
-            'requires_review' => $result->requiresReview() || $duplicateLines > 0 || $duplicateFile,
+            'requires_review' => $result->requiresReview() || $duplicateLines > 0 || $duplicateFile || $sourceSeenWithDifferentParserVersion,
             'potential_duplicate_line_count' => $duplicateLines,
             'duplicate_file' => $duplicateFile,
+            'source_seen_with_different_parser_version' => $sourceSeenWithDifferentParserVersion,
             'findings' => array_values(array_unique($findings)),
             'source_payload_retention' => 'normalized_preview_only',
             'posting_performed' => false,
@@ -296,7 +348,7 @@ final class BankStatementImportBatchService
             'from_status' => $batch->status,
             'to_status' => $toStatus,
             'reason_code' => $reasonCode,
-            'metadata' => ['reason' => mb_substr(trim($reason), 0, 500), 'posting_performed' => false],
+            'metadata' => ['reason_length' => mb_strlen(trim($reason)), 'posting_performed' => false],
             'created_at' => now(),
         ]);
     }
@@ -304,7 +356,7 @@ final class BankStatementImportBatchService
     /** @param array<string, mixed> $transaction */
     private function lineFingerprint(array $transaction): string
     {
-        $reference = trim((string) ($transaction['operation_reference'] ?? ''));
+        $reference = mb_strtoupper(trim((string) ($transaction['operation_reference'] ?? '')));
         $description = mb_strtolower(preg_replace('/\s+/u', ' ', trim((string) ($transaction['description'] ?? ''))) ?? '');
 
         return hash('sha256', implode('|', [

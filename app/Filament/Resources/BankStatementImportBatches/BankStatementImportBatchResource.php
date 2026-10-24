@@ -48,6 +48,7 @@ class BankStatementImportBatchResource extends Resource
             TextEntry::make('status'),
             TextEntry::make('financialAccount.title')->label('Financial account'),
             TextEntry::make('source_sha256'),
+            TextEntry::make('parser_version'),
             TextEntry::make('statement_start')->date(),
             TextEntry::make('statement_end')->date(),
             TextEntry::make('transaction_count'),
@@ -76,6 +77,7 @@ class BankStatementImportBatchResource extends Resource
             TextColumn::make('id')->sortable(),
             TextColumn::make('financialAccount.title')->label('Account')->searchable(),
             TextColumn::make('bank_code')->label('Bank'),
+            TextColumn::make('parser_version')->label('Parser version'),
             TextColumn::make('statement_start')->date(),
             TextColumn::make('statement_end')->date(),
             TextColumn::make('transaction_count')->numeric(),
@@ -115,7 +117,7 @@ class BankStatementImportBatchResource extends Resource
                     $service->markFailed($record->id, auth()->user(), $data['reason_code'], $data['reason']);
                 }),
             Action::make('retry')
-                ->label('Retry validation')
+                ->label('Retry batch')
                 ->visible(fn (BankStatementImportBatch $record): bool => $record->status === BankStatementImportBatch::STATUS_FAILED)
                 ->authorize(fn (): bool => hexa()->can('transaction.update'))
                 ->schema([Textarea::make('reason')->required()->maxLength(500)])
