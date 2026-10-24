@@ -94,4 +94,25 @@ class BcrStatementTransactionNormalizerTest extends TestCase
         $this->assertFalse($normalized->toArray()['posting_performed']);
         $this->assertArrayNotHasKey('ready_for_approval', $normalized->toArray());
     }
+
+    public function test_normalizer_flags_duplicate_operation_references_as_ambiguous_fee_links(): void
+    {
+        $rows = [
+            new BankStatementTransactionCandidate('2026-09-03', '10:40', '2026-09-03', 'Payment Referinta SYN-DUP-001', 'SYN-DUP-001', null, 'debit', '10.00', 'RON', 1, 8),
+            new BankStatementTransactionCandidate('2026-09-03', '10:40', '2026-09-03', 'Payment Referinta SYN-DUP-001', 'SYN-DUP-001', null, 'debit', '10.00', 'RON', 1, 9),
+            new BankStatementTransactionCandidate('2026-09-03', '10:40', '2026-09-03', 'Comision Procesare Referinta SYN-DUP-001', 'SYN-DUP-001', null, 'debit', '0.50', 'RON', 1, 10),
+        ];
+        $parsed = new BankStatementParseResult(
+            'bcr-pdf-1.0.0', 'synthetic-duplicate-hash', 1, '2026-09-01', '2026-09-30', 'RON',
+            '100.00', '79.50', '20.50', '0.00', $rows, [],
+        );
+
+        $normalized = (new BcrStatementTransactionNormalizer)->normalize($parsed);
+        $fee = $normalized->transactions[2];
+
+        $this->assertNull($fee->relatedSourcePage);
+        $this->assertNull($fee->relatedSourceRow);
+        $this->assertContains('fee_link_ambiguous', $fee->reviewReasons);
+        $this->assertTrue($normalized->requiresReview());
+    }
 }

@@ -117,4 +117,57 @@ class BcrStatementPdfParserTest extends TestCase
             @unlink($path);
         }
     }
+
+    public function test_parser_handles_grouped_locale_amounts_multiline_text_and_duplicate_rows(): void
+    {
+        $path = base_path('tests/Fixtures/BankStatements/BankA/bcr-ron-multiline-locale-synthetic.pdf');
+        $result = (new BcrStatementPdfParser(new Parser))->parse($path);
+
+        $this->assertSame('10000.00', $result->openingBalance);
+        $this->assertSame('7530.88', $result->closingBalance);
+        $this->assertSame('2469.12', $result->totalDebits);
+        $this->assertSame('0.00', $result->totalCredits);
+        $this->assertCount(2, $result->transactions);
+        $this->assertSame('1234.56', $result->transactions[0]->amount);
+        $this->assertSame('1234.56', $result->transactions[1]->amount);
+        $this->assertStringContainsString('Detalii suplimentare', $result->transactions[0]->description);
+        $this->assertSame('SYN-LOCALE-001', $result->transactions[0]->operationReference);
+        $this->assertSame('SYN-LOCALE-001', $result->transactions[1]->operationReference);
+        $this->assertNotSame($result->transactions[0]->sourceRow, $result->transactions[1]->sourceRow);
+        $this->assertSame([], $result->warnings);
+    }
+
+    public function test_parser_rejects_pdf_without_selectable_text(): void
+    {
+        $this->expectException(BankStatementParseException::class);
+        $this->expectExceptionMessage('No selectable text was found');
+        try {
+            (new BcrStatementPdfParser(new Parser))
+                ->parse(base_path('tests/Fixtures/BankStatements/BankA/bcr-empty-text-synthetic.pdf'));
+        } catch (BankStatementParseException $exception) {
+            $this->assertSame('text_extraction_unavailable', $exception->errorCode);
+            throw $exception;
+        }
+    }
+
+    public function test_parser_rejects_an_unsupported_issuer_signature(): void
+    {
+        $source = file_get_contents(base_path('tests/Fixtures/BankStatements/BankA/bcr-ron-layout-synthetic.pdf'));
+        self::assertIsString($source);
+        $issuer = 'BANCA COMERCIALA ROMANA S.A.';
+        $replacement = str_repeat('X', strlen($issuer));
+        $changed = str_replace($issuer, $replacement, $source);
+        $path = tempnam(sys_get_temp_dir(), 'bcr-issuer-');
+        self::assertNotFalse($path);
+        file_put_contents($path, $changed);
+
+        try {
+            (new BcrStatementPdfParser(new Parser))->parse($path);
+            $this->fail('Expected unsupported issuer to be rejected.');
+        } catch (BankStatementParseException $exception) {
+            $this->assertSame('unsupported_issuer', $exception->errorCode);
+        } finally {
+            @unlink($path);
+        }
+    }
 }
