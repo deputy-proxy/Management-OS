@@ -307,6 +307,9 @@ class FinancialNormalizationService
         if ($group === 'currencies' && preg_match('/^[A-Z]{3}$/', $mapped) !== 1) {
             return ['outcome' => 'rejected', 'reason' => 'Configured currency target must be a three-letter uppercase code; ISO validity must be established by the approved map.'];
         }
+        if ($group === 'classifications' && preg_match('/^[a-z][a-z0-9_]{0,63}$/', $mapped) !== 1) {
+            return ['outcome' => 'rejected', 'reason' => 'Configured classification target must be a lowercase canonical code.'];
+        }
 
         return ['outcome' => 'changed', 'value' => $mapped];
     }

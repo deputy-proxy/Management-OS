@@ -35,6 +35,18 @@ Every apply run is recorded in `financial_normalization_runs`. Per-field outcome
 
 A failed run is marked `failed`; already committed records and audit rows remain available. Correct the cause and rerun with the same approved mapping. Existing canonical values make the rerun idempotent. Review each run's record/field summary and all quarantined/rejected outcomes before treating it as complete. Do not switch reports or writers to canonical fields until reconciliation and applicable approvals are recorded.
 
+## Read-only integrity audit
+
+Run the finance integrity audit after migrations and before reviewing a normalization run:
+
+```bash
+php artisan finance:reconciliation-audit
+```
+
+The audit does not mutate records. Exit code `0` means no configured findings were detected; exit code `1` means at least one finding needs review. It checks unresolved canonical amounts/classifications, decimal precision, currency-code format, transaction/account and balance/account currency consistency, negative transaction values, invoice semantic rules, invoice totals when a rule is explicitly approved, and existing payroll reconciliation invariants. It reports counts and a maximum of five internal record-ID samples per finding, never monetary amounts. A three-letter uppercase check is only a format check, not proof of ISO 4217 validity.
+
+Invoice totals are checked only when the corresponding `invoice_semantics.rule` is configured. If no rule is approved, populated invoice tables are reported as semantically unresolved rather than evaluated against an invented formula. Do not change source values to make the audit pass; reconcile each finding against evidence and update the approved mapping/rule or the source record through a separately reviewed correction workflow.
+
 ## Reconciliation checklist
 
 - Compare counts by source table and outcome, including soft-deleted records.

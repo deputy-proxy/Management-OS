@@ -48,7 +48,7 @@ php artisan finance:reconciliation-audit
 ```
 
 - `database:integrity-audit` checks configured duplicate and orphan-reference invariants, including invoice and transaction relationships.
-- `finance:reconciliation-audit` checks that each payslip total equals `manual_amount + sum(employee_pay_slip_items.amount)`, that Paid payslips have `paid_on`, that employee/month payslip periods are not duplicated (including retained soft-deleted rows), that recognized source links exist, and that `source_type` values are known. It flags transactions linked to both invoice types and prints informational invoice-linked transaction summaries by invoice ID.
+- `finance:reconciliation-audit` checks payslip totals/dates/periods/source links, canonical amount completeness and decimal precision, canonical currency-code and classification formats, transaction/account and balance/account currency consistency, and configured invoice total/VAT rules. It reports only record counts and limited record-ID samples, not monetary or other sensitive field values. Invoice-linked transaction counts are informational only; they are not settlement evidence.
 - Both commands are diagnostics only. They do not fix records. A non-zero exit requires review and a documented resolution before close.
 - These checks do not prove that source activities are complete, that a payment occurred, or that a tax calculation is legally correct.
 
@@ -86,7 +86,7 @@ Until these are decided and reviewed by the designated owner, Management-OS shou
 - The current payroll service uses PHP `round(value, 2, PHP_ROUND_HALF_UP)` for quantity and money calculations. Source calculations are rounded to two decimal places before the stored line amount; holiday calculations round each covered weekday before summing the holiday total.
 - Contract selection for a dated source activity uses contracts covering that activity date, ordered by latest `start_date`, then highest ID. This deterministic tie-breaker is implemented behavior, **not** approval that overlapping contracts are valid.
 - The normalized payslip source-line currency is fixed to `RON`. No FX conversion is implemented.
-- Customer invoices, vendor invoices, transactions and tax records do not share a verified monetary contract. Customer invoices have integer `amount_without_vat`/`vat`; vendor invoices have integer `amount_without_vat`/`vat` and `amount`, plus a currency field; transaction and tax amounts are integers. The meaning of those amounts, VAT fields, sign convention and rounding stage remains unapproved.
+- Customer invoices, vendor invoices, transactions and tax records do not yet share a verified monetary contract. Legacy columns remain integer-valued; additive nullable decimal/currency-code fields are available, but their population is gated by exact reviewed mappings. Customer invoices have legacy integer `amount_without_vat`/`vat`; vendor invoices have legacy integer `amount_without_vat`/`vat` and `amount`, plus a currency field; transaction and tax amounts are integers. The meaning of those amounts, VAT fields, sign convention and rounding stage remains unapproved.
 - Do not infer a VAT total, invoice gross total, net payroll, statutory deduction or exchange rate from these fields. Do not migrate monetary column types until the owner signs off a conversion specification with before/after totals and a tested recovery path.
 
 ### Expanded read-only reconciliation command
@@ -98,9 +98,9 @@ Until these are decided and reviewed by the designated owner, Management-OS shou
 - Duplicate employee/month payslips, including retained soft-deleted records.
 - Missing source records for recognized payslip line types and unrecognized `source_type` values.
 - Transactions linked to both a customer invoice and a vendor invoice, which requires semantic review rather than an inferred correction.
-- Informational transaction counts and raw amount sums grouped by linked invoice ID. These are trace reports only, not assertions that the invoice is paid or that the sum must equal its invoice amount; partial-payment, sign, allocation and reversal semantics are not approved.
+- Informational active transaction counts grouped by linked invoice ID. These are trace reports only, not assertions that the invoice is paid or that transaction totals equal invoice totals; partial-payment, sign, allocation and reversal semantics are not approved. Monetary values are withheld from command output.
 
-The command is read-only. It returns a non-zero exit code when configured discrepancies are found. Run it alongside `php artisan database:integrity-audit`, retain the full output with close evidence, and trace every finding to the named record IDs before correction. Unknown historical source types should be mapped only after review, not silently discarded.
+The command is read-only. It returns a non-zero exit code when configured discrepancies are found. Invoice semantic checks remain unresolved until an exact rule is explicitly approved in `config/financial-normalization.php`. Run it alongside `php artisan database:integrity-audit`, retain the full output with close evidence, and trace every finding to the named record IDs before correction. The command reports no raw amounts, invoice contents, employee identifiers, or free-text descriptions. Unknown historical source types should be mapped only after review, not silently discarded.
 
 ### Owner sign-off and production gate
 
