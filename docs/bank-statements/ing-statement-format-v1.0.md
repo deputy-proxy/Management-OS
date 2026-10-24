@@ -47,7 +47,7 @@ A future parser must identify the issuer and required section/column markers rat
 
 ## Locale and arithmetic
 
-The observed statement uses `DD.MM.YYYY` dates and Romanian-style decimal amounts: comma for decimal fraction and dot as a thousands separator (for example, the synthetic fixture uses `1.234,56`). Parse monetary values using decimal strings/minor units, not binary floating point. Reject malformed or ambiguous values rather than silently stripping punctuation.
+The observed statement uses `DD.MM.YYYY` dates and English-style decimal amounts: dot for decimal fraction and comma as a thousands separator (for example, the synthetic fixture uses `1,234.56`). This differs from the BCR fixture. Parse monetary values using decimal strings/minor units, not binary floating point. Reject malformed or ambiguous values rather than silently stripping punctuation.
 
 For the source statement and every future test fixture, verify independently:
 

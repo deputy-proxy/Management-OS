@@ -11,9 +11,9 @@
   },
   "opening_balance": "1000.00",
   "total_credits": "200.00",
-  "total_debits": "-123.45",
-  "closing_balance": "1076.55",
-  "arithmetic_check": "1000.00 + 200.00 + (-123.45) = 1076.55",
+  "total_debits": "-123.55",
+  "closing_balance": "1076.45",
+  "arithmetic_check": "1000.00 + 200.00 + (-123.55) = 1076.45",
   "transactions": [
     {
       "book_date": "2026-09-01",
@@ -53,16 +53,16 @@
         "Service Fee",
         "Synthetic fee for separate bank transaction"
       ],
-      "debit": "0.00",
+      "debit": "-0.10",
       "credit": null,
-      "balance_after": "1076.55",
+      "balance_after": "1076.45",
       "source_page": 2,
       "source_row": 1
     }
   ],
   "coverage": [
     "multi-page header and continuation",
-    "Romanian grouped-decimal convention",
+    "comma-grouped decimal convention",
     "blank counterparty",
     "multi-line description",
     "FX detail in RON account statement",

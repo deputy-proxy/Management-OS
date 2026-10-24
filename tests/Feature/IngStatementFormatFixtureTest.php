@@ -44,7 +44,7 @@ class IngStatementFormatFixtureTest extends TestCase
         $this->assertSame('1076.55', $fixture['transactions'][1]['balance_after']);
         $this->assertNull($fixture['transactions'][2]['counterparty']);
         $this->assertSame(2, $fixture['transactions'][2]['source_page']);
-        $this->assertContains('Romanian grouped-decimal convention', $fixture['coverage']);
+        $this->assertContains('comma-grouped decimal convention', $fixture['coverage']);
         $this->assertContains('FX detail in RON account statement', $fixture['coverage']);
     }
 
@@ -58,7 +58,7 @@ class IngStatementFormatFixtureTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $contents);
         $this->assertStringContainsString('SYNTHETIC TEST FIXTURE', $contents);
         $this->assertStringContainsString('SYN-ING-001', $contents);
-        $this->assertStringNotContainsString('ROAD CENTRE SRL', $contents);
+        $this->assertStringNotContainsString('RO19INGB', $contents);
     }
 
     private function minorUnits(string $amount): int
