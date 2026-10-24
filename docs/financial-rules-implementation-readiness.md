@@ -91,7 +91,7 @@ The canonical contract should define, without assuming a migration:
 ## Dependencies and sequencing
 
 1. **This issue (#304):** establish and review the policy decision record and this traceability checklist. Keep unresolved specialist-sensitive matters explicitly blocked.
-2. **Capability matrix (#305):** inventory actual finance/payroll workflows, authorization, audit, automation and limitations using code/test evidence.
+2. **Capability matrix (#305):** use the [finance/payroll capability matrix](finance-payroll-readiness.md) for the evidence-backed workflow, status, control and limitation inventory; obtain stakeholder review before marking the issue complete.
 3. **Canonical contract (#306):** only after prerequisite issues are completed, map fields and compatibility behavior to the approved semantics. Do not begin schema implementation while blockers remain.
 4. **Currency/precision migration plan:** only after the contract, audited legacy mappings, before/after totals, tests and recovery plan are approved. The verified migration-plan issue is [#307](https://github.com/deputy-proxy/Management-OS/issues/307). Schema implementation is [#308](https://github.com/deputy-proxy/Management-OS/issues/308).
 
