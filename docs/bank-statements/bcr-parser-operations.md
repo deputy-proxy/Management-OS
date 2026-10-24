@@ -39,3 +39,8 @@ php artisan finance:normalize-bcr-statement /path/to/statement.pdf
 Normalization maps statement credits to `money_in` and debits to `money_out`, retains a non-negative decimal-string amount and the account currency, and carries operation/value dates, references, source hash, parser version and page/row provenance. It never converts a foreign-currency amount or infers business classifications from a payment channel or free-text description.
 
 Only clearly labelled bank-fee rows are typed as `fee`. Other transaction types remain unresolved for review. Fee rows are linked to a principal only when the same explicit operation reference identifies exactly one money-out candidate. Unlinked/ambiguous processing fees, possible refunds/reversals and descriptions with foreign-currency details are flagged. `requires_review` blocks approval; this command never writes or posts financial records.
+
+
+## Regression fixture coverage
+
+The synthetic fixture set includes a two-page basic statement with credit/debit and a uniquely referenced fee, a locale/multiline fixture with grouped amounts and repeated operation references, and a blank-text PDF for the unsupported scanned/OCR path. Tests assert the row counts and arithmetic in these synthetic fixtures, that duplicate-looking rows are preserved with separate source-row provenance, and that ambiguous fee links are flagged. These fixtures do not establish support for alternate BCR templates; only the single owner-supplied layout documented in v1.0 is in scope.

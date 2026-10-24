@@ -1,0 +1,41 @@
+{
+  "fixture_kind": "synthetic_layout_contract",
+  "source_format": "BCR Romanian-language RON account statement PDF",
+  "source_spec_version": "1.0",
+  "is_real_statement_data": false,
+  "synthetic_values_only": true,
+  "currency": "RON",
+  "statement_period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
+  "opening_balance": "10000.00",
+  "total_debits": "2469.12",
+  "total_credits": "0.00",
+  "closing_balance": "7530.88",
+  "transactions": [
+    {
+      "operation_date": "2026-09-07",
+      "operation_time": "12:10",
+      "value_date": "2026-09-07",
+      "description": "Tranzactie efectuata prin George Banking BCR Referinta SYN-LOCALE-001 Detalii suplimentare pentru descrierea pe mai multe linii.",
+      "operation_reference": "SYN-LOCALE-001",
+      "document_reference": "SYN-LOCALE-DOC-001",
+      "debit": "1234.56",
+      "credit": "0.00",
+      "occurrence": 1
+    },
+    {
+      "operation_date": "2026-09-07",
+      "operation_time": "12:10",
+      "value_date": "2026-09-07",
+      "description": "Tranzactie efectuata prin George Banking BCR Referinta SYN-LOCALE-001",
+      "operation_reference": "SYN-LOCALE-001",
+      "document_reference": "SYN-LOCALE-DOC-001",
+      "debit": "1234.56",
+      "credit": "0.00",
+      "occurrence": 2
+    }
+  ],
+  "fixture_notice": "Invented values for locale parsing, multiline descriptions, duplicate row preservation and empty-day handling. Not extracted from the source statement."
+}

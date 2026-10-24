@@ -1,13 +1,18 @@
 # BCR statement parser fixtures
 
-`bcr-ron-layout-synthetic.pdf` and `bcr-ron-layout-synthetic.json` contain invented values and are synthetic-by-construction. They model the documented BCR Romanian-language RON statement structure for regression tests; they are not an extract of the owner-supplied report and must not be used to validate actual transaction amounts.
+All committed PDFs and JSON files in this directory are synthetic-by-construction, with invented account identifiers, references, descriptions and amounts. They model selected labels and row patterns from the documented BCR Romanian-language RON statement layout. They are not extracts of the owner-supplied report and must not be used to validate real transaction values.
 
-The original statement is intentionally not stored in this repository. The source-derived specification and independently checked statement-level arithmetic are documented in `docs/bank-statements/bank-a-statement-format-v1.0.md`.
+- `bcr-ron-layout-synthetic.pdf` / `.json`: two-page basic layout with credit, debit, explicit processing fee, and a uniquely referenced fee link.
+- `bcr-ron-multiline-locale-synthetic.pdf` / `.json`: grouped Romanian decimal format, wrapped description, duplicate operation reference/row preservation, and an empty daily block.
+- `bcr-empty-text-synthetic.pdf`: blank-text PDF used to exercise the no-selectable-text failure path. It is not a scanned statement.
 
-Run the preview parser against the fixture with:
+The original statement is intentionally not stored in this repository. Source-derived format observations and independently checked statement-level arithmetic are documented in `docs/bank-statements/bank-a-statement-format-v1.0.md`.
+
+Run the parser and normalizer previews with:
 
 ```bash
 php artisan finance:parse-bcr-statement tests/Fixtures/BankStatements/BankA/bcr-ron-layout-synthetic.pdf
+php artisan finance:normalize-bcr-statement tests/Fixtures/BankStatements/BankA/bcr-ron-layout-synthetic.pdf
 ```
 
-The parser returns typed, unposted candidates and a summary. It never writes financial records. A warning or unsupported format must block approval until reviewed against source evidence.
+The commands return unposted previews and never write financial records. Warnings, unsupported formats, unresolved business classifications, FX semantics, possible refunds/reversals, and ambiguous fee links must be reviewed against restricted source evidence.
