@@ -23,7 +23,29 @@ The following schema fields are in scope because they store monetary values, cur
 | employee_pay_slip_items.quantity, unit_rate, amount | Decimal columns (quantity 10,2; rate/amount 12,2) | Currency char(3), default RON | Activity-based payroll snapshots. This already uses two-decimal RON activity values but is not a statutory payroll engine. |
 | Legacy course/event/workshop price tables | Integer amount; event/workshop currency string; course price has no currency | Inconsistent/absent | Product-price consolidation migration copies source values and leaves unknown currency null. Retain legacy source references; do not fill unknown currency. |
 
-The schema-level inventory is known. **Actual row counts, null counts, distinct legacy currency/status/type values, range checks and monetary totals remain unmeasured** until a read-only audit is run against an explicitly approved staging/production-like database. No production values should be copied into test fixtures.
+The schema-level inventory is known. The development sandbox has no non-empty application database: `database/database.sqlite` is configured but absent, and the existing `database/ci.sqlite` is a migrated CI schema with no financial rows. The read-only audit below records that measured local state; it is not a representative estimate of a populated deployment. No production values should be copied into test fixtures.
+
+### 2.0 Local test-database audit evidence
+
+Read-only inspection was performed on 2026-10-24 against `database/ci.sqlite` using SQLite `mode=ro`; no writes or seed operations were run. The database contained 109 tables. Every existing table in scope had zero rows, zero non-null monetary values, and therefore no currency/status/type values or before/after totals to reconcile. `database/database.sqlite` was not present.
+
+| Table | Rows | Monetary values / total |
+| --- | ---: | --- |
+| `transactions` | 0 | `amount`: no values; sum unavailable |
+| `customer_invoices` | 0 | `amount_without_vat`, `vat`: no values; sums unavailable |
+| `vendor_invoices` | 0 | `amount`, `amount_without_vat`, `vat`: no values; sums unavailable |
+| `taxes` | 0 | `amount`: no values; sum unavailable |
+| `financial_accounts` | 0 | currency/status inventory empty |
+| `financial_account_balances` | 0 | `current_balance`: no values; sum unavailable |
+| `product_resources` | 0 | `amount`: no values; sum unavailable |
+| `product_costs` | 0 | `resource_amount`, `allocated_amount`: no values; sums unavailable |
+| `product_revenues` | 0 | `amount`: no values; sum unavailable |
+| `product_prices` | 0 | `price`: no values; sum unavailable; currency inventory empty |
+| `employee_pay_slips` | 0 | `amount`: no values; sum unavailable |
+| `employee_pay_slip_items` | 0 | `quantity`, `unit_rate`, `amount`: no values; sums unavailable |
+| Legacy `course_prices`, `event_prices`, `workshop_prices` | 0 each | no monetary values; sums unavailable |
+
+This establishes **0 affected rows in the available local CI database only**. It does not establish zero affected rows in any other environment. Since there are no rows, the local database cannot demonstrate legacy value distributions, conversion factors, ambiguity rates, or meaningful before/after reconciliation. The read-only queries below remain required against the populated test dataset designated by the project owner; attach aggregate-only results from that dataset before treating impact as representative.
 
 ## 2. Read-only impact audit
 
