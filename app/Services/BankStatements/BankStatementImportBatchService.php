@@ -27,40 +27,8 @@ final class BankStatementImportBatchService
         }
 
         $payload = $result->toArray();
-        $lineKeys = [];
-        $duplicateLines = 0;
-        foreach ($result->transactions as $transaction) {
-            $key = $this->lineFingerprint($transaction->toArray());
-            if (isset($lineKeys[$key])) {
-                $duplicateLines++;
-            }
-            $lineKeys[$key] = true;
-        }
-
-        // Compare fingerprints with prior non-rejected previews for this account.
-        // A match is a review flag, never an automatic drop of a potentially valid payment.
-        $previousBatches = BankStatementImportBatch::query()
-            ->where('financial_account_id', $account->getKey())
-            ->where('status', '!=', BankStatementImportBatch::STATUS_REJECTED)
-            ->get(['preview_payload']);
-        $previousFingerprints = [];
-        foreach ($previousBatches as $previousBatch) {
-            foreach ((array) data_get($previousBatch->preview_payload, 'transactions', []) as $previousTransaction) {
-                $previousFingerprints[$this->lineFingerprint((array) $previousTransaction)] = true;
-            }
-        }
-        foreach (BankStatementImportItem::query()->where('financial_account_id', $account->getKey())->pluck('line_fingerprint') as $fingerprint) {
-            $previousFingerprints[(string) $fingerprint] = true;
-        }
-        $crossBatchDuplicates = count(array_intersect_key($lineKeys, $previousFingerprints));
-        $duplicateLines += $crossBatchDuplicates;
-
-        $summary = [
-            'requires_review' => $result->requiresReview() || $duplicateLines > 0,
-            'potential_duplicate_line_count' => $duplicateLines,
-            'source_payload_retention' => 'normalized_preview_only',
-            'posting_performed' => false,
-        ];
+        $summary = $this->previewDiagnostics($account, $result);
+        $duplicateLines = (int) $summary['potential_duplicate_line_count'];
 
         try {
             return DB::transaction(function () use ($bankCode, $account, $actor, $result, $payload, $summary, $duplicateLines): BankStatementImportBatch {
@@ -100,6 +68,66 @@ final class BankStatementImportBatchService
 
             throw $exception;
         }
+    }
+
+    /** @return array{requires_review: bool, potential_duplicate_line_count: int, duplicate_file: bool, findings: list<string>, source_payload_retention: string, posting_performed: bool} */
+    public function previewDiagnostics(FinancialAccount $account, BankStatementNormalizationResult $result): array
+    {
+        $findings = [];
+        foreach ($result->warnings as $warning) {
+            $findings[] = $warning['code'].' (page '.$warning['page'].', row '.$warning['row'].')';
+        }
+        foreach ($result->transactions as $transaction) {
+            foreach ($transaction->reviewReasons as $reason) {
+                $findings[] = $reason.' (page '.$transaction->sourcePage.', row '.$transaction->sourceRow.')';
+            }
+        }
+
+        $duplicateFile = BankStatementImportBatch::query()
+            ->where('financial_account_id', $account->getKey())
+            ->where('source_sha256', $result->sourceSha256)
+            ->exists();
+        if ($duplicateFile) {
+            $findings[] = 'duplicate_statement_file_for_account';
+        }
+
+        $lineKeys = [];
+        $duplicateLines = 0;
+        foreach ($result->transactions as $transaction) {
+            $key = $this->lineFingerprint($transaction->toArray());
+            if (isset($lineKeys[$key])) {
+                $duplicateLines++;
+            }
+            $lineKeys[$key] = true;
+        }
+
+        $previousFingerprints = [];
+        $previousBatches = BankStatementImportBatch::query()
+            ->where('financial_account_id', $account->getKey())
+            ->where('status', '!=', BankStatementImportBatch::STATUS_REJECTED)
+            ->get(['preview_payload']);
+        foreach ($previousBatches as $previousBatch) {
+            foreach ((array) data_get($previousBatch->preview_payload, 'transactions', []) as $previousTransaction) {
+                $previousFingerprints[$this->lineFingerprint((array) $previousTransaction)] = true;
+            }
+        }
+        foreach (BankStatementImportItem::query()->where('financial_account_id', $account->getKey())->pluck('line_fingerprint') as $fingerprint) {
+            $previousFingerprints[(string) $fingerprint] = true;
+        }
+        $crossBatchDuplicates = count(array_intersect_key($lineKeys, $previousFingerprints));
+        $duplicateLines += $crossBatchDuplicates;
+        if ($duplicateLines > 0) {
+            $findings[] = 'potential_duplicate_transaction_lines: '.$duplicateLines;
+        }
+
+        return [
+            'requires_review' => $result->requiresReview() || $duplicateLines > 0 || $duplicateFile,
+            'potential_duplicate_line_count' => $duplicateLines,
+            'duplicate_file' => $duplicateFile,
+            'findings' => array_values(array_unique($findings)),
+            'source_payload_retention' => 'normalized_preview_only',
+            'posting_performed' => false,
+        ];
     }
 
     public function approve(int $batchId, User $actor, string $reason): BankStatementImportBatch

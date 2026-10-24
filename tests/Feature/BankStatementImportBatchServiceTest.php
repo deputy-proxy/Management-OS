@@ -24,6 +24,21 @@ class BankStatementImportBatchServiceTest extends TestCase
         Gate::define('transaction.update', static fn (User $user): bool => true);
     }
 
+    public function test_preview_diagnostics_are_read_only_until_the_operator_confirms_persistence(): void
+    {
+        [$account, $actor, $result] = $this->validFixture();
+        $service = new BankStatementImportBatchService;
+
+        $diagnostics = $service->previewDiagnostics($account, $result);
+
+        $this->assertFalse($diagnostics['requires_review']);
+        $this->assertSame([], $diagnostics['findings']);
+        $this->assertFalse($diagnostics['posting_performed']);
+        $this->assertDatabaseCount('bank_statement_import_batches', 0);
+        $this->assertDatabaseCount('bank_statement_import_items', 0);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
     public function test_preview_is_audited_and_same_file_cannot_be_registered_twice_for_account(): void
     {
         [$account, $actor, $result] = $this->validFixture();
