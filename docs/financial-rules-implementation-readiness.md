@@ -5,6 +5,7 @@
 **Canonical field mapping:** [Financial Data Contract](financial-data-contract.md) — technical draft; legacy conversions and reader switches remain blocked pending the specified reviews and migration plan. #308 adds nullable storage only.
 **Currency/precision migration plan:** [Financial Precision Migration Plan](financial-precision-migration-plan.md) — audit counts and totals are pending an authorized read-only run; no conversion/backfill is authorized.
 **Schema staging (#308):** additive nullable decimal/currency-code fields are implemented; legacy values remain untouched, existing consumers remain on legacy columns, and backfill/read-switch remain gated by reviewed mappings and reconciliation.
+**Normalization backfill (#309):** [Financial Data Normalization Runbook](financial-normalization-runbook.md) documents the dry-run-first, exact-mapping process; no legacy units/currencies/classifications are inferred by default.
 **Branch:** `1-304`
 **Status:** Policy decisions recorded through Decision 43. This document is a traceability and readiness checklist, not approval to change financial schemas or historical data.
 

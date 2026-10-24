@@ -38,7 +38,7 @@ class Tax extends Model implements Commentable
 
 /** @var array<int, string> */
     protected $fillable = [
-        'category', 'month', 'amount', 'amount_decimal', 'currency_code', 'status', 'due_on', 'paid_on'
+        'category', 'month', 'amount', 'amount_decimal', 'currency_code', 'status_code', 'status', 'due_on', 'paid_on'
     ];
 
 
@@ -49,7 +49,7 @@ class Tax extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['category', 'month', 'amount', 'amount_decimal', 'currency_code', 'status', 'due_on', 'paid_on'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['category', 'month', 'amount', 'amount_decimal', 'currency_code', 'status_code', 'status', 'due_on', 'paid_on'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
 }
