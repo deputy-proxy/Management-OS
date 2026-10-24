@@ -39,6 +39,7 @@
         "lartisan/filament-architect": "^1.0",
         "rappasoft/laravel-authentication-log": "^6.0",
         "relaticle/comments": "^1.1.1",
+        "smalot/pdfparser": "^2.12",
         "spatie/laravel-activitylog": "^5.0",
         "tapp/filament-authentication-log": "^5.0",
         "torann/geoip": "^3.0",

@@ -10,7 +10,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>
 endobj
 4 0 obj
-<< /Length 703 >>
+<< /Length 702 >>
 stream
 BT
 /F1 9 Tf
@@ -24,7 +24,7 @@ BT
 () Tj T*
 (Data: 03-09-2026    Sold contabil initial: 100,00) Tj T*
 (Data operatiunii  Explicatie  Referinta Oper. / Document  Debit  Credit) Tj T*
-(03-09-2026 10:40  Credit payment - SYNTHETIC  SYN-OP-001  0,00  10,00) Tj T*
+(03-09-2026 10:40  Credit payment - Referinta SYN-OP-001  0,00  10,00) Tj T*
 (Data Valorii: 03-09-2026    Document: SYN-DOC-001) Tj T*
 (Tranzactii finalizate: Debit 0,00  Credit 10,00) Tj T*
 (Sold contabil final: 110,00) Tj T*
@@ -35,7 +35,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 1031 >>
+<< /Length 1039 >>
 stream
 BT
 /F1 9 Tf
@@ -46,14 +46,14 @@ BT
 (Data operatiunii  Explicatie  Referinta Oper. / Document  Debit  Credit) Tj T*
 () Tj T*
 (Data: 04-09-2026    Sold contabil initial: 110,00) Tj T*
-(04-09-2026 12:14  Payment - SYNTHETIC  SYN-OP-002  25,00  0,00) Tj T*
+(04-09-2026 12:14  Payment - Referinta SYN-OP-002  25,00  0,00) Tj T*
 (Data Valorii: 04-09-2026    Document: SYN-DOC-002) Tj T*
-(04-09-2026 12:14  Processing fee - SYNTHETIC  SYN-OP-002  0,50  0,00) Tj T*
+(04-09-2026 12:14  Processing fee - Referinta SYN-OP-002  0,50  0,00) Tj T*
 (Data Valorii: 04-09-2026    Document: SYN-DOC-002-FEE) Tj T*
 (Tranzactii finalizate: Debit 25,50  Credit 0,00) Tj T*
 (Sold contabil final: 84,50) Tj T*
 () Tj T*
-(Total tranzactii finalizate pe perioada: Debit 25,50  Credit 10,00) Tj T*
+(Total tranzactii finalizate pe perioada: 01-09-2026 - 30-09-2026 25,50 10,00) Tj T*
 (Sold contabil final la: 30-09-2026    84,50) Tj T*
 (Sold disponibil la: 01-10-2026    84,50) Tj T*
 () Tj T*
@@ -69,10 +69,10 @@ xref
 0000000078 00000 n 
 0000000141 00000 n 
 0000000316 00000 n 
-0000001070 00000 n 
-0000001245 00000 n 
+0000001069 00000 n 
+0000001244 00000 n 
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-2328
+2335
 %%EOF
