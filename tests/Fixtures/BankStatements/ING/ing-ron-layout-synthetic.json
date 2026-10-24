@@ -1,0 +1,74 @@
+{
+  "fixture_kind": "synthetic_layout_contract",
+  "source_format": "ING Bank N.V. Amsterdam Bucharest Branch account statement",
+  "source_spec_version": "1.0",
+  "is_real_statement_data": false,
+  "synthetic_values_only": true,
+  "currency": "RON",
+  "statement_period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
+  "opening_balance": "1000.00",
+  "total_credits": "200.00",
+  "total_debits": "-123.45",
+  "closing_balance": "1076.55",
+  "arithmetic_check": "1000.00 + 200.00 + (-123.45) = 1076.55",
+  "transactions": [
+    {
+      "book_date": "2026-09-01",
+      "counterparty": "Synthetic payer",
+      "bank_reference": "SYN-ING-001",
+      "description_lines": [
+        "Incoming funds",
+        "Synthetic invoice payment",
+        "Bank reference SYN-BANK-001"
+      ],
+      "debit": null,
+      "credit": "200.00",
+      "balance_after": "1200.00",
+      "source_page": 1,
+      "source_row": 1
+    },
+    {
+      "book_date": "2026-09-01",
+      "counterparty": "Synthetic merchant",
+      "bank_reference": "SYN-ING-002",
+      "description_lines": [
+        "POS purchase",
+        "Synthetic card purchase",
+        "Amount: 10,00 USD Settlement Amount: 123,45 RON Rate: 12,3450"
+      ],
+      "debit": "-123.45",
+      "credit": null,
+      "balance_after": "1076.55",
+      "source_page": 1,
+      "source_row": 2
+    },
+    {
+      "book_date": "2026-09-01",
+      "counterparty": null,
+      "bank_reference": "SYN-ING-003",
+      "description_lines": [
+        "Service Fee",
+        "Synthetic fee for separate bank transaction"
+      ],
+      "debit": "0.00",
+      "credit": null,
+      "balance_after": "1076.55",
+      "source_page": 2,
+      "source_row": 1
+    }
+  ],
+  "coverage": [
+    "multi-page header and continuation",
+    "Romanian grouped-decimal convention",
+    "blank counterparty",
+    "multi-line description",
+    "FX detail in RON account statement",
+    "separate fee row",
+    "signed debit and positive credit",
+    "source page/row provenance"
+  ],
+  "fixture_notice": "Invented values only; not extracted from the owner-supplied statement. Synthetic test contract does not establish parser support."
+}

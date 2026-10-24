@@ -1,0 +1,94 @@
+%PDF-1.4
+% synthetic fixture
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 1208 >>
+stream
+BT
+/F1 9 Tf
+40 790 Td
+12 TL
+(SYNTHETIC TEST FIXTURE - NOT A REAL BANK STATEMENT) Tj T*
+(ING Bank N.V. Amsterdam Bucharest Branch) Tj T*
+(Account Statement) Tj T*
+(BIC code \(SWIFT\): INGBROBU) Tj T*
+(Account number: [SYNTHETIC]   Account owner: SYNTHETIC SRL) Tj T*
+(Currency: RON) Tj T*
+(Book date from 01.09.2026 to 30.09.2026) Tj T*
+() Tj T*
+(Summary) Tj T*
+(Date                 Opening Balance: 1.000,00) Tj T*
+(                       Total Credits: 1       200,00) Tj T*
+(                       Total Debits:  1      -123,45) Tj T*
+(Date                 Closing Balance: 1.076,55) Tj T*
+() Tj T*
+(Transactions) Tj T*
+(Book date  Counterparty  Bank Reference  Transaction Description  Debit  Credit  Balance after) Tj T*
+(01.09.2026 Synthetic payer  SYN-ING-001) Tj T*
+(Incoming funds) Tj T*
+(Synthetic invoice payment) Tj T*
+(Bank reference SYN-BANK-001) Tj T*
+(200,00) Tj T*
+(1.200,00) Tj T*
+() Tj T*
+(01.09.2026 Synthetic merchant  SYN-ING-002) Tj T*
+(POS purchase) Tj T*
+(Synthetic card purchase) Tj T*
+(Amount: 10,00 USD Settlement Amount: 123,45 RON Rate: 12,3450) Tj T*
+(-123,45) Tj T*
+(1.076,55) Tj T*
+() Tj T*
+(This synthetic fixture contains invented values only.) Tj T*
+(Page 1 of 2) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 509 >>
+stream
+BT
+/F1 9 Tf
+40 790 Td
+12 TL
+(SYNTHETIC TEST FIXTURE - PAGE 2 OF 2) Tj T*
+(ING Bank N.V. Amsterdam Bucharest Branch) Tj T*
+(Account Statement \(continued\)) Tj T*
+(Currency: RON) Tj T*
+(Book date from 01.09.2026 to 30.09.2026) Tj T*
+(Transactions continued) Tj T*
+(01.09.2026 [blank counterparty] SYN-ING-003) Tj T*
+(Service Fee) Tj T*
+(Synthetic fee for separate bank transaction) Tj T*
+(-0,00) Tj T*
+(1.076,55) Tj T*
+() Tj T*
+(All values and references are invented for testing.) Tj T*
+(Page 2 of 2) Tj T*
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000029 00000 n 
+0000000078 00000 n 
+0000000141 00000 n 
+0000000316 00000 n 
+0000001576 00000 n 
+0000001751 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2311
+%%EOF
