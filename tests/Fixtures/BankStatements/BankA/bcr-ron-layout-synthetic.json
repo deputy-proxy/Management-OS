@@ -8,15 +8,48 @@
   "date_format": "DD-MM-YYYY",
   "decimal_separator": ",",
   "grouping_separator": ".",
-  "statement_period": {"start": "2026-09-01", "end": "2026-09-30"},
+  "statement_period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
   "opening_balance": "100.00",
   "total_debits": "25.50",
   "total_credits": "10.00",
   "closing_balance": "84.50",
   "transactions": [
-    {"operation_date": "2026-09-03", "operation_time": "10:40", "value_date": "2026-09-03", "description": "SYNTHETIC CREDIT PAYMENT", "operation_reference": "SYN-OP-001", "document_reference": "SYN-DOC-001", "debit": "0.00", "credit": "10.00", "running_balance": "110.00"},
-    {"operation_date": "2026-09-04", "operation_time": "12:14", "value_date": "2026-09-04", "description": "SYNTHETIC PAYMENT", "operation_reference": "SYN-OP-002", "document_reference": "SYN-DOC-002", "debit": "25.00", "credit": "0.00", "running_balance": "85.00"},
-    {"operation_date": "2026-09-04", "operation_time": "12:14", "value_date": "2026-09-04", "description": "SYNTHETIC PROCESSING FEE", "operation_reference": "SYN-OP-002", "document_reference": "SYN-DOC-002-FEE", "debit": "0.50", "credit": "0.00", "running_balance": "84.50"}
+    {
+      "operation_date": "2026-09-03",
+      "operation_time": "10:40",
+      "value_date": "2026-09-03",
+      "description": "SYNTHETIC CREDIT PAYMENT",
+      "operation_reference": "SYN-OP-001",
+      "document_reference": "SYN-DOC-001",
+      "debit": "0.00",
+      "credit": "10.00",
+      "running_balance": "110.00"
+    },
+    {
+      "operation_date": "2026-09-04",
+      "operation_time": "12:14",
+      "value_date": "2026-09-04",
+      "description": "SYNTHETIC PAYMENT",
+      "operation_reference": "SYN-OP-002",
+      "document_reference": "SYN-DOC-002",
+      "debit": "25.00",
+      "credit": "0.00",
+      "running_balance": "85.00"
+    },
+    {
+      "operation_date": "2026-09-04",
+      "operation_time": "12:14",
+      "value_date": "2026-09-04",
+      "description": "Comision Procesare - SYNTHETIC Referinta SYN-OP-002",
+      "operation_reference": "SYN-OP-002",
+      "document_reference": "SYN-DOC-002-FEE",
+      "debit": "0.50",
+      "credit": "0.00",
+      "running_balance": "84.50"
+    }
   ],
   "fixture_notice": "Invented data for layout and arithmetic tests. This JSON and the companion PDF are not a source-derived transaction extract and do not validate BCR transaction values."
 }
