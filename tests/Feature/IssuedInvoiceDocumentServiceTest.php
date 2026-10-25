@@ -4,13 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\IssuedInvoice;
 use App\Models\IssuedInvoiceArtifact;
+use App\Models\IssuedInvoiceEvent;
 use App\Models\LegalEntity;
 use App\Models\User;
+use App\Services\Finance\IssuedInvoiceArtifactAccessService;
 use App\Services\Finance\IssuedInvoiceDocumentService;
 use App\Services\Finance\IssuedInvoiceLifecycleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -134,7 +137,7 @@ class IssuedInvoiceDocumentServiceTest extends TestCase
             ->assertHeader('Content-Type', 'text/html; charset=UTF-8')
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
-            ->assertHeader('Content-Disposition', 'attachment; filename="'.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html');
+            ->assertHeader('Content-Disposition', 'attachment; filename="'.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html"');
         $this->assertSame(Storage::disk('local')->get($artifact->storage_key), $response->getContent());
         $this->assertSame([], Storage::disk('public')->allFiles());
 
