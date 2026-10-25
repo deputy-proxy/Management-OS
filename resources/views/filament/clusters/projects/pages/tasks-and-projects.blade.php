@@ -97,6 +97,28 @@
             </x-filament::section>
         @endif
 
+        @if ($summary['tasks_total'] !== null)
+            <x-filament::section>
+                <x-slot name="heading">Open task workload</x-slot>
+                <x-slot name="description">Top 10 assignees by visible open-task count, with overdue counts for prioritization.</x-slot>
+                @forelse ($summary['assignee_workload'] as $workload)
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 py-3 last:border-0 dark:border-gray-800">
+                        <div>
+                            <p class="font-medium text-gray-950 dark:text-white">{{ $workload->assignedTo?->name ?? 'Assignee unavailable' }}</p>
+                            <p class="text-xs text-gray-500">{{ number_format((int) $workload->overdue_count) }} overdue</p>
+                        </div>
+                        <p class="text-sm font-semibold tabular-nums">{{ number_format((int) $workload->open_count) }} open tasks</p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No visible open tasks.</p>
+                @endforelse
+                <p class="mt-3 text-xs text-gray-500">This is a workload count, not a capacity or utilization measure. Working hours, effort estimates, availability and approved overload thresholds are not modeled, so no capacity breach is inferred.</p>
+                @if ($urls['tasks'])
+                    <x-filament::link class="mt-3" :href="$urls['tasks']">Review task assignments</x-filament::link>
+                @endif
+            </x-filament::section>
+        @endif
+
         <div class="grid gap-6 xl:grid-cols-3">
             <x-filament::section>
                 <x-slot name="heading">Task status</x-slot>

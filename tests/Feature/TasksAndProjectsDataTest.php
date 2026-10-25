@@ -34,6 +34,8 @@ class TasksAndProjectsDataTest extends TestCase
         $this->assertSame(4, $summary['tasks_total']);
         $this->assertSame(3, $summary['tasks_open']);
         $this->assertSame(1, $summary['tasks_overdue']);
+        $this->assertSame(3, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->open_count);
+        $this->assertSame(1, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->overdue_count);
         $this->assertSame([
             ['status' => 'done', 'count' => 1],
             ['status' => 'in_progress', 'count' => 1],
@@ -113,6 +115,7 @@ class TasksAndProjectsDataTest extends TestCase
         $this->assertNull($summary['tasks_total']);
         $this->assertNull($summary['tasks_open']);
         $this->assertSame(0, $summary['tasks_overdue']);
+        $this->assertCount(0, $summary['assignee_workload']);
         $this->assertNull($summary['projects_started_after_plan']);
         $this->assertNull($summary['projects_finished_after_plan']);
         $this->assertSame([], $summary['task_statuses']);

@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\Tasks\Schemas;
 
 use App\Models\User;
+use App\Models\Task;
+use App\Rules\TaskDependenciesAreAcyclic;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -86,6 +89,16 @@ class TaskForm
                 ->required()
                 ->searchable()
                 ->preload(),
+
+            Select::make('dependencies')
+                ->label('Depends on tasks')
+                ->helperText('Select prerequisite tasks. A task cannot depend on itself or on a task chain that leads back to it.')
+                ->relationship('dependencies', 'action', modifyQueryUsing: fn (Builder $query) => hexa()->can('task.view_all')
+                    ? $query
+                    : $query->where(fn (Builder $scope) => $scope->where('assigned_to', auth()->id())->orWhere('created_by', auth()->id())))
+                ->multiple()
+                ->searchable()
+                ->rules(fn (?Task $record): array => [new TaskDependenciesAreAcyclic($record?->getKey())]),
         ]);
     }
 }
