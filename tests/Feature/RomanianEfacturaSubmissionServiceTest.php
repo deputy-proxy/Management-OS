@@ -288,6 +288,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
             }
             $content = $zip->getFromName($name);
             $zip->close();
+
             return is_string($content) ? $content : '';
         } finally {
             @unlink($path);
@@ -309,6 +310,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
                 $zip->addFromString($name, $content);
             }
             $zip->close();
+
             return (string) file_get_contents($path);
         } finally {
             @unlink($path);
