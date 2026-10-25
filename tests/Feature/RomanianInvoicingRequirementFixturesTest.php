@@ -27,6 +27,11 @@ class RomanianInvoicingRequirementFixturesTest extends TestCase
         }
     }
 
+    public function test_canonical_invoice_model_approval_is_reflected_in_fixture_metadata(): void
+    {
+        $this->assertTrue($this->fixtures()['metadata']['invoice_model_approved']);
+    }
+
     public function test_vat_and_gross_totals_reconcile_using_decimal_arithmetic(): void
     {
         $scenarios = $this->fixtures()['scenarios'];
