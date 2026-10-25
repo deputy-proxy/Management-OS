@@ -208,6 +208,41 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertStringContainsString('Sensitive VAT detail', $this->zipEntry(Storage::disk('local')->get($checked->resultArtifact->storage_key), 'Erori.xml'));
     }
 
+    public function test_corrected_invoice_submission_links_to_the_original_submission(): void
+    {
+        $uploadSequence = Http::sequence()
+            ->push('<header ExecutionStatus="0" index_incarcare="10001"/>', 200, ['Content-Type' => 'application/xml'])
+            ->push('<header ExecutionStatus="0" index_incarcare="10002"/>', 200, ['Content-Type' => 'application/xml']);
+        Http::fake([
+            'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => $uploadSequence,
+        ]);
+        $actor = User::factory()->create();
+        $original = $this->issuedInvoice($actor);
+        app(IssuedInvoiceUblGenerationService::class)->generate($original->id, $actor);
+        $service = app(RomanianEfacturaSubmissionService::class);
+        $originalSubmission = $service->submit($original->id, 'test', $actor);
+
+        $entity = $original->legalEntity;
+        $payload = $this->payload($entity);
+        $payload['document_type'] = IssuedInvoice::TYPE_CREDIT_NOTE;
+        $payload['correction_reason_code'] = 'TEST-CORRECTION';
+        $payload['correction_reason'] = 'Synthetic correction fixture';
+        $lifecycle = app(IssuedInvoiceLifecycleService::class);
+        $draft = $lifecycle->createCorrection($original->id, $actor, $payload, $this->policy());
+        $lifecycle->approve($draft->id, $actor);
+        $correction = $lifecycle->issue($draft->id, $actor, [
+            'version' => 'test-numbering-v1', 'series' => 'RO-2026', 'prefix' => 'INV-', 'padding' => 5, 'start_at' => 1,
+        ]);
+        app(IssuedInvoiceUblGenerationService::class)->generate($correction->id, $actor);
+        $correctionSubmission = $service->submit($correction->id, 'test', $actor);
+
+        $this->assertSame($originalSubmission->id, $correctionSubmission->corrects_submission_id);
+        $this->assertSame($original->id, $correctionSubmission->correctsSubmission->issued_invoice_id);
+        $this->assertSame($original->issued_snapshot_hash, $original->fresh()->issued_snapshot_hash);
+        $this->assertSame('10002', $correctionSubmission->external_message_id);
+    }
+
     public function test_explicit_not_required_decision_is_audited_without_any_network_request(): void
     {
         Http::fake();
