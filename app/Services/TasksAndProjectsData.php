@@ -63,8 +63,9 @@ class TasksAndProjectsData
                 ->map(fn (object $row): array => ['status' => (string) $row->status, 'count' => (int) $row->record_count])->all()
             : [];
 
+        $openTasks = (clone $visibleTasks)->where('status', '!=', 'done');
         $overdue = $canViewTasks
-            ? (clone $tasks)->whereDate('due_date', '<', $today)->where('status', '!=', 'done')->count()
+            ? (clone $openTasks)->whereDate('due_date', '<', $today)->count()
             : 0;
 
         $upcoming = $canViewTasks && $dueDateFilter !== 'overdue'
@@ -83,6 +84,12 @@ class TasksAndProjectsData
             'tasks_total' => $canViewTasks ? (clone $tasks)->count() : null,
             'tasks_open' => $canViewTasks ? (clone $tasks)->where('status', '!=', 'done')->count() : null,
             'tasks_overdue' => $overdue,
+            'projects_started_after_plan' => $canViewProjects
+                ? Project::query()->whereColumn('start_date', '>', 'planned_start_date')->count()
+                : null,
+            'projects_finished_after_plan' => $canViewProjects
+                ? Project::query()->whereColumn('end_date', '>', 'planned_end_date')->count()
+                : null,
             'task_statuses' => $statusCounts,
             'task_filter_options' => $filterOptions,
             'upcoming_tasks' => $upcoming instanceof Collection ? $upcoming : collect($upcoming),
