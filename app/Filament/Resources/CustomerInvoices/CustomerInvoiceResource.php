@@ -32,7 +32,7 @@ class CustomerInvoiceResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
     public function defineGates(): array
     {
-        return ['customer_invoice.index' => __('Allows viewing the customer invoice list'), 'customer_invoice.create' => __('Allows creating a new customer invoice'), 'customer_invoice.update' => __('Allows updating customer invoices'), 'customer_invoice.delete' => __('Allows deleting customer invoices')];
+        return ['customer_invoice.index' => __('Allows viewing the customer invoice list'), 'customer_invoice.create' => __('Allows creating a new customer invoice'), 'customer_invoice.update' => __('Allows updating customer invoices'), 'customer_invoice.delete' => __('Allows deleting customer invoices'), 'customer_invoice.submit' => __('Allows submitting issued invoices to ANAF e-Factura')];
     }
 
     public static function form(Schema $schema): Schema
