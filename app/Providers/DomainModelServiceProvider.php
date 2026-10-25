@@ -30,6 +30,7 @@ use App\Models\EventParticipant;
 use App\Models\FinancialAccount;
 use App\Models\FinancialAccountBalance;
 use App\Models\Group;
+use App\Models\IssuedInvoice;
 use App\Models\JobDescription;
 use App\Models\LegalDocument;
 use App\Models\Newsletter;
@@ -108,6 +109,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'customer_contract' => CustomerContract::class,
             'customer_interaction' => CustomerInteraction::class,
             'customer_invoice' => CustomerInvoice::class,
+            'issued_invoice' => IssuedInvoice::class,
             'customer_lead' => CustomerLead::class,
             'financial_account' => FinancialAccount::class,
             'financial_account_balance' => FinancialAccountBalance::class,

@@ -19,6 +19,11 @@ class CanonicalIssuedInvoiceSchemaTest extends TestCase
 
     public function test_schema_is_additive_and_preserves_legacy_invoice_values(): void
     {
+        // The sequence migration depends on legal_entities, so roll it back first
+        // when exercising the canonical invoice migration in isolation.
+        $sequenceMigration = require database_path('migrations/2026_10_25_030000_create_issued_invoice_sequences_table.php');
+        $sequenceMigration->down();
+
         $migration = require database_path('migrations/2026_10_25_020000_create_canonical_issued_invoice_tables.php');
         $migration->down();
 
@@ -30,6 +35,7 @@ class CanonicalIssuedInvoiceSchemaTest extends TestCase
             'currency' => 'RON', 'month' => '2026-10-01', 'invoice_number' => 'SUP-001',
         ]);
         $migration->up();
+        $sequenceMigration->up();
 
         $this->assertDatabaseHas('customer_invoices', [
             'id' => $legacy->id, 'amount_without_vat' => 12345, 'vat' => 2500,
