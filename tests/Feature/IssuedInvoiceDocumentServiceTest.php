@@ -137,8 +137,8 @@ class IssuedInvoiceDocumentServiceTest extends TestCase
             ->assertHeader('Content-Type', 'text/html; charset=UTF-8')
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
-            ->assertHeader('Content-Disposition', 'attachment; filename="'.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html"');
-        $this->assertSame(Storage::disk('local')->get($artifact->storage_key), $response->getContent());
+            ->assertHeader('Content-Disposition', 'attachment; filename='.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html');
+        $response->assertStreamedContent(Storage::disk('local')->get($artifact->storage_key));
         $this->assertSame([], Storage::disk('public')->allFiles());
 
         $event = IssuedInvoiceEvent::query()->where('issued_invoice_id', $invoice->id)->where('event_type', 'invoice_artifact_downloaded')->firstOrFail();
