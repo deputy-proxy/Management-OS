@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Article;
+use App\Models\BankStatementImportItem;
 use App\Models\Camp;
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
@@ -111,6 +112,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'financial_account_balance' => FinancialAccountBalance::class,
             'tax' => Tax::class,
             'transaction' => Transaction::class,
+            'bank_statement_import_item' => BankStatementImportItem::class,
             'discount' => Discount::class,
             'competitor' => Competitor::class,
             'competitor_offer' => CompetitorOffer::class,
