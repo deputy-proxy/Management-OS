@@ -242,12 +242,12 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         $path = tempnam(sys_get_temp_dir(), 'efactura-test-');
         if ($path === false) {
-            throw new \\RuntimeException('Cannot create ZIP fixture.');
+            throw new \RuntimeException('Cannot create ZIP fixture.');
         }
         try {
-            $zip = new \\ZipArchive;
-            if ($zip->open($path, \\ZipArchive::CREATE | \\ZipArchive::OVERWRITE) !== true) {
-                throw new \\RuntimeException('Cannot open ZIP fixture.');
+            $zip = new \ZipArchive;
+            if ($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \RuntimeException('Cannot open ZIP fixture.');
             }
             foreach ($files as $name => $content) {
                 $zip->addFromString($name, $content);
