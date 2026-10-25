@@ -162,6 +162,13 @@ class RomanianEfacturaSubmissionService
         $parsed = $this->parseUpload($response);
         if ($parsed['errors'] !== []) {
             $this->recordAuthorityErrors($submission, $attempt, $artifact, 'upload', hash('sha256', $response->body()), $parsed['errors'], 'terminal');
+        } elseif (! $response->successful() || $parsed['execution_status'] === null) {
+            $ambiguous = $response->status() >= 500 || in_array($response->status(), [408, 429], true) || $response->successful();
+            $this->recordAuthorityErrors(
+                $submission, $attempt, $artifact, 'upload', hash('sha256', $response->body()),
+                [['code' => null, 'message' => 'ANAF upload response did not contain a definitive accepted or rejected outcome.', 'field_path' => null, 'severity' => 'error']],
+                $ambiguous ? 'manual_review' : 'terminal'
+            );
         }
         if ($response->successful() && $parsed['execution_status'] === 0 && $parsed['external_id'] !== null) {
             $this->finish($submission, $attempt, 'accepted_for_processing', $response->status(), $parsed['external_id'], null, null, $artifact);
@@ -300,8 +307,24 @@ class RomanianEfacturaSubmissionService
             return $submission->refresh();
         }
 
+        try {
+            $archiveErrors = $this->extractAuthorityErrorsFromArchive($downloadBody);
+        } catch (Throwable) {
+            $archiveArtifact = $this->storeDownloadedArchive($submission->issuedInvoice, $submission, $downloadAttempt, $actor, $downloadBody);
+            $downloadAttempt->forceFill([
+                'request_completed_at' => now(), 'transport_result' => 'download_invalid_archive', 'http_status' => $downloadResponse->status(),
+                'response_artifact_id' => $archiveArtifact->getKey(), 'redacted_error_code' => 'download_invalid_archive',
+                'redacted_error_message' => 'ANAF returned an invalid signed-result archive.',
+            ])->save();
+            $submission->forceFill(['download_state' => 'failed', 'result_artifact_id' => $archiveArtifact->getKey()])->save();
+            $this->recordAuthorityErrors(
+                $submission, $downloadAttempt, $archiveArtifact, 'download', hash('sha256', $downloadBody),
+                [['code' => null, 'message' => 'ANAF returned an invalid signed-result archive.', 'field_path' => null, 'severity' => 'error']],
+                'manual_review'
+            );
+            return $submission->refresh();
+        }
         $archiveArtifact = $this->storeDownloadedArchive($submission->issuedInvoice, $submission, $downloadAttempt, $actor, $downloadBody);
-        $archiveErrors = $this->extractAuthorityErrorsFromArchive($downloadBody);
         if ($parsed['state'] === 'rejected' && $archiveErrors === []) {
             $archiveErrors = [['code' => null, 'message' => 'ANAF rejected the invoice but the downloaded archive contained no parseable error record.', 'field_path' => null, 'severity' => 'error']];
         }
