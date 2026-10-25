@@ -205,7 +205,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertSame('BR-S-05', $checked->errors()->firstOrFail()->authority_code);
         $this->assertSame('terminal', $checked->errors()->firstOrFail()->retry_classification);
         $this->assertStringNotContainsString('Sensitive VAT detail', $checked->errors()->firstOrFail()->safe_summary);
-        $this->assertStringContainsString('Sensitive VAT detail', Storage::disk('local')->get($checked->resultArtifact->storage_key));
+        $this->assertStringContainsString('Sensitive VAT detail', $this->zipEntry(Storage::disk('local')->get($checked->resultArtifact->storage_key), 'Erori.xml'));
     }
 
     public function test_explicit_not_required_decision_is_audited_without_any_network_request(): void
@@ -233,9 +233,30 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertSame('failed', $submission->transmission_state);
         $this->assertSame('anaf_upload_rejected', $submission->redacted_error_code);
         $this->assertStringNotContainsString('Sensitive tax detail', (string) $submission->redacted_error_message);
+        $this->assertDatabaseHas('invoice_submission_errors', ['invoice_submission_id' => $submission->id, 'retry_classification' => 'terminal']);
         $response = $submission->responseArtifact;
         $this->assertNotNull($response);
         $this->assertStringContainsString('Sensitive tax detail', Storage::disk('local')->get($response->storage_key));
+    }
+
+    private function zipEntry(string $bytes, string $name): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'efactura-test-read-');
+        if ($path === false) {
+            throw new \\RuntimeException('Cannot create ZIP read fixture.');
+        }
+        try {
+            file_put_contents($path, $bytes);
+            $zip = new \\ZipArchive;
+            if ($zip->open($path) !== true) {
+                throw new \\RuntimeException('Cannot open ZIP read fixture.');
+            }
+            $content = $zip->getFromName($name);
+            $zip->close();
+            return is_string($content) ? $content : '';
+        } finally {
+            @unlink($path);
+        }
     }
 
     private function zipPayload(array $files): string
