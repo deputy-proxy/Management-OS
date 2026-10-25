@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/ready', ReadinessController::class)->name('health.readiness');
+Route::middleware('auth')->get('/finance/issued-invoice-artifacts/{artifact}/download', IssuedInvoiceArtifactDownloadController::class)
+    ->whereNumber('artifact')->name('finance.issued-invoice-artifacts.download');
 Route::prefix('public')->name('public.')->middleware('throttle:5,1')->group(function () {
     Route::get('/enquiries', [PublicSubmissionController::class, 'leadForm'])->name('leads.create');
     Route::post('/enquiries', [PublicSubmissionController::class, 'submitLead'])->name('leads.store');
