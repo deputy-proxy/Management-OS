@@ -10,7 +10,7 @@ class IssuedInvoiceParty extends Model
     protected $fillable = [
         'issued_invoice_id', 'role', 'legal_name', 'country_code', 'address_line_1',
         'address_line_2', 'locality', 'postal_code', 'region', 'tax_identifier_type',
-        'tax_identifier', 'vat_registration_id', 'registration_id', 'email',
+        'tax_identifier', 'vat_registration_id', 'registration_id', 'email', 'endpoint_id', 'endpoint_scheme_id',
     ];
 
     /** @return BelongsTo<IssuedInvoice, $this> */
