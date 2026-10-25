@@ -30,6 +30,25 @@ return [
 
     'efactura' => [
         'java_binary' => env('EFACTURA_JAVA_BINARY', 'java'),
+        'oauth_token_url' => env('EFACTURA_OAUTH_TOKEN_URL', 'https://logincert.anaf.ro/anaf-oauth2/v1/token'),
+        'timeout_seconds' => (int) env('EFACTURA_TIMEOUT_SECONDS', 30),
+        'connect_timeout_seconds' => (int) env('EFACTURA_CONNECT_TIMEOUT_SECONDS', 5),
+        'environments' => [
+            'test' => [
+                'upload_url' => env('EFACTURA_TEST_UPLOAD_URL', 'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload'),
+                'status_url' => env('EFACTURA_TEST_STATUS_URL', 'https://webserviceapl.anaf.ro/test/FCTEL/rest/stareMesaj'),
+                'client_id' => env('EFACTURA_TEST_CLIENT_ID'),
+                'client_secret' => env('EFACTURA_TEST_CLIENT_SECRET'),
+                'refresh_token' => env('EFACTURA_TEST_REFRESH_TOKEN'),
+            ],
+            'production' => [
+                'upload_url' => env('EFACTURA_PRODUCTION_UPLOAD_URL', 'https://webserviceapl.anaf.ro/prod/FCTEL/rest/upload'),
+                'status_url' => env('EFACTURA_PRODUCTION_STATUS_URL', 'https://webserviceapl.anaf.ro/prod/FCTEL/rest/stareMesaj'),
+                'client_id' => env('EFACTURA_PRODUCTION_CLIENT_ID'),
+                'client_secret' => env('EFACTURA_PRODUCTION_CLIENT_SECRET'),
+                'refresh_token' => env('EFACTURA_PRODUCTION_REFRESH_TOKEN'),
+            ],
+        ],
     ],
 
     'slack' => [
