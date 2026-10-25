@@ -58,6 +58,24 @@ class CustomerLeadLifecycleTest extends TestCase
         $lead->update(['status' => 'qualified']);
     }
 
+    public function test_status_history_records_initial_status_and_each_valid_transition_without_logging_unrelated_edits(): void
+    {
+        $lead = CustomerLead::factory()->create(['status' => 'new']);
+
+        $this->assertSame(1, $lead->statusHistory()->count());
+        $this->assertNull($lead->statusHistory()->first()->from_status);
+        $this->assertSame('new', $lead->statusHistory()->first()->to_status);
+
+        $lead->update(['status' => 'contacted']);
+        $lead->update(['phone' => '+40123456789']);
+
+        $history = $lead->fresh()->statusHistory;
+        $this->assertCount(2, $history);
+        $this->assertSame('new', $history[1]->from_status);
+        $this->assertSame('contacted', $history[1]->to_status);
+        $this->assertNotNull($history[1]->changed_at);
+    }
+
     public function test_customer_interactions_are_reachable_from_a_converted_lead(): void
     {
         $customer = Customer::factory()->create();

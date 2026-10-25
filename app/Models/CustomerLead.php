@@ -7,6 +7,7 @@ use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -27,6 +28,8 @@ class CustomerLead extends Model implements Commentable
     use LogsActivity;
     use SoftDeletes;
 
+    private ?string $statusBeforeSave = null;
+
     public function tasks(): MorphMany
     {
         return $this->morphMany(Task::class, 'taskable');
@@ -40,6 +43,11 @@ class CustomerLead extends Model implements Commentable
     public function convertedCustomer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'converted_customer_id');
+    }
+
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(CustomerLeadStatusHistory::class)->orderBy('changed_at')->orderBy('id');
     }
 
     public function customerContract(): HasOne
@@ -68,6 +76,26 @@ class CustomerLead extends Model implements Commentable
 
     protected static function booted(): void
     {
+        static::creating(function (CustomerLead $lead): void {
+            $lead->statusBeforeSave = null;
+        });
+
+        static::updating(function (CustomerLead $lead): void {
+            $lead->statusBeforeSave = $lead->isDirty('status') ? (string) $lead->getOriginal('status') : null;
+        });
+
+        static::created(function (CustomerLead $lead): void {
+            $lead->recordStatusHistory(null, (string) $lead->status);
+        });
+
+        static::updated(function (CustomerLead $lead): void {
+            if ($lead->statusBeforeSave !== null) {
+                $lead->recordStatusHistory($lead->statusBeforeSave, (string) $lead->status);
+            }
+
+            $lead->statusBeforeSave = null;
+        });
+
         static::saving(function (CustomerLead $lead): void {
             $lead->status = strtolower(trim((string) $lead->status));
             if (blank($lead->full_name) || ($lead->exists && ($lead->isDirty('first_name') || $lead->isDirty('middle_name') || $lead->isDirty('last_name')) && ! $lead->isDirty('full_name'))) {
@@ -101,6 +129,16 @@ class CustomerLead extends Model implements Commentable
                 throw ValidationException::withMessages(['status' => 'Only the lead conversion workflow can mark a lead as converted.']);
             }
         });
+    }
+
+    private function recordStatusHistory(?string $fromStatus, string $toStatus): void
+    {
+        $this->statusHistory()->create([
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+            'changed_at' => now(),
+            'changed_by' => auth()->id(),
+        ]);
     }
 
     protected function casts(): array
