@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,10 +19,9 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Task extends Model implements Commentable
 {
-    use HasPanelSearchTitle;
-
     use HasComments;
     use HasFactory;
+    use HasPanelSearchTitle;
     use LogsActivity;
     use SoftDeletes;
 
@@ -71,6 +69,21 @@ class Task extends Model implements Commentable
     public function dependentTasks(): BelongsToMany
     {
         return $this->belongsToMany(self::class, 'task_dependencies', 'depends_on_task_id', 'task_id')->withTimestamps();
+    }
+
+    public function getDependencyReadinessAttribute(): string
+    {
+        $dependencies = $this->dependencies;
+
+        if ($dependencies->isEmpty()) {
+            return 'No prerequisites';
+        }
+
+        $incompleteCount = $dependencies->where('status', '!=', 'done')->count();
+
+        return $incompleteCount > 0
+            ? sprintf('Blocked (%d)', $incompleteCount)
+            : 'Ready';
     }
 
     public function activities(): MorphMany
