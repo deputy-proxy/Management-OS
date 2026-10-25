@@ -16,7 +16,7 @@
 | Customer invoices | `CustomerInvoice` and `CustomerInvoiceResource` | Current-calendar-month counts grouped by stored status | The audited dashboard does not sum amounts or report receivables. `month` is a legacy string field and the dashboard has no currency-aware aggregation. Invoice status is shown as stored; no sales-revenue attribution should be inferred from these counts. |
 | Source attribution | `CustomerLead.source`, `topic_interest`, `product_interest` | Raw lead source and interests are available in lead records | `source` is free text; no controlled taxonomy, campaign/referral identifier, first-touch/last-touch rule, attribution history, or verified conversion attribution is implemented. Existing records must remain unknown when provenance is absent. |
 | Executive/customer overview | `CustomerDashboardData`, `CustomerDashboard`, `resources/views/filament/clusters/finance/pages/customer-dashboard.blade.php` | Customers, unconverted leads, active contracts, interactions in last 30 days, lead status counts, current-month invoice status counts, recent leads/interactions | The dashboard is an operational snapshot, not a conversion funnel, cohort-retention report, CAC/CLV calculation, or revenue dashboard. It exposes resource links only when the matching list permission is granted. |
-| Auditability and access | Eloquent soft deletes/activity logging; HexaLite page/resource permissions | Existing activity log fields and resource permission gates | Audit events record selected field changes, not a complete immutable event stream of every historical lifecycle transition. Dashboard aggregate counts are shown even when the underlying list link is restricted; verify role expectations before adding more sensitive dimensions. |
+| Auditability and access | Eloquent soft deletes/activity logging; HexaLite page/resource permissions | Existing activity log fields and resource permission gates | Before the transition-history addition, activity events recorded selected field changes rather than a complete historical stage stream. New Eloquent status changes are now captured in `customer_lead_status_histories`; this is prospective evidence only and can be bypassed by bulk/direct SQL writes. Existing history is not reconstructed. Dashboard aggregate counts are shown even when the underlying list link is restricted; verify role expectations before adding more sensitive dimensions. |
 
 ## Definitions currently supported
 
@@ -46,7 +46,7 @@ Run these focused tests with the project's normal test environment before extend
 
 ## Recommended sequence
 
-1. Approve source taxonomy and lifecycle/funnel definitions before adding attribution fields or conversion-rate charts.
+1. Approve source taxonomy and lifecycle/funnel definitions before adding attribution fields or conversion-rate charts. A prospective status-transition log now captures Eloquent status changes, but cohort and elapsed-stage formulas still require approved definitions and legacy history remains unknown.
 2. Audit existing production-like data for missing/legacy statuses, timestamps, source values, and lead/customer/contract collisions; report counts and examples without exposing personal data.
 3. Add source attribution with explicit unknown handling and immutable provenance only after the taxonomy and history requirements are approved.
 4. Build funnel and retention analytics against synthetic fixtures with independently calculated expected results, preserving current conversion semantics.
