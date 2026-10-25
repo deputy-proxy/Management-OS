@@ -164,10 +164,11 @@ class RomanianEfacturaSubmissionService
             $this->recordAuthorityErrors($submission, $attempt, $artifact, 'upload', hash('sha256', $response->body()), $parsed['errors'], 'terminal');
         } elseif (! $response->successful() || $parsed['execution_status'] === null) {
             $ambiguous = $response->status() >= 500 || in_array($response->status(), [408, 429], true) || $response->successful();
+            $classification = in_array($response->status(), [401, 403], true) ? 'retryable' : ($ambiguous ? 'manual_review' : 'terminal');
             $this->recordAuthorityErrors(
                 $submission, $attempt, $artifact, 'upload', hash('sha256', $response->body()),
                 [['code' => null, 'message' => 'ANAF upload response did not contain a definitive accepted or rejected outcome.', 'field_path' => null, 'severity' => 'error']],
-                $ambiguous ? 'manual_review' : 'terminal'
+                $classification
             );
         }
         if ($response->successful() && $parsed['execution_status'] === 0 && $parsed['external_id'] !== null) {
@@ -176,6 +177,8 @@ class RomanianEfacturaSubmissionService
             $this->finish($submission, $attempt, 'anaf_rejected', $response->status(), null, 'anaf_upload_rejected', 'ANAF rejected the upload; inspect the private response artifact.', $artifact);
         } elseif ($response->status() >= 500 || in_array($response->status(), [408, 429], true) || ($response->successful() && $parsed['execution_status'] === null)) {
             $this->finish($submission, $attempt, 'transport_unknown', $response->status(), null, 'transport_outcome_unknown', 'Response does not prove acceptance; reconcile before retrying.', $artifact);
+        } elseif (in_array($response->status(), [401, 403], true)) {
+            $this->finish($submission, $attempt, 'auth_failed', $response->status(), null, 'anaf_authorization_rejected', 'ANAF authorization was rejected before processing the upload.', $artifact);
         } else {
             $this->finish($submission, $attempt, 'http_rejected', $response->status(), null, 'anaf_http_rejected', 'ANAF rejected the HTTP request; automatic retry is disabled.', $artifact);
         }
