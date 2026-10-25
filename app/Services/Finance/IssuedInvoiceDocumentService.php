@@ -97,7 +97,7 @@ class IssuedInvoiceDocumentService
             'parties' => $invoice->parties->sortBy('role')->values()->map(fn ($party): array => $party->only([
                 'role', 'legal_name', 'country_code', 'address_line_1', 'address_line_2', 'locality', 'postal_code', 'region',
                 'tax_identifier_type', 'tax_identifier', 'vat_registration_id', 'registration_id', 'email',
-            ]))->all(),
+            ]) + ((filled($party->endpoint_id) || filled($party->endpoint_scheme_id)) ? $party->only(['endpoint_id', 'endpoint_scheme_id']) : []))->all(),
             'lines' => $invoice->lines->sortBy('line_number')->values()->map(fn ($line): array => [
                 ...$line->only(['line_number', 'description', 'seller_item_code', 'quantity', 'unit_code', 'unit_price_net', 'discount_amount', 'net_amount']),
                 'taxes' => $line->taxes->sortBy(['tax_scheme_code', 'tax_category_code'])->values()->map(fn ($tax): array => $tax->only([

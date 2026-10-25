@@ -45,3 +45,6 @@ Until that approval is recorded, do not configure a scheduled purge or manually 
 Automated tests cover private storage, permission-denied downloads, tampered/missing artifact rejection, download audit events, immutable snapshot hashes, submission status/error records and correction linkage. The end-to-end test suite uses synthetic invoices and a fake ANAF HTTP transport; it does not establish that ANAF accepted a live invoice.
 
 **Still required before production:** live test-environment evidence using approved ANAF credentials and fixtures, and written sign-off from a qualified Romanian accounting/legal specialist for the retention schedule and fiscal workflow. No compliance claim should be made until those gates are completed.
+
+
+The current artifact classification, per-artifact review reference, legal-hold metadata, and no-delete application guard are detailed in [Romanian invoice evidence retention](romanian-invoice-evidence-retention.md). The migration leaves the retention review status pending until an authorized reviewer records an approved policy reference.

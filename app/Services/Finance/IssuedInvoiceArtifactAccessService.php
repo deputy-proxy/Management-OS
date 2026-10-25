@@ -17,7 +17,7 @@ class IssuedInvoiceArtifactAccessService
     public function __construct(private readonly IssuedInvoiceSnapshotIntegrityService $integrity) {}
 
     /**
-     * @return array{artifact: IssuedInvoiceArtifact, content: string, filename: string, media_type: string}
+     * @return array{artifact: IssuedInvoiceArtifact, content: string, filename: string, media_type: string, byte_size: int, sha256: string}
      */
     public function read(int $artifactId, User $actor): array
     {
@@ -86,7 +86,7 @@ class IssuedInvoiceArtifactAccessService
             ]);
         });
 
-        return ['artifact' => $artifact, 'content' => $content, 'filename' => $filename, 'media_type' => $mediaType];
+        return ['artifact' => $artifact, 'content' => $content, 'filename' => $filename, 'media_type' => $mediaType, 'byte_size' => (int) $artifact->byte_size, 'sha256' => $artifact->sha256];
     }
 
     private function safeMediaType(string $mediaType): string

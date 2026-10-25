@@ -6,9 +6,11 @@ use App\Models\InvoiceSubmission;
 use App\Models\InvoiceSubmissionAttempt;
 use App\Models\InvoiceSubmissionOAuthCredential;
 use App\Models\IssuedInvoice;
+use App\Models\IssuedInvoiceArtifact;
 use App\Models\IssuedInvoiceEvent;
 use App\Models\LegalEntity;
 use App\Models\User;
+use App\Services\Finance\IssuedInvoiceArtifactAccessService;
 use App\Services\Finance\IssuedInvoiceDocumentService;
 use App\Services\Finance\IssuedInvoiceLifecycleService;
 use App\Services\Finance\IssuedInvoiceUblGenerationService;
@@ -319,6 +321,18 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertTrue(IssuedInvoiceEvent::query()->where('issued_invoice_id', $original->id)->where('event_type', 'efactura_status_received')->exists());
         $this->assertTrue(IssuedInvoiceEvent::query()->where('issued_invoice_id', $correction->id)->where('event_type', 'efactura_status_received')->exists());
         $this->assertSame([], Storage::disk('public')->allFiles());
+
+        $allArtifacts = IssuedInvoiceArtifact::query()->whereIn('issued_invoice_id', [$original->id, $correction->id])->get();
+        $this->assertCount(10, $allArtifacts, 'Both immutable invoices must retain the rendered copy, UBL payload, upload response, status response and authority result archive.');
+        foreach ($allArtifacts as $artifact) {
+            $read = app(IssuedInvoiceArtifactAccessService::class)->read($artifact->id, $actor);
+            $this->assertSame($artifact->sha256, hash('sha256', $read['content']));
+            $this->assertSame($artifact->byte_size, $read['byte_size']);
+            $this->assertSame($artifact->sha256, $read['sha256']);
+            $this->assertSame('pending_review', $artifact->fresh()->retention_review_status);
+            $this->assertFalse($artifact->fresh()->legal_hold);
+        }
+        $this->assertSame(10, IssuedInvoiceEvent::query()->where('event_type', 'invoice_artifact_downloaded')->count());
     }
 
     public function test_explicit_not_required_decision_is_audited_without_any_network_request(): void

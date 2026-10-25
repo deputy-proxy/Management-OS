@@ -8,9 +8,11 @@ This document extends [the Romanian invoicing requirements baseline](romanian-in
 
 ## 1. Current repository state
 
-The inspected application currently has legacy `CustomerInvoice` and `VendorInvoice` records, Filament resource workflows, nullable canonical monetary fields, and activity logging. It does not have an end-to-end RO e-Factura client, OAuth credential lifecycle, structured XML generation/validation, submission correlation records, official response download, or a dedicated e-Factura lifecycle.
+As of 25 October 2026, the repository has an additive canonical issued-invoice lifecycle, immutable snapshot hashes, private rendered HTML and UBL 2.1 XML artifacts, pinned local schema/profile validation, an OAuth token provider, and a test/production-separated ANAF upload/status/download client. Submission attempts, external message IDs, response artifacts, authority errors, correction links and synthetic end-to-end tests are persisted. See [structured generation](romanian-efactura-structured-generation.md), [submission operations](romanian-efactura-submission.md), and [evidence retention/access controls](romanian-invoice-evidence-retention.md).
 
-Existing invoice rows must not be treated as complete electronic invoice documents. The implementation must not infer a legal invoice number, tax category, issue status, successful submission, acceptance, or payment from legacy fields or free-text status.
+This is implementation evidence, not proof of production readiness. No live ANAF credentials or live submissions have been verified, and the latest official profile artefacts, approved fiscal fixtures, retention schedule, storage/backup controls and qualified accounting/legal sign-off remain pending. The pinned local ruleset is not claimed as ANAF certification.
+
+Existing legacy invoice rows must not be treated as complete electronic invoice documents. The implementation does not infer a legal invoice number, tax category, issue status, successful submission, acceptance, or payment from legacy fields or free-text status.
 
 ## 2. Official technical sources and precedence
 
@@ -174,3 +176,5 @@ No production credentials or live invoice submission are authorized by this docu
 - Test environment access and verified end-to-end response: **pending**.
 - Technical owner and operational escalation: **pending**.
 - Production implementation approval: **not granted**.
+- Evidence retention schedule and qualified accounting/legal sign-off: **pending**; see [retention review gates](romanian-invoice-evidence-retention.md).
+- Synthetic end-to-end rejection/correction/acceptance test: **implemented; does not substitute for an official ANAF test-environment run**.

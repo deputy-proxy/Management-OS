@@ -29,4 +29,4 @@ Repeated calls for an already submitted invoice return the existing submission i
 Feature tests use Laravel's fake HTTP transport and synthetic invoice data; they do not send invoices to ANAF. A real test-environment run requires an authorized ANAF OAuth application, SPV rights for the configured CIF, current approved invoice fixtures, and a documented operator review. Do not switch production credentials on until the current official API description, profile ruleset, and approved fixtures have been checked. This implementation does not claim ANAF acceptance or replace fiscal-specialist review.
 
 
-Artifact access, retention boundaries, and the pending accounting/legal approval gate are documented in [Romanian e-Factura retention and access controls](romanian-efactura-retention-access.md).
+Artifact access, retention boundaries, and the pending accounting/legal approval gate are documented in [Romanian e-Factura retention and access controls](romanian-efactura-retention-access.md) and the [artifact retention metadata matrix](romanian-invoice-evidence-retention.md).
