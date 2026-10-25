@@ -234,6 +234,7 @@ jobs:
           tests/Feature/PublicFormsTest.php
           tests/Feature/DatabaseIntegrityAuditTest.php
           tests/Feature/Filament/ProductReviewResourceAuthorizationTest.php
+          tests/Feature/CanonicalIssuedInvoiceSchemaTest.php
 
   frontend:
     name: Frontend build and dependency audit
