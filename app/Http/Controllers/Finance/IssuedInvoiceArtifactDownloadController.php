@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers\\Finance;
+namespace App\Http\Controllers\Finance;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\User;
-use App\\Services\\Finance\\IssuedInvoiceArtifactAccessService;
-use Illuminate\\Http\\Request;
-use Symfony\\Component\\HttpFoundation\\Response;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\Finance\IssuedInvoiceArtifactAccessService;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class IssuedInvoiceArtifactDownloadController extends Controller
 {
