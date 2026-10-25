@@ -1,6 +1,6 @@
-# Proposed canonical issued-invoice data model
+# Canonical issued-invoice data model
 
-**Status:** design proposal for accountant/legal, Finance and engineering review; not approved for implementation
+**Status:** approved contract; additive schema implementation tracked by issue #327
 **Research date:** 25 October 2026
 **Scope:** a canonical record for invoices issued by the company's legal entity/entities, the immutable invoice snapshot, lines and tax breakdowns, numbering, correction linkage, e-Factura lifecycle, validation and compatibility with existing records.
 
@@ -10,7 +10,7 @@ Related design inputs:
 - [Existing invoice model audit and compatibility map](romanian-invoice-model-audit.md)
 - [Finance/payroll capability matrix](../finance-payroll-readiness.md)
 
-This document proposes a model contract for review. It does not add migrations, models, endpoints, numbering sequences, tax rules, or production invoice behavior. A qualified Romanian accountant/tax adviser, Finance owner and technical owner must approve the contract and record the decision before implementation.
+The project owner confirmed approval of this model contract on 25 October 2026. The additive schema in issue #327 implements the approved persistence boundary; invoice issuance workflows, numbering allocation, tax calculation, ANAF API integration and production behavior remain separate gated work.
 
 ## 1. Domain boundary
 
@@ -28,9 +28,13 @@ Do not turn `customer_invoices`, `vendor_invoices`, and a future issued-invoice 
 
 An issued invoice may originate from a reviewed customer billing row, but the relationship is explicit and optional. One legacy customer invoice must not automatically become an issued invoice just because it has a customer, amount, or `Sent` status.
 
-## 2. Proposed aggregate and entities
+## 2. Canonical aggregate and entities
 
-The table names below are illustrative names for review, not a migration instruction. Exact names, tenancy/legal-entity scoping and relationships are approval decisions.
+The table names below define the approved persistence contract. The migration implements these entities additively; the legal-entity registry is empty until an authorized owner creates a verified issuer record.
+
+### 2.0 `legal_entities` issuer registry
+
+The repository had no dedicated legal-entity registry, so the approved schema introduces `legal_entities` as the explicit issuer reference rather than inferring the seller from a global setting or customer master. It stores a legal-name and country snapshot source, typed tax identifier, VAT/registration identifiers, structured address/contact fields, active flag and timestamps. The migration does not seed or guess a real issuer. An authorized owner must create and verify the legal-entity record before any invoice can be issued.
 
 ### 2.1 `issued_invoices` header
 
@@ -135,7 +139,11 @@ Proposed fields: `id`, `issued_invoice_id`, `artifact_type`, `storage_disk`, `st
 
 Candidate artifact types include canonical issued payload, original XML submitted to ANAF, official response package/seal, rendered PDF copy, and supporting evidence. The type set, retention periods, legal hold, download authorization and encryption requirements must be approved. Do not put secret tokens or raw XML bodies into ordinary activity logs.
 
-### 2.6 `invoice_submissions` and submission attempts
+### 2.6 `issued_invoice_events` audit history
+
+The schema includes an append-oriented `issued_invoice_events` table with invoice reference, event type, previous/next document status, actor, reason, correlation UUID, safe JSON metadata and creation timestamp. It intentionally does not store XML bodies, credentials or arbitrary request payloads. State-transition services must write an event in the same database transaction as the transition and must enforce server-side authorization; the schema alone does not implement those workflows.
+
+### 2.7 `invoice_submissions` and submission attempts
 
 Use the technical contract in [RO e-Factura technical requirements](romanian-efactura-technical-requirements.md). Submission state is not the invoice's legal state.
 
@@ -234,7 +242,7 @@ Payment status should be derived from approved confirmed allocations and invoice
 
 ## 8. Decisions required for approval
 
-The proposal is not ready to implement until the owners explicitly decide:
+The schema contract has been approved by the project owner on 25 October 2026. The following operational and fiscal decisions remain required before their corresponding behavior is enabled:
 
 1. Which legal entities can issue invoices, their identifiers, tax status, authorized issuer and numbering scopes.
 2. Whether the header party snapshots use structured columns as proposed or a versioned snapshot document plus indexed fields; define required seller/buyer fields by transaction profile.
@@ -327,7 +335,7 @@ This example deliberately has no legal number, issue date, approved tax category
 
 - Requirements baseline (issue 3.1): merged; project owner reported that approval was received for that baseline.
 - Legacy mapping (issue 3.3): documented from source code; production data not audited.
-- Proposed canonical model contract: **pending accountant/legal, Finance and technical approval**.
+- Proposed canonical model contract: **approval received**, as confirmed by the project owner on 25 October 2026. Approver names and separate sign-off artifacts were not supplied in this repository context.
 - Exact ANAF specification version / test environment: **pending**.
-- Production schema migration: **not authorized by this document**.
-- Production invoice issuance or automated tax decisions: **not authorized by this document**.
+- Canonical schema implementation: **implemented under issue #327** as additive tables with restrictive foreign keys, uniqueness/index constraints, and no automatic legacy backfill.
+- Production invoice issuance or automated tax decisions: **not implemented or authorized by this schema migration**.
