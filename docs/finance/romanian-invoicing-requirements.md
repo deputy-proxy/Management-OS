@@ -184,7 +184,8 @@ All links below are official Romanian or EU sources. Current consolidated text t
 5. [Order 2634/2015 on financial-accounting documents](https://legislatie.just.ro/Public/FormaPrintabila/00000G3Q6PDT4EEEENW3G12HPJOS9XBL) — internal financial-document procedure and retention schedule; confirm the current annex/category applicable to each artifact.
 6. [Order 1366/2021, RO_CIUS technical specification](https://static.anaf.ro/static/10/Anaf/legislatie/OMF_1366_2021.pdf) — Romanian Core Invoice Usage Specification and EN 16931 baseline.
 7. [ANAF electronic invoice completion tool: general invoice data](https://www.anaf.ro/CompletareFactura/faces/factura/informatiigenerale.xhtml), [seller](https://www.anaf.ro/CompletareFactura/faces/factura/vanzator.xhtml), [buyer](https://www.anaf.ro/CompletareFactura/faces/factura/cumparator.xhtml), and [invoice lines](https://www.anaf.ro/CompletareFactura/faces/factura/produse.xhtml) — official field-level examples; the tool's current technical documentation points to [efactura.mfinante.ro](https://efactura.mfinante.ro).
-8. [EU VAT Directive 2006/112/EC](https://eur-lex.europa.eu/eli/dir/2006/112/oj) — Articles 218, 226, 230, 244 and related provisions; use together with Romanian implementing law.
+8. [ANAF 2025 service catalogue, RO e-Factura](https://static.anaf.ro/static/10/Anaf/Informatii_R/Catalogul_serviciilor_ANAF_2025.pdf) — describes the structured XML workflow, original XML with the Ministry's electronic seal, and SPV/API channels. It is operational guidance, not a replacement for current legislation or technical specifications.
+9. [EU VAT Directive 2006/112/EC](https://eur-lex.europa.eu/eli/dir/2006/112/oj) — Articles 218, 226, 230, 244 and related provisions; use together with Romanian implementing law.
 
 ## 11. Review record
 
