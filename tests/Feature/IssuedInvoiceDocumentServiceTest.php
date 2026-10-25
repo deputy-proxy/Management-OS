@@ -119,6 +119,76 @@ class IssuedInvoiceDocumentServiceTest extends TestCase
         $this->assertSame(1, IssuedInvoiceArtifact::query()->where('issued_invoice_id', $invoice->id)->count());
     }
 
+    public function test_private_artifact_download_requires_permission_checks_integrity_and_writes_audit_event(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        $this->allowFinanceActions();
+        $actor = User::factory()->create();
+        $invoice = $this->issuedInvoice($actor);
+        $artifact = app(IssuedInvoiceDocumentService::class)->generate($invoice->id, $actor);
+
+        $response = $this->actingAs($actor)->get(route('finance.issued-invoice-artifacts.download', ['artifact' => $artifact->id]));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'text/html; charset=UTF-8')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->assertHeader('Content-Disposition', 'attachment; filename="'.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html');
+        $this->assertSame(Storage::disk('local')->get($artifact->storage_key), $response->getContent());
+        $this->assertSame([], Storage::disk('public')->allFiles());
+
+        $event = IssuedInvoiceEvent::query()->where('issued_invoice_id', $invoice->id)->where('event_type', 'invoice_artifact_downloaded')->firstOrFail();
+        $this->assertSame($actor->id, $event->actor_id);
+        $this->assertSame($artifact->sha256, $event->safe_metadata['sha256']);
+        $this->assertArrayNotHasKey('content', $event->safe_metadata);
+        $this->assertArrayNotHasKey('storage_key', $event->safe_metadata);
+    }
+
+    public function test_private_artifact_download_denies_users_without_the_dedicated_permission(): void
+    {
+        Storage::fake('local');
+        $denyDownload = false;
+        $gate = Mockery::mock();
+        $gate->shouldReceive('authorize')->withAnyArgs()->andReturnUsing(function (string $ability) use (&$denyDownload): void {
+            if ($denyDownload && $ability === 'customer_invoice.document.download') {
+                throw new AuthorizationException('Artifact download denied.');
+            }
+        });
+        Gate::shouldReceive('forUser')->withAnyArgs()->andReturn($gate);
+
+        $actor = User::factory()->create();
+        $invoice = $this->issuedInvoice($actor);
+        $artifact = app(IssuedInvoiceDocumentService::class)->generate($invoice->id, $actor);
+        $denyDownload = true;
+
+        try {
+            app(IssuedInvoiceArtifactAccessService::class)->read($artifact->id, $actor);
+            $this->fail('Artifact bytes were returned without the dedicated download permission.');
+        } catch (AuthorizationException) {
+            $this->assertSame(0, IssuedInvoiceEvent::query()->where('event_type', 'invoice_artifact_downloaded')->count());
+        }
+    }
+
+    public function test_private_artifact_download_refuses_tampered_bytes_and_does_not_audit_the_download(): void
+    {
+        Storage::fake('local');
+        $this->allowFinanceActions();
+        $actor = User::factory()->create();
+        $invoice = $this->issuedInvoice($actor);
+        $artifact = app(IssuedInvoiceDocumentService::class)->generate($invoice->id, $actor);
+        Storage::disk('local')->put($artifact->storage_key, 'tampered bytes');
+
+        try {
+            app(IssuedInvoiceArtifactAccessService::class)->read($artifact->id, $actor);
+            $this->fail('Tampered artifact was returned to the caller.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('artifact', $exception->errors());
+        }
+
+        $this->assertSame(0, IssuedInvoiceEvent::query()->where('event_type', 'invoice_artifact_downloaded')->count());
+    }
+
     private function allowFinanceActions(): void
     {
         $gate = Mockery::mock();
