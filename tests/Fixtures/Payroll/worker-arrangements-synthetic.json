@@ -1,0 +1,50 @@
+{
+  "fixture_metadata": {
+    "name": "management-os-worker-arrangements-demo",
+    "synthetic": true,
+    "purpose": "Arrangement inventory examples and classification boundaries only; not a real worker roster, legal classification, or production seed data",
+    "review_status": "example-only-not-owner-reviewed"
+  },
+  "arrangements": [
+    {
+      "fixture_id": "ARR-EMPLOYEE-DEMO-001",
+      "record_family": "employee_and_employee_contract",
+      "illustrative_arrangement": "employee",
+      "classification_status": "synthetic_example_only",
+      "evidence_required": ["authoritative_hr_roster", "signed_employment_contract", "effective_dated_amendments"],
+      "payroll_workflow": "existing_employee_payslip_workflow",
+      "contractor_invoice_workflow_allowed": false,
+      "expected_behavior": "Use employee activity-based payslip workflow only after owner verifies actual employment records; do not infer statutory net pay."
+    },
+    {
+      "fixture_id": "ARR-LEGAL-ENTITY-DEMO-001",
+      "record_family": "vendor_vendor_contract_vendor_invoice",
+      "illustrative_arrangement": "legal_entity_supplier",
+      "classification_status": "synthetic_example_only",
+      "evidence_required": ["vendor_master_record", "signed_supplier_contract", "invoice_and_tax_identity_evidence"],
+      "payroll_workflow": "not_applicable",
+      "contractor_invoice_workflow_allowed": true,
+      "expected_behavior": "Keep supplier invoice/payment separate from employee payslip processing; reconcile contract, invoice and payment evidence."
+    },
+    {
+      "fixture_id": "ARR-INDIVIDUAL-DEMO-001",
+      "record_family": "vendor_vendor_contract_vendor_invoice",
+      "illustrative_arrangement": "individual_or_pfa_unresolved",
+      "classification_status": "unresolved",
+      "evidence_required": ["contracting_party_identity", "signed_contract", "qualified_accounting_classification"],
+      "payroll_workflow": "blocked_pending_review",
+      "contractor_invoice_workflow_allowed": false,
+      "expected_behavior": "Do not infer PFA, employee, withholding, VAT, or payment treatment from a vendor name or invoice alone."
+    },
+    {
+      "fixture_id": "ARR-OTHER-DEMO-001",
+      "record_family": "unknown_or_not_yet_modeled",
+      "illustrative_arrangement": "other_arrangement_unresolved",
+      "classification_status": "unresolved",
+      "evidence_required": ["owner_description_of_arrangement", "underlying_contract_or_legal_basis", "qualified_review"],
+      "payroll_workflow": "blocked_pending_review",
+      "contractor_invoice_workflow_allowed": false,
+      "expected_behavior": "Preserve the unknown as an explicit review case; do not treat absence of a model as proof that the arrangement does not exist."
+    }
+  ]
+}
