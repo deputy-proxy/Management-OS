@@ -136,7 +136,7 @@ class IssuedInvoiceDocumentServiceTest extends TestCase
         $response->assertOk()
             ->assertHeader('Content-Type', 'text/html; charset=UTF-8')
             ->assertHeader('X-Content-Type-Options', 'nosniff')
-            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
             ->assertHeader('Content-Disposition', 'attachment; filename="'.$invoice->public_id.'-invoice_html-'.substr($artifact->sha256, 0, 12).'.html"');
         $this->assertSame(Storage::disk('local')->get($artifact->storage_key), $response->getContent());
         $this->assertSame([], Storage::disk('public')->allFiles());
