@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Relaticle\Comments\Concerns\HasComments;
 use Relaticle\Comments\Contracts\Commentable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -40,6 +41,12 @@ class Transaction extends Model implements Commentable
     protected function casts(): array
     {
         return ['amount_decimal' => 'decimal:2'];
+    }
+
+    /** @return HasMany<PaymentAllocation, $this> */
+    public function paymentAllocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
     }
 
     public function financialAccount(): BelongsTo
