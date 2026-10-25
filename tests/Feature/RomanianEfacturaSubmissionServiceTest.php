@@ -6,8 +6,12 @@ use App\Models\InvoiceSubmission;
 use App\Models\InvoiceSubmissionAttempt;
 use App\Models\InvoiceSubmissionOAuthCredential;
 use App\Models\IssuedInvoice;
+use App\Models\IssuedInvoiceArtifact;
+use App\Models\IssuedInvoiceEvent;
 use App\Models\LegalEntity;
 use App\Models\User;
+use App\Services\Finance\IssuedInvoiceArtifactAccessService;
+use App\Services\Finance\IssuedInvoiceDocumentService;
 use App\Services\Finance\IssuedInvoiceLifecycleService;
 use App\Services\Finance\IssuedInvoiceUblGenerationService;
 use App\Services\Finance\RomanianEfacturaSubmissionService;
@@ -241,6 +245,94 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertSame($original->id, $correctionSubmission->correctsSubmission->issued_invoice_id);
         $this->assertSame($original->issued_snapshot_hash, $original->fresh()->issued_snapshot_hash);
         $this->assertSame('10002', $correctionSubmission->external_message_id);
+    }
+
+    public function test_end_to_end_rejection_correction_and_success_preserve_snapshot_and_audit_chain(): void
+    {
+        Storage::fake('public');
+        $uploadSequence = Http::sequence()
+            ->push('<header ExecutionStatus="0" index_incarcare="70001"/>', 200, ['Content-Type' => 'application/xml'])
+            ->push('<header ExecutionStatus="0" index_incarcare="70002"/>', 200, ['Content-Type' => 'application/xml']);
+        Http::fake([
+            'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => $uploadSequence,
+            'https://api.anaf.ro/test/FCTEL/rest/stareMesaj*' => function (Request $request) {
+                if (str_contains($request->url(), 'id_incarcare=70001')) {
+                    return Http::response('<header stare="nok" id_descarcare="80001"/>', 200, ['Content-Type' => 'application/xml']);
+                }
+
+                return Http::response('<header stare="ok" id_descarcare="80002"/>', 200, ['Content-Type' => 'application/xml']);
+            },
+            'https://api.anaf.ro/test/FCTEL/rest/descarcare*' => function (Request $request) {
+                if (str_contains($request->url(), 'id=80001')) {
+                    return Http::response($this->zipPayload([
+                        'Erori.xml' => '<header><Error cod="BR-S-05" errorMessage="Synthetic VAT validation failure"/></header>',
+                        'semnatura.xml' => '<Signature/>',
+                    ]), 200, ['Content-Type' => 'application/zip']);
+                }
+
+                return Http::response($this->zipPayload(['Factura.xml' => '<Invoice/>', 'semnatura.xml' => '<Signature/>']), 200, ['Content-Type' => 'application/zip']);
+            },
+        ]);
+
+        $actor = User::factory()->create();
+        $original = $this->issuedInvoice($actor);
+        $originalHash = $original->issued_snapshot_hash;
+        $documents = app(IssuedInvoiceDocumentService::class);
+        $ubl = app(IssuedInvoiceUblGenerationService::class);
+        $htmlArtifact = $documents->generate($original->id, $actor);
+        $ublArtifact = $ubl->generate($original->id, $actor);
+        $submissions = app(RomanianEfacturaSubmissionService::class);
+        $originalSubmission = $submissions->submit($original->id, 'test', $actor, 'required', 'Synthetic end-to-end test approval');
+        $rejected = $submissions->checkStatus($originalSubmission->id, $actor);
+
+        $this->assertSame('rejected', $rejected->official_processing_state);
+        $this->assertSame('failed', $rejected->transmission_state);
+        $this->assertSame('terminal', $rejected->errors()->firstOrFail()->retry_classification);
+        $this->assertSame($originalHash, $original->fresh()->issued_snapshot_hash);
+
+        $entity = $original->legalEntity;
+        $correctionPayload = $this->payload($entity);
+        $correctionPayload['document_type'] = IssuedInvoice::TYPE_CREDIT_NOTE;
+        $correctionPayload['correction_reason_code'] = 'TEST-CORRECTION';
+        $correctionPayload['correction_reason'] = 'Synthetic correction after ANAF rejection';
+        $lifecycle = app(IssuedInvoiceLifecycleService::class);
+        $draft = $lifecycle->createCorrection($original->id, $actor, $correctionPayload, $this->policy());
+        $lifecycle->approve($draft->id, $actor);
+        $correction = $lifecycle->issue($draft->id, $actor, [
+            'version' => 'test-numbering-v1', 'series' => 'RO-2026', 'prefix' => 'INV-', 'padding' => 5, 'start_at' => 1,
+        ]);
+        $correctionHtml = $documents->generate($correction->id, $actor);
+        $correctionUbl = $ubl->generate($correction->id, $actor);
+        $correctionSubmission = $submissions->submit($correction->id, 'test', $actor, 'required', 'Synthetic corrected-document test approval');
+        $processed = $submissions->checkStatus($correctionSubmission->id, $actor);
+
+        $this->assertSame($originalSubmission->id, $processed->corrects_submission_id);
+        $this->assertSame($original->id, $processed->correctsSubmission->issued_invoice_id);
+        $this->assertSame('processed', $processed->official_processing_state);
+        $this->assertSame('downloaded', $processed->download_state);
+        $this->assertNotSame($originalHash, $correction->issued_snapshot_hash);
+        $this->assertSame($originalHash, $original->fresh()->issued_snapshot_hash);
+        $this->assertSame('invoice_html', $htmlArtifact->artifact_type);
+        $this->assertSame('ubl_xml', $ublArtifact->artifact_type);
+        $this->assertSame('invoice_html', $correctionHtml->artifact_type);
+        $this->assertSame('ubl_xml', $correctionUbl->artifact_type);
+        $this->assertSame(2, IssuedInvoiceArtifact::query()->where('artifact_type', 'efactura_result_archive')->count());
+        $this->assertTrue(IssuedInvoiceEvent::query()->where('issued_invoice_id', $original->id)->where('event_type', 'efactura_status_received')->exists());
+        $this->assertTrue(IssuedInvoiceEvent::query()->where('issued_invoice_id', $correction->id)->where('event_type', 'efactura_status_received')->exists());
+        $this->assertSame([], Storage::disk('public')->allFiles());
+
+        $allArtifacts = IssuedInvoiceArtifact::query()->whereIn('issued_invoice_id', [$original->id, $correction->id])->get();
+        $this->assertCount(10, $allArtifacts, 'Both immutable invoices must retain the rendered copy, UBL payload, upload response, status response and authority result archive.');
+        foreach ($allArtifacts as $artifact) {
+            $read = app(IssuedInvoiceArtifactAccessService::class)->read($artifact->id, $actor);
+            $this->assertSame($artifact->sha256, hash('sha256', $read['content']));
+            $this->assertSame($artifact->byte_size, $read['byte_size']);
+            $this->assertSame($artifact->sha256, $read['sha256']);
+            $this->assertSame('pending_review', $artifact->fresh()->retention_review_status);
+            $this->assertFalse($artifact->fresh()->legal_hold);
+        }
+        $this->assertSame(10, IssuedInvoiceEvent::query()->where('event_type', 'invoice_artifact_downloaded')->count());
     }
 
     public function test_explicit_not_required_decision_is_audited_without_any_network_request(): void

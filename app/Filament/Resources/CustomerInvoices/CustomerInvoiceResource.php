@@ -2,27 +2,30 @@
 
 namespace App\Filament\Resources\CustomerInvoices;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\Finance\FinanceCluster;
+use App\Filament\Resources\CustomerInvoices\Schemas\CustomerInvoiceForm;
+use App\Filament\Resources\CustomerInvoices\Schemas\CustomerInvoiceInfolist;
+use App\Filament\Resources\CustomerInvoices\Tables\CustomerInvoicesTable;
 use App\Models\CustomerInvoice;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\CustomerInvoices\Pages;
-use App\Filament\Resources\CustomerInvoices\Schemas\CustomerInvoiceForm;
-use App\Filament\Resources\CustomerInvoices\Schemas\CustomerInvoiceInfolist;
-use App\Filament\Resources\CustomerInvoices\Tables\CustomerInvoicesTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\Finance\FinanceCluster;
+
 class CustomerInvoiceResource extends Resource
 {
     protected static ?int $navigationSort = 3;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
+
     use HasHexaLite;
 
     protected static ?string $model = CustomerInvoice::class;
@@ -30,9 +33,10 @@ class CustomerInvoiceResource extends Resource
     protected static ?string $recordTitleAttribute = 'title';
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public function defineGates(): array
     {
-        return ['customer_invoice.index' => __('Allows viewing the customer invoice list'), 'customer_invoice.create' => __('Allows creating a new customer invoice'), 'customer_invoice.update' => __('Allows updating customer invoices'), 'customer_invoice.delete' => __('Allows deleting customer invoices'), 'customer_invoice.submit' => __('Allows submitting issued invoices to ANAF e-Factura')];
+        return ['customer_invoice.index' => __('Allows viewing the customer invoice list'), 'customer_invoice.create' => __('Allows creating a new customer invoice'), 'customer_invoice.update' => __('Allows updating customer invoices'), 'customer_invoice.delete' => __('Allows deleting customer invoices'), 'customer_invoice.submit' => __('Allows submitting issued invoices to ANAF e-Factura'), 'customer_invoice.document.download' => __('Allows downloading private issued invoice artifacts'), 'customer_invoice.retention_manage' => __('Allows placing or releasing legal holds on invoice evidence'), 'customer_invoice.retention_review' => __('Allows recording an approved invoice evidence retention policy review')];
     }
 
     public static function form(Schema $schema): Schema
@@ -61,7 +65,7 @@ class CustomerInvoiceResource extends Resource
             'index' => Pages\ListCustomerInvoices::route('/'),
             'create' => Pages\CreateCustomerInvoice::route('/create'),
             'edit' => Pages\EditCustomerInvoice::route('/{record}/edit'),
-            'view' => Pages\ViewCustomerInvoice::route('/{record}')
+            'view' => Pages\ViewCustomerInvoice::route('/{record}'),
         ];
     }
 
