@@ -27,3 +27,10 @@ The page has a dedicated `customer-dashboard.view` permission. Each resource-lis
 - Customer invoices store the billing month as a string and have no currency field. This dashboard counts statuses but does not sum invoice amounts or present receivables.
 - Contracts are considered active strictly from their start/end dates; signature state is not used because no agreed rule says it controls activation.
 - Recent activity is limited to customer interactions; general model activity logs are not merged into this list because they have different event semantics and authorization requirements.
+
+
+## Follow-up and contract review
+
+When the viewer has task-list permission, the dashboard shows up to eight unfinished tasks attached to customer leads or customer contracts, ordered by due date. Task visibility follows the existing task scope: users with `task.view_all` see all such tasks; other users see only tasks assigned to them or created by them. The dashboard does not create a second reminder system.
+
+When the viewer has customer-contract list permission, the dashboard shows up to eight contracts ordered by recorded end date. This is a review queue, not a renewal or churn classification: an end date by itself does not prove renewal, cancellation, or customer churn. No arbitrary renewal window is assumed. Records are linked through the existing task and contract resources, and list sections are hidden when the corresponding permission is absent.

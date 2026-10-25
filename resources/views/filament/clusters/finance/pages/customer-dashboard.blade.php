@@ -91,6 +91,55 @@
             </x-filament::section>
         </div>
 
+        @if ($urls['tasks'])
+            <x-filament::section>
+                <x-slot name="heading">Open customer follow-up tasks</x-slot>
+                <x-slot name="description">Undone tasks attached to leads or customer contracts, ordered by due date. Only tasks in your permitted task scope are shown.</x-slot>
+                @forelse ($summary['follow_up_tasks'] as $task)
+                    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 py-3 last:border-0 dark:border-gray-800">
+                        <div>
+                            <p class="font-medium text-gray-950 dark:text-white">{{ $task->action }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                @if ($task->taskable instanceof \App\Models\CustomerLead)
+                                    Lead: {{ $task->taskable->full_name ?: 'Lead unavailable' }}
+                                @elseif ($task->taskable instanceof \App\Models\CustomerContract)
+                                    Contract: {{ $task->taskable->contract_code }}
+                                @else
+                                    Customer record unavailable
+                                @endif
+                            </p>
+                        </div>
+                        <div class="text-right text-sm">
+                            <p class="font-medium {{ $task->due_date && $task->due_date->lt(today()) ? 'text-danger-600' : 'text-gray-700 dark:text-gray-200' }}">Due {{ $task->due_date?->format('M j, Y') ?? 'date unavailable' }}</p>
+                            <p class="text-xs text-gray-500">{{ $task->due_date && $task->due_date->lt(today()) ? 'Overdue' : ($task->due_date && $task->due_date->isToday() ? 'Due today' : 'Upcoming') }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No open follow-up tasks in your permitted scope.</p>
+                @endforelse
+                <x-filament::link class="mt-3" :href="$urls['tasks']">View tasks</x-filament::link>
+            </x-filament::section>
+        @endif
+
+        @if ($urls['contracts'])
+            <x-filament::section>
+                <x-slot name="heading">Contract end dates for review</x-slot>
+                <x-slot name="description">Contracts ordered by recorded end date. An end date alone does not establish renewal, cancellation, or churn.</x-slot>
+                @forelse ($summary['contract_end_dates'] as $contract)
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 py-3 last:border-0 dark:border-gray-800">
+                        <div>
+                            <p class="font-medium text-gray-950 dark:text-white">{{ $contract->contract_code }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">{{ $contract->customer?->name ?? 'Customer unavailable' }}</p>
+                        </div>
+                        <p class="text-sm text-gray-700 dark:text-gray-200">Ends {{ $contract->end_date?->format('M j, Y') ?? 'date unavailable' }}</p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No contract end dates recorded.</p>
+                @endforelse
+                <x-filament::link class="mt-3" :href="$urls['contracts']">View contracts</x-filament::link>
+            </x-filament::section>
+        @endif
+
         <p class="text-xs text-gray-500">Definitions: customers and leads exclude soft-deleted rows; converted leads are excluded from lead metrics; active contracts have a start date on or before today and an end date on or after today; interaction activity uses the interaction timestamp; invoice periods use the stored billing month. Invoice and lead statuses are displayed as stored because the schema does not define a controlled status vocabulary.</p>
     </div>
 </x-filament-panels::page>

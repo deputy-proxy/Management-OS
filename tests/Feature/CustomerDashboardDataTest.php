@@ -7,6 +7,8 @@ use App\Models\CustomerContract;
 use App\Models\CustomerInteraction;
 use App\Models\CustomerInvoice;
 use App\Models\CustomerLead;
+use App\Models\Task;
+use App\Models\User;
 use App\Services\CustomerDashboardData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,6 +59,44 @@ class CustomerDashboardDataTest extends TestCase
         $summary = app(CustomerDashboardData::class)->summary($now);
 
         $this->assertSame([['status' => 'Sent', 'count' => 2]], $summary['invoice_statuses']);
+    }
+
+    public function test_follow_up_tasks_are_scoped_and_contract_end_dates_are_permission_gated(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-25 12:00:00', config('app.timezone'));
+        $viewer = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $lead = CustomerLead::factory()->create(['status' => 'contacted']);
+        $contract = CustomerContract::factory()->create(['contract_code' => 'REVIEW-1', 'end_date' => '2026-11-01']);
+
+        $this->actingAs($viewer);
+        Task::factory()->create([
+            'action' => 'Call lead', 'status' => 'pending', 'due_date' => '2026-10-20',
+            'taskable_id' => $lead->id, 'taskable_type' => CustomerLead::class,
+            'assigned_to' => $viewer->id, 'created_by' => $otherUser->id,
+        ]);
+        $this->actingAs($otherUser);
+        Task::factory()->create([
+            'action' => 'Other user task', 'status' => 'pending', 'due_date' => '2026-10-21',
+            'taskable_id' => $lead->id, 'taskable_type' => CustomerLead::class,
+            'assigned_to' => $otherUser->id, 'created_by' => $otherUser->id,
+        ]);
+        $this->actingAs($viewer);
+        Task::factory()->create([
+            'action' => 'Completed task', 'status' => 'done', 'due_date' => '2026-10-19',
+            'taskable_id' => $contract->id, 'taskable_type' => CustomerContract::class,
+            'assigned_to' => $viewer->id, 'created_by' => $viewer->id,
+        ]);
+
+        $summary = app(CustomerDashboardData::class)->summary($now, true, false, $viewer->id, true);
+
+        $this->assertCount(1, $summary['follow_up_tasks']);
+        $this->assertSame('Call lead', $summary['follow_up_tasks']->first()->action);
+        $this->assertSame('REVIEW-1', $summary['contract_end_dates']->first()->contract_code);
+
+        $restricted = app(CustomerDashboardData::class)->summary($now);
+        $this->assertCount(0, $restricted['follow_up_tasks']);
+        $this->assertCount(0, $restricted['contract_end_dates']);
     }
 
     public function test_summary_handles_empty_data(): void
