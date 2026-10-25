@@ -35,3 +35,7 @@ The model normalizes status case, validates the supported status set, and enforc
 The Customer Leads resource provides searchable name, email, phone, source, interest, and status fields; a status filter and soft-delete filter; a view page; and status badges. Existing HexaLite gates continue to control list, create, update, and delete operations. Conversion and contract delivery actions retain their own permission checks and domain actions. Hiding an action in the UI is not a replacement for those server-side checks.
 
 Duplicate email validation is scoped to non-deleted leads and ignores the current record when editing. The public enquiry endpoint continues to record the submitted lead with status `new`; it does not convert a lead or send a contract.
+
+## Lifecycle transition history
+
+New lead records write an initial history entry with a null `from_status` and the stored initial status as `to_status`. Each subsequent Eloquent status change writes a separate `customer_lead_status_histories` row containing the previous status, new status, timestamp, and authenticated actor when available. Non-status edits do not create lifecycle entries. The history records the application's observed status changes; it does not infer when a stage began before this migration was deployed, and existing leads are not backfilled with invented history. Direct SQL or bulk updates that bypass model events do not emit these entries, so lifecycle reporting must treat missing history as unknown rather than as proof that no transition occurred.
