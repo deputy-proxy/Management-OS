@@ -341,7 +341,11 @@ class RomanianEfacturaSubmissionService
                 'transmission_state' => $state, 'external_message_id' => $externalId ?? $submission->external_message_id,
                 'submitted_at' => $state === 'submitted' ? now() : $submission->submitted_at,
                 'responded_at' => $httpStatus !== null ? now() : $submission->responded_at,
-                'official_processing_state' => $state === 'submitted' ? 'processing' : $submission->official_processing_state,
+                'official_processing_state' => match ($result) {
+                    'accepted_for_processing' => 'processing',
+                    'anaf_rejected' => 'upload_rejected',
+                    default => $submission->official_processing_state,
+                },
                 'redacted_error_code' => $errorCode, 'redacted_error_message' => $errorMessage,
                 'response_artifact_id' => $responseArtifact?->getKey() ?? $submission->response_artifact_id,
                 'response_sha256' => $responseArtifact !== null ? $responseArtifact->sha256 : $submission->response_sha256,
