@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "purpose": "Synthetic acceptance fixtures for requirements review; not real customer data or tax advice.",
+    "research_date": "2026-10-25",
+    "invoice_model_approved": false
+  },
+  "scenarios": {
+    "standard_rate_arithmetic": {
+      "category": "vat_arithmetic",
+      "eligibility_assumption": "Reviewer must confirm the supply is eligible for the standard rate.",
+      "net": "100.00",
+      "rate_percent": "21.00",
+      "vat": "21.00",
+      "gross": "121.00"
+    },
+    "reduced_rate_arithmetic": {
+      "category": "vat_arithmetic",
+      "eligibility_assumption": "Reviewer must confirm the supply qualifies for the reduced rate.",
+      "net": "100.00",
+      "rate_percent": "11.00",
+      "vat": "11.00",
+      "gross": "111.00"
+    },
+    "partial_payment": {
+      "category": "partial",
+      "invoice_gross": "121.00",
+      "confirmed_payment": "60.00",
+      "fees": "0.00",
+      "other_allocations": "0.00",
+      "outstanding_by_arithmetic": "61.00"
+    },
+    "split_payment": {
+      "category": "multiple_invoices_and_fee",
+      "payment": "150.00",
+      "invoice_allocations": ["100.00", "40.00"],
+      "fee_carve_out": "5.00",
+      "allocated_total": "145.00",
+      "unallocated": "5.00"
+    },
+    "partial_correction": {
+      "category": "correction",
+      "original_gross": "121.00",
+      "credit_net": "20.00",
+      "assumed_rate_percent": "21.00",
+      "credit_vat": "4.20",
+      "credit_gross": "24.20",
+      "residual_gross_by_arithmetic": "96.80",
+      "note": "Arithmetic example only; the legal correction method and tax treatment require approval."
+    },
+    "unmatched_payment": {
+      "category": "unmatched",
+      "payment": "75.00",
+      "confirmed_allocations": "0.00",
+      "unallocated": "75.00",
+      "expected_state": "unmatched"
+    },
+    "duplicate_submission": {
+      "category": "duplicate",
+      "issuer_key": "synthetic-issuer-01",
+      "invoice_key": "synthetic-invoice-2026-0001",
+      "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "attempts": 2,
+      "expected_invoice_records": 1,
+      "expected_behavior": "inspect prior official response and retry idempotently; do not create a second legal invoice"
+    },
+    "invalid_xml": {
+      "category": "invalid",
+      "missing_required_fields": ["invoice_number", "issue_date", "supplier_identifier", "line_tax_category"],
+      "expected_state": "rejected",
+      "expected_behavior": "retain draft and validation errors; do not claim issued/accepted state"
+    },
+    "currency_mismatch": {
+      "category": "edge_case",
+      "invoice_currency": "EUR",
+      "payment_currency": "RON",
+      "approved_fx_rule": null,
+      "expected_state": "blocked_for_review"
+    }
+  }
+}

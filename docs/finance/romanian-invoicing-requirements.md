@@ -158,7 +158,7 @@ These values are synthetic arithmetic fixtures, not advice about which VAT treat
 | Invalid XML | Missing required invoice number, issue date, party data or line/tax fields | Validator rejects the payload; no issued/accepted state is claimed | Retain the draft and validation result; require correction before resubmission. |
 | Currency mismatch | Invoice in EUR, payment/allocation in RON, no approved FX rule/evidence | No automatic cross-currency allocation or comparison | Preserve both currencies and route to reviewed FX handling. |
 
-These fixtures are suitable for future unit/feature tests once the invoice header, line, tax, numbering and submission models are approved. They deliberately do not invent executable model contracts ahead of that approval. The arithmetic above is independently recomputed in the table; it does not establish legal tax eligibility.
+The synthetic fixtures are stored in tests/Fixtures/Finance/romanian-invoicing-requirements.json. RomanianInvoicingRequirementFixturesTest checks scenario coverage and independently recomputes VAT, gross, partial-payment, split-allocation and correction arithmetic using decimal math. Application-level invoice/e-Factura behavior tests remain blocked until the invoice header, line, tax, numbering and submission models are approved. These arithmetic checks do not establish legal tax eligibility.
 
 ## 9. Open questions that block automatic legal/tax behavior
 
