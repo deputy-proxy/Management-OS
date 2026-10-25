@@ -1,5 +1,7 @@
 # Customer Dashboard
 
+For the wider capability map, implemented behavior, regression evidence, and blockers before adding funnel, attribution, retention, or financial customer analytics, see [customer-lifecycle-analytics-audit.md](customer-lifecycle-analytics-audit.md).
+
 The Customer Dashboard is an operational view of customer records, unconverted leads, current contracts, recent interactions, and customer invoice status. It does not infer lifecycle meanings that are not defined in the existing schema.
 
 ## Metrics
