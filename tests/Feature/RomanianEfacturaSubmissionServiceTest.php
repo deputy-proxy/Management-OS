@@ -47,8 +47,9 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         Http::fake([
             'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="12345"/>', 200, ['Content-Type' => 'application/xml']),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/stareMesaj*' => Http::response('<header><stare>ok</stare></header>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="12345"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/stareMesaj*' => Http::response('<header stare="ok" id_descarcare="56789"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/descarcare*' => Http::response($this->zipPayload(['Factura.xml' => '<Invoice/>', 'semnatura.xml' => '<Signature/>']), 200, ['Content-Type' => 'application/zip']),
         ]);
         $actor = User::factory()->create();
         $invoice = $this->issuedInvoice($actor);
@@ -74,7 +75,9 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $checked = $service->checkStatus($submission->id, $actor);
         $this->assertSame('processed', $checked->official_processing_state);
         $this->assertNotNull($checked->response_artifact_id);
-        $this->assertSame(2, $checked->attempts()->count());
+        $this->assertSame('downloaded', $checked->download_state);
+        $this->assertNotNull($checked->result_artifact_id);
+        $this->assertSame(3, $checked->attempts()->count());
         $credential = app(InvoiceSubmissionOAuthCredential::class)->newQuery()->where('legal_entity_id', $invoice->legal_entity_id)->where('environment', 'test')->firstOrFail();
         $this->assertSame('rotated-refresh-token', $credential->refresh_token);
         $this->assertStringNotContainsString('rotated-refresh-token', (string) DB::table('invoice_submission_oauth_credentials')->where('id', $credential->id)->value('refresh_token'));
@@ -84,7 +87,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         Http::fake([
             'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload*' => function (): never {
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => function (): never {
                 throw new ConnectionException('synthetic timeout');
             },
         ]);
@@ -114,7 +117,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         Http::fake([
             'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="54321"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="54321"/>', 200, ['Content-Type' => 'application/xml']),
         ]);
         $actor = User::factory()->create();
         $invoice = $this->issuedInvoice($actor);
@@ -140,7 +143,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         Http::fake([
             'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="98765"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="98765"/>', 200, ['Content-Type' => 'application/xml']),
         ]);
         $actor = User::factory()->create();
         $invoice = $this->issuedInvoice($actor);
@@ -176,6 +179,35 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertCount(0, Http::recorded());
     }
 
+    public function test_nok_status_downloads_the_signed_error_archive_and_marks_the_submission_terminal(): void
+    {
+        Http::fake([
+            'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="0" index_incarcare="45678"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/stareMesaj*' => Http::response('<header stare="nok" id_descarcare="56780"/>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/descarcare*' => Http::response($this->zipPayload([
+                'Erori.xml' => '<header><Error cod="BR-S-05" errorMessage="Sensitive VAT detail"/></header>',
+                'semnatura.xml' => '<Signature/>',
+            ]), 200, ['Content-Type' => 'application/zip']),
+        ]);
+        $actor = User::factory()->create();
+        $invoice = $this->issuedInvoice($actor);
+        $snapshotHash = $invoice->issued_snapshot_hash;
+        app(IssuedInvoiceUblGenerationService::class)->generate($invoice->id, $actor);
+        $service = app(RomanianEfacturaSubmissionService::class);
+        $submission = $service->submit($invoice->id, 'test', $actor);
+        $checked = $service->checkStatus($submission->id, $actor);
+
+        $this->assertSame('rejected', $checked->official_processing_state);
+        $this->assertSame('failed', $checked->transmission_state);
+        $this->assertSame('downloaded', $checked->download_state);
+        $this->assertSame($snapshotHash, $invoice->fresh()->issued_snapshot_hash);
+        $this->assertSame('BR-S-05', $checked->errors()->firstOrFail()->authority_code);
+        $this->assertSame('terminal', $checked->errors()->firstOrFail()->retry_classification);
+        $this->assertStringNotContainsString('Sensitive VAT detail', $checked->errors()->firstOrFail()->safe_summary);
+        $this->assertStringContainsString('Sensitive VAT detail', Storage::disk('local')->get($checked->resultArtifact->storage_key));
+    }
+
     public function test_explicit_not_required_decision_is_audited_without_any_network_request(): void
     {
         Http::fake();
@@ -192,7 +224,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         Http::fake([
             'https://logincert.anaf.ro/anaf-oauth2/v1/token' => Http::response(['access_token' => 'test-access-token', 'refresh_token' => 'rotated-refresh-token', 'expires_in' => 3600], 200),
-            'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="1"><Errors errorMessage="Sensitive tax detail"/></header>', 200, ['Content-Type' => 'application/xml']),
+            'https://api.anaf.ro/test/FCTEL/rest/upload*' => Http::response('<header ExecutionStatus="1"><Errors errorMessage="Sensitive tax detail"/></header>', 200, ['Content-Type' => 'application/xml']),
         ]);
         $actor = User::factory()->create();
         $invoice = $this->issuedInvoice($actor);
@@ -204,6 +236,27 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $response = $submission->responseArtifact;
         $this->assertNotNull($response);
         $this->assertStringContainsString('Sensitive tax detail', Storage::disk('local')->get($response->storage_key));
+    }
+
+    private function zipPayload(array $files): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'efactura-test-');
+        if ($path === false) {
+            throw new \\RuntimeException('Cannot create ZIP fixture.');
+        }
+        try {
+            $zip = new \\ZipArchive;
+            if ($zip->open($path, \\ZipArchive::CREATE | \\ZipArchive::OVERWRITE) !== true) {
+                throw new \\RuntimeException('Cannot open ZIP fixture.');
+            }
+            foreach ($files as $name => $content) {
+                $zip->addFromString($name, $content);
+            }
+            $zip->close();
+            return (string) file_get_contents($path);
+        } finally {
+            @unlink($path);
+        }
     }
 
     private function issuedInvoice(User $actor): IssuedInvoice
