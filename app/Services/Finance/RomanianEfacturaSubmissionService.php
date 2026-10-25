@@ -160,6 +160,9 @@ class RomanianEfacturaSubmissionService
 
         $artifact = $this->storeResponse($invoice, $submission, $attempt, $actor, $response);
         $parsed = $this->parseUpload($response);
+        if ($parsed['errors'] !== []) {
+            $this->recordAuthorityErrors($submission, $attempt, $artifact, 'upload', hash('sha256', $response->body()), $parsed['errors'], 'terminal');
+        }
         if ($response->successful() && $parsed['execution_status'] === 0 && $parsed['external_id'] !== null) {
             $this->finish($submission, $attempt, 'accepted_for_processing', $response->status(), $parsed['external_id'], null, null, $artifact);
         } elseif ($response->successful() && $parsed['execution_status'] === 1) {
