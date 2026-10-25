@@ -56,6 +56,19 @@ class TaskDependenciesTest extends TestCase
         $this->assertStringContainsString('cycle', strtolower($cycle->errors()->first('dependencies')));
     }
 
+    public function test_dependency_validation_rejects_malformed_and_missing_task_ids(): void
+    {
+        [$task] = $this->makeTasks();
+
+        foreach ([['not-a-task-id'], [0], [-1], [99999999]] as $dependencies) {
+            $validator = Validator::make(['dependencies' => $dependencies], [
+                'dependencies' => [new TaskDependenciesAreAcyclic($task->id)],
+            ]);
+
+            $this->assertTrue($validator->fails(), 'Expected invalid dependency IDs to be rejected.');
+        }
+    }
+
     public function test_dependency_validation_allows_an_acyclic_prerequisite_chain(): void
     {
         [$first, $second, $third] = $this->makeTasks(3);
