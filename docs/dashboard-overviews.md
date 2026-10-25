@@ -86,3 +86,7 @@ This landing page intentionally omits revenue, performance, attendance, teacher 
 - `offer_price` has no currency field, and competitor offers have no offer-level source URL. Prices are not averaged/compared and the competitor website field is not treated as proof of offer verification.
 - No time-series chart, market share/size, audience segment, demand, or engagement metric is produced because there is no dated observation history or supporting data model. The latest `last_check` value alone is not a historical trend.
 - Competitor metrics/links require `competitor.index`; offer metrics/links require `competitor_offer.index`; per-competitor views require both. Create links additionally require the matching create permission. The `market-analysis.view` page gate does not grant access to either resource.
+
+## Market intelligence requirements and readiness
+
+See [Market intelligence requirements and readiness audit](market-intelligence-readiness.md) for the current model/service inventory, decisions required before provider integration, source-evaluation criteria, and a synthetic validation plan. It intentionally does not select a provider or define business KPIs without owner approval.
