@@ -64,4 +64,4 @@ Do not infer missing business rules, rewrite historical records for convenience,
 
 ## Production operations and recovery
 
-Read [`docs/operations-and-recovery.md`](docs/operations-and-recovery.md) for verified deployment assumptions, health endpoints, request correlation, queue and scheduler operations, backup verification, isolated restore-drill procedure, deployment and incident runbooks. Production hosting, backup policy, alert destinations and restore evidence remain unverified until the system owner records them.
+Read [`docs/operations-and-recovery.md`](docs/operations-and-recovery.md) for verified deployment assumptions, health endpoints, request correlation, queue and scheduler operations, backup verification, isolated restore-drill procedure, deployment and incident runbooks. [`docs/production-readiness-audit.md`](docs/production-readiness-audit.md) provides the evidence-based control matrix, accountable roles, known gaps, and reproducible follow-up checks. Production hosting, backup policy, alert destinations and restore evidence remain unverified until the system owner records them.
