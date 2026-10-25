@@ -94,6 +94,7 @@ class IssuedInvoiceArtifactAccessService
         $allowed = [
             'text/html; charset=UTF-8',
             'application/xml',
+            'application/xml; charset=UTF-8',
             'application/json',
             'application/zip',
             'application/octet-stream',
