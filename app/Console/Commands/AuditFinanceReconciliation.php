@@ -27,6 +27,7 @@ class AuditFinanceReconciliation extends Command
         $this->auditDuplicatePayslipPeriods();
         $this->auditPayslipSourceLinks();
         $this->auditTransactionInvoiceLinks();
+        $this->auditPaymentAllocationSourceTotals();
         $this->auditCanonicalFinancialFields();
         $this->auditCanonicalCurrencyFormats();
         $this->auditCanonicalClassifications();
@@ -161,6 +162,93 @@ class AuditFinanceReconciliation extends Command
         foreach ($unknown as $row) {
             $this->findings[] = 'unknown payslip source type';
             $this->warn(sprintf('unknown payslip source type: source_type=%s; count=%d', $row->source_type, $row->row_count));
+        }
+    }
+
+    private function auditPaymentAllocationSourceTotals(): void
+    {
+        if (! Schema::hasTable('payment_allocations') || ! Schema::hasTable('transactions')) {
+            return;
+        }
+
+        $count = 0;
+        $samples = [];
+        $groups = DB::table('payment_allocations as allocation')
+            ->join('transactions as payment', 'payment.id', '=', 'allocation.transaction_id')
+            ->where('allocation.status', 'confirmed')
+            ->groupBy('payment.id', 'payment.amount_decimal', 'payment.currency_code')
+            ->select('payment.id as transaction_id', 'payment.amount_decimal', 'payment.currency_code')
+            ->selectRaw('SUM(allocation.amount_decimal) as allocated_total')
+            ->orderBy('payment.id')
+            ->get();
+
+        foreach ($groups as $group) {
+            if ($group->amount_decimal === null || preg_match('/^[A-Z]{3}$/', (string) $group->currency_code) !== 1) {
+                $count++;
+                if (count($samples) < 5) {
+                    $samples[] = (int) $group->transaction_id;
+                }
+
+                continue;
+            }
+
+            $paymentAmount = BigDecimal::of((string) $group->amount_decimal);
+            if ($paymentAmount->compareTo(BigDecimal::zero()) <= 0 || BigDecimal::of((string) $group->allocated_total)->compareTo($paymentAmount) > 0) {
+                $count++;
+                if (count($samples) < 5) {
+                    $samples[] = (int) $group->transaction_id;
+                }
+            }
+        }
+
+        if ($count > 0) {
+            $this->reportSampledFinding('confirmed allocation total exceeds source payment or payment canonical fields are unresolved', 'transactions', $count, $samples);
+        }
+
+        $currencyMismatchCount = DB::table('payment_allocations as allocation')
+            ->join('transactions as payment', 'payment.id', '=', 'allocation.transaction_id')
+            ->where('allocation.status', 'confirmed')
+            ->whereNotNull('payment.currency_code')
+            ->whereColumn('allocation.currency_code', '<>', 'payment.currency_code')
+            ->count();
+        if ($currencyMismatchCount > 0) {
+            $samples = DB::table('payment_allocations as allocation')
+                ->join('transactions as payment', 'payment.id', '=', 'allocation.transaction_id')
+                ->where('allocation.status', 'confirmed')
+                ->whereNotNull('payment.currency_code')
+                ->whereColumn('allocation.currency_code', '<>', 'payment.currency_code')
+                ->limit(5)->pluck('allocation.id')->map(fn ($id): int => (int) $id)->all();
+            $this->reportSampledFinding('confirmed allocation currency differs from source payment', 'payment_allocations', $currencyMismatchCount, $samples);
+        }
+
+        foreach ([
+            ['customer_invoice_id', 'customer_invoices', 'confirmed customer invoice allocation has unresolved or mismatched currency'],
+            ['vendor_invoice_id', 'vendor_invoices', 'confirmed vendor invoice allocation has unresolved or mismatched currency'],
+        ] as [$foreignKey, $invoiceTable, $label]) {
+            if (! Schema::hasTable($invoiceTable) || ! Schema::hasColumn($invoiceTable, 'currency_code')) {
+                continue;
+            }
+            $query = DB::table('payment_allocations as allocation')
+                ->join($invoiceTable.' as invoice', 'invoice.id', '=', 'allocation.'.$foreignKey)
+                ->where('allocation.status', 'confirmed')
+                ->where('allocation.allocation_kind', 'invoice')
+                ->where(function ($query): void {
+                    $query->whereNull('invoice.currency_code')
+                        ->orWhereColumn('invoice.currency_code', '<>', 'allocation.currency_code');
+                });
+            $count = (clone $query)->count();
+            if ($count > 0) {
+                $samples = (clone $query)->limit(5)->pluck('allocation.id')->map(fn ($id): int => (int) $id)->all();
+                $this->reportSampledFinding($label, 'payment_allocations', $count, $samples);
+            }
+        }
+
+        $hasInvoiceAllocations = DB::table('payment_allocations')
+            ->where('status', 'confirmed')
+            ->where('allocation_kind', 'invoice')
+            ->exists();
+        if ($hasInvoiceAllocations && config('financial-normalization.tables.customer_invoices.invoice_semantics.rule') === null && config('financial-normalization.tables.vendor_invoices.invoice_semantics.rule') === null) {
+            $this->line('Invoice-side allocation balance validation remains unresolved: no approved invoice-total semantic rule is configured. Source-payment totals are still checked.');
         }
     }
 
