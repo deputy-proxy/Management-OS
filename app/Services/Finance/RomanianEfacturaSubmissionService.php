@@ -545,7 +545,7 @@ class RomanianEfacturaSubmissionService
                     $zip->close();
                     throw new \RuntimeException('ANAF result archive contains an unsafe entry name.');
                 }
-                if (! is_array($stat) || (int) ($stat['size'] ?? 0) > 5 * 1024 * 1024) {
+                if (! is_array($stat) || (int) $stat['size'] > 5 * 1024 * 1024) {
                     $zip->close();
                     throw new \RuntimeException('ANAF result archive contains an oversized entry.');
                 }
