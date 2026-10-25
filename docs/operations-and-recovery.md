@@ -130,4 +130,8 @@ On incident: assign an incident lead, record UTC/local timestamps and impact, pr
 
 The evidence-based control inventory, status definitions, accountable roles, known gaps and next verification actions are maintained in [production-readiness-audit.md](production-readiness-audit.md). Treat that matrix as the current audit index, not as a readiness certification. External monitor configuration, actual provider backup settings, delivered alert evidence and the complete restore-drill record still require restricted operational evidence.
 
+## Recovery and availability objectives
+
+The approved RPO/RTO baseline, critical workflow tiers, isolated restore-drill procedure, measurement method, and remaining approval gaps are documented in [recovery-and-availability-objectives.md](recovery-and-availability-objectives.md). The owner-approved targets are RPO no more than one day and RTO within four hours; they remain unproven until the full restore evidence record is reviewed. No numeric availability SLO is set without a production baseline and owner approval.
+
 For each approved isolated restore drill, capture results in the restricted operational record using [restore-drill-evidence-template.md](restore-drill-evidence-template.md). Do not commit completed records or sensitive backup evidence to this repository. The template distinguishes measured RPO/RTO from policy targets and includes data-integrity checks, sign-off, and verified cleanup.
