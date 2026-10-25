@@ -90,3 +90,7 @@ This landing page intentionally omits revenue, performance, attendance, teacher 
 ## Executive KPI catalogue readiness
 
 See [Executive KPI catalogue readiness audit](executive-kpi-catalogue-readiness.md) for the existing overview metrics, their source-supported limitations, the minimum definition/version/permission contract for configurable KPIs, and the validation sequence. It is a readiness audit, not owner approval of the KPI catalogue.
+
+## Market intelligence requirements and readiness
+
+See [Market intelligence requirements and readiness audit](market-intelligence-readiness.md) for the current model/service inventory, decisions required before provider integration, source-evaluation criteria, and a synthetic validation plan. It intentionally does not select a provider or define business KPIs without owner approval.
