@@ -32,3 +32,15 @@ The page has a dedicated `tasks-and-projects.view` permission. Task metrics are 
 - Task lists support status, assignee, project, and due-window filters. The summary/status inventory remains based on the visible task scope so available filter choices do not disappear when a filter is selected.
 - Dashboard lists show at most eight overdue tasks and eight upcoming tasks. Full authorized lists remain available through the resource links.
 - The current schema uses date columns for due/start/end dates, so comparisons use application-local calendar dates rather than interpreting these as timestamps.
+
+## Delivery attention signals
+
+The overview adds three explainable counts, each linked back to existing records and governed by the page's existing permission checks:
+
+- **Overdue open tasks:** task status is not exactly `done` and `due_date` is strictly before today in the application timezone.
+- **Projects started after plan:** recorded `start_date` is later than `planned_start_date`.
+- **Projects finished after plan:** recorded `end_date` is later than `planned_end_date`.
+
+Project date comparisons use the stored fields directly and do not infer status from the free-text project status. They are schedule-variance signals for review, not proof of current delivery failure; validate that dates are populated accurately and that project teams use the fields consistently. The current schema requires task assignee and due date, so missing-owner and missing-due-date counts would be misleading without schema/data evidence that such records can exist.
+
+These are review prompts, not a composite risk score. Reviewers should open source records, confirm dates/status, and agree corrective action with the owner. Structured task dependencies, blocked reasons, meaningful-update timestamps, and business impact are not available as dedicated task fields in the inspected model. The report therefore does not claim to detect dependency blockage, stale work, or impact. No alert thresholds, automated notifications, or production-monitoring readiness are implied by these dashboard counts.

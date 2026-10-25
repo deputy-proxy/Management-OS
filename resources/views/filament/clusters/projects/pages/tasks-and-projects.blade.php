@@ -62,6 +62,41 @@
             </x-filament::section>
         @endif
 
+        @if ($summary['tasks_total'] !== null || $summary['projects_total'] !== null)
+            <x-filament::section>
+                <x-slot name="heading">Delivery attention</x-slot>
+                <x-slot name="description">Explicit schedule and task signals from records the viewer is allowed to see. These are review prompts, not a prediction or an overall risk score.</x-slot>
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    @if ($summary['tasks_total'] !== null)
+                        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Overdue open tasks</p>
+                            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ number_format($summary['tasks_overdue']) }}</p>
+                            <p class="mt-1 text-xs text-gray-500">Due date is before today; completed tasks excluded.</p>
+                        </div>
+                    @endif
+                    @if ($summary['projects_total'] !== null)
+                        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Projects started after planned start</p>
+                            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ number_format($summary['projects_started_after_plan']) }}</p>
+                            <p class="mt-1 text-xs text-gray-500">Recorded start_date is later than planned_start_date.</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Projects finished after planned end</p>
+                            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ number_format($summary['projects_finished_after_plan']) }}</p>
+                            <p class="mt-1 text-xs text-gray-500">Recorded end_date is later than planned_end_date.</p>
+                        </div>
+                    @endif
+                </div>
+                <p class="mt-4 text-xs text-gray-500">Next action: open the source records, confirm the planned and recorded dates, and agree corrective action with the owner. Task dependencies, blocked reasons, last meaningful update and business impact are not stored as structured task fields, so this report does not infer them.</p>
+                @if ($urls['tasks'])
+                    <x-filament::link class="mt-3" :href="$urls['tasks']">Review task records</x-filament::link>
+                @endif
+                @if ($urls['projects'])
+                    <x-filament::link class="mt-3 ml-3" :href="$urls['projects']">Review project records</x-filament::link>
+                @endif
+            </x-filament::section>
+        @endif
+
         <div class="grid gap-6 xl:grid-cols-3">
             <x-filament::section>
                 <x-slot name="heading">Task status</x-slot>

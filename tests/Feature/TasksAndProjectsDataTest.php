@@ -60,6 +60,26 @@ class TasksAndProjectsDataTest extends TestCase
         $this->assertCount(0, $filtered['overdue_tasks']);
     }
 
+    public function test_delivery_attention_counts_project_start_and_finish_date_variance(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone'));
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Project::factory()->create([
+            'planned_start_date' => '2026-10-01', 'start_date' => '2026-10-03',
+            'planned_end_date' => '2026-10-10', 'end_date' => '2026-10-12',
+        ]);
+        Project::factory()->create([
+            'planned_start_date' => '2026-10-01', 'start_date' => '2026-10-01',
+            'planned_end_date' => '2026-10-20', 'end_date' => '2026-10-20',
+        ]);
+
+        $summary = app(TasksAndProjectsData::class)->summary($now);
+
+        $this->assertSame(1, $summary['projects_started_after_plan']);
+        $this->assertSame(1, $summary['projects_finished_after_plan']);
+    }
+
     public function test_task_summary_obeys_the_task_resources_assigned_or_created_scope(): void
     {
         $now = CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone'));
@@ -93,6 +113,8 @@ class TasksAndProjectsDataTest extends TestCase
         $this->assertNull($summary['tasks_total']);
         $this->assertNull($summary['tasks_open']);
         $this->assertSame(0, $summary['tasks_overdue']);
+        $this->assertNull($summary['projects_started_after_plan']);
+        $this->assertNull($summary['projects_finished_after_plan']);
         $this->assertSame([], $summary['task_statuses']);
         $this->assertCount(0, $summary['upcoming_tasks']);
         $this->assertNull($summary['projects_total']);
