@@ -247,6 +247,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
 
     public function test_end_to_end_rejection_correction_and_success_preserve_snapshot_and_audit_chain(): void
     {
+        Storage::fake('public');
         $uploadSequence = Http::sequence()
             ->push('<header ExecutionStatus="0" index_incarcare="70001"/>', 200, ['Content-Type' => 'application/xml'])
             ->push('<header ExecutionStatus="0" index_incarcare="70002"/>', 200, ['Content-Type' => 'application/xml']);
