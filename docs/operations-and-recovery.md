@@ -129,3 +129,5 @@ On incident: assign an incident lead, record UTC/local timestamps and impact, pr
 ## Production-readiness audit
 
 The evidence-based control inventory, status definitions, accountable roles, known gaps and next verification actions are maintained in [production-readiness-audit.md](production-readiness-audit.md). Treat that matrix as the current audit index, not as a readiness certification. External monitor configuration, actual provider backup settings, delivered alert evidence and the complete restore-drill record still require restricted operational evidence.
+
+For each approved isolated restore drill, capture results in the restricted operational record using [restore-drill-evidence-template.md](restore-drill-evidence-template.md). Do not commit completed records or sensitive backup evidence to this repository. The template distinguishes measured RPO/RTO from policy targets and includes data-integrity checks, sign-off, and verified cleanup.
