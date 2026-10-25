@@ -8,6 +8,7 @@ use App\Filament\Resources\CustomerInteractions\CustomerInteractionResource;
 use App\Filament\Resources\CustomerInvoices\CustomerInvoiceResource;
 use App\Filament\Resources\CustomerLeads\CustomerLeadResource;
 use App\Filament\Resources\Customers\CustomerResource;
+use App\Filament\Resources\Tasks\TaskResource;
 use App\Services\CustomerDashboardData;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -53,11 +54,17 @@ class CustomerDashboard extends Page
             'contracts' => hexa()->can('customer_contract.index') ? CustomerContractResource::getUrl('index') : null,
             'interactions' => hexa()->can('customer_interaction.index') ? CustomerInteractionResource::getUrl('index') : null,
             'invoices' => hexa()->can('customer_invoice.index') ? CustomerInvoiceResource::getUrl('index') : null,
+            'tasks' => hexa()->can('task.index') ? TaskResource::getUrl('index') : null,
         ];
     }
 
     public function getDashboardSummary(): array
     {
-        return app(CustomerDashboardData::class)->summary();
+        return app(CustomerDashboardData::class)->summary(
+            includeFollowUpTasks: hexa()->can('task.index'),
+            viewAllTasks: hexa()->can('task.view_all'),
+            viewerId: auth()->id() ? (int) auth()->id() : null,
+            includeContractReview: hexa()->can('customer_contract.index'),
+        );
     }
 }
