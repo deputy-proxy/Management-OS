@@ -21,6 +21,9 @@ class CanonicalIssuedInvoiceSchemaTest extends TestCase
     {
         // Dependent migrations must be rolled back in reverse dependency order
         // before exercising the canonical invoice migration in isolation.
+        $outcomesMigration = require database_path('migrations/2026_10_25_060000_add_invoice_submission_outcomes.php');
+        $outcomesMigration->down();
+
         $credentialsMigration = require database_path('migrations/2026_10_25_050000_create_invoice_submission_oauth_credentials_table.php');
         $credentialsMigration->down();
 
@@ -40,6 +43,7 @@ class CanonicalIssuedInvoiceSchemaTest extends TestCase
         $migration->up();
         $sequenceMigration->up();
         $credentialsMigration->up();
+        $outcomesMigration->up();
 
         $this->assertDatabaseHas('customer_invoices', [
             'id' => $legacy->id, 'amount_without_vat' => 12345, 'vat' => 2500,
@@ -61,7 +65,7 @@ class CanonicalIssuedInvoiceSchemaTest extends TestCase
         foreach ([
             'legal_entities', 'issued_invoices', 'issued_invoice_events', 'issued_invoice_parties', 'issued_invoice_lines',
             'issued_invoice_line_taxes', 'issued_invoice_tax_breakdowns', 'issued_invoice_artifacts',
-            'invoice_submissions', 'invoice_submission_attempts', 'invoice_submission_oauth_credentials',
+            'invoice_submissions', 'invoice_submission_attempts', 'invoice_submission_oauth_credentials', 'invoice_submission_errors',
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing {$table}");
         }

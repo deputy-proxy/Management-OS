@@ -35,15 +35,17 @@ return [
         'connect_timeout_seconds' => (int) env('EFACTURA_CONNECT_TIMEOUT_SECONDS', 5),
         'environments' => [
             'test' => [
-                'upload_url' => env('EFACTURA_TEST_UPLOAD_URL', 'https://webserviceapl.anaf.ro/test/FCTEL/rest/upload'),
-                'status_url' => env('EFACTURA_TEST_STATUS_URL', 'https://webserviceapl.anaf.ro/test/FCTEL/rest/stareMesaj'),
+                'upload_url' => env('EFACTURA_TEST_UPLOAD_URL', 'https://api.anaf.ro/test/FCTEL/rest/upload'),
+                'status_url' => env('EFACTURA_TEST_STATUS_URL', 'https://api.anaf.ro/test/FCTEL/rest/stareMesaj'),
+                'download_url' => env('EFACTURA_TEST_DOWNLOAD_URL', 'https://api.anaf.ro/test/FCTEL/rest/descarcare'),
                 'client_id' => env('EFACTURA_TEST_CLIENT_ID'),
                 'client_secret' => env('EFACTURA_TEST_CLIENT_SECRET'),
                 'refresh_token' => env('EFACTURA_TEST_REFRESH_TOKEN'),
             ],
             'production' => [
-                'upload_url' => env('EFACTURA_PRODUCTION_UPLOAD_URL', 'https://webserviceapl.anaf.ro/prod/FCTEL/rest/upload'),
-                'status_url' => env('EFACTURA_PRODUCTION_STATUS_URL', 'https://webserviceapl.anaf.ro/prod/FCTEL/rest/stareMesaj'),
+                'upload_url' => env('EFACTURA_PRODUCTION_UPLOAD_URL', 'https://api.anaf.ro/prod/FCTEL/rest/upload'),
+                'status_url' => env('EFACTURA_PRODUCTION_STATUS_URL', 'https://api.anaf.ro/prod/FCTEL/rest/stareMesaj'),
+                'download_url' => env('EFACTURA_PRODUCTION_DOWNLOAD_URL', 'https://api.anaf.ro/prod/FCTEL/rest/descarcare'),
                 'client_id' => env('EFACTURA_PRODUCTION_CLIENT_ID'),
                 'client_secret' => env('EFACTURA_PRODUCTION_CLIENT_SECRET'),
                 'refresh_token' => env('EFACTURA_PRODUCTION_REFRESH_TOKEN'),
