@@ -175,7 +175,9 @@ class TaskResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);
+        $query = parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->with('dependencies:id,action,status');
 
         // Roles with task.view_all see everything
         if (hexa()->can('task.view_all')) {
