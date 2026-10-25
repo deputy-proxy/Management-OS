@@ -1,16 +1,16 @@
 <?php
 
-namespace App\\Services\\Finance;
+namespace App\Services\Finance;
 
-use App\\Models\\IssuedInvoice;
-use App\\Models\\IssuedInvoiceArtifact;
-use App\\Models\\IssuedInvoiceEvent;
-use App\\Models\\User;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Gate;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\Support\\Str;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\IssuedInvoice;
+use App\Models\IssuedInvoiceArtifact;
+use App\Models\IssuedInvoiceEvent;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class IssuedInvoiceArtifactAccessService
 {
