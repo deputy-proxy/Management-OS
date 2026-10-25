@@ -11,3 +11,9 @@ CHANGELOG.md export-ignore
 .styleci.yml export-ignore
 
 *.pdf binary
+
+# Preserve upstream legal/schema artefacts byte-for-byte; whitespace is upstream-owned.
+resources/finance/ubl-2.1/xsd/** whitespace=-trailing-space,-blank-at-eof
+resources/finance/efactura/cius-ro-1.0.9/*.xslt whitespace=-trailing-space,-blank-at-eof
+resources/finance/efactura/cius-ro-1.0.9/LICENSE whitespace=-trailing-space,-blank-at-eof
+resources/finance/efactura/saxon/MPL-2.0.txt whitespace=-trailing-space,-blank-at-eof
