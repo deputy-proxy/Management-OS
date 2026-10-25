@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmployeeEvaluationAcknowledgmentController;
+use App\Http\Controllers\Finance\IssuedInvoiceArtifactDownloadController;
 use App\Http\Controllers\Health\ReadinessController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSubmissionController;
