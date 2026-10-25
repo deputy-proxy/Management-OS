@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "purpose": "Synthetic acceptance fixtures for requirements review; not real customer data or tax advice.",
+    "purpose": "Synthetic acceptance fixtures for invoice calculation arithmetic; not real customer data, tax eligibility, or a production tax policy.",
     "research_date": "2026-10-25",
-    "invoice_model_approved": false
+    "invoice_model_approved": true
   },
   "scenarios": {
     "standard_rate_arithmetic": {
@@ -32,7 +32,10 @@
     "split_payment": {
       "category": "multiple_invoices_and_fee",
       "payment": "150.00",
-      "invoice_allocations": ["100.00", "40.00"],
+      "invoice_allocations": [
+        "100.00",
+        "40.00"
+      ],
       "fee_carve_out": "5.00",
       "allocated_total": "145.00",
       "unallocated": "5.00"
@@ -65,7 +68,12 @@
     },
     "invalid_xml": {
       "category": "invalid",
-      "missing_required_fields": ["invoice_number", "issue_date", "supplier_identifier", "line_tax_category"],
+      "missing_required_fields": [
+        "invoice_number",
+        "issue_date",
+        "supplier_identifier",
+        "line_tax_category"
+      ],
       "expected_state": "rejected",
       "expected_behavior": "retain draft and validation errors; do not claim issued/accepted state"
     },
