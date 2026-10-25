@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomerLeadStatusHistory extends Model
 {
-    /** @var array<int, string> */
+    /** @var list<string> */
     protected $fillable = ['customer_lead_id', 'from_status', 'to_status', 'changed_at', 'changed_by'];
 
     protected function casts(): array
