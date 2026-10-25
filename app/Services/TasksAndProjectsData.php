@@ -68,6 +68,18 @@ class TasksAndProjectsData
             ? (clone $openTasks)->whereDate('due_date', '<', $today)->count()
             : 0;
 
+        $assigneeWorkload = $canViewTasks
+            ? (clone $openTasks)->select('assigned_to')
+                ->selectRaw('COUNT(*) as open_count')
+                ->selectRaw('SUM(CASE WHEN due_date < ? THEN 1 ELSE 0 END) as overdue_count', [$today])
+                ->with('assignedTo:id,name')
+                ->groupBy('assigned_to')
+                ->orderByDesc('open_count')
+                ->orderBy('assigned_to')
+                ->limit(10)
+                ->get()
+            : collect();
+
         $upcoming = $canViewTasks && $dueDateFilter !== 'overdue'
             ? (clone $tasks)->whereDate('due_date', '>=', $today)->whereDate('due_date', '<=', $weekEnd)->where('status', '!=', 'done')
                 ->orderBy('due_date')->orderBy('id')->limit(8)->get()
@@ -84,6 +96,7 @@ class TasksAndProjectsData
             'tasks_total' => $canViewTasks ? (clone $tasks)->count() : null,
             'tasks_open' => $canViewTasks ? (clone $tasks)->where('status', '!=', 'done')->count() : null,
             'tasks_overdue' => $overdue,
+            'assignee_workload' => $assigneeWorkload,
             'projects_started_after_plan' => $canViewProjects
                 ? Project::query()->whereColumn('start_date', '>', 'planned_start_date')->count()
                 : null,

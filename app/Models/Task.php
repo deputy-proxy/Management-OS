@@ -7,6 +7,7 @@ use App\Models\Concerns\HasPanelSearchTitle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -58,6 +59,18 @@ class Task extends Model implements Commentable
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /** Tasks that must be completed before this task can proceed. */
+    public function dependencies(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'task_dependencies', 'task_id', 'depends_on_task_id')->withTimestamps();
+    }
+
+    /** Tasks that depend on this task. */
+    public function dependentTasks(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'task_dependencies', 'depends_on_task_id', 'task_id')->withTimestamps();
     }
 
     public function activities(): MorphMany

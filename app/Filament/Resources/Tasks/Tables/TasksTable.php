@@ -29,6 +29,7 @@ class TasksTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('dependencies.action')->label('Prerequisites')->listWithLineBreaks()->limitList(3),
                 Tables\Columns\TextColumn::make('due_date')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('createdBy.name')
