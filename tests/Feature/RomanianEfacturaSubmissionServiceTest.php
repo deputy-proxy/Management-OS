@@ -278,13 +278,13 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
     {
         $path = tempnam(sys_get_temp_dir(), 'efactura-test-read-');
         if ($path === false) {
-            throw new \\RuntimeException('Cannot create ZIP read fixture.');
+            throw new \RuntimeException('Cannot create ZIP read fixture.');
         }
         try {
             file_put_contents($path, $bytes);
-            $zip = new \\ZipArchive;
+            $zip = new \ZipArchive;
             if ($zip->open($path) !== true) {
-                throw new \\RuntimeException('Cannot open ZIP read fixture.');
+                throw new \RuntimeException('Cannot open ZIP read fixture.');
             }
             $content = $zip->getFromName($name);
             $zip->close();
