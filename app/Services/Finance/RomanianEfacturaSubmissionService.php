@@ -319,7 +319,7 @@ class RomanianEfacturaSubmissionService
         }
 
         return match ($state) {
-            'ok', 'acceptata', 'acceptat' => 'accepted',
+            'ok', 'acceptata', 'acceptat' => 'processed',
             'nok', 'respinsa', 'respins' => 'rejected',
             'in prelucrare', 'în prelucrare', 'processing' => 'processing',
             default => 'unknown',

@@ -72,7 +72,7 @@ class RomanianEfacturaSubmissionServiceTest extends TestCase
         $this->assertSame(1, collect(Http::recorded())->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/FCTEL/rest/upload?'))->count());
 
         $checked = $service->checkStatus($submission->id, $actor);
-        $this->assertSame('accepted', $checked->official_processing_state);
+        $this->assertSame('processed', $checked->official_processing_state);
         $this->assertNotNull($checked->response_artifact_id);
         $this->assertSame(2, $checked->attempts()->count());
         $credential = app(InvoiceSubmissionOAuthCredential::class)->newQuery()->where('legal_entity_id', $invoice->legal_entity_id)->where('environment', 'test')->firstOrFail();
