@@ -47,5 +47,5 @@ Owners below are accountable roles, not a claim that an individual has accepted 
 
 - No production credentials, backup artifacts, personal data, raw job payloads, or provider screenshots are stored in this report.
 - No production restore, failure injection, destructive cleanup, live job retry, or hosting configuration mutation was performed for this audit.
-- No alert threshold, provider feature, retention guarantee, encryption status beyond the runbook's owner report, or successful alert delivery is inferred from code existing in the repository.
+- The new [monitoring-alert-matrix.md](monitoring-alert-matrix.md) maps probes to failure modes, safe actions, deduplication rules and verification evidence. No alert threshold, provider feature, retention guarantee, encryption status beyond the runbook's owner report, or successful alert delivery is inferred from code existing in the repository.
 - Do not describe the application as production-ready until the unverified controls have evidence, the known risks have an accepted or completed disposition, and operational owners have reviewed the result.

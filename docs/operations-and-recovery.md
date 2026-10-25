@@ -117,6 +117,8 @@ Rollback is not universally a code rollback. A migration may be irreversible or 
 
 ## Incident response and alerting baseline
 
+Use [monitoring-alert-matrix.md](monitoring-alert-matrix.md) as the coverage and verification checklist for each alert class, sanitized payload, deduplication behavior, routing target, and recovery notification. It explicitly separates repository probes from external monitor configuration and recorded alert receipt.
+
 - **Application/HTTP:** alert on sustained 5xx rate, elevated latency, failed `/up` or `/ready`, and repeated errors sharing a request ID. Set thresholds from observed baseline and business hours; do not invent them from development traffic.
 - **Database:** alert on failed readiness, connection exhaustion, storage/capacity thresholds, replication/backup failures where applicable, and integrity-audit findings. A healthy `/ready` does not prove backups or integrity are healthy.
 - **Queue:** alert on failed critical jobs, growing queue depth/age, worker process absence, and repeated retries. Restrict failed-job payload access.
@@ -128,7 +130,7 @@ Rollback is not universally a code rollback. A migration may be irreversible or 
 On incident: assign an incident lead, record UTC/local timestamps and impact, preserve relevant restricted logs, stop unsafe retries or deployments, identify the last known-good release/backup, and follow the approved recovery path. After recovery, validate key workflows and reconcile financial/academic history before declaring resolution. Record cause, impact, corrective actions and owners. The owner is the admin, and no backup incident contact is designated. The owner reports Laravel logging and email notifications to their email, but the precise alert invocation/routing and test-notification evidence remain to be recorded. Thresholds are not approved; collect production baselines before proposing thresholds. Scheduler setup and monthly payslip monitoring are tracked separately in issue #273. The Pusher comment-broadcast failure analysis and compatibility fix are also documented in issue #273.
 ## Production-readiness audit
 
-The evidence-based control inventory, status definitions, accountable roles, known gaps and next verification actions are maintained in [production-readiness-audit.md](production-readiness-audit.md). Treat that matrix as the current audit index, not as a readiness certification. External monitor configuration, actual provider backup settings, delivered alert evidence and the complete restore-drill record still require restricted operational evidence.
+The evidence-based control inventory, status definitions, accountable roles, known gaps and next verification actions are maintained in [production-readiness-audit.md](production-readiness-audit.md). The [monitoring-alert-matrix.md](monitoring-alert-matrix.md) maps failure modes to probes, response actions, and evidence needed to verify external alerts. Treat these matrices as control inventories, not as readiness certification. External monitor configuration, actual provider backup settings, delivered alert evidence and the complete restore-drill record still require restricted operational evidence.
 
 ## Recovery and availability objectives
 
