@@ -1,0 +1,133 @@
+{
+  "fixture_metadata": {
+    "name": "management-os-payroll-demo",
+    "synthetic": true,
+    "period": "2026-09",
+    "currency": "RON",
+    "purpose": "Input-contract and workflow demos only; not legal payroll calculations or production seed data",
+    "schema_status": "proposed-example-not-approved"
+  },
+  "employees": [
+    {
+      "fixture_id": "EMP-DEMO-001",
+      "contract": {
+        "fixture_id": "CON-DEMO-001",
+        "contract_type": "full_time",
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "salary_basis": "monthly_gross",
+        "gross_salary": "8500.00",
+        "currency": "RON",
+        "work_norm_hours_per_week": "40.00",
+        "schedule_code": "standard_weekday"
+      },
+      "period_inputs": {
+        "period": "2026-09",
+        "approved_regular_hours": "160.00",
+        "approved_overtime_hours": "0.00",
+        "approved_leave_days": "1.00",
+        "unapproved_activity_count": 0,
+        "benefit_items": []
+      },
+      "expected_behavior": "Accept as a synthetic complete input example; do not calculate statutory deductions."
+    },
+    {
+      "fixture_id": "EMP-DEMO-002",
+      "contract": {
+        "fixture_id": "CON-DEMO-002",
+        "contract_type": "part_time",
+        "effective_from": "2026-03-15",
+        "effective_to": null,
+        "salary_basis": "hourly_gross",
+        "gross_salary": null,
+        "hourly_rate": "65.00",
+        "currency": "RON",
+        "work_norm_hours_per_week": "20.00",
+        "schedule_code": "variable_approved"
+      },
+      "period_inputs": {
+        "period": "2026-09",
+        "approved_regular_hours": "72.00",
+        "approved_overtime_hours": "0.00",
+        "approved_leave_days": "0.00",
+        "unapproved_activity_count": 0,
+        "benefit_items": []
+      },
+      "expected_behavior": "Accept as a synthetic hourly input example; eligibility and statutory treatment require approved policy."
+    },
+    {
+      "fixture_id": "EMP-DEMO-003",
+      "contract": {
+        "fixture_id": "CON-DEMO-003",
+        "contract_type": "full_time",
+        "effective_from": "2026-09-16",
+        "effective_to": null,
+        "salary_basis": "monthly_gross",
+        "gross_salary": "9200.00",
+        "currency": "RON",
+        "work_norm_hours_per_week": "40.00",
+        "schedule_code": "standard_weekday"
+      },
+      "period_inputs": {
+        "period": "2026-09",
+        "approved_regular_hours": "88.00",
+        "approved_overtime_hours": "0.00",
+        "approved_leave_days": "0.00",
+        "unapproved_activity_count": 0,
+        "benefit_items": []
+      },
+      "expected_behavior": "Exercise a mid-period contract start; proration must remain undefined until policy approval."
+    }
+  ],
+  "supplier_invoice_examples": [
+    {
+      "fixture_id": "INV-DEMO-001",
+      "counterparty_fixture_id": "SUPPLIER-DEMO-001",
+      "counterparty_legal_type": "company",
+      "classification_evidence_status": "synthetically_verified",
+      "invoice_number": "DEMO-2026-091",
+      "issue_date": "2026-09-03",
+      "due_date": "2026-10-03",
+      "period": "2026-09",
+      "currency": "RON",
+      "net_amount": "1000.00",
+      "vat_amount": "210.00",
+      "gross_amount": "1210.00",
+      "payment_status": "unpaid",
+      "expected_behavior": "Validate sample amount arithmetic only; VAT rate and tax treatment are not approved policy."
+    },
+    {
+      "fixture_id": "INV-DEMO-002",
+      "counterparty_fixture_id": "SUPPLIER-DEMO-002",
+      "counterparty_legal_type": "unresolved_individual_or_pfa",
+      "classification_evidence_status": "unresolved",
+      "invoice_number": "DEMO-2026-092",
+      "issue_date": "2026-09-12",
+      "due_date": "2026-10-12",
+      "period": "2026-09",
+      "currency": "RON",
+      "net_amount": "2500.00",
+      "vat_amount": null,
+      "gross_amount": null,
+      "payment_status": "pending_review",
+      "expected_behavior": "Block automatic tax classification and payment-policy selection until counterparty status and invoice semantics are verified."
+    }
+  ],
+  "workflow_cases": [
+    {
+      "case_id": "CASE-DUPLICATE-SOURCE",
+      "input": "same approved activity source submitted twice for the same employee and period",
+      "expected_behavior": "Reject or idempotently ignore the duplicate; preserve the original source link."
+    },
+    {
+      "case_id": "CASE-CLOSED-PERIOD",
+      "input": "attempt to recalculate a closed or paid payslip",
+      "expected_behavior": "Preserve current lifecycle lock; route corrections through an approved adjustment workflow."
+    },
+    {
+      "case_id": "CASE-UNKNOWN-CONTRACTOR-TYPE",
+      "input": "invoice counterparty has unresolved individual/PFA/company classification",
+      "expected_behavior": "Keep classification unresolved and block automated worker-tax treatment."
+    }
+  ]
+}
