@@ -81,3 +81,9 @@ For each field, specify type, required/optional status, validation, source of tr
 ## Current blockers
 
 The workforce-size and workflow answers are planning inputs, not source evidence. Actual contracts/roster, counterparty classifications, salary terms, reviewer-approved calculation fixtures and approval records are still required. No statutory rates, tax formulas or PFA classifications are inferred in this plan.
+
+## Synthetic demo fixtures
+
+`tests/Fixtures/Payroll/synthetic-inputs.json` provides fictional employee, contract, approved-hours, leave, supplier-invoice and workflow examples for development and review. All IDs and amounts are fabricated. It deliberately includes a mid-period contract start and an unresolved individual/PFA counterparty so that missing policy/classification cannot silently turn into a calculation.
+
+The fixture is a **proposed example contract**, not an approved production schema, seed data, or source of Romanian statutory rates. Amounts are decimal strings to avoid floating-point ambiguity in sample interfaces. The sample invoice's net/VAT/gross arithmetic is only an arithmetic example; it does not approve a VAT rate or tax category. No fixture contains a statutory net-pay expectation. Do not load these records into production or infer that the sample employee counts, salary values, contract types, leave, hours, or supplier classifications describe the real business.
