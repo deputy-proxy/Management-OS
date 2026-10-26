@@ -53,7 +53,7 @@ class TaskDependenciesAreAcyclic implements ValidationRule
                 return;
             }
 
-            if ($this->taskId !== null && $this->reaches($dependencyId, $this->taskId, [])) {
+            if ($this->taskId !== null && $this->reaches($dependencyId, $this->taskId)) {
                 $fail('This dependency would create a cycle. Remove the dependency that leads back to this task.');
 
                 return;
@@ -61,26 +61,40 @@ class TaskDependenciesAreAcyclic implements ValidationRule
         }
     }
 
-    /** @param array<int, bool> $visited */
-    private function reaches(int $fromId, int $targetId, array $visited): bool
+    /**
+     * Traverse prerequisite edges in batches to avoid recursive queries and
+     * repeated traversal of shared branches in a dependency graph.
+     */
+    private function reaches(int $fromId, int $targetId): bool
     {
-        if ($fromId === $targetId) {
-            return true;
-        }
-        if (isset($visited[$fromId])) {
-            return false;
-        }
-        $visited[$fromId] = true;
+        $visited = [];
+        $frontier = [$fromId];
 
-        $task = Task::query()->find($fromId);
-        if (! $task) {
-            return false;
-        }
+        while ($frontier !== []) {
+            $frontier = array_values(array_filter(
+                array_unique($frontier),
+                static fn (int $taskId): bool => ! isset($visited[$taskId]),
+            ));
 
-        foreach ($task->dependencies()->pluck('tasks.id') as $nextId) {
-            if ($this->reaches((int) $nextId, $targetId, $visited)) {
+            if ($frontier === []) {
+                return false;
+            }
+
+            if (in_array($targetId, $frontier, true)) {
                 return true;
             }
+
+            foreach ($frontier as $taskId) {
+                $visited[$taskId] = true;
+            }
+
+            $frontier = Task::query()
+                ->whereIn('id', $frontier)
+                ->with('dependencies:id')
+                ->get()
+                ->flatMap(static fn (Task $task) => $task->dependencies->pluck('id'))
+                ->map(static fn ($id): int => (int) $id)
+                ->all();
         }
 
         return false;
