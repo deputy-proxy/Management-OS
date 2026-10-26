@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Tasks\Tables;
 
 use App\Filament\Resources\Tasks\Actions\TasksAction;
+use App\Models\Task;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -35,6 +36,9 @@ class TasksTable
                 Tables\Columns\TextColumn::make('dependencies.action')->label('Prerequisites')->listWithLineBreaks()->limitList(3),
                 Tables\Columns\TextColumn::make('dependency_readiness')
                     ->label('Dependency readiness')
+                    ->description(fn (Task $record): ?string => $record->dependency_blocked_reasons === []
+                        ? null
+                        : 'Waiting for: '.implode(', ', $record->dependency_blocked_reasons))
                     ->badge()
                     ->color(fn (string $state): string => str_starts_with($state, 'Blocked') ? 'warning' : 'gray'),
                 Tables\Columns\TextColumn::make('due_date')

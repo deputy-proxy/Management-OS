@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -84,6 +85,23 @@ class Task extends Model implements Commentable
         return $incompleteCount > 0
             ? sprintf('Blocked (%d)', $incompleteCount)
             : 'Ready';
+    }
+
+    /** @return list<string> */
+    public function getDependencyBlockedReasonsAttribute(): array
+    {
+        /** @var Collection<int, self> $dependencies */
+        $dependencies = $this->dependencies;
+
+        return $dependencies
+            ->filter(static fn (self $dependency): bool => $dependency->status !== 'done')
+            ->map(static fn (self $dependency): string => sprintf(
+                '%s (%s)',
+                $dependency->action,
+                filled($dependency->status) ? $dependency->status : 'unknown status',
+            ))
+            ->values()
+            ->all();
     }
 
     public function activities(): MorphMany
