@@ -89,9 +89,10 @@ The repository provides an artifact sanity check:
 
 ```sh
 php artisan ops:verify-backup /restricted/path/to/backup-artifact
+php artisan ops:verify-backup /restricted/path/to/backup-artifact --sha256=<digest-from-trusted-manifest>
 ```
 
-It fails for missing, unreadable or empty artifacts and prints a SHA-256 digest for comparison with a separately stored manifest. It does **not** validate database format, authenticity, completeness, encryption, or restoreability. Do not treat a digest computed from the same untrusted artifact as proof of provenance. Never point a restore command at production during a drill.
+It fails for missing, unreadable or empty artifacts and prints a SHA-256 digest. When `--sha256` is supplied, it validates the digest format and compares the artifact against the expected digest using a constant-time comparison; a mismatch fails the check. Obtain the expected digest from a separately protected, trusted manifest. This does **not** validate database format, authenticity, completeness, encryption, or restoreability. Do not treat a digest computed from the same untrusted artifact as proof of provenance. Never point a restore command at production during a drill.
 
 ### Required isolated restore drill record
 
