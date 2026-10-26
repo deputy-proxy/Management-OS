@@ -8,20 +8,32 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class TaskDependenciesAreAcyclic implements ValidationRule
 {
-    public function __construct(private readonly ?int $taskId)
-    {
-    }
+    public function __construct(private readonly ?int $taskId) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_array($value)) {
             $fail('Dependencies must be a list of task records.');
+
             return;
         }
 
-        $ids = array_values(array_unique(array_map('intval', $value)));
-        if (in_array(0, $ids, true) || ($this->taskId !== null && in_array($this->taskId, $ids, true))) {
+        $ids = [];
+        foreach ($value as $candidate) {
+            if ((! is_int($candidate) && ! (is_string($candidate) && ctype_digit($candidate)))
+                || (int) $candidate < 1) {
+                $fail('Every dependency must reference an existing task.');
+
+                return;
+            }
+
+            $ids[] = (int) $candidate;
+        }
+
+        $ids = array_values(array_unique($ids));
+        if ($this->taskId !== null && in_array($this->taskId, $ids, true)) {
             $fail('A task cannot depend on itself.');
+
             return;
         }
 
@@ -29,6 +41,7 @@ class TaskDependenciesAreAcyclic implements ValidationRule
             $dependency = Task::query()->find($dependencyId);
             if (! $dependency) {
                 $fail('Every dependency must reference an existing task.');
+
                 return;
             }
 
@@ -36,11 +49,13 @@ class TaskDependenciesAreAcyclic implements ValidationRule
                 && (int) $dependency->assigned_to !== (int) auth()->id()
                 && (int) $dependency->created_by !== (int) auth()->id()) {
                 $fail('You can only link dependencies to tasks in your permitted task scope.');
+
                 return;
             }
 
             if ($this->taskId !== null && $this->reaches($dependencyId, $this->taskId, [])) {
                 $fail('This dependency would create a cycle. Remove the dependency that leads back to this task.');
+
                 return;
             }
         }
