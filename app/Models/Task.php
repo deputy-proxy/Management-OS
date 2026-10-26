@@ -27,7 +27,7 @@ class Task extends Model implements Commentable
     use SoftDeletes;
 
     /** @var array<int, string> */
-    protected $fillable = ['action', 'description', 'assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type', 'created_by'];
+    protected $fillable = ['action', 'description', 'assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'estimated_effort_minutes', 'taskable_id', 'taskable_type', 'created_by'];
 
     protected $casts = ['due_date' => 'date'];
 
@@ -111,7 +111,7 @@ class Task extends Model implements Commentable
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'taskable_id', 'taskable_type', 'created_by'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['assigned_to', 'project_id', 'project_phase_id', 'status', 'due_date', 'estimated_effort_minutes', 'taskable_id', 'taskable_type', 'created_by'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 
     public function createdBy(): BelongsTo

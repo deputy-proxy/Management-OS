@@ -72,6 +72,8 @@ class TasksAndProjectsData
             ? (clone $openTasks)->select('assigned_to')
                 ->selectRaw('COUNT(*) as open_count')
                 ->selectRaw('SUM(CASE WHEN due_date < ? THEN 1 ELSE 0 END) as overdue_count', [$today])
+                ->selectRaw('COALESCE(SUM(estimated_effort_minutes), 0) as estimated_effort_minutes')
+                ->selectRaw('SUM(CASE WHEN estimated_effort_minutes IS NULL THEN 1 ELSE 0 END) as unestimated_count')
                 ->with('assignedTo:id,name')
                 ->groupBy('assigned_to')
                 ->orderByDesc('open_count')
