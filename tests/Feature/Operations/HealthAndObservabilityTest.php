@@ -139,4 +139,27 @@ class HealthAndObservabilityTest extends TestCase
             @unlink($path);
         }
     }
+
+    public function test_backup_verification_compares_a_trusted_expected_digest(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'management-os-backup-');
+        file_put_contents($path, 'non-secret backup fixture');
+        $digest = hash_file('sha256', $path);
+
+        try {
+            $this->artisan('ops:verify-backup', ['path' => $path, '--sha256' => strtoupper($digest)])
+                ->expectsOutput('SHA-256 matches the supplied trusted manifest digest.')
+                ->assertExitCode(0);
+
+            $this->artisan('ops:verify-backup', ['path' => $path, '--sha256' => str_repeat('0', 64)])
+                ->expectsOutput('Backup verification failed: SHA-256 does not match the trusted manifest.')
+                ->assertExitCode(1);
+
+            $this->artisan('ops:verify-backup', ['path' => $path, '--sha256' => 'not-a-digest'])
+                ->expectsOutput('--sha256 must be a 64-character hexadecimal SHA-256 digest from a trusted manifest.')
+                ->assertExitCode(2);
+        } finally {
+            @unlink($path);
+        }
+    }
 }
