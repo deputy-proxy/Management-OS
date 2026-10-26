@@ -28,14 +28,18 @@ class TaskDependenciesTest extends TestCase
     public function test_dependency_readiness_distinguishes_missing_incomplete_and_completed_prerequisites(): void
     {
         [$prerequisite, $dependent, $independent] = $this->makeTasks(3);
+        $prerequisite->update(['action' => 'Prepare curriculum', 'status' => 'pending']);
         $dependent->dependencies()->attach($prerequisite->id);
 
         $this->assertSame('No prerequisites', $independent->dependency_readiness);
         $this->assertSame('Blocked (1)', $dependent->fresh()->dependency_readiness);
+        $this->assertSame(['Prepare curriculum (pending)'], $dependent->fresh()->dependency_blocked_reasons);
+        $this->assertSame([], $independent->fresh()->dependency_blocked_reasons);
 
         $prerequisite->update(['status' => 'done']);
 
         $this->assertSame('Ready', $dependent->fresh()->dependency_readiness);
+        $this->assertSame([], $dependent->fresh()->dependency_blocked_reasons);
     }
 
     public function test_dependency_validation_rejects_self_reference_and_existing_cycle(): void
