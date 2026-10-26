@@ -93,6 +93,22 @@ class TaskDependenciesTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
+    public function test_dependency_validation_detects_cycles_through_shared_prerequisite_branches(): void
+    {
+        [$target, $candidate, $left, $right, $shared] = $this->makeTasks(5);
+        $candidate->dependencies()->attach([$left->id, $right->id]);
+        $left->dependencies()->attach($shared->id);
+        $right->dependencies()->attach($shared->id);
+        $shared->dependencies()->attach($target->id);
+
+        $validator = Validator::make(['dependencies' => [$candidate->id]], [
+            'dependencies' => [new TaskDependenciesAreAcyclic($target->id)],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertStringContainsString('cycle', strtolower($validator->errors()->first('dependencies')));
+    }
+
     /** @return array<int, Task> */
     private function makeTasks(int $count = 2): array
     {
