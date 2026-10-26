@@ -12,7 +12,7 @@ class TaskDependenciesAreAcyclic implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_array($value)) {
+        if (! is_array($value) || ! array_is_list($value)) {
             $fail('Dependencies must be a list of task records.');
 
             return;
