@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\Tasks\Schemas;
 
-use App\Models\User;
 use App\Models\Task;
+use App\Models\User;
 use App\Rules\TaskDependenciesAreAcyclic;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class TaskForm
 {
@@ -42,8 +42,7 @@ class TaskForm
                     }
 
                     // AcademicDirector has task.assign but NOT task.view_all
-                    return User::whereHas('roles', fn ($q) =>
-                        $q->whereIn('name', ['Academician', 'Teacher', 'Marketer', 'Coordinator'])
+                    return User::whereHas('roles', fn ($q) => $q->whereIn('name', ['Academician', 'Teacher', 'Marketer', 'Coordinator'])
                     )->orderBy('name')->pluck('name', 'id');
                 })
                 ->searchable()
@@ -66,15 +65,23 @@ class TaskForm
             // ── Other fields ──────────────────────────────────────────────
             Select::make('status')
                 ->options([
-                    'pending'     => 'Pending',
+                    'pending' => 'Pending',
                     'in_progress' => 'In Progress',
-                    'done'        => 'Done',
+                    'done' => 'Done',
                 ])
                 ->default('pending')
                 ->required(),
 
             DatePicker::make('due_date')
                 ->required(),
+
+            TextInput::make('estimated_effort_minutes')
+                ->label('Estimated effort (minutes)')
+                ->helperText('Optional estimate for workload planning. This is not a capacity or utilization calculation.')
+                ->rules(['nullable'])
+                ->numeric()
+                ->integer()
+                ->minValue(1),
 
             Select::make('project_id')
                 ->label('Project')

@@ -43,6 +43,10 @@ class TasksTable
                     ->color(fn (string $state): string => str_starts_with($state, 'Blocked') ? 'warning' : 'gray'),
                 Tables\Columns\TextColumn::make('due_date')
                     ->dateTime(),
+                Tables\Columns\TextColumn::make('estimated_effort_minutes')
+                    ->label('Effort (min)')
+                    ->placeholder('Not estimated')
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->label('Created By'),
             ])

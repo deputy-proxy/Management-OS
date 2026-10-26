@@ -23,8 +23,8 @@ class TasksAndProjectsDataTest extends TestCase
         $project = Project::factory()->create(['start_date' => '2026-10-17', 'end_date' => '2026-10-17']);
         $phase = ProjectPhase::factory()->create(['project_id' => $project->id, 'start_on' => '2026-10-17', 'end_on' => '2026-10-17']);
 
-        Task::factory()->create(['action' => 'Overdue', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'pending', 'due_date' => '2026-10-16']);
-        Task::factory()->create(['action' => 'Due today', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'in_progress', 'due_date' => '2026-10-17']);
+        Task::factory()->create(['action' => 'Overdue', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'pending', 'due_date' => '2026-10-16', 'estimated_effort_minutes' => 60]);
+        Task::factory()->create(['action' => 'Due today', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'in_progress', 'due_date' => '2026-10-17', 'estimated_effort_minutes' => 30]);
         Task::factory()->create(['action' => 'Due at window end', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'pending', 'due_date' => '2026-10-24']);
         Task::factory()->create(['action' => 'Done overdue', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'done', 'due_date' => '2026-10-01']);
         Task::factory()->create(['action' => 'Deleted', 'assigned_to' => $user->id, 'created_by' => $user->id, 'project_id' => $project->id, 'project_phase_id' => $phase->id, 'status' => 'pending', 'due_date' => '2026-10-16'])->delete();
@@ -36,6 +36,8 @@ class TasksAndProjectsDataTest extends TestCase
         $this->assertSame(1, $summary['tasks_overdue']);
         $this->assertSame(3, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->open_count);
         $this->assertSame(1, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->overdue_count);
+        $this->assertSame(90, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->estimated_effort_minutes);
+        $this->assertSame(1, (int) $summary['assignee_workload']->firstWhere('assigned_to', $user->id)->unestimated_count);
         $this->assertSame([
             ['status' => 'done', 'count' => 1],
             ['status' => 'in_progress', 'count' => 1],
