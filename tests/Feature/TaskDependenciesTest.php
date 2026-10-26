@@ -69,6 +69,18 @@ class TaskDependenciesTest extends TestCase
         }
     }
 
+    public function test_dependency_validation_rejects_associative_payloads(): void
+    {
+        [$task, $dependency] = $this->makeTasks();
+
+        $validator = Validator::make(['dependencies' => ['unexpected' => $dependency->id]], [
+            'dependencies' => [new TaskDependenciesAreAcyclic($task->id)],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertStringContainsString('list', strtolower($validator->errors()->first('dependencies')));
+    }
+
     public function test_dependency_validation_allows_an_acyclic_prerequisite_chain(): void
     {
         [$first, $second, $third] = $this->makeTasks(3);
