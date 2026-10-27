@@ -22,6 +22,36 @@ class CustomerLeadLifecycleTest extends TestCase
         $lead->update(['status' => 'something arbitrary']);
     }
 
+    public function test_source_attribution_uses_a_controlled_category_and_preserves_legacy_source_text(): void
+    {
+        $lead = CustomerLead::factory()->create([
+            'source' => 'Old free-text source from legacy import',
+            'source_category' => 'unknown',
+        ]);
+
+        $this->assertSame('unknown', $lead->source_category);
+        $this->assertSame('Old free-text source from legacy import', $lead->source);
+
+        $lead->update([
+            'source_category' => 'paid_search',
+            'campaign_name' => 'spring-campaign-01',
+            'source_captured_at' => now(),
+        ]);
+
+        $this->assertSame('paid_search', $lead->fresh()->source_category);
+        $this->assertSame('Old free-text source from legacy import', $lead->fresh()->source);
+        $this->assertSame('spring-campaign-01', $lead->fresh()->campaign_name);
+        $this->assertSame('v1', $lead->fresh()->attribution_policy_version);
+    }
+
+    public function test_invalid_source_attribution_category_is_rejected(): void
+    {
+        $lead = CustomerLead::factory()->create();
+
+        $this->expectException(ValidationException::class);
+        $lead->update(['source_category' => 'invented-channel']);
+    }
+
     public function test_status_transitions_follow_the_lifecycle(): void
     {
         $lead = CustomerLead::factory()->create(['status' => 'new']);

@@ -66,9 +66,23 @@ class CustomerLeadForm
                     ->description('What the lead is interested in and where they came from.')
                     ->columns(2)
                     ->schema([
+                        Forms\Components\Select::make('source_category')
+                            ->label('Source category')
+                            ->options(CustomerLead::sourceCategories())
+                            ->required()
+                            ->default('unknown'),
                         Forms\Components\TextInput::make('source')
+                            ->label('Source details (preserved as entered)')
                             ->required()
                             ->maxLength(100),
+                        Forms\Components\TextInput::make('campaign_name')
+                            ->label('Campaign name / ID')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('referral_partner')
+                            ->label('Referral / partner name')
+                            ->maxLength(255),
+                        Forms\Components\DateTimePicker::make('source_captured_at')
+                            ->label('Attribution captured at'),
                         Forms\Components\TextInput::make('topic_interest')
                             ->required(),
                         Forms\Components\TextInput::make('product_interest')

@@ -62,6 +62,25 @@ class CustomerLead extends Model implements Commentable
     }
 
     /** @return array<string, string> */
+    /** @return array<string, string> */
+    public static function sourceCategories(): array
+    {
+        return [
+            'organic_search' => 'Organic search',
+            'paid_search' => 'Paid search',
+            'social' => 'Social media',
+            'referral' => 'Referral',
+            'partner' => 'Partner',
+            'event' => 'Event',
+            'outbound' => 'Outbound sales',
+            'direct' => 'Direct',
+            'website' => 'Website / inbound',
+            'existing_customer' => 'Existing customer',
+            'other' => 'Other',
+            'unknown' => 'Unknown / legacy not mapped',
+        ];
+    }
+
     public static function statuses(): array
     {
         return [
@@ -106,6 +125,14 @@ class CustomerLead extends Model implements Commentable
                 throw ValidationException::withMessages(['status' => 'Choose a valid customer lead status.']);
             }
 
+            $lead->source_category = strtolower(trim((string) $lead->source_category));
+            if (! array_key_exists($lead->source_category, self::sourceCategories())) {
+                throw ValidationException::withMessages(['source_category' => 'Choose a valid lead source category.']);
+            }
+            if (blank($lead->attribution_policy_version)) {
+                $lead->attribution_policy_version = 'v1';
+            }
+
             if ($lead->exists && $lead->getOriginal('status') === 'converted' && $lead->status !== 'converted') {
                 throw ValidationException::withMessages(['status' => 'A converted lead cannot return to the active lead pipeline.']);
             }
@@ -147,16 +174,17 @@ class CustomerLead extends Model implements Commentable
             'last_contacted_at' => 'datetime',
             'converted_at' => 'datetime',
             'contract_sent_at' => 'datetime',
+            'source_captured_at' => 'datetime',
         ];
     }
 
     /** @var array<int, string> */
     protected $fillable = [
-        'first_name', 'middle_name', 'last_name', 'full_name', 'email', 'phone', 'source', 'topic_interest', 'product_interest', 'status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_document', 'contract_send_status', 'contract_sent_at', 'contract_send_error', 'privacy_consented_at',
+        'first_name', 'middle_name', 'last_name', 'full_name', 'email', 'phone', 'source', 'source_category', 'campaign_name', 'referral_partner', 'attribution_policy_version', 'source_captured_at', 'topic_interest', 'product_interest', 'status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_document', 'contract_send_status', 'contract_sent_at', 'contract_send_error', 'privacy_consented_at',
     ];
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['status', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_sent_at', 'privacy_consented_at'])->logOnlyDirty()->dontLogEmptyChanges();
+        return LogOptions::defaults()->logOnly(['status', 'source', 'source_category', 'campaign_name', 'referral_partner', 'attribution_policy_version', 'source_captured_at', 'last_contacted_at', 'converted_customer_id', 'converted_at', 'contract_sent_at', 'privacy_consented_at'])->logOnlyDirty()->dontLogEmptyChanges();
     }
 }
