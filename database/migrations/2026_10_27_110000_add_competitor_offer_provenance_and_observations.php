@@ -33,7 +33,7 @@ return new class extends Migration
             $table->timestamp('recorded_at');
             $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('source_status', 24)->default('unknown');
-            $table->index(['competitor_offer_id', 'observed_at']);
+            $table->index(['competitor_offer_id', 'observed_at'], 'offer_obs_offer_time_idx');
         });
     }
 
