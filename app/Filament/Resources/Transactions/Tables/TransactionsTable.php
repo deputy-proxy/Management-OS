@@ -7,6 +7,7 @@ use App\Models\CustomerInvoice;
 use App\Models\Transaction;
 use App\Models\VendorInvoice;
 use App\Services\Finance\PaymentAllocationService;
+use App\Services\Finance\TransactionClassificationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -37,6 +38,11 @@ class TransactionsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('transaction_type'),
+                Tables\Columns\TextColumn::make('transaction_type_code')->label('Direction')->badge()->placeholder('Unresolved'),
+                Tables\Columns\TextColumn::make('classification_summary')
+                    ->label('Classification')
+                    ->state(fn (Transaction $record): string => app(TransactionClassificationService::class)->classify($record->transaction_type, $record->transaction_type_code)['label'])
+                    ->badge(),
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('amount_decimal')->label('Canonical amount')->placeholder('Unresolved'),
                 Tables\Columns\TextColumn::make('currency_code')->label('Currency')->placeholder('Unresolved'),
