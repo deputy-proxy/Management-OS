@@ -55,17 +55,6 @@ class Transaction extends Model implements Commentable
             if ($transaction->transaction_type_code !== null && ! in_array($transaction->transaction_type_code, ['money_in', 'money_out'], true)) {
                 throw ValidationException::withMessages(['transaction_type_code' => 'Direction must be money_in or money_out. Transfer, refund, and reversal workflows require their own linked-event contract.']);
             }
-            if ((! $transaction->exists || $transaction->isDirty(['amount_decimal', 'currency_code'])) && ($transaction->amount_decimal !== null || $transaction->currency_code !== null)) {
-                if ($transaction->amount_decimal === null || $transaction->currency_code === null) {
-                    throw ValidationException::withMessages(['amount_decimal' => 'Canonical decimal amount and currency must be provided together.']);
-                }
-                if ((float) $transaction->amount_decimal < 0) {
-                    throw ValidationException::withMessages(['amount_decimal' => 'Canonical cash-movement amount must be non-negative; direction is stored separately.']);
-                }
-                if (preg_match('/\A[A-Z]{3}\z/', (string) $transaction->currency_code) !== 1) {
-                    throw ValidationException::withMessages(['currency_code' => 'Currency must be an uppercase three-letter code.']);
-                }
-            }
         });
     }
 
