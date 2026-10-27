@@ -1,0 +1,124 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Customer;
+use App\Models\KpiDefinition;
+use App\Models\User;
+use App\Services\KpiAggregationService;
+use App\Services\KpiDefinitionService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
+use LogicException;
+use Tests\TestCase;
+
+class KpiDefinitionTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_drafts_copy_semantics_from_the_allow_list_and_increment_versions(): void
+    {
+        $first = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-10-27']);
+        $second = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-11-01']);
+
+        $this->assertSame(1, $first->version);
+        $this->assertSame(2, $second->version);
+        $this->assertSame('customer_record_count', $first->calculation_type);
+        $this->assertSame('Customer records', $first->label);
+        $this->assertSame(KpiDefinition::STATUS_DRAFT, $first->status);
+    }
+
+    public function test_unregistered_kpi_keys_are_rejected(): void
+    {
+        $this->expectException(ValidationException::class);
+        KpiDefinition::query()->create(['key' => 'arbitrary_php_formula', 'effective_from' => '2026-10-27']);
+    }
+
+    public function test_activation_versions_definitions_and_keeps_prior_effective_dates(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+
+        $first = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-10-27']);
+        app(KpiDefinitionService::class)->activate($first);
+        $second = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-11-01']);
+        app(KpiDefinitionService::class)->activate($second);
+
+        $this->assertSame(KpiDefinition::STATUS_ACTIVE, $first->fresh()->status);
+        $this->assertSame('2026-10-31', $first->fresh()->effective_until->toDateString());
+        $this->assertSame(KpiDefinition::STATUS_ACTIVE, $second->fresh()->status);
+        $this->assertSame($user->id, $second->fresh()->approved_by);
+        $this->assertNotNull($second->fresh()->approved_at);
+    }
+
+    public function test_activation_rejects_a_retroactive_effective_date(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        $definition = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2020-01-01']);
+
+        try {
+            app(KpiDefinitionService::class)->activate($definition);
+            $this->fail('Expected retroactive KPI activation to be rejected.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('effective_from', $exception->errors());
+        }
+    }
+
+    public function test_active_definition_semantics_cannot_be_edited(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        $definition = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-10-27']);
+        app(KpiDefinitionService::class)->activate($definition);
+
+        $this->expectException(LogicException::class);
+        $definition->update(['label' => 'Changed meaning']);
+    }
+
+    public function test_threshold_order_is_validated_for_direction(): void
+    {
+        $this->expectException(ValidationException::class);
+        KpiDefinition::query()->create([
+            'key' => 'overdue_task_count',
+            'effective_from' => '2026-10-27',
+            'threshold_direction' => 'higher_is_worse',
+            'warning_threshold' => 10,
+            'critical_threshold' => 5,
+        ]);
+    }
+
+    public function test_aggregation_is_permission_gated_and_returns_a_typed_result(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        Gate::define('customer.index', fn (): bool => true);
+        $definition = KpiDefinition::query()->create([
+            'key' => 'customer_record_count',
+            'effective_from' => Carbon::now()->toDateString(),
+            'target_value' => 1,
+            'threshold_direction' => 'higher_is_worse',
+            'warning_threshold' => 1,
+            'critical_threshold' => 2,
+        ]);
+        app(KpiDefinitionService::class)->activate($definition);
+        Customer::factory()->create();
+
+        $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), ['customer.index' => true]);
+        $this->assertSame('customer_record_count', $result['key']);
+        $this->assertSame(1, $result['value']);
+        $this->assertSame('warning', $result['threshold_status']);
+        $this->assertSame('available', $result['availability']);
+
+        Gate::define('customer.index', fn (): bool => false);
+        $restricted = app(KpiAggregationService::class)->aggregate($definition->fresh(), ['customer.index' => false]);
+        $this->assertNull($restricted['value']);
+        $this->assertSame('unavailable_permission_denied', $restricted['availability']);
+    }
+}

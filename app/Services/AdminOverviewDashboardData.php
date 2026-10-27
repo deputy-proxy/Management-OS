@@ -108,10 +108,13 @@ class AdminOverviewDashboardData
                 ->get(['id', 'description', 'event', 'subject_type', 'created_at'])
             : collect();
 
+        $kpis = app(KpiAggregationService::class)->current($permissions, $now);
+
         return [
             'as_of' => $now->format('F j, Y'),
             'timezone' => (string) config('app.timezone'),
             'metrics' => $metrics,
+            'kpis' => $kpis,
             'overdue_tasks' => $overdueTasks,
             'recent_activity' => $recentActivity,
             'activity_available' => $activityAvailable,
