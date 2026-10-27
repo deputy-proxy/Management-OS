@@ -66,6 +66,7 @@ class CustomerDashboard extends Page
             viewerId: auth()->id() ? (int) auth()->id() : null,
             includeContractReview: hexa()->can('customer_contract.index'),
             includeRetentionCohorts: hexa()->can('customer.index') && hexa()->can('customer_lead.index'),
+            includeLeadAttribution: hexa()->can('customer_lead.index'),
         );
     }
 }

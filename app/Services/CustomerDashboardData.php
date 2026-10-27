@@ -11,13 +11,14 @@ use App\Models\CustomerLifecycleEvent;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CustomerDashboardData
 {
     /**
-     * @return array{as_of: string, recent_since: string, customers: int, open_leads: int, active_contracts: int, interactions_last_30_days: int, invoice_statuses: array<int, array{status: string, count: int}>, lead_statuses: array<int, array{status: string, count: int}>, recent_interactions: Collection<int, CustomerInteraction>, recent_leads: Collection<int, CustomerLead>, follow_up_tasks: Collection<int, Task>, contract_end_dates: Collection<int, CustomerContract>, retention_cohorts: array{tracking_start_at: string, as_of: string, excluded_conversion_records_count: int, duplicate_conversion_leads_excluded_count: int, cohorts: array<int, array{cohort_month: string, period_month: string, cohort_size: int, active_count: int, churned_count: int, retention_percent: float, cutoff_at: string, is_partial_period: bool}>}|null}
+     * @return array{as_of: string, recent_since: string, customers: int, open_leads: int, active_contracts: int, interactions_last_30_days: int, invoice_statuses: array<int, array{status: string, count: int}>, lead_statuses: array<int, array{status: string, count: int}>, recent_interactions: Collection<int, CustomerInteraction>, recent_leads: Collection<int, CustomerLead>, follow_up_tasks: Collection<int, Task>, contract_end_dates: Collection<int, CustomerContract>, retention_cohorts: array{tracking_start_at: string, as_of: string, excluded_conversion_records_count: int, duplicate_conversion_leads_excluded_count: int, cohorts: array<int, array{cohort_month: string, period_month: string, cohort_size: int, active_count: int, churned_count: int, retention_percent: float, cutoff_at: string, is_partial_period: bool}>}|null, lead_attribution: array{source_categories: array<int, array{source_category: string, count: int}>, unknown_source_count: int, campaign_tagged_count: int, referral_tagged_count: int}|null}
      */
-    public function summary(?CarbonImmutable $now = null, bool $includeFollowUpTasks = false, bool $viewAllTasks = false, ?int $viewerId = null, bool $includeContractReview = false, bool $includeRetentionCohorts = false): array
+    public function summary(?CarbonImmutable $now = null, bool $includeFollowUpTasks = false, bool $viewAllTasks = false, ?int $viewerId = null, bool $includeContractReview = false, bool $includeRetentionCohorts = false, bool $includeLeadAttribution = false): array
     {
         $now ??= CarbonImmutable::now(config('app.timezone'));
         $recentSince = $now->subDays(30);
@@ -69,6 +70,7 @@ class CustomerDashboardData
                 ->get(['id', 'full_name', 'email', 'status', 'last_contacted_at', 'created_at']),
             'follow_up_tasks' => $this->followUpTasks($includeFollowUpTasks, $viewAllTasks, $viewerId),
             'retention_cohorts' => $includeRetentionCohorts ? $this->retentionCohorts($now) : null,
+            'lead_attribution' => $includeLeadAttribution ? $this->leadAttribution() : null,
             'contract_end_dates' => $includeContractReview
                 ? CustomerContract::query()
                     ->with('customer:id,name')
@@ -78,6 +80,27 @@ class CustomerDashboardData
                     ->limit(8)
                     ->get(['id', 'customer_id', 'contract_code', 'end_date'])
                 : collect(),
+        ];
+    }
+
+    /**
+     * @return array{source_categories: array<int, array{source_category: string, count: int}>, unknown_source_count: int, campaign_tagged_count: int, referral_tagged_count: int}
+     */
+    private function leadAttribution(): array
+    {
+        return [
+            'source_categories' => DB::table('customer_leads')
+                ->whereNull('deleted_at')
+                ->select('source_category')
+                ->selectRaw('COUNT(*) as record_count')
+                ->groupBy('source_category')
+                ->orderBy('source_category')
+                ->get()
+                ->map(fn (object $row): array => ['source_category' => (string) ($row->source_category ?? 'unknown'), 'count' => (int) $row->record_count])
+                ->all(),
+            'unknown_source_count' => CustomerLead::query()->where('source_category', 'unknown')->count(),
+            'campaign_tagged_count' => CustomerLead::query()->whereNotNull('campaign_name')->where('campaign_name', '!=', '')->count(),
+            'referral_tagged_count' => CustomerLead::query()->whereNotNull('referral_partner')->where('referral_partner', '!=', '')->count(),
         ];
     }
 

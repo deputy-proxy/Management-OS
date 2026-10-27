@@ -49,6 +49,30 @@ class CustomerDashboardDataTest extends TestCase
         $this->assertSame([['status' => 'new', 'count' => 1]], $summary['lead_statuses']);
     }
 
+    public function test_lead_attribution_summary_preserves_unknown_and_counts_campaign_and_referral_metadata(): void
+    {
+        CustomerLead::factory()->create(['source_category' => 'unknown']);
+        CustomerLead::factory()->create(['source_category' => 'paid_search', 'campaign_name' => 'campaign-1']);
+        CustomerLead::factory()->create(['source_category' => 'referral', 'referral_partner' => 'partner-1']);
+
+        $summary = app(CustomerDashboardData::class)->summary(includeLeadAttribution: true);
+
+        $this->assertSame(1, $summary['lead_attribution']['unknown_source_count']);
+        $this->assertSame(1, $summary['lead_attribution']['campaign_tagged_count']);
+        $this->assertSame(1, $summary['lead_attribution']['referral_tagged_count']);
+        $this->assertSame([
+            ['source_category' => 'paid_search', 'count' => 1],
+            ['source_category' => 'referral', 'count' => 1],
+            ['source_category' => 'unknown', 'count' => 1],
+        ], $summary['lead_attribution']['source_categories']);
+    }
+
+    public function test_lead_attribution_is_not_exposed_without_lead_list_permission(): void
+    {
+        $summary = app(CustomerDashboardData::class)->summary();
+        $this->assertNull($summary['lead_attribution']);
+    }
+
     public function test_retention_cohorts_count_unique_customers_and_use_explicit_lifecycle_events(): void
     {
         $now = CarbonImmutable::parse('2026-11-30 12:00:00', 'Europe/Bucharest');

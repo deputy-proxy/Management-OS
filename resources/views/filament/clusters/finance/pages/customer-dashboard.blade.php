@@ -55,6 +55,26 @@
                 </x-filament::section>
             @endif
 
+            @if ($summary['lead_attribution'] !== null)
+                <x-filament::section>
+                    <x-slot name="heading">Lead source attribution</x-slot>
+                    <x-slot name="description">Controlled source categories across non-deleted leads. Unknown is shown separately and is not inferred from legacy free text.</x-slot>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Unknown source</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($summary['lead_attribution']['unknown_source_count']) }}</p></div>
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Campaign-tagged leads</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($summary['lead_attribution']['campaign_tagged_count']) }}</p></div>
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Referral-tagged leads</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($summary['lead_attribution']['referral_tagged_count']) }}</p></div>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                        @forelse ($summary['lead_attribution']['source_categories'] as $source)
+                            <div class="flex justify-between gap-4 border-b border-gray-100 py-2 text-sm last:border-0 dark:border-gray-800"><span>{{ \App\Models\CustomerLead::sourceCategories()[$source['source_category']] ?? $source['source_category'] }}</span><span class="font-semibold tabular-nums">{{ number_format($source['count']) }}</span></div>
+                        @empty
+                            <p class="text-sm text-gray-500">No leads are available.</p>
+                        @endforelse
+                    </div>
+                    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">These are source-capture counts, not first-touch attribution, campaign ROI, CAC, or revenue attribution.</p>
+                </x-filament::section>
+            @endif
+
             <x-filament::section>
                 <x-slot name="heading">Customer invoice status</x-slot>
                 <x-slot name="description">Invoice counts for the current calendar month, grouped by stored status.</x-slot>
