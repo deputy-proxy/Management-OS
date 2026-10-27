@@ -20,6 +20,12 @@ class CompetitorOfferInfolist
                 TextEntry::make('their_differentiator'),
                 TextEntry::make('last_check')->dateTime(),
                 TextEntry::make('status'),
+                TextEntry::make('currency')->placeholder('Unknown'),
+                TextEntry::make('price_basis')->placeholder('Unknown'),
+                TextEntry::make('source_url')->url()->placeholder('Unknown'),
+                TextEntry::make('valid_from')->date()->placeholder('Unknown'),
+                TextEntry::make('valid_until')->date()->placeholder('Unknown'),
+                TextEntry::make('observed_at')->dateTime()->placeholder('Unknown'),
             ]);
     }
 }
