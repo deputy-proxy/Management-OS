@@ -33,6 +33,28 @@
                 @endforelse
             </x-filament::section>
 
+            @if ($summary['retention_cohorts'] !== null)
+                <x-filament::section>
+                    <x-slot name="heading">Customer retention cohorts</x-slot>
+                    <x-slot name="description">As of {{ $summary['retention_cohorts']['as_of'] }}. Cohort month uses the earliest verified conversion per customer; tracking begins {{ $summary['retention_cohorts']['tracking_start_at'] }}.</x-slot>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Excluded conversion records with missing/deleted customer links: {{ number_format($summary['retention_cohorts']['excluded_conversion_records_count']) }}. Duplicate conversion leads excluded from customer counts: {{ number_format($summary['retention_cohorts']['duplicate_conversion_leads_excluded_count']) }}. Retained means no explicit churn event at cutoff or explicit reactivation after churn.</p>
+                    @if (count($summary['retention_cohorts']['cohorts']) === 0)
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">No verified conversion cohorts exist in the active tracking window yet.</p>
+                    @else
+                        <div class="mt-3 overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="border-b border-gray-200 text-xs uppercase text-gray-500 dark:border-gray-700 dark:text-gray-400"><tr><th scope="col" class="py-3 pr-4">Cohort</th><th scope="col" class="px-3 py-3">Period</th><th scope="col" class="px-3 py-3 text-right">Customers</th><th scope="col" class="px-3 py-3 text-right">Active</th><th scope="col" class="px-3 py-3 text-right">Churned</th><th scope="col" class="px-3 py-3 text-right">Retention</th><th scope="col" class="px-3 py-3">Cutoff</th></tr></thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($summary['retention_cohorts']['cohorts'] as $cohort)
+                                        <tr><th scope="row" class="py-3 pr-4 font-medium">{{ $cohort['cohort_month'] }}</th><td class="px-3 py-3">{{ $cohort['period_month'] }} @if ($cohort['is_partial_period'])<span class="text-xs text-gray-500">partial</span>@endif</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($cohort['cohort_size']) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($cohort['active_count']) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($cohort['churned_count']) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($cohort['retention_percent'], 2) }}%</td><td class="px-3 py-3">{{ $cohort['cutoff_at'] }}</td></tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-filament::section>
+            @endif
+
             <x-filament::section>
                 <x-slot name="heading">Customer invoice status</x-slot>
                 <x-slot name="description">Invoice counts for the current calendar month, grouped by stored status.</x-slot>
