@@ -22,7 +22,7 @@ class CompetitorOfferInfolist
                 TextEntry::make('status'),
                 TextEntry::make('currency')->placeholder('Unknown'),
                 TextEntry::make('price_basis')->placeholder('Unknown'),
-                TextEntry::make('source_url')->url()->placeholder('Unknown'),
+                TextEntry::make('source_url')->url(fn (?string $state): ?string => $state)->placeholder('Unknown'),
                 TextEntry::make('valid_from')->date()->placeholder('Unknown'),
                 TextEntry::make('valid_until')->date()->placeholder('Unknown'),
                 TextEntry::make('observed_at')->dateTime()->placeholder('Unknown'),
