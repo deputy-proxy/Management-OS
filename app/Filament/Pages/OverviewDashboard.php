@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\Articles\ArticleResource;
+use App\Filament\Resources\CompetitorOffers\CompetitorOfferResource;
 use App\Filament\Resources\CustomerLeads\CustomerLeadResource;
 use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\Employees\EmployeeResource;
@@ -28,7 +29,6 @@ class OverviewDashboard extends BaseDashboard
             'overview-dashboard.view' => __('Allows viewing the overview dashboard'),
         ];
     }
-
 
     /**
      * Overview links are metadata-only. Each destination is checked against its
@@ -83,6 +83,7 @@ class OverviewDashboard extends BaseDashboard
             'employee.index' => EmployeeResource::class,
             'customer.index' => CustomerResource::class,
             'customer_lead.index' => CustomerLeadResource::class,
+            'competitor_offer.index' => CompetitorOfferResource::class,
             'project.index' => ProjectResource::class,
             'task.index' => TaskResource::class,
             'article.index' => ArticleResource::class,

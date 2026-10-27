@@ -35,3 +35,16 @@ Changes to business meaning require a new catalogue version, updated synthetic e
 ## Validation requirements
 
 Tests should assert unique stable keys, allow-listed calculation types, required source/permission metadata, nonempty descriptions, and explicit missing-data behavior. Runtime configuration must reject unsupported keys/types and enforce source permissions before querying data.
+
+## Versioned KPI definition workflow
+
+The initial definitions are supplied by the allow-listed `config/kpi_catalogue.php` registry. The `KpiDefinition` workflow adds effective-dated, versioned operational configuration without allowing a user to introduce executable formulas or arbitrary source fields.
+
+- A draft is created by selecting an existing catalogue key. Its label, description, domain, calculation type, unit, source, date basis, permission and missing-data contract are copied from the allow-list and are not user-editable.
+- Drafts may set a target and optional warning/critical thresholds, with an explicit direction (`higher_is_worse`, `lower_is_worse`, or `target_only`). Thresholds are inert when direction is `target_only`; they do not send notifications.
+- Only a user with `kpi_definition.approve` may activate or retire a definition. Activation records approver and timestamp. A new effective version closes the previous version on the preceding calendar day; approved calculation semantics cannot be edited in place.
+- Definition records cannot be deleted. Historical versions remain available for audit and interpretation. A new version receives a monotonically increasing version number for its stable key.
+- Aggregation uses the fixed calculation registry. Source permissions are checked in the service layer; unavailable values remain null with an explicit availability state. Task counts preserve the assigned-to/created-by scope unless `task.view_all` is granted.
+- The overview displays the v1 catalogue with the active effective-dated database definition taking precedence for a matching key. Threshold state is informational only; no alert, escalation, or notification delivery is implied.
+
+The supported configuration surface is deliberately narrower than arbitrary KPI authoring. Adding a new calculation requires code, a source contract, permission review, expected-result fixtures, and a new catalogue release.
