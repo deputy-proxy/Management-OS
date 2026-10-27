@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\CustomerDashboardData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CustomerDashboardDataTest extends TestCase
@@ -46,6 +47,38 @@ class CustomerDashboardDataTest extends TestCase
         $this->assertCount(1, $summary['recent_leads']);
         $this->assertSame('Boundary', $summary['recent_interactions']->first()->reason);
         $this->assertSame([['status' => 'new', 'count' => 1]], $summary['lead_statuses']);
+    }
+
+    public function test_retention_cohorts_count_unique_customers_and_use_explicit_lifecycle_events(): void
+    {
+        $now = CarbonImmutable::parse('2026-11-30 12:00:00', 'Europe/Bucharest');
+        Carbon::setTestNow($now);
+        $customer = Customer::factory()->create();
+        $other = Customer::factory()->create();
+        CustomerLead::factory()->create(['status' => 'converted', 'converted_customer_id' => $customer->id, 'converted_at' => '2026-11-02 10:00:00']);
+        CustomerLead::factory()->create(['status' => 'converted', 'converted_customer_id' => $customer->id, 'converted_at' => '2026-11-04 10:00:00']);
+        CustomerLead::factory()->create(['status' => 'converted', 'converted_customer_id' => $other->id, 'converted_at' => '2026-11-03 10:00:00']);
+        $customer->lifecycleEvents()->create(['event_type' => 'churned', 'effective_at' => '2026-11-20 10:00:00', 'reason' => 'Ended', 'evidence_reference' => 'case-1']);
+        $customer->lifecycleEvents()->create(['event_type' => 'reactivated', 'effective_at' => '2026-11-25 10:00:00', 'reason' => 'Returned', 'evidence_reference' => 'case-2']);
+
+        $summary = app(CustomerDashboardData::class)->summary($now, includeRetentionCohorts: true);
+        $cohort = $summary['retention_cohorts']['cohorts'][0];
+
+        $this->assertSame('2026-11', $cohort['cohort_month']);
+        $this->assertSame('2026-11', $cohort['period_month']);
+        $this->assertTrue($cohort['is_partial_period']);
+        $this->assertSame(2, $cohort['cohort_size']);
+        $this->assertSame(2, $cohort['active_count']);
+        $this->assertSame(0, $cohort['churned_count']);
+        $this->assertSame(100.0, $cohort['retention_percent']);
+        $this->assertSame(1, $summary['retention_cohorts']['duplicate_conversion_leads_excluded_count']);
+        Carbon::setTestNow();
+    }
+
+    public function test_retention_cohorts_are_not_exposed_without_both_customer_and_lead_permissions(): void
+    {
+        $summary = app(CustomerDashboardData::class)->summary();
+        $this->assertNull($summary['retention_cohorts']);
     }
 
     public function test_invoice_status_counts_are_limited_to_current_billing_month_and_exclude_soft_deleted_rows(): void

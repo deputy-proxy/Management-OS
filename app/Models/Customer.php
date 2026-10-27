@@ -49,6 +49,12 @@ class Customer extends Model implements Commentable
         return $this->hasMany(CustomerLead::class, 'converted_customer_id');
     }
 
+    /** @return HasMany<CustomerLifecycleEvent, $this> */
+    public function lifecycleEvents(): HasMany
+    {
+        return $this->hasMany(CustomerLifecycleEvent::class)->orderBy('effective_at')->orderBy('id');
+    }
+
     public function competitionEntries(): HasMany
     {
         return $this->hasMany(CompetitionEntry::class);

@@ -2,28 +2,31 @@
 
 namespace App\Filament\Resources\Customers;
 
+use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Clusters\Finance\FinanceCluster;
+use App\Filament\Resources\Customers\RelationManagers\LifecycleEventsRelationManager;
+use App\Filament\Resources\Customers\Schemas\CustomerForm;
+use App\Filament\Resources\Customers\Schemas\CustomerInfolist;
+use App\Filament\Resources\Customers\Tables\CustomersTable;
 use App\Models\Customer;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use App\Filament\Resources\Customers\Pages;
-use App\Filament\Resources\Customers\Schemas\CustomerForm;
-use App\Filament\Resources\Customers\Schemas\CustomerInfolist;
-use App\Filament\Resources\Customers\Tables\CustomersTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Database\Eloquent\Model;
 use Hexters\HexaLite\HasHexaLite;
-use AlizHarb\ActivityLog\RelationManagers\ActivitiesRelationManager;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
-use App\Filament\Clusters\Finance\FinanceCluster;
 
 class CustomerResource extends Resource
 {
     protected static ?int $navigationSort = 1;
+
     protected static ?string $cluster = FinanceCluster::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Customer Management';
+
     use HasHexaLite;
 
     protected static ?string $model = Customer::class;
@@ -61,7 +64,7 @@ class CustomerResource extends Resource
     {
         return [
             ActivitiesRelationManager::class,
-            //
+            LifecycleEventsRelationManager::class,
         ];
     }
 
