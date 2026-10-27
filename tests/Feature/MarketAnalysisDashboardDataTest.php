@@ -64,7 +64,11 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertSame('Fresh offer', $summary['offers']['recent_checks'][0]['title']);
         $this->assertSame('Fresh offer', $summary['offers']['qualitative_comparisons'][0]['title']);
         $this->assertArrayNotHasKey('average_offer_price', $summary['offers']);
-        $this->assertFalse($summary['market_data']['has_historical_observations']);
+        $this->assertTrue($summary['market_data']['has_historical_observations']);
+        $this->assertSame(4, $summary['offers']['observation_count']);
+        $this->assertSame(4, $summary['offers']['observations_with_source_count']);
+        $this->assertSame(0, $summary['offers']['observations_with_unknown_source_count']);
+        $this->assertCount(4, $summary['offers']['recent_observations']);
         $this->assertSame('October 18, 2026', $summary['as_of']);
         $this->assertSame(config('app.timezone'), $summary['timezone']);
     }
@@ -142,6 +146,8 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertSame(0, $empty['offers']['stale_count']);
         $this->assertSame([], $empty['offers']['status_buckets']);
         $this->assertSame([], $empty['offers']['recent_checks']);
+        $this->assertSame(0, $empty['offers']['observation_count']);
+        $this->assertSame([], $empty['offers']['recent_observations']);
         $this->assertFalse($empty['market_data']['has_market_reports']);
         $this->assertFalse($empty['market_data']['has_audience_demand_data']);
 

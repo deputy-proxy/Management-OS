@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Competitor;
 use App\Models\CompetitorOffer;
+use App\Models\CompetitorOfferObservation;
 use Carbon\CarbonImmutable;
 
 class MarketAnalysisDashboardData
@@ -72,11 +73,37 @@ class MarketAnalysisDashboardData
             'by_competitor' => null,
             'competitors_without_offers_count' => null,
             'without_current_competitor_count' => null,
+            'observation_count' => null,
+            'observations_with_source_count' => null,
+            'observations_with_unknown_source_count' => null,
+            'latest_observation_at' => null,
+            'recent_observations' => [],
         ];
 
         if ($canViewOffers) {
             $offers['current_count'] = CompetitorOffer::query()->count();
             $offers['soft_deleted_count'] = CompetitorOffer::onlyTrashed()->count();
+            $offers['observation_count'] = CompetitorOfferObservation::query()->count();
+            $offers['observations_with_source_count'] = CompetitorOfferObservation::query()->where('source_status', 'provided')->count();
+            $offers['observations_with_unknown_source_count'] = CompetitorOfferObservation::query()->where('source_status', 'unknown')->count();
+            $offers['latest_observation_at'] = $this->formatDateTime(CompetitorOfferObservation::query()->max('observed_at'));
+            $offers['recent_observations'] = CompetitorOfferObservation::query()
+                ->with('offer:id,title,competitor_id')
+                ->orderByDesc('observed_at')->orderByDesc('id')
+                ->limit(5)
+                ->get()
+                ->map(fn (CompetitorOfferObservation $observation): array => [
+                    'title' => $observation->title,
+                    'offer_id' => $observation->competitor_offer_id,
+                    'competitor_id' => $observation->offer?->competitor_id,
+                    'offer_price' => $observation->offer_price,
+                    'currency' => $observation->currency,
+                    'price_basis' => $observation->price_basis,
+                    'source_url' => $observation->source_url,
+                    'source_status' => $observation->source_status,
+                    'observed_at' => $this->formatDateTime($observation->observed_at),
+                    'recorded_at' => $this->formatDateTime($observation->recorded_at),
+                ])->all();
             $offers['status_buckets'] = $this->rawBuckets('status');
             $offers['offer_type_buckets'] = $this->rawBuckets('offer_type');
             $offers['checked_recently_count'] = CompetitorOffer::query()
@@ -159,7 +186,7 @@ class MarketAnalysisDashboardData
             'offers' => $offers,
             'market_data' => [
                 'has_market_reports' => false,
-                'has_historical_observations' => false,
+                'has_historical_observations' => $canViewOffers && $offers['observation_count'] > 0,
                 'has_segments' => false,
                 'has_audience_demand_data' => false,
                 'has_live_source' => false,

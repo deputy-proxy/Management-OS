@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Competitor;
 use App\Models\CompetitorOffer;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CompetitorOfferFactory extends Factory
 {
@@ -25,7 +24,7 @@ class CompetitorOfferFactory extends Factory
     {
         return [
             'title' => $this->faker->sentence(),
-            'competitor_id' => \App\Models\Competitor::factory(),
+            'competitor_id' => Competitor::factory(),
             'offer_type' => $this->faker->word(),
             'offer_description' => $this->faker->paragraphs(3, true),
             'offer_price' => $this->faker->randomFloat(2, 10, 1000),
@@ -33,6 +32,10 @@ class CompetitorOfferFactory extends Factory
             'their_differentiator' => $this->faker->paragraph(),
             'last_check' => $this->faker->date(),
             'status' => $this->faker->word(),
+            'currency' => 'RON',
+            'price_basis' => 'monthly',
+            'source_url' => 'https://example.test/offers/sample',
+            'observed_at' => now(),
         ];
     }
 }
