@@ -42,13 +42,16 @@ class KpiDefinitionTest extends TestCase
         $this->actingAs($user);
         Gate::define('kpi_definition.approve', fn (): bool => true);
 
-        $first = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-10-27']);
+        $firstDate = Carbon::tomorrow('Europe/Bucharest')->toDateString();
+        $secondDate = Carbon::tomorrow('Europe/Bucharest')->addDays(5)->toDateString();
+
+        $first = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => $firstDate]);
         app(KpiDefinitionService::class)->activate($first);
-        $second = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-11-01']);
+        $second = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => $secondDate]);
         app(KpiDefinitionService::class)->activate($second);
 
         $this->assertSame(KpiDefinition::STATUS_ACTIVE, $first->fresh()->status);
-        $this->assertSame('2026-10-31', $first->fresh()->effective_until->toDateString());
+        $this->assertSame(Carbon::parse($secondDate)->subDay()->toDateString(), $first->fresh()->effective_until->toDateString());
         $this->assertSame(KpiDefinition::STATUS_ACTIVE, $second->fresh()->status);
         $this->assertSame($user->id, $second->fresh()->approved_by);
         $this->assertNotNull($second->fresh()->approved_at);
@@ -74,7 +77,10 @@ class KpiDefinitionTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
         Gate::define('kpi_definition.approve', fn (): bool => true);
-        $definition = KpiDefinition::query()->create(['key' => 'customer_record_count', 'effective_from' => '2026-10-27']);
+        $definition = KpiDefinition::query()->create([
+            'key' => 'customer_record_count',
+            'effective_from' => Carbon::tomorrow('Europe/Bucharest')->toDateString(),
+        ]);
         app(KpiDefinitionService::class)->activate($definition);
 
         $this->expectException(LogicException::class);
