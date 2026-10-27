@@ -60,4 +60,15 @@ return [
         ],
     ],
 
+
+    'google_ads' => [
+        'client_id' => env('GOOGLE_ADS_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_ADS_CLIENT_SECRET'),
+        'refresh_token' => env('GOOGLE_ADS_REFRESH_TOKEN'),
+        'customer_id' => env('GOOGLE_ADS_CUSTOMER_ID'),
+        'login_customer_id' => env('GOOGLE_ADS_LOGIN_CUSTOMER_ID'),
+        'api_version' => 'v26',
+        'timeout' => (int) env('GOOGLE_ADS_TIMEOUT', 30),
+        'max_range_days' => (int) env('GOOGLE_ADS_MAX_RANGE_DAYS', 90),
+    ],
 ];
