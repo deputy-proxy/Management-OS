@@ -205,10 +205,67 @@
             </x-filament::section>
         </section>
 
+        <section aria-labelledby="google-ads-heading" class="space-y-3">
+            <h2 id="google-ads-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Google Ads campaign performance</h2>
+            <x-filament::section>
+                @if (! $dashboard['google_ads']['can_view'])
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Unavailable without paid-campaign list permission.</p>
+                @else
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Imported daily metrics for {{ $dashboard['google_ads']['from'] }} through {{ $dashboard['google_ads']['to'] }}. Latest import: {{ $dashboard['google_ads']['latest_imported_at'] ?? 'none' }}. This section reads stored imports and does not call Google Ads live.</p>
+                    @if ($dashboard['google_ads']['row_count'] === 0)
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">No imported campaign metrics are available for this period. Configure credentials and run the documented dry-run/import command.</p>
+                    @else
+                        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div><p class="text-sm text-gray-600 dark:text-gray-300">Campaign-day rows</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($dashboard['google_ads']['row_count']) }}</p></div>
+                            <div><p class="text-sm text-gray-600 dark:text-gray-300">Campaigns represented</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($dashboard['google_ads']['campaign_count']) }}</p></div>
+                            <div><p class="text-sm text-gray-600 dark:text-gray-300">Currency totals</p><p class="mt-1 text-sm">{{ implode(', ', array_map(fn ($total) => $total['currency_code'], $dashboard['google_ads']['currency_totals'])) }}</p></div>
+                        </div>
+                        <h3 class="mt-4 font-medium">Totals by account currency</h3>
+                        <div class="mt-2 space-y-2">
+                            @foreach ($dashboard['google_ads']['currency_totals'] as $total)
+                                <div class="grid grid-cols-2 gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700 sm:grid-cols-5">
+                                    <div><p class="text-gray-500">Currency</p><p class="font-semibold">{{ $total['currency_code'] }}</p></div>
+                                    <div><p class="text-gray-500">Cost</p><p class="font-semibold tabular-nums">{{ number_format(((float) $total['cost_micros']) / 1000000, 2) }} {{ $total['currency_code'] }}</p></div>
+                                    <div><p class="text-gray-500">Impressions</p><p class="font-semibold tabular-nums">{{ number_format($total['impressions']) }}</p></div>
+                                    <div><p class="text-gray-500">Clicks</p><p class="font-semibold tabular-nums">{{ number_format($total['clicks']) }}</p></div>
+                                    <div><p class="text-gray-500">Reported conversions</p><p class="font-semibold tabular-nums">{{ number_format((float) $total['conversions'], 2) }}</p></div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <h3 class="mt-4 font-medium">Campaign detail, grouped by currency</h3>
+                        <div class="mt-2 overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="border-b border-gray-200 text-xs uppercase text-gray-500 dark:border-gray-700 dark:text-gray-400"><tr><th scope="col" class="py-3 pr-4">Campaign</th><th scope="col" class="px-3 py-3">Currency</th><th scope="col" class="px-3 py-3 text-right">Cost</th><th scope="col" class="px-3 py-3 text-right">Clicks</th><th scope="col" class="px-3 py-3 text-right">Impressions</th><th scope="col" class="px-3 py-3 text-right">Reported conversions</th><th scope="col" class="px-3 py-3 text-right">Cost / conversion</th></tr></thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($dashboard['google_ads']['campaign_rows'] as $campaign)
+                                        <tr><th scope="row" class="py-3 pr-4 font-medium">{{ $campaign['campaign_name'] }}</th><td class="px-3 py-3">{{ $campaign['currency_code'] }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format(((float) $campaign['cost_micros']) / 1000000, 2) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($campaign['clicks']) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format($campaign['impressions']) }}</td><td class="px-3 py-3 text-right tabular-nums">{{ number_format((float) $campaign['conversions'], 2) }}</td><td class="px-3 py-3 text-right tabular-nums">@if ((float) $campaign['conversions'] > 0){{ number_format(((float) $campaign['cost_micros']) / 1000000 / (float) $campaign['conversions'], 2) }} {{ $campaign['currency_code'] }}@else<span class="text-gray-500">Unavailable</span>@endif</td></tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">Provider-reported conversions and cost per reported conversion are not unique acquired customers, CAC, revenue, or profit. Currency totals are kept separate. Access requires <code>paid_campaign.index</code>.</p>
+                @endif
+            </x-filament::section>
+        </section>
+
         <section aria-labelledby="market-trends-heading" class="space-y-3">
             <h2 id="market-trends-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Market trends and demand signals</h2>
             <x-filament::section>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Historical offer snapshots are shown separately above. Market-size trends, segment-level demand, audience measurements, and live provider data are still unavailable; no trend chart or strategic score is inferred from offer observations alone.</p>
+                @if (! $dashboard['market_trends']['can_view'])
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Unavailable without market-trend list permission.</p>
+                @else
+                    <p class="text-sm text-gray-600 dark:text-gray-300">{{ number_format($dashboard['market_trends']['count']) }} active observations. Latest observation: {{ $dashboard['market_trends']['latest_observation_at'] ?? 'none' }}. Observations are source-reported measurements, not forecasts or proof of market-wide conditions.</p>
+                    @if (count($dashboard['market_trends']['recent']) === 0)
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">No active market-trend observations recorded.</p>
+                    @else
+                        <div class="mt-3 overflow-x-auto"><table class="w-full text-left text-sm"><thead class="border-b border-gray-200 text-xs uppercase text-gray-500 dark:border-gray-700 dark:text-gray-400"><tr><th scope="col" class="py-3 pr-4">Observation</th><th scope="col" class="px-3 py-3">Value</th><th scope="col" class="px-3 py-3">Market / segment</th><th scope="col" class="px-3 py-3">Period</th><th scope="col" class="px-3 py-3">Source</th></tr></thead><tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @foreach ($dashboard['market_trends']['recent'] as $trend)
+                                <tr><th scope="row" class="py-3 pr-4 font-medium">{{ $trend['name'] }}<p class="text-xs font-normal text-gray-500">{{ $trend['metric_key'] }}@if ($trend['change_pct'] !== null) · {{ $trend['change_pct'] }}% reported change @endif</p></th><td class="px-3 py-3 tabular-nums">{{ $trend['value'] }} {{ $trend['unit'] }}</td><td class="px-3 py-3">{{ $trend['market'] }} / {{ $trend['segment'] ?? 'unspecified' }}</td><td class="px-3 py-3">{{ $trend['period_start'] }} – {{ $trend['period_end'] }}</td><td class="px-3 py-3">@if ($trend['source_url'])<a class="underline" href="{{ $trend['source_url'] }}" target="_blank" rel="noopener noreferrer">{{ $trend['source_name'] ?: 'Source' }}</a>@else{{ $trend['source_name'] ?: 'Unknown source' }}@endif</td></tr>
+                            @endforeach
+                        </tbody></table></div>
+                    @endif
+                @endif
             </x-filament::section>
         </section>
 
