@@ -37,6 +37,19 @@
             @endif
         </section>
 
+        <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <h2 class="text-base font-semibold text-gray-950 dark:text-white">Transaction classification coverage</h2>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Counts use the explicit money direction and legacy type label. This does not sum money or infer refunds, reversals, transfers, or settlement from a link.</p>
+            @forelse ($summary['transaction_classifications'] as $classification)
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 py-2 text-sm last:border-0 dark:border-gray-800">
+                    <div><p class="font-medium">{{ $classification['label'] }}</p><p class="text-xs text-gray-500">{{ $classification['code'] }} · {{ $classification['status'] }}</p></div>
+                    <div class="text-right tabular-nums"><p>Current: {{ number_format($classification['current_count']) }}</p><p class="text-xs text-gray-500">Previous: {{ number_format($classification['previous_count']) }}</p></div>
+                </div>
+            @empty
+                <p class="mt-4 text-sm text-gray-500">No transaction classification records for these periods.</p>
+            @endforelse
+        </section>
+
         <div class="grid gap-6 md:grid-cols-2">
             <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                 <h2 class="text-base font-semibold text-gray-950 dark:text-white">Customer invoice status</h2>

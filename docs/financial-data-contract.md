@@ -75,6 +75,9 @@ Evidence includes app/Models/Transaction.php, CustomerInvoice.php, VendorInvoice
 
 ## 3. Transaction vocabulary and lifecycle
 
+**Implemented subset:** [`transaction-classification-v1.md`](transaction-classification-v1.md) adds explicit `money_in` / `money_out` direction for new form entries and a count-only classification view. Legacy rows without direction remain unclassified. This does not authorize legacy backfill, amount scaling, settlement inference, or transfer/refund/reversal posting.
+
+
 Owner-approved target behavior:
 
 - Direction is explicit money-in or money-out; amount is non-negative.

@@ -73,6 +73,31 @@ class FinancialOverviewDataTest extends TestCase
         $this->assertSame(200, $rows['EUR|Vendor']['current_total']);
     }
 
+    public function test_transaction_classification_counts_keep_unresolved_legacy_rows_separate(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));
+        $customerInvoice = CustomerInvoice::factory()->create(['month' => '2026-10-01']);
+        $vendorInvoice = VendorInvoice::factory()->create(['month' => '2026-10-01']);
+        $tax = Tax::factory()->create(['month' => '2026-10-01']);
+        $references = [
+            'financial_account_id' => FinancialAccount::factory()->create()->id,
+            'customer_invoice_id' => $customerInvoice->id,
+            'vendor_invoice_id' => $vendorInvoice->id,
+            'tax_id' => $tax->id,
+        ];
+        Transaction::factory()->create($references + ['transaction_type' => 'Customer', 'transaction_type_code' => 'money_in', 'timestamp' => '2026-10-10 12:00:00']);
+        Transaction::factory()->create($references + ['transaction_type' => 'Vendor', 'transaction_type_code' => 'money_out', 'timestamp' => '2026-10-11 12:00:00']);
+        Transaction::factory()->create($references + ['transaction_type' => 'Other', 'transaction_type_code' => null, 'timestamp' => '2026-10-12 12:00:00']);
+
+        $summary = app(FinancialOverviewData::class)->summary($now);
+        $classifications = collect($summary['transaction_classifications'])->keyBy('code');
+
+        $this->assertSame(1, $classifications['customer_money_in']['current_count']);
+        $this->assertSame(1, $classifications['vendor_money_out']['current_count']);
+        $this->assertSame(1, $classifications['unclassified_legacy']['current_count']);
+        $this->assertSame('unclassified', $classifications['unclassified_legacy']['status']);
+    }
+
     public function test_invoice_status_counts_use_billing_month_and_exclude_soft_deleted_records(): void
     {
         $now = CarbonImmutable::parse('2026-10-17 12:00:00', config('app.timezone'));

@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Filament\Resources\Transactions\Schemas;
 
 use Filament\Forms;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class TransactionForm
 {
@@ -16,15 +17,15 @@ class TransactionForm
                     ->description('The financial account, invoices and tax record linked to this transaction.')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\Select::make('financial_account_id')
+                        Select::make('financial_account_id')
                             ->relationship('financialAccount', 'title')
                             ->required(),
-                        Forms\Components\Select::make('vendor_invoice_id')
+                        Select::make('vendor_invoice_id')
                             ->relationship('vendorInvoice', 'id'),
-                        Forms\Components\Select::make('customer_invoice_id')
+                        Select::make('customer_invoice_id')
                             ->relationship('customerInvoice', 'identifier')
                             ->required(),
-                        Forms\Components\Select::make('tax_id')
+                        Select::make('tax_id')
                             ->relationship('tax', 'id')
                             ->required(),
                     ]),
@@ -40,6 +41,11 @@ class TransactionForm
                                 'Tax' => 'Tax',
                                 'Other' => 'Other',
                             ])
+                            ->required(),
+                        Select::make('transaction_type_code')
+                            ->label('Money direction')
+                            ->options(['money_in' => 'Money in', 'money_out' => 'Money out'])
+                            ->helperText('Required for new records. Legacy rows without an explicit direction remain unclassified.')
                             ->required(),
                         Forms\Components\TextInput::make('amount')
                             ->numeric()
