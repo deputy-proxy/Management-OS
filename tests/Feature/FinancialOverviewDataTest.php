@@ -73,6 +73,32 @@ class FinancialOverviewDataTest extends TestCase
         $this->assertSame(200, $rows['EUR|Vendor']['current_total']);
     }
 
+    public function test_canonical_cash_movements_keep_currencies_separate_and_exclude_legacy_rows(): void
+    {
+        $now = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));
+        $customerInvoice = CustomerInvoice::factory()->create(['month' => '2026-10-01']);
+        $vendorInvoice = VendorInvoice::factory()->create(['month' => '2026-10-01']);
+        $tax = Tax::factory()->create(['month' => '2026-10-01']);
+        $references = [
+            'financial_account_id' => FinancialAccount::factory()->create()->id,
+            'customer_invoice_id' => $customerInvoice->id,
+            'vendor_invoice_id' => $vendorInvoice->id,
+            'tax_id' => $tax->id,
+        ];
+        Transaction::factory()->create($references + ['transaction_type' => 'Customer', 'transaction_type_code' => 'money_in', 'amount_decimal' => '100.00', 'currency_code' => 'RON', 'timestamp' => '2026-10-10 12:00:00']);
+        Transaction::factory()->create($references + ['transaction_type' => 'Vendor', 'transaction_type_code' => 'money_out', 'amount_decimal' => '25.00', 'currency_code' => 'RON', 'timestamp' => '2026-10-11 12:00:00']);
+        Transaction::factory()->create($references + ['transaction_type' => 'Other', 'transaction_type_code' => 'money_in', 'amount_decimal' => '10.00', 'currency_code' => 'EUR', 'timestamp' => '2026-10-12 12:00:00']);
+        Transaction::factory()->create($references + ['transaction_type' => 'Other', 'transaction_type_code' => null, 'amount_decimal' => null, 'currency_code' => null, 'timestamp' => '2026-10-13 12:00:00']);
+
+        $summary = app(FinancialOverviewData::class)->summary($now);
+        $movements = collect($summary['canonical_cash_movements']['rows'])->keyBy(fn (array $row): string => $row['currency'].'|'.$row['direction']);
+
+        $this->assertSame('100.00', $movements['RON|money_in']['current_amount']);
+        $this->assertSame('25.00', $movements['RON|money_out']['current_amount']);
+        $this->assertSame('10.00', $movements['EUR|money_in']['current_amount']);
+        $this->assertSame(1, $summary['canonical_cash_movements']['excluded_current_count']);
+    }
+
     public function test_transaction_classification_counts_keep_unresolved_legacy_rows_separate(): void
     {
         $now = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));

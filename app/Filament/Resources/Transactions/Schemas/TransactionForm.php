@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Transactions\Schemas;
 
+use App\Models\FinancialAccount;
+use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
@@ -50,6 +52,26 @@ class TransactionForm
                         Forms\Components\TextInput::make('amount')
                             ->numeric()
                             ->required(),
+                        Forms\Components\TextInput::make('amount_decimal')
+                            ->label('Canonical amount')
+                            ->numeric()
+                            ->minValue(0)
+                            ->step('0.01')
+                            ->required(fn (?Transaction $record): bool => $record === null)
+                            ->helperText('Required for new transactions. Legacy rows without a verified decimal amount remain excluded from canonical cash reporting.'),
+                        Select::make('currency_code')
+                            ->label('Currency')
+                            ->options(function (?Transaction $record): array {
+                                $currencies = FinancialAccount::query()->whereNotNull('currency')->where('currency', '!=', '')->distinct()->orderBy('currency')->pluck('currency', 'currency')->all();
+                                if (filled($record?->currency_code)) {
+                                    $currencies[$record->currency_code] ??= $record->currency_code;
+                                }
+
+                                return $currencies;
+                            })
+                            ->searchable()
+                            ->required(fn (?Transaction $record): bool => $record === null)
+                            ->helperText('Required for new transactions. Amounts are never converted across currencies.'),
                         Forms\Components\TextInput::make('payment_method')
                             ->required(),
                         Forms\Components\DateTimePicker::make('timestamp')
