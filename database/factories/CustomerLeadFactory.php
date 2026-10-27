@@ -29,6 +29,8 @@ class CustomerLeadFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'source' => $this->faker->word(),
+            'source_category' => 'unknown',
+            'attribution_policy_version' => 'v1',
             'topic_interest' => $this->faker->word(),
             'product_interest' => $this->faker->word(),
             'status' => 'new',

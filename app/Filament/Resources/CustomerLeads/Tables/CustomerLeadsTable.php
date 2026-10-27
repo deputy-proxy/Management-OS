@@ -47,7 +47,9 @@ class CustomerLeadsTable
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\TextColumn::make('phone')->searchable(),
-                Tables\Columns\TextColumn::make('source')->searchable(),
+                Tables\Columns\TextColumn::make('source_category')->label('Source category')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('source')->label('Source details')->searchable(),
+                Tables\Columns\TextColumn::make('campaign_name')->toggleable(),
                 Tables\Columns\TextColumn::make('topic_interest'),
                 Tables\Columns\TextColumn::make('product_interest'),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {

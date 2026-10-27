@@ -36,6 +36,8 @@ class PublicFormsTest extends TestCase
         $this->assertDatabaseHas('customer_leads', [
             'email' => 'ari@example.test',
             'source' => 'public_form',
+            'source_category' => 'unknown',
+            'attribution_policy_version' => 'v1',
             'status' => 'new',
             'converted_customer_id' => null,
         ]);
