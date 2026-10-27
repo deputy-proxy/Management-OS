@@ -17,7 +17,11 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-/** @property string|null $transaction_type_code */
+/**
+ * @property string|null $transaction_type_code
+ * @property string|null $amount_decimal
+ * @property string|null $currency_code
+ */
 class Transaction extends Model implements Commentable
 {
     use HasComments;

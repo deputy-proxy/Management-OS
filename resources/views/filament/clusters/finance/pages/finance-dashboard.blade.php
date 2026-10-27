@@ -38,6 +38,20 @@
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <h2 class="text-base font-semibold text-gray-950 dark:text-white">Canonical cash movements</h2>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Only transactions with explicit direction, non-negative decimal amount, and a three-letter currency are included. These are recorded cash-movement amounts, not revenue recognition, payable settlement, profit, or bank reconciliation.</p>
+            @forelse ($summary['canonical_cash_movements']['rows'] as $movement)
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 py-2 text-sm last:border-0 dark:border-gray-800">
+                    <div><p class="font-medium">{{ $movement['currency'] }} · {{ $movement['direction'] === 'money_in' ? 'Money in' : 'Money out' }}</p><p class="text-xs text-gray-500">Current count: {{ number_format($movement['current_count']) }} · Previous count: {{ number_format($movement['previous_count']) }}</p></div>
+                    <div class="text-right tabular-nums"><p>{{ number_format((float) $movement['current_amount'], 2) }} {{ $movement['currency'] }}</p><p class="text-xs text-gray-500">Previous: {{ number_format((float) $movement['previous_amount'], 2) }} {{ $movement['currency'] }}</p></div>
+                </div>
+            @empty
+                <p class="mt-4 text-sm text-gray-500">No canonical cash-movement rows are available for these periods.</p>
+            @endforelse
+            <p class="mt-3 text-xs text-gray-500">Excluded for missing/invalid canonical direction, amount, or currency: current {{ number_format($summary['canonical_cash_movements']['excluded_current_count']) }}, previous {{ number_format($summary['canonical_cash_movements']['excluded_previous_count']) }}. No currency conversion is performed.</p>
+        </section>
+
+        <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <h2 class="text-base font-semibold text-gray-950 dark:text-white">Transaction classification coverage</h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Counts use the explicit money direction and legacy type label. This does not sum money or infer refunds, reversals, transfers, or settlement from a link.</p>
             @forelse ($summary['transaction_classifications'] as $classification)
