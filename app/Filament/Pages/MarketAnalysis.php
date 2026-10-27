@@ -32,6 +32,9 @@ class MarketAnalysis extends Page
             'competitor.create' => hexa()->can('competitor.create'),
             'competitor_offer.index' => hexa()->can('competitor_offer.index'),
             'competitor_offer.create' => hexa()->can('competitor_offer.create'),
+            'market_trend.index' => hexa()->can('market_trend.index'),
+            'google_ads_metrics.view' => hexa()->can('paid_campaign.index'),
+            'paid_campaign.index' => hexa()->can('paid_campaign.index'),
         ];
         $summary = app(MarketAnalysisDashboardData::class)->summary($permissions);
 

@@ -9,10 +9,10 @@ This audit records the market-intelligence structures and observable dashboard b
 | Area | Evidence in current application | Limitations |
 | --- | --- | --- |
 | Competitor profiles | `Competitor` stores name, site, social profile fields, and a JSON `locations` field. | No verified source provenance, geographic normalization, or periodic profile snapshots. A populated URL field does not establish that the profile is current. |
-| Competitor offers | `CompetitorOffer` stores competitor link, title, free-text offer type/status, description, price, qualitative comparison notes, and `last_check`. | No offer-level source URL, currency, tax/price basis, validity window, or observation history. A current row can be edited in place, so prior values are not a durable time series. |
-| Market trends | `MarketTrend` stores name/category/metric key/value/unit/market/segment, period dates, source name/URL, observed timestamp, prior value/change, confidence, methodology, metadata, and status. | This is a general record structure, not evidence that sources, metric definitions, units, confidence scores, or update cadence are governed consistently. The existing dashboard does not integrate trend history. |
-| Dashboard | `MarketAnalysisDashboardData` reports inventory, free-text status/type buckets, offer-check freshness, qualitative notes, and permission-aware links. | No verified market-size/share, time-series, audience-demand, engagement, or opportunity score is computed. No live external source is connected in this service. |
-| Advertising | The inspected market dashboard/service does not provide Google Ads import or reporting. | Campaign account scope, authorization, dimensions, attribution, cost/conversion semantics, refresh and retention behavior need separate requirements. |
+| Competitor offers | `CompetitorOffer` stores current working data plus source URL, currency, price basis, validity window, and observation time. Material changes append `CompetitorOfferObservation` snapshots with separate observed/recorded timestamps and source-presence status. | Legacy values remain unknown until verified; migration does not fabricate historical snapshots. A source URL is provenance metadata, not proof of accuracy. Currency and price basis must be known before comparisons.
+| Market trends | `MarketTrend` observations are permission-gated and displayed on the market analysis dashboard with source, period, observation time, value/unit, market/segment, confidence, and status. | The application displays recorded observations; it does not independently verify source accuracy or harmonize incompatible units, segments, or definitions. Source-specific validation and freshness targets still require evidence.
+| Dashboard | `MarketAnalysisDashboardData` reports competitor inventory, offer freshness and observation history, market-trend observations, and imported Google Ads daily metrics. Google Ads aggregates remain separated by currency and are gated by `paid_campaign.index`. | No market-share, demand forecast, or opportunity score is inferred from these records. Dashboard rendering does not call external providers live.
+| Advertising | `market:import-google-ads` imports paginated daily campaign metrics through OAuth and GAQL, validates the full result before transactional upsert, and supports dry-run and bounded re-imports. The dashboard displays stored imports. | Live credentials, Cloud-project access level, account authorization, and reconciliation to the Google Ads UI must be verified in deployment. Provider conversions are not unique customer acquisitions or revenue.
 
 ## Requirements decisions needed before integration
 
@@ -31,17 +31,15 @@ The following are decision requests for business owners, not assumptions made by
 
 Before selecting public or commercial providers, compare each candidate against the approved metric catalogue. Capture: exact fields and geography available; history depth and update latency; documented API/access method; terms and redistribution limits; authentication and least-privilege scopes; rate limits and reliability commitments; total cost; provenance and correction behavior; known coverage bias; and fallback behavior when unavailable. A provider must not be described as verified until its documentation, access, terms, and representative sample data have been reviewed.
 
-Google Ads is a separate authorized integration, not a generic public data source. Its requirements should identify the customer/manager account scope, required API scopes, campaign and date dimensions, currency/timezone, cost and conversion definitions, attribution window, import idempotency, late corrections, quota handling, secret storage, and account-owner approval before credentials or imports are configured.
+Google Ads is a separate authorized integration, not a generic public data source. The implemented v1 contract defines customer/manager account scope, OAuth secret storage, campaign/date dimensions, account currency, cost micros, provider conversions, idempotent refresh, bounded date windows, and safe error handling. Deployment still needs account-owner credential setup, Cloud-project access confirmation, quota/refresh monitoring, and reconciliation to the Ads UI before the data is treated as operationally verified.
 
 ## Safe next implementation sequence
 
-1. Obtain owner approval for the decision use cases and metric catalogue.
-2. Complete the provider comparison with documented access and terms evidence.
-3. Approve the observation identity, provenance, timestamps, units/currency, correction history, permissions, and retention contract.
-4. Decide whether `MarketTrend` can represent approved observations or requires a migration. Do not add speculative fields before the contract is agreed.
-5. Implement one source adapter with sanitized fixtures, explicit source metadata, idempotent refresh, stale/error states, and permission-aware drill-down.
-6. Integrate historical observations into the dashboard only after reconciliation and expected-result fixtures are approved.
-7. Treat Google Ads requirements/import/refresh as separate gated milestones; do not use guessed attribution or treat platform conversions as business revenue without an approved definition.
+1. Reconcile imported Google Ads totals and sample campaign-day rows to the authorized account UI.
+2. Configure and monitor a bounded daily refresh in deployment only after secrets and account access are verified.
+3. Add source-specific validation and freshness thresholds for each `MarketTrend` metric before using it in alerts or forecasts.
+4. Add automated source adapters only after source terms, rate limits, collection rights, and provenance are documented.
+5. Keep CAC, CLV, customer revenue, market share, and demand forecasts out of the dashboard until customer identity, finance semantics, currency treatment, and expected-result fixtures support them.
 
 ## Validation plan
 
@@ -49,4 +47,4 @@ Use synthetic fixtures for overlapping and adjacent periods, repeated imports, s
 
 ## Current decision status
 
-No business-approved metric catalogue, source selection, freshness target, provider access/terms review, or accountable owner approval was identified in the inspected repository documentation. This audit therefore does not recommend a specific provider or authorize an integration. Issues #359 and #360 require stakeholder decisions before implementation; schema and dashboard changes should follow those decisions rather than guess at them.
+The repository now contains a versioned manual-observation policy and a Google Ads import policy, plus synthetic tests for provenance, idempotency, permission gating, and currency separation. This does not substitute for deployment evidence: no live Google Ads credentials were used during tests, and source accuracy, Cloud-project access, data-use terms, and imported totals still need operational verification. Public-market provider selection and automated collection remain out of scope for this implementation.

@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Filament\Pages\MarketAnalysis;
 use App\Models\Competitor;
 use App\Models\CompetitorOffer;
+use App\Models\GoogleAdsCampaignDailyMetric;
+use App\Models\MarketTrend;
 use App\Models\User;
 use App\Services\MarketAnalysisDashboardData;
 use Carbon\CarbonImmutable;
@@ -71,6 +73,65 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertCount(4, $summary['offers']['recent_observations']);
         $this->assertSame('October 18, 2026', $summary['as_of']);
         $this->assertSame(config('app.timezone'), $summary['timezone']);
+    }
+
+    public function test_google_ads_metrics_are_aggregated_by_currency_and_require_ads_metrics_permission(): void
+    {
+        $today = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));
+        foreach ([
+            ['campaign_id' => '1001', 'campaign_name' => 'RON campaign', 'currency_code' => 'RON', 'cost_micros' => 1500000, 'clicks' => 10, 'impressions' => 100, 'conversions' => '2.000000'],
+            ['campaign_id' => '1002', 'campaign_name' => 'EUR campaign', 'currency_code' => 'EUR', 'cost_micros' => 2500000, 'clicks' => 20, 'impressions' => 200, 'conversions' => '1.000000'],
+            ['campaign_id' => '1001', 'campaign_name' => 'RON campaign', 'currency_code' => 'RON', 'cost_micros' => 500000, 'clicks' => 5, 'impressions' => 50, 'conversions' => '1.000000', 'metric_date' => '2026-10-11'],
+        ] as $row) {
+            GoogleAdsCampaignDailyMetric::query()->create($row + [
+                'account_customer_id' => '1234567890',
+                'metric_date' => $row['metric_date'] ?? '2026-10-10',
+                'api_version' => 'v26',
+                'imported_at' => now(),
+            ]);
+        }
+
+        $permissions = $this->allPermissions();
+        $summary = app(MarketAnalysisDashboardData::class)->summary($permissions, $today);
+
+        $this->assertSame(3, $summary['google_ads']['row_count']);
+        $this->assertSame(2, $summary['google_ads']['campaign_count']);
+        $this->assertCount(2, $summary['google_ads']['currency_totals']);
+        $totals = collect($summary['google_ads']['currency_totals'])->keyBy('currency_code');
+        $this->assertSame('2000000', $totals['RON']['cost_micros']);
+        $this->assertSame('2500000', $totals['EUR']['cost_micros']);
+
+        $permissions['google_ads_metrics.view'] = false;
+        $restricted = app(MarketAnalysisDashboardData::class)->summary($permissions, $today);
+        $this->assertFalse($restricted['google_ads']['can_view']);
+        $this->assertNull($restricted['google_ads']['row_count']);
+        $this->assertSame([], $restricted['google_ads']['currency_totals']);
+    }
+
+    public function test_market_trend_observations_are_visible_only_with_market_trend_permission(): void
+    {
+        MarketTrend::create([
+            'name' => 'Search interest', 'category' => 'search_interest', 'metric_key' => 'search_interest_index',
+            'value' => 87, 'unit' => 'index', 'market' => 'Romania', 'segment' => 'adult-online',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-25', 'source_name' => 'Public source',
+            'source_url' => 'https://example.test/trend', 'observed_at' => '2026-10-26 12:00:00',
+            'change_pct' => 4.2, 'confidence' => 0.8, 'status' => 'active',
+        ]);
+        MarketTrend::create([
+            'name' => 'Archived observation', 'category' => 'search_interest', 'metric_key' => 'archived_metric',
+            'value' => 12, 'unit' => 'index', 'market' => 'Romania', 'segment' => null,
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-25', 'source_name' => 'Old source',
+            'source_url' => null, 'observed_at' => '2026-10-26 10:00:00', 'status' => 'archived',
+        ]);
+
+        $visible = app(MarketAnalysisDashboardData::class)->summary(['market_trend.index' => true]);
+        $this->assertSame(1, $visible['market_trends']['count']);
+        $this->assertSame('Search interest', $visible['market_trends']['recent'][0]['name']);
+        $this->assertTrue($visible['market_data']['has_audience_demand_data']);
+
+        $hidden = app(MarketAnalysisDashboardData::class)->summary(['market_trend.index' => false]);
+        $this->assertNull($hidden['market_trends']['count']);
+        $this->assertSame([], $hidden['market_trends']['recent']);
     }
 
     public function test_freshness_window_includes_today_and_the_prior_29_days_and_flags_future_dates(): void
@@ -203,6 +264,7 @@ class MarketAnalysisDashboardDataTest extends TestCase
             'competitor.create' => true,
             'competitor_offer.index' => true,
             'competitor_offer.create' => true,
+            'google_ads_metrics.view' => true,
         ];
     }
 

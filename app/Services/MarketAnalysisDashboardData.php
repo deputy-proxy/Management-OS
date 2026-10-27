@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Competitor;
 use App\Models\CompetitorOffer;
 use App\Models\CompetitorOfferObservation;
+use App\Models\GoogleAdsCampaignDailyMetric;
+use App\Models\MarketTrend;
 use Carbon\CarbonImmutable;
 
 class MarketAnalysisDashboardData
@@ -23,6 +25,7 @@ class MarketAnalysisDashboardData
         $canCreateCompetitors = $permissions['competitor.create'] ?? false;
         $canViewOffers = $permissions['competitor_offer.index'] ?? false;
         $canCreateOffers = $permissions['competitor_offer.create'] ?? false;
+        $canViewGoogleAds = $permissions['google_ads_metrics.view'] ?? false;
 
         $competitors = [
             'can_view' => $canViewCompetitors,
@@ -51,6 +54,50 @@ class MarketAnalysisDashboardData
                 'count' => Competitor::query()->whereNotNull($field)->where($field, '!=', '')->count(),
             ])->values()->all();
             $competitors['latest_record_edit'] = $this->formatDateTime(Competitor::query()->max('updated_at'));
+        }
+
+        $googleAds = [
+            'can_view' => $canViewGoogleAds,
+            'from' => $freshStart->toDateString(),
+            'to' => $today->toDateString(),
+            'row_count' => null,
+            'campaign_count' => null,
+            'latest_imported_at' => null,
+            'currency_totals' => [],
+            'campaign_rows' => [],
+        ];
+
+        if ($canViewGoogleAds) {
+            $metrics = GoogleAdsCampaignDailyMetric::query()
+                ->whereBetween('metric_date', [$freshStart->toDateString(), $today->toDateString()]);
+            $googleAds['row_count'] = (clone $metrics)->count();
+            $googleAds['campaign_count'] = (clone $metrics)->distinct('campaign_id')->count('campaign_id');
+            $googleAds['latest_imported_at'] = $this->formatDateTime((clone $metrics)->max('imported_at'));
+            $googleAds['currency_totals'] = (clone $metrics)
+                ->select('currency_code')
+                ->selectRaw('SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(cost_micros) as cost_micros, SUM(conversions) as conversions')
+                ->groupBy('currency_code')->orderBy('currency_code')->get()
+                ->map(fn (GoogleAdsCampaignDailyMetric $row): array => [
+                    'currency_code' => $row->currency_code,
+                    'impressions' => (int) $row->impressions,
+                    'clicks' => (int) $row->clicks,
+                    'cost_micros' => (string) $row->cost_micros,
+                    'conversions' => (string) $row->conversions,
+                ])->all();
+            $googleAds['campaign_rows'] = (clone $metrics)
+                ->select('campaign_id', 'campaign_name', 'currency_code')
+                ->selectRaw('SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(cost_micros) as cost_micros, SUM(conversions) as conversions')
+                ->groupBy('campaign_id', 'campaign_name', 'currency_code')
+                ->orderBy('currency_code')->orderByDesc('cost_micros')->limit(20)->get()
+                ->map(fn (GoogleAdsCampaignDailyMetric $row): array => [
+                    'campaign_id' => (string) $row->campaign_id,
+                    'campaign_name' => $row->campaign_name,
+                    'currency_code' => $row->currency_code,
+                    'impressions' => (int) $row->impressions,
+                    'clicks' => (int) $row->clicks,
+                    'cost_micros' => (string) $row->cost_micros,
+                    'conversions' => (string) $row->conversions,
+                ])->all();
         }
 
         $offers = [
@@ -177,6 +224,41 @@ class MarketAnalysisDashboardData
             }
         }
 
+        $marketTrends = [
+            'can_view' => $permissions['market_trend.index'] ?? false,
+            'count' => null,
+            'latest_observation_at' => null,
+            'recent' => [],
+        ];
+
+        if ($marketTrends['can_view']) {
+            $marketTrends['count'] = MarketTrend::query()->where('status', 'active')->count();
+            $marketTrends['latest_observation_at'] = $this->formatDateTime(
+                MarketTrend::query()->where('status', 'active')->max('observed_at'),
+            );
+            $marketTrends['recent'] = MarketTrend::query()
+                ->where('status', 'active')
+                ->orderByDesc('observed_at')->orderByDesc('id')
+                ->limit(10)
+                ->get(['id', 'name', 'category', 'metric_key', 'value', 'unit', 'market', 'segment', 'period_start', 'period_end', 'source_name', 'source_url', 'observed_at', 'change_pct', 'confidence'])
+                ->map(fn (MarketTrend $trend): array => [
+                    'name' => $trend->name,
+                    'category' => $trend->category,
+                    'metric_key' => $trend->metric_key,
+                    'value' => $trend->value,
+                    'unit' => $trend->unit,
+                    'market' => $trend->market,
+                    'segment' => $trend->segment,
+                    'period_start' => $this->formatDate($trend->period_start),
+                    'period_end' => $this->formatDate($trend->period_end),
+                    'source_name' => $trend->source_name,
+                    'source_url' => $trend->source_url,
+                    'observed_at' => $this->formatDateTime($trend->observed_at),
+                    'change_pct' => $trend->change_pct,
+                    'confidence' => $trend->confidence,
+                ])->all();
+        }
+
         return [
             'as_of' => $today->format('F j, Y'),
             'timezone' => (string) config('app.timezone'),
@@ -184,12 +266,15 @@ class MarketAnalysisDashboardData
             'freshness_end' => $today->format('M j, Y'),
             'competitors' => $competitors,
             'offers' => $offers,
+            'market_trends' => $marketTrends,
+            'google_ads' => $googleAds,
             'market_data' => [
-                'has_market_reports' => false,
+                'has_market_reports' => $marketTrends['can_view'] && $marketTrends['count'] > 0,
                 'has_historical_observations' => $canViewOffers && $offers['observation_count'] > 0,
-                'has_segments' => false,
-                'has_audience_demand_data' => false,
+                'has_segments' => $marketTrends['can_view'] && collect($marketTrends['recent'])->contains(fn (array $trend): bool => filled($trend['segment'])),
+                'has_audience_demand_data' => $marketTrends['can_view'] && collect($marketTrends['recent'])->contains(fn (array $trend): bool => in_array($trend['category'], ['search_interest', 'audience_demand'], true)),
                 'has_live_source' => false,
+                'has_imported_ad_metrics' => $canViewGoogleAds && $googleAds['row_count'] > 0,
             ],
         ];
     }
