@@ -84,6 +84,19 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
         }
     }
 
+    public function test_inclusive_date_range_cannot_exceed_configured_limit(): void
+    {
+        config(['services.google_ads.max_range_days' => 1]);
+        Http::fake();
+
+        try {
+            app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-02');
+            $this->fail('A two-day range must be rejected when the limit is one day.');
+        } catch (ValidationException) {
+            Http::assertNothingSent();
+        }
+    }
+
     public function test_malformed_provider_rows_fail_without_partial_persistence(): void
     {
         Http::fake([

@@ -88,7 +88,7 @@ class GoogleAdsCampaignMetricsImporter
         if (! $start || ! $end || $start->format('Y-m-d') !== $from || $end->format('Y-m-d') !== $to) {
             throw ValidationException::withMessages(['date_range' => 'Import dates must use the exact YYYY-MM-DD format.']);
         }
-        if ($start->gt($end) || $end->isFuture() || $start->diffInDays($end) > max(1, (int) config('services.google_ads.max_range_days', 90))) {
+        if ($start->gt($end) || $end->isFuture() || ($start->diffInDays($end) + 1) > max(1, (int) config('services.google_ads.max_range_days', 90))) {
             throw ValidationException::withMessages(['date_range' => 'The date range must be ordered, not in the future, and within the configured maximum range.']);
         }
 
