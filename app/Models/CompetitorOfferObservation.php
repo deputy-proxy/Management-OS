@@ -25,11 +25,13 @@ class CompetitorOfferObservation extends Model
         ];
     }
 
+    /** @return BelongsTo<CompetitorOffer, $this> */
     public function offer(): BelongsTo
     {
         return $this->belongsTo(CompetitorOffer::class, 'competitor_offer_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');

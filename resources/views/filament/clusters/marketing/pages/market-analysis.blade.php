@@ -169,10 +169,46 @@
             </x-filament::section>
         </section>
 
+        <section aria-labelledby="offer-observation-history-heading" class="space-y-3">
+            <h2 id="offer-observation-history-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Historical competitor-offer observations</h2>
+            <x-filament::section>
+                @if (! $dashboard['offers']['can_view'])
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Unavailable without competitor-offer list permission.</p>
+                @else
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Recorded snapshots</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($dashboard['offers']['observation_count']) }}</p></div>
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Snapshots with source URL</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($dashboard['offers']['observations_with_source_count']) }}</p></div>
+                        <div><p class="text-sm text-gray-600 dark:text-gray-300">Unknown source</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($dashboard['offers']['observations_with_unknown_source_count']) }}</p></div>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Latest observation time: {{ $dashboard['offers']['latest_observation_at'] ?? 'none' }}. Source presence does not independently verify source accuracy.</p>
+                    @if (count($dashboard['offers']['recent_observations']) === 0)
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">No observation snapshots have been recorded yet. Existing records are not backfilled as fabricated historical observations.</p>
+                    @else
+                        <div class="mt-4 overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="border-b border-gray-200 text-xs uppercase text-gray-500 dark:border-gray-700 dark:text-gray-400"><tr><th scope="col" class="py-3 pr-4">Offer</th><th scope="col" class="px-3 py-3">Price</th><th scope="col" class="px-3 py-3">Source</th><th scope="col" class="px-3 py-3">Observed</th><th scope="col" class="px-3 py-3">Recorded</th></tr></thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($dashboard['offers']['recent_observations'] as $observation)
+                                        <tr>
+                                            <th scope="row" class="py-3 pr-4 font-medium">{{ $observation['title'] }}</th>
+                                            <td class="px-3 py-3">{{ $observation['offer_price'] === null ? 'Unknown price' : number_format((float) $observation['offer_price'], 2).' '.($observation['currency'] ?? 'Unknown currency') }}<span class="block text-xs text-gray-500">{{ $observation['price_basis'] ?? 'Unknown basis' }}</span></td>
+                                            <td class="px-3 py-3">@if ($observation['source_url'])<a class="break-all underline" href="{{ $observation['source_url'] }}" target="_blank" rel="noopener noreferrer">Source page</a>@else<span class="text-gray-500">Unknown</span>@endif</td>
+                                            <td class="px-3 py-3">{{ $observation['observed_at'] ?? 'Unknown' }}</td>
+                                            <td class="px-3 py-3">{{ $observation['recorded_at'] ?? 'Unknown' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                @endif
+            </x-filament::section>
+        </section>
+
         <section aria-labelledby="market-trends-heading" class="space-y-3">
             <h2 id="market-trends-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Market trends and demand signals</h2>
             <x-filament::section>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Unavailable: the schema stores competitor profiles and the latest check per offer, but no dated observation history, market reports, segment model, or audience/demand measurements. A trend chart or strategic score would imply evidence the database does not contain.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Historical offer snapshots are shown separately above. Market-size trends, segment-level demand, audience measurements, and live provider data are still unavailable; no trend chart or strategic score is inferred from offer observations alone.</p>
             </x-filament::section>
         </section>
 
@@ -182,8 +218,8 @@
                 <ul class="list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
                     <li>Only current records contribute to inventory, freshness, and comparison counts; soft-deleted records are reported separately.</li>
                     <li>Last checks dated {{ $dashboard['freshness_start'] }} through {{ $dashboard['freshness_end'] }} are recent; earlier checks are stale; dates after today are future-dated.</li>
-                    <li>Offer records have no offer-level source URL. A competitor website field is profile metadata, not proof that an individual offer was verified against that site.</li>
-                    <li><code>offer_price</code> has no associated currency field, so prices are not averaged or compared across competitors.</li>
+                    <li>New offer snapshots can retain an offer-level source URL, currency, price basis, validity window, and separate observed/recorded times. Legacy values remain unknown until verified.</li>
+                    <li>Prices are not averaged or compared across currencies or price bases. A source URL is provenance metadata, not independent proof of accuracy.</li>
                     <li>Profile fields are completeness counts only; populated social or website fields are not checked for validity. The app has no live market-data integration.</li>
                     <li>Competitor inventory requires <code>competitor.index</code>; offer metrics require <code>competitor_offer.index</code>; per-competitor comparisons require both. Create links require the matching <code>*.create</code> permission. The <code>market-analysis.view</code> page gate does not grant resource access.</li>
                 </ul>

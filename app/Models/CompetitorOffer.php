@@ -47,6 +47,7 @@ class CompetitorOffer extends Model implements Commentable
         return $this->belongsTo(Competitor::class);
     }
 
+    /** @return HasMany<CompetitorOfferObservation, $this> */
     public function observations(): HasMany
     {
         return $this->hasMany(CompetitorOfferObservation::class)->orderByDesc('observed_at')->orderByDesc('id');
