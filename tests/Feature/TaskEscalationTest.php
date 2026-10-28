@@ -40,7 +40,7 @@ class TaskEscalationTest extends TestCase
 
     public function test_escalation_owner_can_acknowledge_and_acknowledgement_is_idempotent(): void
     {
-        [$owner, $task] = $this->makeTasks(2);
+        [$owner, $task] = $this->makeTasks(1);
         $task->update(['due_date' => '2026-10-25', 'status' => 'pending']);
         app(TaskEscalationService::class)->escalateOverdueTasks(CarbonImmutable::parse('2026-10-27', 'Europe/Bucharest'), 1);
         $escalation = TaskEscalation::query()->sole();
@@ -56,7 +56,7 @@ class TaskEscalationTest extends TestCase
 
     public function test_unrelated_user_cannot_acknowledge_task_escalation(): void
     {
-        [, $task] = $this->makeTasks(2);
+        [, $task] = $this->makeTasks(1);
         $task->update(['due_date' => '2026-10-25', 'status' => 'pending']);
         app(TaskEscalationService::class)->escalateOverdueTasks(CarbonImmutable::parse('2026-10-27', 'Europe/Bucharest'), 1);
         $escalation = TaskEscalation::query()->sole();
