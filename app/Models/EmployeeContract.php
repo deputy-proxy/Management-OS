@@ -80,6 +80,11 @@ class EmployeeContract extends Model implements Commentable
         return null;
     }
 
+    public function payrollInputs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmployeeContractPayrollInput::class)->orderByDesc('effective_from');
+    }
+
     public function workerEngagements(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(WorkerEngagement::class);
