@@ -40,6 +40,11 @@ class VendorContract extends Model implements Commentable
 /** @var array<int, string> */
     protected $fillable = ['start_date', 'end_date', 'document', 'vendor_id', 'contract_code'];
 
+    public function workerEngagements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkerEngagement::class);
+    }
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

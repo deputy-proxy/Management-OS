@@ -46,6 +46,11 @@ public function getActivitylogOptions(): LogOptions
     /** @var array<int, string> */
     protected $fillable = ['name', 'vendor_category_id', 'start_date', 'end_date', 'website'];
 
+    public function engagements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkerEngagement::class);
+    }
+
     public function vendorCategory(): BelongsTo
     {
         return $this->belongsTo(VendorCategory::class);

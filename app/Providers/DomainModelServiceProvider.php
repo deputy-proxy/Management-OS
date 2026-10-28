@@ -67,6 +67,7 @@ use App\Models\Vendor;
 use App\Models\VendorCategory;
 use App\Models\VendorContract;
 use App\Models\VendorInvoice;
+use App\Models\WorkerEngagement;
 use App\Models\Workshop;
 use App\Models\WorkshopMaterial;
 use App\Models\WorkshopParticipant;
@@ -145,6 +146,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'vendor_category' => VendorCategory::class,
             'vendor_contract' => VendorContract::class,
             'vendor_invoice' => VendorInvoice::class,
+            'worker_engagement' => WorkerEngagement::class,
             'workshop_participant' => WorkshopParticipant::class,
             'workshop_price' => ProductPrice::class,
             'workshop_material' => WorkshopMaterial::class,
