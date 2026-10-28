@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Tasks\Tables;
 
 use App\Filament\Resources\Tasks\Actions\TasksAction;
 use App\Models\Task;
+use App\Models\TaskEscalation;
 use App\Services\TaskEscalationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -70,7 +71,7 @@ class TasksTable
                     ->requiresConfirmation()
                     ->action(function (Task $record, TaskEscalationService $service): void {
                         $escalation = $record->escalations()->where('status', 'open')->orderBy('escalated_at')->first();
-                        if ($escalation !== null) {
+                        if ($escalation instanceof TaskEscalation) {
                             $service->acknowledge($escalation);
                         }
                     }),
