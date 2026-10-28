@@ -80,6 +80,11 @@ class EmployeeContract extends Model implements Commentable
         return null;
     }
 
+    public function workerEngagements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkerEngagement::class);
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

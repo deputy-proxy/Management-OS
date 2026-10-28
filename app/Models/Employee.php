@@ -37,6 +37,11 @@ class Employee extends Model implements Commentable
     /** @var array<int, string> */
     protected $fillable = ['full_name', 'first_name', 'last_name', 'user_id', 'date_of_birth', 'job_description'];
 
+    public function engagements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkerEngagement::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
