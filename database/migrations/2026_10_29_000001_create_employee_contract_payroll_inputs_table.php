@@ -27,7 +27,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->index(['employee_contract_id', 'effective_from', 'effective_until'], 'contract_payroll_inputs_effective_idx');
-            $table->index(['input_status', 'effective_from']);
+            $table->index(['input_status', 'effective_from'], 'payroll_inputs_status_effective_idx');
         });
     }
 
