@@ -38,6 +38,7 @@ use App\Models\NewsletterSubscriber;
 use App\Models\PaidCampaign;
 use App\Models\Partner;
 use App\Models\PaymentAllocation;
+use App\Models\PayrollPolicy;
 use App\Models\PotentialPartner;
 use App\Models\Process;
 use App\Models\ProductPrice;
@@ -118,6 +119,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'transaction' => Transaction::class,
             'bank_statement_import_item' => BankStatementImportItem::class,
             'payment_allocation' => PaymentAllocation::class,
+            'payroll_policy' => PayrollPolicy::class,
             'discount' => Discount::class,
             'competitor' => Competitor::class,
             'competitor_offer' => CompetitorOffer::class,
