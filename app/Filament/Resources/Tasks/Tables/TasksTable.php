@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Tasks\Tables;
 
 use App\Filament\Resources\Tasks\Actions\TasksAction;
 use App\Models\Task;
+use App\Services\TaskEscalationService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -34,6 +36,10 @@ class TasksTable
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status'),
                 Tables\Columns\TextColumn::make('dependencies.action')->label('Prerequisites')->listWithLineBreaks()->limitList(3),
+                Tables\Columns\TextColumn::make('escalations.status')
+                    ->label('Escalations')
+                    ->listWithLineBreaks()
+                    ->placeholder('None'),
                 Tables\Columns\TextColumn::make('dependency_readiness')
                     ->label('Dependency readiness')
                     ->description(fn (Task $record): ?string => $record->dependency_blocked_reasons === []
@@ -56,6 +62,18 @@ class TasksTable
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
+                Action::make('acknowledge_escalation')
+                    ->label('Acknowledge escalation')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('warning')
+                    ->visible(fn (Task $record): bool => $record->escalations()->where('status', 'open')->exists())
+                    ->requiresConfirmation()
+                    ->action(function (Task $record, TaskEscalationService $service): void {
+                        $escalation = $record->escalations()->where('status', 'open')->orderBy('escalated_at')->first();
+                        if ($escalation !== null) {
+                            $service->acknowledge($escalation);
+                        }
+                    }),
                 TasksAction::make(),
                 CommentsAction::make(),
             ])
