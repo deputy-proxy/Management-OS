@@ -60,6 +60,12 @@ class Task extends Model implements Commentable
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    /** Escalation records raised for this task's overdue lifecycle. */
+    public function escalations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaskEscalation::class);
+    }
+
     /** Tasks that must be completed before this task can proceed. */
     public function dependencies(): BelongsToMany
     {

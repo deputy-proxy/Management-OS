@@ -27,3 +27,8 @@ Schedule::command('evaluations:process-approval-timeouts')
     ->everyMinute()
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();
+
+Schedule::command('tasks:escalate-overdue')
+    ->dailyAt('08:00')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
