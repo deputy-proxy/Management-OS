@@ -19,6 +19,7 @@ use App\Models\CustomerLead;
 use App\Models\Discount;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
+use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeeEvaluation;
 use App\Models\EmployeeEvaluationForm;
 use App\Models\EmployeeHoliday;
@@ -102,6 +103,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'employee_evaluation' => EmployeeEvaluation::class,
             'employee_salary' => EmployeeSalary::class,
             'employee_contract' => EmployeeContract::class,
+            'employee_contract_payroll_input' => EmployeeContractPayrollInput::class,
             'employee_medical_leave' => EmployeeMedicalLeave::class,
             'employee_timesheet' => EmployeeTimesheet::class,
             'job_description' => JobDescription::class,
