@@ -20,7 +20,7 @@ class EmployeePaySlipInfolist
             TextEntry::make('due_on')->date(),
             TextEntry::make('paid_on')->date(),
             Section::make('Versioned payroll calculation snapshots')
-                ->description('Snapshots are immutable. A ready status means inputs are present, not that statutory payroll has been calculated or approved.')
+                ->description('Snapshots are immutable. Ready means inputs are present; calculated means only configured arithmetic ran. Neither establishes statutory compliance or payment approval.')
                 ->schema([
                     RepeatableEntry::make('calculationRuns')->schema([
                         TextEntry::make('id')->label('Run ID'),
@@ -30,8 +30,21 @@ class EmployeePaySlipInfolist
                         TextEntry::make('policy_snapshot.policy_key')->label('Policy key'),
                         TextEntry::make('policy_snapshot.version')->label('Policy version'),
                         TextEntry::make('blocked_reasons')->listWithLineBreaks(),
-                        TextEntry::make('result.result_status')->label('Result snapshot status'),
+                        TextEntry::make('result.result_status')->label('Result snapshot status')->badge(),
+                        TextEntry::make('result.currency_code')->label('Result currency'),
+                        TextEntry::make('result.gross_amount')->label('Gross'),
+                        TextEntry::make('result.deductions_amount')->label('Deductions'),
+                        TextEntry::make('result.net_amount')->label('Net'),
                         TextEntry::make('result.snapshot_hash')->label('Snapshot SHA-256'),
+                        RepeatableEntry::make('result.items')->schema([
+                            TextEntry::make('line_number')->label('Line'),
+                            TextEntry::make('item_code')->label('Code'),
+                            TextEntry::make('item_type')->label('Type')->badge(),
+                            TextEntry::make('label'),
+                            TextEntry::make('calculation_method')->label('Method'),
+                            TextEntry::make('amount')->label('Amount'),
+                            TextEntry::make('currency_code')->label('Currency'),
+                        ])->columns(4),
                     ])->columns(4),
                 ]),
             Section::make('Source-linked payroll items')

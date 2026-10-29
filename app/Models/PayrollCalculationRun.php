@@ -16,6 +16,8 @@ class PayrollCalculationRun extends Model
 
     public const STATUS_READY = 'ready_for_calculation';
 
+    public const STATUS_CALCULATED = 'calculated';
+
     protected $fillable = [
         'employee_id', 'employee_contract_id', 'employee_contract_payroll_input_id', 'payroll_policy_id',
         'employee_pay_slip_id', 'period_start', 'period_end', 'idempotency_key', 'request_fingerprint',

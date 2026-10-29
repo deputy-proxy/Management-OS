@@ -43,7 +43,7 @@ class EmployeeContractPayrollInput extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'employee_contract_id', 'effective_from', 'effective_until', 'salary_basis', 'currency_code',
+        'employee_contract_id', 'effective_from', 'effective_until', 'salary_basis', 'base_amount', 'currency_code',
         'scheduled_hours_per_week', 'work_schedule', 'allowance_inputs', 'tax_status_code',
         'source_reference', 'input_status', 'recorded_by', 'reviewed_by', 'reviewed_at',
     ];
@@ -54,6 +54,7 @@ class EmployeeContractPayrollInput extends Model
         return [
             'effective_from' => 'date',
             'effective_until' => 'date',
+            'base_amount' => 'decimal:6',
             'scheduled_hours_per_week' => 'decimal:2',
             'work_schedule' => 'array',
             'allowance_inputs' => 'array',
@@ -117,6 +118,9 @@ class EmployeeContractPayrollInput extends Model
             }
             if ($input->salary_basis !== null && ! array_key_exists((string) $input->salary_basis, self::SALARY_BASES)) {
                 $errors['salary_basis'] = 'Choose a supported salary basis.';
+            }
+            if ($input->base_amount !== null && (float) $input->base_amount < 0) {
+                $errors['base_amount'] = 'Base amount must be a non-negative explicit amount.';
             }
             if ($input->currency_code !== null && ! preg_match('/^[A-Z]{3}$/', (string) $input->currency_code)) {
                 $errors['currency_code'] = 'Use a three-letter uppercase currency code.';
@@ -224,6 +228,7 @@ class EmployeeContractPayrollInput extends Model
     {
         return $this->input_status === 'verified'
             && $this->salary_basis !== null
+            && $this->base_amount !== null
             && $this->currency_code !== null
             && $this->scheduled_hours_per_week !== null;
     }
@@ -255,7 +260,7 @@ class EmployeeContractPayrollInput extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        // Keep sensitive tax codes, source references, schedules, and allowance payloads out of activity-log values.
+        // Keep explicit salary amounts, tax codes, source references, schedules, and allowance payloads out of activity-log values.
         return LogOptions::defaults()->logOnly([
             'employee_contract_id', 'effective_from', 'effective_until', 'salary_basis', 'currency_code',
             'scheduled_hours_per_week', 'input_status', 'recorded_by', 'reviewed_by', 'reviewed_at',

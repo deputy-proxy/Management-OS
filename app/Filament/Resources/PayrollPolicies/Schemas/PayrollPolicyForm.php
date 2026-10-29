@@ -34,7 +34,8 @@ class PayrollPolicyForm
                 ->schema([
                     KeyValue::make('parameters')
                         ->keyLabel('Parameter path')
-                        ->valueLabel('Configured value')
+                        ->valueLabel('JSON rule definition')
+                        ->helperText('Each value is a JSON object. Supported generic types: input_amount, fixed_amount, input_allowance, percentage_of. Rates and amounts must be explicitly configured; no statutory defaults are supplied.')
                         ->addActionLabel('Add parameter')
                         ->default([])
                         ->columnSpanFull(),

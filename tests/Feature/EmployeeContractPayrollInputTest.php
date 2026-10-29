@@ -102,6 +102,7 @@ class EmployeeContractPayrollInputTest extends TestCase
         $input = EmployeeContractPayrollInput::query()->create([
             'employee_contract_id' => $contract->id,
             'effective_from' => '2026-01-01',
+            'base_amount' => '4321.00',
             'tax_status_code' => 'synthetic-private-code',
             'source_reference' => 'synthetic-private-reference',
             'allowance_inputs' => [['code' => 'synthetic-private-allowance', 'amount' => '100.00', 'currency_code' => 'RON']],
@@ -111,6 +112,7 @@ class EmployeeContractPayrollInputTest extends TestCase
         $activity = $input->activities()->where('description', 'Sensitive payroll input fields changed')->latest('id')->firstOrFail();
         $properties = json_encode($activity->properties->toArray());
 
+        $this->assertStringNotContainsString('4321.000000', $properties);
         $this->assertStringNotContainsString('synthetic-private-code', $properties);
         $this->assertStringNotContainsString('synthetic-private-reference', $properties);
         $this->assertStringNotContainsString('synthetic-private-allowance', $properties);
@@ -199,6 +201,7 @@ class EmployeeContractPayrollInputTest extends TestCase
             'employee_contract_id' => $contract->id,
             'effective_from' => '2026-01-01',
             'salary_basis' => 'monthly',
+            'base_amount' => '4000.00',
             'currency_code' => 'RON',
             'scheduled_hours_per_week' => 40,
             'input_status' => 'verified',
