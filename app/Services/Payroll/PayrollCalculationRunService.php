@@ -5,6 +5,7 @@ namespace App\Services\Payroll;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeePaySlip;
+use App\Models\PayrollCalculationResult;
 use App\Models\PayrollCalculationRun;
 use App\Models\PayrollPolicy;
 use App\Models\User;
@@ -24,6 +25,33 @@ class PayrollCalculationRunService
         ?EmployeeContractPayrollInput $input = null,
         ?PayrollPolicy $policy = null,
         ?EmployeePaySlip $paySlip = null,
+    ): PayrollCalculationRun {
+        return $this->persist($actor, $contract, $periodStart, $periodEnd, $idempotencyKey, $input, $policy, $paySlip, false);
+    }
+
+    public function calculate(
+        User $actor,
+        EmployeeContract $contract,
+        string $periodStart,
+        string $periodEnd,
+        string $idempotencyKey,
+        ?EmployeeContractPayrollInput $input = null,
+        ?PayrollPolicy $policy = null,
+        ?EmployeePaySlip $paySlip = null,
+    ): PayrollCalculationRun {
+        return $this->persist($actor, $contract, $periodStart, $periodEnd, $idempotencyKey, $input, $policy, $paySlip, true);
+    }
+
+    private function persist(
+        User $actor,
+        EmployeeContract $contract,
+        string $periodStart,
+        string $periodEnd,
+        string $idempotencyKey,
+        ?EmployeeContractPayrollInput $input,
+        ?PayrollPolicy $policy,
+        ?EmployeePaySlip $paySlip,
+        bool $calculate,
     ): PayrollCalculationRun {
         Gate::forUser($actor)->authorize('payroll_calculation_run.create');
         $idempotencyKey = trim($idempotencyKey);
@@ -49,7 +77,7 @@ class PayrollCalculationRunService
             throw ValidationException::withMessages(['employee_pay_slip_id' => 'The payslip must match the contract employee and payroll period.']);
         }
 
-        return DB::transaction(function () use ($actor, $contract, $start, $end, $idempotencyKey, $input, $policy, $paySlip): PayrollCalculationRun {
+        return DB::transaction(function () use ($actor, $contract, $start, $end, $idempotencyKey, $input, $policy, $paySlip, $calculate): PayrollCalculationRun {
             $lockedContract = EmployeeContract::query()->whereKey($contract->getKey())->lockForUpdate()->firstOrFail();
             $lockedInput = $input ? EmployeeContractPayrollInput::query()->whereKey($input->getKey())->lockForUpdate()->firstOrFail() : null;
             $lockedPolicy = $policy ? PayrollPolicy::query()->whereKey($policy->getKey())->lockForUpdate()->firstOrFail() : null;
@@ -110,6 +138,7 @@ class PayrollCalculationRunService
                     'effective_from' => Carbon::parse((string) $lockedInput->effective_from)->toDateString(),
                     'effective_until' => $lockedInput->effective_until ? Carbon::parse((string) $lockedInput->effective_until)->toDateString() : null,
                     'salary_basis' => $lockedInput->salary_basis,
+                    'base_amount' => $lockedInput->getRawOriginal('base_amount') === null ? null : (string) $lockedInput->getRawOriginal('base_amount'),
                     'currency_code' => $lockedInput->currency_code,
                     'scheduled_hours_per_week' => $lockedInput->getRawOriginal('scheduled_hours_per_week') === null ? null : (string) $lockedInput->getRawOriginal('scheduled_hours_per_week'),
                     'work_schedule' => $lockedInput->work_schedule,
@@ -136,7 +165,17 @@ class PayrollCalculationRunService
             ] : null;
             $fingerprintInputSnapshot = $inputSnapshot;
             unset($fingerprintInputSnapshot['captured_at']);
+            $calculationVersion = $calculate ? PayrollCalculationEngine::VERSION : 'schema-only-v1';
+            $calculationOutput = null;
+            if ($calculate && $blockedReasons === []) {
+                $calculationOutput = app(PayrollCalculationEngine::class)->calculate($inputSnapshot, $policySnapshot ?? []);
+                if ($calculationOutput['status'] !== 'calculated') {
+                    $blockedReasons = array_merge($blockedReasons, $calculationOutput['blocked_reasons']);
+                }
+            }
             $fingerprint = hash('sha256', json_encode([
+                'calculation_requested' => $calculate,
+                'calculation_version' => $calculationVersion,
                 'employee_id' => (int) $lockedContract->employee_id,
                 'contract_id' => (int) $lockedContract->getKey(),
                 'input_id' => $lockedInput?->getKey(),
@@ -154,7 +193,7 @@ class PayrollCalculationRunService
                     throw ValidationException::withMessages(['idempotency_key' => 'This key already identifies a different calculation request. Use a new key for changed inputs.']);
                 }
 
-                return $existing->load('result');
+                return $existing->load('result.items');
             }
 
             $run = PayrollCalculationRun::query()->create([
@@ -167,37 +206,67 @@ class PayrollCalculationRunService
                 'period_end' => $periodEnd,
                 'idempotency_key' => $idempotencyKey,
                 'request_fingerprint' => $fingerprint,
-                'run_status' => $blockedReasons === [] ? PayrollCalculationRun::STATUS_READY : PayrollCalculationRun::STATUS_BLOCKED,
+                'run_status' => $blockedReasons !== [] ? PayrollCalculationRun::STATUS_BLOCKED : ($calculate ? PayrollCalculationRun::STATUS_CALCULATED : PayrollCalculationRun::STATUS_READY),
                 'blocked_reasons' => array_values(array_unique($blockedReasons)),
                 'input_snapshot' => $fingerprintInputSnapshot,
                 'policy_snapshot' => $policySnapshot,
-                'calculation_version' => 'schema-only-v1',
+                'calculation_version' => $calculationVersion,
                 'initiated_by' => $actor->getKey(),
             ]);
 
+            $resultStatus = $blockedReasons !== [] ? 'blocked' : ($calculate ? 'calculated' : 'not_calculated');
+            $calculated = $resultStatus === 'calculated' && is_array($calculationOutput);
             $resultSnapshot = [
                 'schema_version' => 1,
-                'calculation_performed' => false,
-                'status' => $blockedReasons === [] ? 'not_calculated' : 'blocked',
+                'calculation_performed' => $calculated,
+                'calculation_version' => $calculationVersion,
+                'status' => $resultStatus,
+                'policy_reference' => $lockedPolicy ? ['policy_key' => $lockedPolicy->policy_key, 'version' => (int) $lockedPolicy->version] : null,
                 'blocked_reasons' => array_values(array_unique($blockedReasons)),
-                'gross_amount' => null,
-                'deductions_amount' => null,
-                'net_amount' => null,
-                'currency_code' => null,
-                'note' => 'This schema records immutable inputs and policy references only. No statutory or monetary calculation was performed.',
+                'validation_messages' => $calculationOutput['validation_messages'] ?? [],
+                'unresolved_configuration_gaps' => $calculationOutput['unresolved_configuration_gaps'] ?? ($lockedPolicy?->configurationGaps() ?? []),
+                'line_items' => $calculated ? $calculationOutput['line_items'] : [],
+                'gross_amount' => $calculated ? $calculationOutput['gross_amount'] : null,
+                'deductions_amount' => $calculated ? $calculationOutput['deductions_amount'] : null,
+                'net_amount' => $calculated ? $calculationOutput['net_amount'] : null,
+                'currency_code' => $calculated ? $calculationOutput['currency_code'] : null,
+                'rounding_mode' => $calculated ? $calculationOutput['rounding_mode'] : $lockedPolicy?->rounding_mode,
+                'rounding_precision' => $calculated ? $calculationOutput['rounding_precision'] : $lockedPolicy?->rounding_precision,
+                'note' => $calculated
+                    ? 'Calculated using the explicitly selected policy version and deterministic calculation engine.'
+                    : ($calculate ? 'Calculation blocked. No monetary result was produced.' : 'Inputs and policy were snapshotted only. No calculation was performed.'),
             ];
-            $run->result()->create([
-                'result_status' => $blockedReasons === [] ? 'not_calculated' : 'blocked',
-                'currency_code' => null,
-                'gross_amount' => null,
-                'deductions_amount' => null,
-                'net_amount' => null,
+            $result = PayrollCalculationResult::query()->create([
+                'payroll_calculation_run_id' => $run->getKey(),
+                'result_status' => $resultStatus,
+                'currency_code' => $calculated ? $calculationOutput['currency_code'] : null,
+                'gross_amount' => $calculated ? $calculationOutput['gross_amount'] : null,
+                'deductions_amount' => $calculated ? $calculationOutput['deductions_amount'] : null,
+                'net_amount' => $calculated ? $calculationOutput['net_amount'] : null,
                 'result_snapshot' => $resultSnapshot,
                 'snapshot_hash' => hash('sha256', json_encode($resultSnapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)),
                 'snapshotted_at' => now(),
             ]);
+            foreach (($calculated ? $calculationOutput['line_items'] : []) as $line) {
+                $result->items()->create([
+                    'line_number' => $line['line_number'],
+                    'item_code' => $line['item_code'],
+                    'item_type' => $line['item_type'],
+                    'label' => $line['label'],
+                    'calculation_method' => $line['calculation_method'],
+                    'source_parameter' => $line['source_parameter'],
+                    'base_item_code' => $line['base_item_code'],
+                    'input_value' => $line['input_value'],
+                    'rate_percent' => $line['rate_percent'],
+                    'amount' => $line['amount'],
+                    'currency_code' => $line['currency_code'],
+                    'rounding_mode' => $line['rounding_mode'],
+                    'rounding_precision' => $line['rounding_precision'],
+                    'calculation_snapshot' => $line['calculation_snapshot'],
+                ]);
+            }
 
-            return $run->load('result');
+            return $run->load('result.items');
         });
     }
 }

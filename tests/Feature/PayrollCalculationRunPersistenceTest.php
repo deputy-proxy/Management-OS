@@ -35,6 +35,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertSame(PayrollCalculationRun::STATUS_READY, $run->run_status);
         $this->assertSame([], $run->blocked_reasons);
         $this->assertSame($input->id, $run->input_snapshot['payroll_input']['id']);
+        $this->assertSame('4000', $run->input_snapshot['payroll_input']['base_amount']);
         $this->assertSame('verified', $run->input_snapshot['payroll_input']['input_status']);
         $this->assertSame('synthetic_policy', $run->policy_snapshot['policy_key']);
         $this->assertSame(1, $run->policy_snapshot['version']);
@@ -46,6 +47,51 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertFalse($run->result->result_snapshot['calculation_performed']);
         $this->assertSame(64, strlen($run->result->snapshot_hash));
         $this->assertSame($run->id, $paySlip->fresh()->calculationRuns()->firstOrFail()->id);
+    }
+
+    public function test_calculation_persists_deterministic_totals_and_immutable_line_items(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture(calculablePolicy: true);
+        $legacyPayslipAmount = (string) $paySlip->amount;
+        $service = app(PayrollCalculationRunService::class);
+        $run = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-calculation-001', $input, $policy, $paySlip);
+
+        $this->assertSame(PayrollCalculationRun::STATUS_CALCULATED, $run->run_status);
+        $this->assertSame('calculated', $run->result->result_status);
+        $this->assertSame('4500.00', $run->result->result_snapshot['gross_amount']);
+        $this->assertSame('200.00', $run->result->result_snapshot['deductions_amount']);
+        $this->assertSame('4300.00', $run->result->result_snapshot['net_amount']);
+        $this->assertSame('payroll-decimal-v1', $run->calculation_version);
+        $this->assertSame($legacyPayslipAmount, (string) $paySlip->fresh()->amount, 'Calculation snapshots must not overwrite legacy payslip totals.');
+        $this->assertCount(4, $run->result->items);
+        $this->assertSame('bonus', $run->result->items[2]->item_code);
+        $this->assertSame('percentage_of', $run->result->items[2]->calculation_method);
+        try {
+            $run->result->items[0]->forceFill(['amount' => '1.00'])->save();
+            $this->fail('Calculated line items must be immutable.');
+        } catch (LogicException $exception) {
+            $this->assertStringContainsString('immutable', $exception->getMessage());
+        }
+        $this->assertSame('synthetic_policy', $run->result->result_snapshot['policy_reference']['policy_key']);
+        $this->assertSame(1, $run->result->result_snapshot['policy_reference']['version']);
+        $this->assertSame($run->id, $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-calculation-001', $input, $policy, $paySlip)->id);
+
+        $newRun = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-calculation-002', $input, $policy, $paySlip);
+        $this->assertNotSame($run->id, $newRun->id);
+        $this->assertSame($run->result->snapshot_hash, $newRun->result->snapshot_hash);
+        $this->assertSame(2, PayrollCalculationRun::query()->where('employee_pay_slip_id', $paySlip->id)->count());
+    }
+
+    public function test_calculation_validation_errors_are_persisted_without_partial_lines_or_totals(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture();
+        $run = app(PayrollCalculationRunService::class)->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-invalid-rule-001', $input, $policy, $paySlip);
+
+        $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $run->run_status);
+        $this->assertSame('blocked', $run->result->result_status);
+        $this->assertNull($run->result->net_amount);
+        $this->assertSame([], $run->result->items->all());
+        $this->assertContains('parameter_definition_invalid', array_column($run->result->result_snapshot['validation_messages'], 'code'));
     }
 
     public function test_missing_policy_or_unverified_inputs_create_explicit_blocked_snapshot_without_inventing_values(): void
@@ -161,6 +207,16 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertDatabaseHas('payroll_calculation_runs', ['id' => $run->id]);
     }
 
+    public function test_engine_schema_migration_refuses_to_drop_explicit_base_amounts(): void
+    {
+        [$actor, $contract, $input] = $this->fixture();
+        $migration = require base_path('database/migrations/2026_10_29_030000_add_payroll_calculation_engine_fields.php');
+
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
+        $this->assertDatabaseHas('employee_contract_payroll_inputs', ['id' => $input->id]);
+    }
+
     public function test_run_service_requires_server_side_authorization(): void
     {
         [$actor, $contract] = $this->fixture();
@@ -171,7 +227,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
     }
 
     /** @return array{User, EmployeeContract, EmployeeContractPayrollInput, PayrollPolicy, EmployeePaySlip} */
-    private function fixture(string $inputStatus = 'verified', bool $incomplete = false): array
+    private function fixture(string $inputStatus = 'verified', bool $incomplete = false, bool $calculablePolicy = false): array
     {
         $actor = User::factory()->create();
         $contract = EmployeeContract::factory()->create([
@@ -181,7 +237,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $input = EmployeeContractPayrollInput::query()->create([
             'employee_contract_id' => $contract->id,
             'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
-            'salary_basis' => $incomplete ? null : 'monthly', 'currency_code' => $incomplete ? null : 'RON',
+            'salary_basis' => $incomplete ? null : 'monthly', 'base_amount' => $incomplete ? null : '4000.00', 'currency_code' => $incomplete ? null : 'RON',
             'scheduled_hours_per_week' => $incomplete ? null : 40,
             'work_schedule' => ['pattern' => 'synthetic_weekday'],
             'allowance_inputs' => [['code' => 'synthetic_allowance', 'amount' => '100.00', 'currency_code' => 'RON']],
@@ -189,11 +245,17 @@ class PayrollCalculationRunPersistenceTest extends TestCase
             'reviewed_by' => $inputStatus === 'verified' ? $actor->id : null,
             'reviewed_at' => $inputStatus === 'verified' ? now() : null,
         ]);
+        $policyParameters = $calculablePolicy ? [
+            'base_pay' => ['type' => 'input_amount', 'input_field' => 'base_amount', 'expected_salary_basis' => 'monthly', 'item_type' => 'earning', 'label' => 'Synthetic base pay'],
+            'transport' => ['type' => 'input_allowance', 'allowance_code' => 'synthetic_allowance', 'item_type' => 'earning', 'label' => 'Synthetic allowance'],
+            'bonus' => ['type' => 'percentage_of', 'base_item_code' => 'base_pay', 'rate_percent' => '10', 'item_type' => 'earning', 'label' => 'Synthetic bonus'],
+            'deduction' => ['type' => 'percentage_of', 'base_item_code' => 'base_pay', 'rate_percent' => '5', 'item_type' => 'deduction', 'label' => 'Synthetic deduction'],
+        ] : ['base_salary' => 'configured-only'];
         $policy = PayrollPolicy::factory()->create([
             'policy_key' => 'synthetic_policy', 'version' => 1, 'status' => 'active',
             'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
-            'parameters' => ['base_salary' => 'configured-only'],
-            'required_parameters' => ['base_salary'], 'calculation_order' => ['base_salary'],
+            'parameters' => $policyParameters,
+            'required_parameters' => array_keys($policyParameters), 'calculation_order' => array_keys($policyParameters),
             'rounding_mode' => 'half_up', 'rounding_precision' => 2,
         ]);
         $paySlip = EmployeePaySlip::factory()->create([

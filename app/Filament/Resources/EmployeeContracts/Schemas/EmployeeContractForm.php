@@ -70,6 +70,7 @@ class EmployeeContractForm
                                 Forms\Components\DatePicker::make('effective_from')->required(),
                                 Forms\Components\DatePicker::make('effective_until')->afterOrEqual('effective_from'),
                                 Forms\Components\Select::make('salary_basis')->options(EmployeeContractPayrollInput::SALARY_BASES)->placeholder('Unknown')->native(false),
+                                Forms\Components\TextInput::make('base_amount')->numeric()->minValue(0)->step('0.000001')->helperText('Explicit amount for the configured salary basis. Never inferred from legacy contract salary fields.'),
                                 Forms\Components\TextInput::make('currency_code')->label('Currency code')->length(3)->placeholder('RON')->dehydrateStateUsing(fn ($state) => $state === null || trim((string) $state) === '' ? null : strtoupper(trim((string) $state))),
                                 Forms\Components\TextInput::make('scheduled_hours_per_week')->numeric()->minValue(0)->maxValue(168)->step('0.25'),
                                 Forms\Components\KeyValue::make('work_schedule')->label('Schedule details')->keyLabel('Field')->valueLabel('Value')->addable()->deletable()->reorderable(),

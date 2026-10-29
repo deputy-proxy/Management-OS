@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
 class PayrollCalculationResult extends Model
@@ -16,9 +17,9 @@ class PayrollCalculationResult extends Model
     protected function casts(): array
     {
         return [
-            'gross_amount' => 'decimal:2',
-            'deductions_amount' => 'decimal:2',
-            'net_amount' => 'decimal:2',
+            'gross_amount' => 'decimal:6',
+            'deductions_amount' => 'decimal:6',
+            'net_amount' => 'decimal:6',
             'result_snapshot' => 'array',
             'snapshotted_at' => 'immutable_datetime',
         ];
@@ -32,6 +33,11 @@ class PayrollCalculationResult extends Model
         static::deleting(static function (): never {
             throw new LogicException('Payroll result snapshots cannot be deleted.');
         });
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationResultItem::class, 'payroll_calculation_result_id')->orderBy('line_number');
     }
 
     public function run(): BelongsTo
