@@ -56,4 +56,9 @@ class Employee extends Model implements Commentable
     {
         return $this->belongsTo(JobDescription::class, 'job_description');
     }
+
+    public function payrollCalculationRuns(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class);
+    }
 }

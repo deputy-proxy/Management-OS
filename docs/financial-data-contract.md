@@ -175,3 +175,6 @@ Before #307 migration planning or #308 schema implementation:
 2. Resolve canonical-field choices and legacy value maps without mutating data.
 3. Use [#307 currency and precision migration plan](https://github.com/deputy-proxy/Management-OS/issues/307) and the [migration-plan document](financial-precision-migration-plan.md) to quantify legacy rows and specify backfills/reconciliation/recovery. Do not start #308 schema work until contract and migration plan are approved.
 4. Keep the [finance/payroll capability matrix](finance-payroll-readiness.md) and [decision register](financial-rules-decision-register.md) aligned with any new decisions.
+
+
+Payroll calculation runs and results use immutable, idempotent snapshots; see [finance/payroll readiness](finance-payroll-readiness.md). No monetary or statutory results are inferred.

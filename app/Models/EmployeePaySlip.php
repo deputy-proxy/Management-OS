@@ -104,6 +104,11 @@ class EmployeePaySlip extends Model
         return $this->hasMany(EmployeePaySlipItem::class, 'employee_pay_slip_id');
     }
 
+    public function calculationRuns(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class, 'employee_pay_slip_id')->latest('id');
+    }
+
     public function activities(): MorphMany
     {
         return $this->morphMany(Activity::class, 'subject');

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -230,6 +231,11 @@ class EmployeeContractPayrollInput extends Model
     public function activities(): MorphMany
     {
         return $this->morphMany(Activity::class, 'subject');
+    }
+
+    public function calculationRuns(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class, 'employee_contract_payroll_input_id');
     }
 
     public function employeeContract(): BelongsTo

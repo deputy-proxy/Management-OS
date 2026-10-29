@@ -99,4 +99,9 @@ class EmployeeContract extends Model implements Commentable
     {
         return LogOptions::defaults()->logOnly(['start_date', 'end_date', 'contract_type'])->logOnlyDirty()->dontLogEmptyChanges();
     }
+
+    public function payrollCalculationRuns(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class);
+    }
 }
