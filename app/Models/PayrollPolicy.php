@@ -34,7 +34,7 @@ class PayrollPolicy extends Model
     /** @var list<string> */
     protected $fillable = [
         'policy_key', 'name', 'description', 'version', 'status', 'effective_from', 'effective_until',
-        'parameters', 'required_parameters', 'calculation_order', 'rounding_mode', 'rounding_precision',
+        'parameters', 'required_parameters', 'calculation_order', 'contract_rules', 'proration_rule', 'rounding_mode', 'rounding_precision',
         'notes', 'activated_at', 'activated_by', 'retired_at', 'retired_by', 'created_by', 'updated_by',
     ];
 
@@ -48,6 +48,8 @@ class PayrollPolicy extends Model
             'parameters' => 'array',
             'required_parameters' => 'array',
             'calculation_order' => 'array',
+            'contract_rules' => 'array',
+            'proration_rule' => 'array',
             'rounding_precision' => 'integer',
             'activated_at' => 'immutable_datetime',
             'retired_at' => 'immutable_datetime',
@@ -103,7 +105,7 @@ class PayrollPolicy extends Model
                     throw ValidationException::withMessages(['effective_from' => 'This effective period overlaps an activated version.']);
                 }
             }
-            $immutableFields = ['policy_key', 'name', 'description', 'notes', 'version', 'effective_from', 'effective_until', 'parameters', 'required_parameters', 'calculation_order', 'rounding_mode', 'rounding_precision', 'created_by', 'activated_at', 'activated_by', 'retired_at', 'retired_by'];
+            $immutableFields = ['policy_key', 'name', 'description', 'notes', 'version', 'effective_from', 'effective_until', 'parameters', 'required_parameters', 'calculation_order', 'contract_rules', 'proration_rule', 'rounding_mode', 'rounding_precision', 'created_by', 'activated_at', 'activated_by', 'retired_at', 'retired_by'];
             $retiring = $policy->getOriginal('status') === self::STATUS_ACTIVE && $policy->status === self::STATUS_RETIRED;
             $changedImmutableFields = $policy->getDirty();
             if ($retiring) {
@@ -293,6 +295,67 @@ class PayrollPolicy extends Model
         return $gaps;
     }
 
+    /** @return list<string> */
+    public function configurationGapsForContract(string $contractType): array
+    {
+        $rules = $this->getAttribute('contract_rules');
+        $route = is_array($rules) ? ($rules[$contractType] ?? null) : null;
+        if (is_string($route)) {
+            $decoded = json_decode($route, true);
+            $route = is_array($decoded) ? $decoded : null;
+        }
+        if (! is_array($route)) {
+            return ['contract_route.'.$contractType];
+        }
+
+        $parameters = is_array($route['parameters'] ?? null) ? $route['parameters'] : ($this->getAttribute('parameters') ?? []);
+        $required = is_array($route['required_parameters'] ?? null) ? $route['required_parameters'] : ($this->getAttribute('required_parameters') ?? []);
+        $order = is_array($route['calculation_order'] ?? null) ? $route['calculation_order'] : ($this->getAttribute('calculation_order') ?? []);
+        $gaps = [];
+        $supportedBases = $route['supported_salary_bases'] ?? null;
+        if (! is_array($supportedBases) || ! array_is_list($supportedBases) || $supportedBases === []) {
+            $gaps[] = 'contract_route.supported_salary_bases';
+        }
+        if (! is_array($order) || $order === []) {
+            $gaps[] = 'calculation_order';
+        }
+        foreach (is_array($required) ? $required : [] as $path) {
+            if (! is_string($path) || trim($path) === '') {
+                continue;
+            }
+            $value = $this->parameterValueFrom($parameters, $path);
+            if ($value === null || (is_string($value) && trim($value) === '')) {
+                $gaps[] = $path;
+            }
+        }
+        foreach (is_array($order) ? $order : [] as $path) {
+            if (! is_string($path) || trim($path) === '' || $this->parameterValueFrom($parameters, $path) === null) {
+                $gaps[] = 'calculation_order.'.(is_string($path) ? $path : 'invalid');
+            }
+        }
+        if ($this->rounding_mode === null || $this->rounding_precision === null) {
+            $gaps[] = 'rounding_configuration';
+        }
+
+        return array_values(array_unique($gaps));
+    }
+
+    private function parameterValueFrom(array $parameters, string $path): mixed
+    {
+        if (array_key_exists($path, $parameters)) {
+            return $parameters[$path];
+        }
+        $value = $parameters;
+        foreach (explode('.', $path) as $segment) {
+            if (! is_array($value) || ! array_key_exists($segment, $value)) {
+                return null;
+            }
+            $value = $value[$segment];
+        }
+
+        return $value;
+    }
+
     public function isCalculable(): bool
     {
         return $this->status === self::STATUS_ACTIVE && $this->configurationGaps() === [];
@@ -337,7 +400,7 @@ class PayrollPolicy extends Model
     {
         return LogOptions::defaults()->logOnly([
             'policy_key', 'name', 'description', 'version', 'status', 'effective_from', 'effective_until',
-            'parameters', 'required_parameters', 'calculation_order', 'rounding_mode', 'rounding_precision',
+            'parameters', 'required_parameters', 'calculation_order', 'contract_rules', 'proration_rule', 'rounding_mode', 'rounding_precision',
             'activated_at', 'activated_by', 'retired_at', 'retired_by', 'created_by', 'updated_by',
         ])->logOnlyDirty()->dontLogEmptyChanges();
     }

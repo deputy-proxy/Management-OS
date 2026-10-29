@@ -39,6 +39,17 @@ class PayrollPolicyForm
                         ->addActionLabel('Add parameter')
                         ->default([])
                         ->columnSpanFull(),
+                    KeyValue::make('contract_rules')
+                        ->keyLabel('Contract type')
+                        ->valueLabel('JSON contract rule')
+                        ->helperText('Each value is a JSON object with supported_salary_bases and optional parameters, required_parameters, and calculation_order overrides. Route-specific rules allow different contract types to use distinct formula paths; no route is inferred.')
+                        ->addActionLabel('Add contract route')
+                        ->columnSpanFull(),
+                    KeyValue::make('proration_rule')
+                        ->keyLabel('Rule field')
+                        ->valueLabel('Rule value')
+                        ->helperText('Optional. Mid-period amounts require an explicit method=calendar_days rule; there is no default proration behavior.')
+                        ->columnSpanFull(),
                     TagsInput::make('required_parameters')
                         ->label('Required parameter paths')
                         ->helperText('Nested paths are supported, for example contribution.cas_rate. Missing values are shown as configuration gaps.'),

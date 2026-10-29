@@ -17,7 +17,12 @@ class PayrollCalculationEngine
     {
         $messages = [];
         $gaps = [];
-        $input = $inputSnapshot['payroll_input'] ?? null;
+        $segments = $inputSnapshot['payroll_inputs'] ?? null;
+        if (! is_array($segments) || ! array_is_list($segments) || $segments === []) {
+            $singleInput = $inputSnapshot['payroll_input'] ?? null;
+            $segments = is_array($singleInput) ? [$singleInput] : [];
+        }
+        $input = $segments[0] ?? null;
         $parameters = $policySnapshot['parameters'] ?? null;
         $order = $policySnapshot['calculation_order'] ?? null;
         $required = $policySnapshot['required_parameters'] ?? null;
@@ -26,6 +31,29 @@ class PayrollCalculationEngine
         $modeName = is_string($policySnapshot['rounding_mode'] ?? null) ? strtolower($policySnapshot['rounding_mode']) : null;
         $roundingMode = $this->roundingMode($modeName);
         $reasons = [];
+        $contractType = $inputSnapshot['contract']['contract_type'] ?? null;
+        $contractRules = $policySnapshot['contract_rules'] ?? null;
+        $contractRule = is_array($contractRules) && is_string($contractType) ? ($contractRules[$contractType] ?? null) : null;
+        if (is_string($contractRule)) {
+            $decodedContractRule = json_decode($contractRule, true);
+            $contractRule = is_array($decodedContractRule) ? $decodedContractRule : null;
+        }
+        if (is_array($contractRule)) {
+            $parameters = is_array($contractRule['parameters'] ?? null) ? $contractRule['parameters'] : $parameters;
+            $required = is_array($contractRule['required_parameters'] ?? null) ? $contractRule['required_parameters'] : $required;
+            $order = is_array($contractRule['calculation_order'] ?? null) ? $contractRule['calculation_order'] : $order;
+        }
+        $prorationRule = $policySnapshot['proration_rule'] ?? null;
+        if (is_string($prorationRule)) {
+            $decodedProrationRule = json_decode($prorationRule, true);
+            $prorationRule = is_array($decodedProrationRule) ? $decodedProrationRule : null;
+        }
+        $prorationMethod = is_array($prorationRule) && is_string($prorationRule['method'] ?? null) ? $prorationRule['method'] : null;
+        if (is_array($prorationRule) && $prorationRule !== []
+            && ($prorationMethod !== 'calendar_days' || array_diff(array_keys($prorationRule), ['method']) !== [])) {
+            $this->message($messages, 'proration_rule_unsupported', 'Only the explicit calendar_days proration rule is supported, with no additional rule fields.');
+            $reasons[] = 'proration_rule_unsupported';
+        }
 
         if (! is_array($input) || ($input['input_status'] ?? null) !== 'verified') {
             $this->message($messages, 'payroll_input_not_verified', 'An explicit verified payroll input snapshot is required.');
@@ -38,6 +66,63 @@ class PayrollCalculationEngine
         if (! in_array($policySnapshot['status'] ?? null, ['active', 'retired'], true)) {
             $this->message($messages, 'policy_not_activated', 'The selected policy version is not activated.');
             $reasons[] = 'policy_not_activated';
+        }
+        if (is_string($contractType) && in_array(str_replace(['-', ' '], '_', strtolower($contractType)), ['contractor', 'pfa_contractor'], true)) {
+            $this->message($messages, 'contract_type_separate_workflow', 'Contractor invoices belong to the vendor-invoice workflow and cannot be routed through employee payroll.');
+            $reasons[] = 'contract_type_separate_workflow';
+        }
+        if (! is_array($contractRule)) {
+            $this->message($messages, 'contract_type_unsupported', 'No explicit contract-specific calculation route is configured for this contract type.');
+            $reasons[] = 'contract_type_unsupported';
+            $contractRule = [];
+        } else {
+            $unknownRouteKeys = array_diff(array_keys($contractRule), ['supported_salary_bases', 'parameters', 'required_parameters', 'calculation_order']);
+            if ($unknownRouteKeys !== []) {
+                $this->message($messages, 'contract_rule_invalid', 'The contract route contains unsupported configuration fields.');
+                $reasons[] = 'contract_rule_invalid';
+            }
+            $supportedBases = $contractRule['supported_salary_bases'] ?? null;
+            if (! is_array($supportedBases) || ! array_is_list($supportedBases) || $supportedBases === []) {
+                $this->message($messages, 'contract_rule_invalid', 'A contract route must explicitly list its supported salary bases.');
+                $reasons[] = 'contract_rule_invalid';
+            } else {
+                foreach ($segments as $segment) {
+                    if (is_array($segment) && ! in_array($segment['salary_basis'] ?? null, $supportedBases, true)) {
+                        $this->message($messages, 'salary_basis_unsupported_for_contract', 'This contract route does not support the selected salary basis.');
+                        $reasons[] = 'salary_basis_unsupported_for_contract';
+                    }
+                }
+            }
+        }
+        foreach ($segments as $segment) {
+            if (! is_array($segment)) {
+                $this->message($messages, 'payroll_input_segment_invalid', 'Each effective-dated input segment must be a structured snapshot.');
+                $reasons[] = 'payroll_input_segment_invalid';
+
+                continue;
+            }
+            if (($segment['input_status'] ?? null) !== 'verified') {
+                $this->message($messages, 'payroll_input_not_verified', 'Every selected effective-dated input must be verified.');
+                $reasons[] = 'payroll_input_not_verified';
+            }
+            if (($segment['currency_code'] ?? null) !== $currency) {
+                $this->message($messages, 'input_currency_mismatch', 'All effective-dated input segments must use the same currency.');
+                $reasons[] = 'input_currency_mismatch';
+            }
+            if (! in_array($segment['salary_basis'] ?? null, ['monthly', 'annual'], true)) {
+                $this->message($messages, 'salary_basis_not_supported_for_period', 'Only monthly amounts and annual amounts with an explicit divisor are supported; hourly and daily inputs need period-specific quantities.');
+                $reasons[] = 'salary_basis_not_supported_for_period';
+            }
+            if (! is_int($segment['segment_days'] ?? null) || ! is_int($segment['period_days'] ?? null)
+                || $segment['segment_days'] < 1 || $segment['period_days'] < 1 || $segment['segment_days'] > $segment['period_days']) {
+                $this->message($messages, 'input_segment_period_invalid', 'Each input segment must have valid inclusive calendar-day counts.');
+                $reasons[] = 'input_segment_period_invalid';
+            }
+        }
+        $hasPartialSegment = count(array_filter($segments, fn (mixed $segment): bool => is_array($segment) && (int) ($segment['segment_days'] ?? 0) < (int) ($segment['period_days'] ?? 0))) > 0;
+        if ($hasPartialSegment && $prorationMethod !== 'calendar_days') {
+            $this->message($messages, 'proration_rule_missing', 'Partial-period inputs require an explicit policy proration_rule with method=calendar_days.');
+            $reasons[] = 'proration_rule_missing';
         }
         if (! is_array($parameters)) {
             $this->message($messages, 'policy_parameters_invalid', 'Policy parameters must be a structured object.');
@@ -131,42 +216,81 @@ class PayrollCalculationEngine
             if ($type === 'input_amount') {
                 $field = $definition['input_field'] ?? null;
                 $expectedBasis = $definition['expected_salary_basis'] ?? null;
-                $basis = $input['salary_basis'] ?? null;
-                $inputValue = $this->decimal($input['base_amount'] ?? null);
-                if ($field !== 'base_amount' || ! is_string($expectedBasis) || $expectedBasis !== $basis) {
-                    $this->message($messages, 'salary_basis_mismatch', 'The input field and salary basis must exactly match the explicit policy definition.', $code);
+                if ($field !== 'base_amount' || ! is_string($expectedBasis)) {
+                    $this->message($messages, 'salary_basis_mismatch', 'The input field and expected salary basis must be explicitly configured.', $code);
 
                     continue;
                 }
-                if ($inputValue === null || $inputValue->compareTo(BigDecimal::zero()) < 0) {
-                    $this->message($messages, 'base_amount_invalid', 'An explicit non-negative base amount is required.', $code);
-
-                    continue;
-                }
-                if ($basis === 'monthly') {
-                    if (array_key_exists('period_divisor', $definition)) {
-                        $this->message($messages, 'period_conversion_invalid', 'Monthly amounts must not use a period divisor.', $code);
+                $amount = BigDecimal::zero();
+                $segmentCalculations = [];
+                $valid = true;
+                foreach ($segments as $segment) {
+                    if (($segment['salary_basis'] ?? null) !== $expectedBasis) {
+                        $this->message($messages, 'salary_basis_mismatch', 'Every input segment must match the salary basis declared by the policy.', $code);
+                        $valid = false;
 
                         continue;
                     }
-                    $amount = $inputValue;
-                } elseif ($basis === 'annual') {
-                    $divisor = $this->decimal($definition['period_divisor'] ?? null);
-                    if ($divisor === null || $divisor->compareTo(BigDecimal::zero()) <= 0) {
-                        $this->message($messages, 'period_conversion_missing', 'Annual amounts require an explicit positive period_divisor.', $code);
+                    $sourceAmount = $this->decimal($segment['base_amount'] ?? null);
+                    if ($sourceAmount === null || $sourceAmount->compareTo(BigDecimal::zero()) < 0) {
+                        $this->message($messages, 'base_amount_invalid', 'Every segment requires an explicit non-negative base amount.', $code);
+                        $valid = false;
 
                         continue;
                     }
-                    $amount = $inputValue->dividedBy((string) $divisor, 12, RoundingMode::HalfUp);
-                    $formula['period_divisor'] = (string) $divisor;
-                } else {
-                    $this->message($messages, 'salary_basis_not_supported', 'Hourly and daily bases require period-specific quantities that are not present in this snapshot.', $code);
+                    if ($expectedBasis === 'monthly') {
+                        if (array_key_exists('period_divisor', $definition)) {
+                            $this->message($messages, 'period_conversion_invalid', 'Monthly amounts must not use a period divisor.', $code);
+                            $valid = false;
 
+                            continue;
+                        }
+                        $monthlyAmount = $sourceAmount;
+                    } elseif ($expectedBasis === 'annual') {
+                        $divisor = $this->decimal($definition['period_divisor'] ?? null);
+                        if ($divisor === null || $divisor->compareTo(BigDecimal::zero()) <= 0) {
+                            $this->message($messages, 'period_conversion_missing', 'Annual amounts require an explicit positive period_divisor.', $code);
+                            $valid = false;
+
+                            continue;
+                        }
+                        $monthlyAmount = $sourceAmount->dividedBy((string) $divisor, 12, RoundingMode::HalfUp);
+                    } else {
+                        $this->message($messages, 'salary_basis_not_supported', 'Hourly and daily bases require period-specific quantities that are not present in this snapshot.', $code);
+                        $valid = false;
+
+                        continue;
+                    }
+                    $segmentDays = (int) $segment['segment_days'];
+                    $periodDays = (int) $segment['period_days'];
+                    $proratedAmount = $this->prorateAmount($monthlyAmount, $segmentDays, $periodDays, $prorationMethod, $messages, $code);
+                    if ($proratedAmount === null) {
+                        $valid = false;
+
+                        continue;
+                    }
+                    $amount = $amount->plus($proratedAmount);
+                    $segmentCalculations[] = [
+                        'input_id' => $segment['id'] ?? null,
+                        'segment_start' => $segment['segment_start'] ?? null,
+                        'segment_end' => $segment['segment_end'] ?? null,
+                        'segment_days' => $segmentDays,
+                        'period_days' => $periodDays,
+                        'source_amount' => (string) $sourceAmount,
+                        'monthly_amount' => (string) $monthlyAmount,
+                        'prorated_amount' => (string) $proratedAmount,
+                    ];
+                }
+                if (! $valid) {
                     continue;
                 }
+                $inputValue = $amount;
                 $formula['input_field'] = $field;
                 $formula['expected_salary_basis'] = $expectedBasis;
-                $formula['input_value'] = (string) $inputValue;
+                $formula['segment_calculations'] = $segmentCalculations;
+                if ($expectedBasis === 'annual') {
+                    $formula['period_divisor'] = (string) $this->decimal($definition['period_divisor']);
+                }
             } elseif ($type === 'fixed_amount') {
                 $amount = $this->decimal($definition['amount'] ?? null);
                 $configuredCurrency = $definition['currency_code'] ?? null;
@@ -180,38 +304,96 @@ class PayrollCalculationEngine
 
                     continue;
                 }
+                $amountBasis = $definition['amount_basis'] ?? null;
+                if (! in_array($amountBasis, ['period_amount', 'monthly_amount'], true)) {
+                    $this->message($messages, 'fixed_amount_basis_missing', 'Fixed amounts must explicitly declare amount_basis as period_amount or monthly_amount.', $code);
+
+                    continue;
+                }
                 $inputValue = $amount;
                 $formula['configured_amount'] = (string) $amount;
                 $formula['configured_currency_code'] = $configuredCurrency;
+                $formula['amount_basis'] = $amountBasis;
+                if ($amountBasis === 'monthly_amount') {
+                    $activePeriod = $inputSnapshot['contract_active_period'] ?? [];
+                    $activeDays = (int) ($activePeriod['days'] ?? $segments[0]['contract_active_days'] ?? $segments[0]['period_days'] ?? 0);
+                    $periodDays = (int) ($activePeriod['period_days'] ?? $segments[0]['period_days'] ?? 0);
+                    $amount = $this->prorateAmount($amount, $activeDays, $periodDays, $prorationMethod, $messages, $code);
+                    if ($amount === null) {
+                        continue;
+                    }
+                    $formula['contract_active_days'] = $activeDays;
+                    $formula['period_days'] = $periodDays;
+                }
             } elseif ($type === 'input_allowance') {
                 $allowanceCode = $definition['allowance_code'] ?? null;
-                $allowances = $input['allowance_inputs'] ?? null;
-                if (! is_string($allowanceCode) || ! is_array($allowances) || ! array_is_list($allowances)) {
-                    $this->message($messages, 'allowance_reference_invalid', 'An explicit allowance code and input list are required.', $code);
+                $amountBasis = $definition['amount_basis'] ?? null;
+                if (! is_string($allowanceCode) || ! in_array($amountBasis, ['monthly_amount', 'period_amount'], true)) {
+                    $this->message($messages, 'allowance_reference_invalid', 'Allowance rules require an explicit allowance_code and amount_basis.', $code);
 
                     continue;
                 }
-                $matches = array_values(array_filter($allowances, fn (mixed $allowance): bool => is_array($allowance) && ($allowance['code'] ?? null) === $allowanceCode));
-                if (count($matches) !== 1) {
-                    $this->message($messages, 'allowance_reference_ambiguous', 'The allowance code must match exactly one explicit input allowance.', $code);
+                $amount = BigDecimal::zero();
+                $segmentCalculations = [];
+                $valid = true;
+                foreach ($segments as $segment) {
+                    $allowances = $segment['allowance_inputs'] ?? null;
+                    if (! is_array($allowances) || ! array_is_list($allowances)) {
+                        $this->message($messages, 'allowance_reference_invalid', 'Every segment requires an explicit allowance input list.', $code);
+                        $valid = false;
 
-                    continue;
+                        continue;
+                    }
+                    $matches = array_values(array_filter($allowances, fn (mixed $allowance): bool => is_array($allowance) && ($allowance['code'] ?? null) === $allowanceCode));
+                    if (count($matches) !== 1) {
+                        $this->message($messages, 'allowance_reference_ambiguous', 'The allowance code must match exactly one allowance in every effective-dated segment.', $code);
+                        $valid = false;
+
+                        continue;
+                    }
+                    $allowance = $matches[0];
+                    $sourceAmount = $this->decimal($allowance['amount'] ?? null);
+                    if ($sourceAmount === null || $sourceAmount->compareTo(BigDecimal::zero()) < 0) {
+                        $this->message($messages, 'allowance_amount_invalid', 'Every allowance must have an explicit non-negative amount.', $code);
+                        $valid = false;
+
+                        continue;
+                    }
+                    if (($allowance['currency_code'] ?? null) !== $currency) {
+                        $this->message($messages, 'allowance_currency_mismatch', 'Allowance currency must match the input currency.', $code);
+                        $valid = false;
+
+                        continue;
+                    }
+                    $segmentDays = (int) $segment['segment_days'];
+                    $periodDays = (int) $segment['period_days'];
+                    $segmentAmount = $amountBasis === 'monthly_amount'
+                        ? $this->prorateAmount($sourceAmount, $segmentDays, $periodDays, $prorationMethod, $messages, $code)
+                        : $sourceAmount;
+                    if ($segmentAmount === null) {
+                        $valid = false;
+
+                        continue;
+                    }
+                    $amount = $amount->plus($segmentAmount);
+                    $segmentCalculations[] = [
+                        'input_id' => $segment['id'] ?? null,
+                        'segment_start' => $segment['segment_start'] ?? null,
+                        'segment_end' => $segment['segment_end'] ?? null,
+                        'segment_days' => $segmentDays,
+                        'period_days' => $periodDays,
+                        'source_amount' => (string) $sourceAmount,
+                        'amount_basis' => $amountBasis,
+                        'calculated_amount' => (string) $segmentAmount,
+                    ];
                 }
-                $allowance = $matches[0];
-                $amount = $this->decimal($allowance['amount'] ?? null);
-                if ($amount === null || $amount->compareTo(BigDecimal::zero()) < 0) {
-                    $this->message($messages, 'allowance_amount_invalid', 'The allowance must have an explicit non-negative amount.', $code);
-
-                    continue;
-                }
-                if (($allowance['currency_code'] ?? null) !== $currency) {
-                    $this->message($messages, 'allowance_currency_mismatch', 'Allowance currency must match the input currency.', $code);
-
+                if (! $valid) {
                     continue;
                 }
                 $inputValue = $amount;
                 $formula['allowance_code'] = $allowanceCode;
-                $formula['input_value'] = (string) $amount;
+                $formula['amount_basis'] = $amountBasis;
+                $formula['segment_calculations'] = $segmentCalculations;
             } else {
                 $baseItemCode = $definition['base_item_code'] ?? null;
                 $ratePercent = $this->decimal($definition['rate_percent'] ?? null);
@@ -256,6 +438,9 @@ class PayrollCalculationEngine
                     'calculation_version' => self::VERSION,
                     'policy_key' => $policySnapshot['policy_key'] ?? null,
                     'policy_version' => $policySnapshot['version'] ?? null,
+                    'contract_type' => $contractType,
+                    'contract_rule' => $contractRule,
+                    'proration_rule' => $prorationRule,
                     'formula' => $formula,
                     'rounding_mode' => $modeName,
                     'rounding_precision' => $precision,
@@ -372,6 +557,25 @@ class PayrollCalculationEngine
         $lastDigit = (int) substr((string) $down->toScale($precision), -1);
 
         return $lastDigit % 2 === 1 ? $down : $value->toScale($precision, RoundingMode::Up);
+    }
+
+    private function prorateAmount(BigDecimal $amount, int $segmentDays, int $periodDays, ?string $method, array &$messages, string $code): ?BigDecimal
+    {
+        if ($segmentDays < 1 || $periodDays < 1 || $segmentDays > $periodDays) {
+            $this->message($messages, 'proration_period_invalid', 'Proration requires valid inclusive calendar-day counts.', $code);
+
+            return null;
+        }
+        if ($segmentDays === $periodDays) {
+            return $amount;
+        }
+        if ($method !== 'calendar_days') {
+            $this->message($messages, 'proration_rule_missing', 'Partial-period amounts require the explicitly configured calendar_days proration rule.', $code);
+
+            return null;
+        }
+
+        return $amount->multipliedBy((string) $segmentDays)->dividedBy((string) $periodDays, 12, RoundingMode::HalfUp);
     }
 
     private function fitsMoneyColumn(BigDecimal $amount): bool
