@@ -64,6 +64,9 @@ Evidence includes app/Models/Transaction.php, CustomerInvoice.php, VendorInvoice
 | payroll_calculation_result_items.result_id, line_number, item_code/type, calculation_method, input_value, rate_percent, amount, currency, rounding, calculation_snapshot | Immutable ordered line-level arithmetic and formula evidence. | Unique line numbers and codes per result; no FX or statutory rates are supplied by the engine. |
 | employee_contract_payroll_inputs.base_amount | Explicit effective-dated amount for the configured salary basis. | Nullable for legacy rows; never backfilled from `EmployeeContract.base_salary` or `hourly_rate`. Missing explicit inputs block calculation. |
 
+| payroll_policies.contract_rules, proration_rule | Explicit contract-type/salary-basis routing and optional calendar-day proration rule for each immutable policy version. | Missing contract routes or partial-period proration rules block calculation; no default rule is inferred. |
+| payroll_calculation_run_inputs.run_id, employee_contract_payroll_input_id, segment_start/end, segment_days, period_days, input_snapshot | Immutable link from a run to every effective-dated input version used for the contract-active portion of a payroll month. | Gaps, overlaps, unverified versions and out-of-period selections block calculation. |
+
 
 ### Representative contract examples (specification only)
 

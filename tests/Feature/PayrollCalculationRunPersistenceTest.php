@@ -62,6 +62,8 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertSame('200.00', $run->result->result_snapshot['deductions_amount']);
         $this->assertSame('4300.00', $run->result->result_snapshot['net_amount']);
         $this->assertSame('payroll-decimal-v1', $run->calculation_version);
+        $this->assertSame(hash('sha256', json_encode($run->input_snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)), $run->result->result_snapshot['input_snapshot_hash']);
+        $this->assertSame(hash('sha256', json_encode($run->policy_snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)), $run->result->result_snapshot['policy_snapshot_hash']);
         $this->assertSame($legacyPayslipAmount, (string) $paySlip->fresh()->amount, 'Calculation snapshots must not overwrite legacy payslip totals.');
         $this->assertCount(4, $run->result->items);
         $this->assertSame('bonus', $run->result->items[2]->item_code);
@@ -80,6 +82,31 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertNotSame($run->id, $newRun->id);
         $this->assertSame($run->result->snapshot_hash, $newRun->result->snapshot_hash);
         $this->assertSame(2, PayrollCalculationRun::query()->where('employee_pay_slip_id', $paySlip->id)->count());
+    }
+
+    public function test_effective_policy_can_supply_a_contract_specific_formula_path(): void
+    {
+        [$actor, $contract, $input, , $paySlip] = $this->fixture();
+        $routeParameters = [
+            'contract_base' => ['type' => 'input_amount', 'input_field' => 'base_amount', 'expected_salary_basis' => 'monthly', 'item_type' => 'earning', 'label' => 'Route-specific base'],
+            'route_allowance' => ['type' => 'input_allowance', 'allowance_code' => 'synthetic_allowance', 'amount_basis' => 'monthly_amount', 'item_type' => 'earning', 'label' => 'Route-specific allowance'],
+        ];
+        $policy = PayrollPolicy::factory()->create([
+            'policy_key' => 'synthetic_route_only', 'version' => 1, 'status' => 'active',
+            'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
+            'parameters' => [], 'required_parameters' => [], 'calculation_order' => [],
+            'contract_rules' => ['full_time' => [
+                'supported_salary_bases' => ['monthly'], 'parameters' => $routeParameters,
+                'required_parameters' => array_keys($routeParameters), 'calculation_order' => array_keys($routeParameters),
+            ]],
+            'proration_rule' => null, 'rounding_mode' => 'half_up', 'rounding_precision' => 2,
+        ]);
+
+        $run = app(PayrollCalculationRunService::class)->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-route-only-001', $input, $policy, $paySlip);
+        $this->assertSame('calculated', $run->result->result_status);
+        $this->assertSame('4100.00', $run->result->result_snapshot['gross_amount']);
+        $this->assertCount(2, $run->result->items);
+        $this->assertSame('contract_base', $run->result->items[0]->item_code);
     }
 
     public function test_calculation_validation_errors_are_persisted_without_partial_lines_or_totals(): void
@@ -207,6 +234,81 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertDatabaseHas('payroll_calculation_runs', ['id' => $run->id]);
     }
 
+    public function test_mid_period_input_changes_are_prorated_and_correction_runs_keep_prior_snapshots(): void
+    {
+        [$actor, $contract, $firstInput, $policy, $paySlip] = $this->fixture(calculablePolicy: true, prorate: true);
+        $firstInput->update(['effective_until' => '2026-01-15']);
+        $secondInput = $this->makeVerifiedInput($actor, $contract, '2026-01-16', '2026-12-31', '6000.00', '200.00');
+        $service = app(PayrollCalculationRunService::class);
+        $run = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-midperiod-001', $firstInput, $policy, $paySlip, [$secondInput]);
+
+        $this->assertSame('calculated', $run->result->result_status);
+        $this->assertSame('5687.10', $run->result->result_snapshot['gross_amount']);
+        $this->assertSame('251.61', $run->result->result_snapshot['deductions_amount']);
+        $this->assertSame('5435.49', $run->result->result_snapshot['net_amount']);
+        $this->assertSame([15, 16], $run->inputVersions->pluck('segment_days')->all());
+        $this->assertSame(['2026-01-01', '2026-01-16'], $run->inputVersions->map(fn ($version): string => $version->segment_start->toDateString())->all());
+        try {
+            $run->inputVersions[0]->forceFill(['segment_days' => 1])->save();
+            $this->fail('Run-to-input version links must be immutable.');
+        } catch (LogicException $exception) {
+            $this->assertStringContainsString('immutable', $exception->getMessage());
+        }
+        $this->assertSame('5032.260000', $run->result->items[0]->amount);
+        $this->assertSame('151.610000', $run->result->items[1]->amount);
+
+        $correctedParameters = $policy->parameters;
+        $correctedParameters['bonus']['rate_percent'] = '12';
+        $correctedPolicy = PayrollPolicy::factory()->create([
+            'policy_key' => 'synthetic_policy_correction', 'version' => 1, 'status' => 'active',
+            'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
+            'parameters' => $correctedParameters, 'required_parameters' => $policy->required_parameters,
+            'calculation_order' => $policy->calculation_order, 'contract_rules' => $policy->contract_rules,
+            'proration_rule' => $policy->proration_rule, 'rounding_mode' => $policy->rounding_mode,
+            'rounding_precision' => $policy->rounding_precision,
+        ]);
+        $correctedRun = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-midperiod-correction-001', $firstInput, $correctedPolicy, $paySlip, [$secondInput]);
+        $this->assertNotSame($run->id, $correctedRun->id);
+        $this->assertNotSame($run->result->snapshot_hash, $correctedRun->result->snapshot_hash);
+        $this->assertSame('5687.10', $run->result->fresh()->result_snapshot['gross_amount']);
+        $this->assertSame('synthetic_policy', $run->result->result_snapshot['policy_reference']['policy_key']);
+    }
+
+    public function test_partial_contract_period_requires_explicit_proration_and_then_calculates(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture(calculablePolicy: true, contractStart: '2026-01-15');
+        $service = app(PayrollCalculationRunService::class);
+        $blocked = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-contract-proration-blocked', $input, $policy, $paySlip);
+        $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $blocked->run_status);
+        $this->assertContains('contract_period_proration_rule_missing', $blocked->blocked_reasons);
+
+        $configuredPolicy = PayrollPolicy::factory()->create([
+            'policy_key' => 'synthetic_contract_proration', 'version' => 1, 'status' => 'active',
+            'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
+            'parameters' => $policy->parameters, 'required_parameters' => $policy->required_parameters,
+            'calculation_order' => $policy->calculation_order, 'contract_rules' => $policy->contract_rules,
+            'proration_rule' => ['method' => 'calendar_days'], 'rounding_mode' => $policy->rounding_mode,
+            'rounding_precision' => $policy->rounding_precision,
+        ]);
+        $calculated = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-contract-proration-calculated', $input, $configuredPolicy, $paySlip);
+        $this->assertSame('calculated', $calculated->result->result_status);
+        $this->assertSame('2193.550000', $calculated->result->items[0]->amount);
+        $this->assertSame(17, $calculated->inputVersions->first()->segment_days);
+    }
+
+    public function test_selected_effective_input_gaps_block_calculation(): void
+    {
+        [$actor, $contract, $firstInput, $policy, $paySlip] = $this->fixture(calculablePolicy: true, prorate: true);
+        $firstInput->update(['effective_until' => '2026-01-10']);
+        $secondInput = $this->makeVerifiedInput($actor, $contract, '2026-01-16', '2026-12-31', '6000.00', '200.00');
+        $run = app(PayrollCalculationRunService::class)->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-midperiod-gap-001', $firstInput, $policy, $paySlip, [$secondInput]);
+
+        $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $run->run_status);
+        $this->assertContains('payroll_input_effective_date_gap', $run->blocked_reasons);
+        $this->assertNull($run->result->net_amount);
+        $this->assertCount(2, $run->inputVersions);
+    }
+
     public function test_engine_schema_migration_refuses_to_drop_explicit_base_amounts(): void
     {
         [$actor, $contract, $input] = $this->fixture();
@@ -215,6 +317,17 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $migration->down();
         $this->assertDatabaseHas('employee_contract_payroll_inputs', ['id' => $input->id]);
+    }
+
+    public function test_contract_route_migration_refuses_to_drop_immutable_run_input_links(): void
+    {
+        [$actor, $contract, $input, $policy] = $this->fixture();
+        $run = app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-route-rollback-001', $input, $policy);
+        $migration = require base_path('database/migrations/2026_10_29_040000_add_contract_routes_and_run_inputs.php');
+
+        $this->assertDatabaseHas('payroll_calculation_run_inputs', ['payroll_calculation_run_id' => $run->id, 'employee_contract_payroll_input_id' => $input->id]);
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
     }
 
     public function test_run_service_requires_server_side_authorization(): void
@@ -226,17 +339,29 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-denied-001');
     }
 
+    private function makeVerifiedInput(User $actor, EmployeeContract $contract, string $start, string $end, string $baseAmount, string $allowanceAmount): EmployeeContractPayrollInput
+    {
+        return EmployeeContractPayrollInput::query()->create([
+            'employee_contract_id' => $contract->id,
+            'effective_from' => $start, 'effective_until' => $end,
+            'salary_basis' => 'monthly', 'base_amount' => $baseAmount, 'currency_code' => 'RON',
+            'scheduled_hours_per_week' => 40, 'work_schedule' => ['pattern' => 'synthetic_weekday'],
+            'allowance_inputs' => [['code' => 'synthetic_allowance', 'amount' => $allowanceAmount, 'currency_code' => 'RON']],
+            'input_status' => 'verified', 'reviewed_by' => $actor->id, 'reviewed_at' => now(),
+        ]);
+    }
+
     /** @return array{User, EmployeeContract, EmployeeContractPayrollInput, PayrollPolicy, EmployeePaySlip} */
-    private function fixture(string $inputStatus = 'verified', bool $incomplete = false, bool $calculablePolicy = false): array
+    private function fixture(string $inputStatus = 'verified', bool $incomplete = false, bool $calculablePolicy = false, bool $prorate = false, string $contractStart = '2026-01-01'): array
     {
         $actor = User::factory()->create();
         $contract = EmployeeContract::factory()->create([
-            'start_date' => '2026-01-01', 'end_date' => '2027-12-31',
+            'start_date' => $contractStart, 'end_date' => '2027-12-31', 'contract_type' => 'full_time',
             'base_salary' => 4000, 'hourly_rate' => 25,
         ]);
         $input = EmployeeContractPayrollInput::query()->create([
             'employee_contract_id' => $contract->id,
-            'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
+            'effective_from' => $contractStart, 'effective_until' => '2026-12-31',
             'salary_basis' => $incomplete ? null : 'monthly', 'base_amount' => $incomplete ? null : '4000.00', 'currency_code' => $incomplete ? null : 'RON',
             'scheduled_hours_per_week' => $incomplete ? null : 40,
             'work_schedule' => ['pattern' => 'synthetic_weekday'],
@@ -247,7 +372,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         ]);
         $policyParameters = $calculablePolicy ? [
             'base_pay' => ['type' => 'input_amount', 'input_field' => 'base_amount', 'expected_salary_basis' => 'monthly', 'item_type' => 'earning', 'label' => 'Synthetic base pay'],
-            'transport' => ['type' => 'input_allowance', 'allowance_code' => 'synthetic_allowance', 'item_type' => 'earning', 'label' => 'Synthetic allowance'],
+            'transport' => ['type' => 'input_allowance', 'allowance_code' => 'synthetic_allowance', 'amount_basis' => 'monthly_amount', 'item_type' => 'earning', 'label' => 'Synthetic allowance'],
             'bonus' => ['type' => 'percentage_of', 'base_item_code' => 'base_pay', 'rate_percent' => '10', 'item_type' => 'earning', 'label' => 'Synthetic bonus'],
             'deduction' => ['type' => 'percentage_of', 'base_item_code' => 'base_pay', 'rate_percent' => '5', 'item_type' => 'deduction', 'label' => 'Synthetic deduction'],
         ] : ['base_salary' => 'configured-only'];
@@ -256,6 +381,8 @@ class PayrollCalculationRunPersistenceTest extends TestCase
             'effective_from' => '2026-01-01', 'effective_until' => '2026-12-31',
             'parameters' => $policyParameters,
             'required_parameters' => array_keys($policyParameters), 'calculation_order' => array_keys($policyParameters),
+            'contract_rules' => ['full_time' => ['supported_salary_bases' => ['monthly', 'annual']]],
+            'proration_rule' => $prorate ? ['method' => 'calendar_days'] : null,
             'rounding_mode' => 'half_up', 'rounding_precision' => 2,
         ]);
         $paySlip = EmployeePaySlip::factory()->create([

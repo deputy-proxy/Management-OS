@@ -21,6 +21,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class EmployeePaySlipsTable
 {
@@ -98,9 +99,11 @@ class EmployeePaySlipsTable
                                 ->where('employee_id', $record->employee_id)->orderByDesc('start_date')->get()
                                 ->mapWithKeys(fn (EmployeeContract $contract): array => [$contract->id => '#'.$contract->id.' · '.$contract->contract_type.' · '.$contract->start_date.' to '.$contract->end_date])->all())
                             ->searchable()->required()->live(),
-                        Select::make('employee_contract_payroll_input_id')
-                            ->label('Verified payroll inputs')
-                            ->placeholder('No verified input selected')
+                        Select::make('employee_contract_payroll_input_ids')
+                            ->label('Verified payroll input versions')
+                            ->multiple()
+                            ->helperText('Select every verified effective-dated input covering this month, including each mid-period change. Gaps and overlaps block calculation.')
+                            ->placeholder('Select all applicable input versions')
                             ->options(fn (Get $get): array => $get('employee_contract_id')
                                 ? EmployeeContractPayrollInput::query()->where('employee_contract_id', $get('employee_contract_id'))->where('input_status', 'verified')->orderByDesc('effective_from')->get()
                                     ->mapWithKeys(fn (EmployeeContractPayrollInput $input): array => [$input->id => '#'.$input->id.' · '.$input->effective_from.' to '.($input->effective_until ?? 'open ended')])->all()
@@ -116,12 +119,18 @@ class EmployeePaySlipsTable
                     ->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && hexa()->can('payroll_calculation_run.create'))
                     ->action(function (EmployeePaySlip $record, array $data, PayrollCalculationRunService $service): void {
                         $contract = EmployeeContract::query()->where('employee_id', $record->employee_id)->findOrFail($data['employee_contract_id']);
-                        $input = filled($data['employee_contract_payroll_input_id'] ?? null)
-                            ? EmployeeContractPayrollInput::query()->where('employee_contract_id', $contract->id)->findOrFail($data['employee_contract_payroll_input_id'])
-                            : null;
+                        $selectedInputIds = array_values(array_unique(array_map('intval', (array) ($data['employee_contract_payroll_input_ids'] ?? []))));
+                        $selectedInputs = $selectedInputIds === []
+                            ? collect()
+                            : EmployeeContractPayrollInput::query()->where('employee_contract_id', $contract->id)->whereIn('id', $selectedInputIds)->orderBy('effective_from')->orderBy('id')->get();
+                        if ($selectedInputs->count() !== count($selectedInputIds)) {
+                            throw ValidationException::withMessages(['employee_contract_payroll_input_ids' => 'Every selected input version must belong to the selected contract.']);
+                        }
+                        $input = $selectedInputs->first();
+                        $additionalInputs = $selectedInputs->slice(1)->values()->all();
                         $policy = filled($data['payroll_policy_id'] ?? null) ? PayrollPolicy::query()->findOrFail($data['payroll_policy_id']) : null;
                         $start = Carbon::parse((string) $record->month)->startOfMonth();
-                        $run = $service->calculate(auth()->user(), $contract, $start->toDateString(), $start->copy()->endOfMonth()->toDateString(), $data['idempotency_key'], $input, $policy, $record);
+                        $run = $service->calculate(auth()->user(), $contract, $start->toDateString(), $start->copy()->endOfMonth()->toDateString(), $data['idempotency_key'], $input, $policy, $record, $additionalInputs);
                         $resultRecord = $run->result()->first();
                         $snapshotValue = $resultRecord?->getAttribute('result_snapshot');
                         $snapshot = is_array($snapshotValue) ? $snapshotValue : [];

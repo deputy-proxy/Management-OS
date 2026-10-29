@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
@@ -68,6 +69,11 @@ class PayrollCalculationRun extends Model
     public function paySlip(): BelongsTo
     {
         return $this->belongsTo(EmployeePaySlip::class, 'employee_pay_slip_id');
+    }
+
+    public function inputVersions(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationRunInput::class)->orderBy('segment_start');
     }
 
     public function result(): HasOne
