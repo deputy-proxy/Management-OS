@@ -13,7 +13,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
             $table->foreignId('employee_contract_id')->constrained()->restrictOnDelete();
-            $table->foreignId('employee_contract_payroll_input_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('employee_contract_payroll_input_id')->nullable();
+            $table->foreign('employee_contract_payroll_input_id', 'payroll_runs_input_fk')
+                ->references('id')->on('employee_contract_payroll_inputs')->restrictOnDelete();
             $table->foreignId('payroll_policy_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('employee_pay_slip_id')->nullable()->constrained()->restrictOnDelete();
             $table->date('period_start');
