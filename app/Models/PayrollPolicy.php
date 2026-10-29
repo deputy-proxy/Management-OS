@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -295,6 +296,11 @@ class PayrollPolicy extends Model
     public function isCalculable(): bool
     {
         return $this->status === self::STATUS_ACTIVE && $this->configurationGaps() === [];
+    }
+
+    public function calculationRuns(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class);
     }
 
     public function createdBy(): BelongsTo

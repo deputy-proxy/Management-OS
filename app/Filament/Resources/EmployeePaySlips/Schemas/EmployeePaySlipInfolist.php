@@ -19,6 +19,21 @@ class EmployeePaySlipInfolist
             TextEntry::make('amount')->money('RON')->label('Calculated Total'),
             TextEntry::make('due_on')->date(),
             TextEntry::make('paid_on')->date(),
+            Section::make('Versioned payroll calculation snapshots')
+                ->description('Snapshots are immutable. A ready status means inputs are present, not that statutory payroll has been calculated or approved.')
+                ->schema([
+                    RepeatableEntry::make('calculationRuns')->schema([
+                        TextEntry::make('id')->label('Run ID'),
+                        TextEntry::make('run_status')->badge()->label('Run status'),
+                        TextEntry::make('period_start')->date(),
+                        TextEntry::make('period_end')->date(),
+                        TextEntry::make('policy_snapshot.policy_key')->label('Policy key'),
+                        TextEntry::make('policy_snapshot.version')->label('Policy version'),
+                        TextEntry::make('blocked_reasons')->listWithLineBreaks(),
+                        TextEntry::make('result.result_status')->label('Result snapshot status'),
+                        TextEntry::make('result.snapshot_hash')->label('Snapshot SHA-256'),
+                    ])->columns(4),
+                ]),
             Section::make('Source-linked payroll items')
                 ->description('Each line stores the source ID, rate and calculation snapshot used when it was added. These records are immutable.')
                 ->schema([

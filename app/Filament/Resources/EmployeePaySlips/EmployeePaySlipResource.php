@@ -94,7 +94,7 @@ class EmployeePaySlipResource extends Resource
 
     public function defineGates(): array
     {
-        return ['employee_pay_slip.index' => __('Allows viewing the employee pay slip list'), 'employee_pay_slip.create' => __('Allows creating a new employee pay slip'), 'employee_pay_slip.update' => __('Allows updating employee pay slips'), 'employee_pay_slip.delete' => __('Allows deleting employee pay slips')];
+        return ['employee_pay_slip.index' => __('Allows viewing the employee pay slip list'), 'employee_pay_slip.create' => __('Allows creating a new employee pay slip'), 'employee_pay_slip.update' => __('Allows updating employee pay slips'), 'employee_pay_slip.delete' => __('Allows deleting employee pay slips'), 'payroll_calculation_run.create' => __('Allows recording immutable payroll calculation input and result snapshots')];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
