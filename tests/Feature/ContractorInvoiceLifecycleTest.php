@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\EmployeePaySlip;
 use App\Models\FinancialAccount;
 use App\Models\Transaction;
 use App\Models\User;
@@ -31,6 +32,7 @@ class ContractorInvoiceLifecycleTest extends TestCase
 
     public function test_pfa_invoice_can_be_submitted_approved_and_marked_payable_with_immutable_events(): void
     {
+        $payslipCountBefore = EmployeePaySlip::query()->count();
         [$invoice, $actor] = $this->fixture();
         $service = app(ContractorInvoiceLifecycleService::class);
 
@@ -42,6 +44,7 @@ class ContractorInvoiceLifecycleTest extends TestCase
         $this->assertSame('payable', $payable->workflow_status);
         $this->assertSame('2026-11-15', $payable->payable_on->toDateString());
         $this->assertSame(['submitted', 'approved', 'payable'], VendorInvoiceEvent::query()->where('vendor_invoice_id', $invoice->id)->orderBy('id')->pluck('to_status')->all());
+        $this->assertSame($payslipCountBefore, EmployeePaySlip::query()->count());
     }
 
     public function test_submission_requires_explicit_active_pfa_engagement_and_source_document(): void
@@ -111,6 +114,83 @@ class ContractorInvoiceLifecycleTest extends TestCase
         $this->assertCount(1, $invoice->fresh()->paymentAllocations);
         $this->assertSame('allocation_total_only', $allocations->invoiceSummary('vendor_invoice', $invoice->id)['status']);
         $this->assertSame('payable', $invoice->fresh()->workflow_status);
+    }
+
+    public function test_partial_payments_from_distinct_transactions_accumulate_without_inventing_invoice_settlement(): void
+    {
+        [$invoice, $actor] = $this->fixture();
+        $lifecycle = app(ContractorInvoiceLifecycleService::class);
+        $lifecycle->submit($invoice->id, $actor);
+        $lifecycle->approve($invoice->id, $actor, 'Synthetic invoice review.');
+        $lifecycle->markPayable($invoice->id, $actor, 'Synthetic payment authorization.');
+
+        $allocations = app(PaymentAllocationService::class);
+        $firstPayment = $this->paymentTransaction('40.00');
+        $secondPayment = $this->paymentTransaction('30.00');
+        $first = $allocations->propose($actor, $firstPayment->id, 'invoice', '40.00', 'RON', 'vendor_invoice', $invoice->id, 'First partial contractor payment');
+        $second = $allocations->propose($actor, $secondPayment->id, 'invoice', '30.00', 'RON', 'vendor_invoice', $invoice->id, 'Second partial contractor payment');
+        $allocations->confirm($first->id, $actor);
+        $allocations->confirm($second->id, $actor);
+
+        $summary = $allocations->invoiceSummary('vendor_invoice', $invoice->id);
+        $this->assertSame('allocation_total_only', $summary['status']);
+        $this->assertSame('70.00', $summary['allocated_total']);
+        $this->assertSame(2, $summary['allocation_count']);
+        $this->assertSame('unresolved_invoice_total_semantics', $summary['invoice_balance_validation']);
+        $this->assertSame('payable', $invoice->fresh()->workflow_status);
+        $this->assertSame('fully_allocated', $allocations->paymentSummary($firstPayment->fresh())['status']);
+        $this->assertSame('fully_allocated', $allocations->paymentSummary($secondPayment->fresh())['status']);
+    }
+
+    public function test_duplicate_contractor_payment_allocation_is_blocked_until_original_is_reversed(): void
+    {
+        [$invoice, $actor] = $this->fixture();
+        $lifecycle = app(ContractorInvoiceLifecycleService::class);
+        $lifecycle->submit($invoice->id, $actor);
+        $lifecycle->approve($invoice->id, $actor, 'Synthetic invoice review.');
+        $lifecycle->markPayable($invoice->id, $actor, 'Synthetic payment authorization.');
+        $allocations = app(PaymentAllocationService::class);
+        $payment = $this->paymentTransaction('100.00');
+        $first = $allocations->propose($actor, $payment->id, 'invoice', '35.00', 'RON', 'vendor_invoice', $invoice->id, 'Original payment allocation');
+        $allocations->confirm($first->id, $actor);
+        $duplicate = $allocations->propose($actor, $payment->id, 'invoice', '20.00', 'RON', 'vendor_invoice', $invoice->id, 'Replacement allocation proposal');
+
+        try {
+            $allocations->confirm($duplicate->id, $actor);
+            $this->fail('A payment cannot be confirmed twice against the same contractor invoice.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('target_id', $exception->errors());
+        }
+
+        $allocations->reverse($first->id, $actor, 'Correcting the source invoice allocation reference.');
+        $allocations->confirm($duplicate->id, $actor);
+        $this->assertSame('confirmed', $duplicate->fresh()->status);
+        $this->assertSame('20.00', $allocations->invoiceSummary('vendor_invoice', $invoice->id)['allocated_total']);
+        $this->assertSame('payable', $invoice->fresh()->workflow_status);
+    }
+
+    public function test_invoice_reversal_requires_confirmed_payment_allocations_to_be_reversed_first(): void
+    {
+        [$invoice, $actor] = $this->fixture();
+        $lifecycle = app(ContractorInvoiceLifecycleService::class);
+        $lifecycle->submit($invoice->id, $actor);
+        $lifecycle->approve($invoice->id, $actor, 'Synthetic invoice review.');
+        $lifecycle->markPayable($invoice->id, $actor, 'Synthetic payment authorization.');
+        $allocations = app(PaymentAllocationService::class);
+        $payment = $this->paymentTransaction('50.00');
+        $allocation = $allocations->propose($actor, $payment->id, 'invoice', '50.00', 'RON', 'vendor_invoice', $invoice->id, 'Synthetic confirmed payment');
+        $allocations->confirm($allocation->id, $actor);
+
+        try {
+            $lifecycle->reverse($invoice->id, $actor, 'Attempted invoice reversal before allocation reversal.');
+            $this->fail('Invoice reversal must wait for confirmed payment allocations to be reversed.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('invoice', $exception->errors());
+        }
+
+        $allocations->reverse($allocation->id, $actor, 'Reversing the payment link before invoice reversal.');
+        $this->assertSame('reversed', $lifecycle->reverse($invoice->id, $actor, 'Reversing the payable contractor invoice.')->workflow_status);
+        $this->assertSame('reversed', $allocation->fresh()->status);
     }
 
     public function test_tax_treatment_is_unsupported_without_a_rule_and_can_only_reference_configured_versioned_rules(): void
@@ -219,6 +299,23 @@ class ContractorInvoiceLifecycleTest extends TestCase
         $this->assertSame('reversed', $reversed->workflow_status);
         $this->assertSame('Duplicate invoice confirmed during review.', $reversed->reversal_reason);
         $this->assertDatabaseHas('vendor_invoice_events', ['vendor_invoice_id' => $invoice->id, 'event_type' => 'reversed']);
+    }
+
+    private function paymentTransaction(string $amount): Transaction
+    {
+        $account = FinancialAccount::factory()->create(['currency' => 'RON']);
+
+        return Transaction::factory()->create([
+            'financial_account_id' => $account->id,
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'timestamp' => '2026-01-15 12:00:00',
+            'amount' => (float) $amount,
+            'amount_decimal' => $amount,
+            'currency_code' => 'RON',
+            'transaction_type_code' => 'money_out',
+        ]);
     }
 
     /** @return array{VendorInvoice, User} */
