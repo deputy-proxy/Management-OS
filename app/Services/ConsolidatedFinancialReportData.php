@@ -97,6 +97,10 @@ class ConsolidatedFinancialReportData
                 ->get();
 
             foreach ($legacyCustomerInvoices as $invoice) {
+                if ($currency !== null) {
+                    continue;
+                }
+
                 $records[] = [
                     'period' => $invoice->month ? substr((string) $invoice->month, 0, 7) : 'Undated',
                     'basis' => 'legacy_customer_invoice_record',
@@ -181,7 +185,7 @@ class ConsolidatedFinancialReportData
                 );
                 $validDirection = in_array($transaction->transaction_type_code, ['money_in', 'money_out'], true);
                 $validClassification = $classification['status'] === 'classified';
-                $validAmount = $transaction->amount_decimal !== null && is_numeric($transaction->amount_decimal) && (float) $transaction->amount_decimal >= 0;
+                $validAmount = $transaction->amount_decimal !== null && is_numeric($transaction->amount_decimal) && bccomp((string) $transaction->amount_decimal, '0', 2) >= 0;
                 $included = $validCurrency && $validDirection && $validAmount && $validClassification;
                 $records[] = [
                     'period' => substr((string) $transaction->timestamp, 0, 7),

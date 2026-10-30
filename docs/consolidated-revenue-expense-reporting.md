@@ -5,7 +5,7 @@
 
 ## Report contract
 
-The finance dashboard exposes a date-filtered operational source-activity report using the Europe/Bucharest reporting timezone. Groups are separated by reporting month, source basis/category, entity and currency. The report preserves source IDs and exposes included and unknown record counts.
+The finance dashboard exposes a date-filtered operational source-activity report using the Europe/Bucharest reporting timezone. Groups are separated by reporting month, source basis/category, entity and currency. The report preserves source IDs and exposes included, excluded and unknown record counts.
 
 ### Supported monetary basis
 

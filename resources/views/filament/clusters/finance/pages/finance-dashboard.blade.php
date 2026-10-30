@@ -80,7 +80,7 @@
                             <td class="px-3 py-2">{{ $group['currency'] }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">
                                 @if ($group['amount'] !== null)
-                                    {{ number_format((float) $group['amount'], 2) }} {{ $group['currency'] }}
+                                    {{ $group['amount'] }} {{ $group['currency'] }}
                                 @else
                                     <span class="text-gray-500">Unavailable</span>
                                 @endif
