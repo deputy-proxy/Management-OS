@@ -60,6 +60,28 @@ class ReceivablesPayablesDataTest extends TestCase
         $this->assertSame('50.00', $report['receivable_totals']['RON']['outstanding']);
     }
 
+    public function test_transaction_invoice_link_alone_does_not_reduce_receivable_or_mark_invoice_settled(): void
+    {
+        $actor = User::factory()->create();
+        [$linkedOnlyInvoice, $linkedOnlyLegacy] = $this->issuedInvoice('100.00', '2026-11-15');
+        $linkedTransaction = $this->payment($linkedOnlyLegacy, $actor, '100.00', 'money_in');
+
+        [$allocatedInvoice, $allocatedLegacy] = $this->issuedInvoice('100.00', '2026-11-15');
+        $allocatedPayment = $this->payment($allocatedLegacy, $actor, '100.00', 'money_in');
+        $this->allocation($allocatedPayment, $allocatedLegacy, null, $actor, '100.00', 'confirmed');
+
+        $rows = collect(app(ReceivablesPayablesData::class)
+            ->report(CarbonImmutable::parse('2026-10-30', 'Europe/Bucharest'))['receivables'])
+            ->where('source_type', 'issued_customer_invoice')->keyBy('source_id');
+
+        $this->assertSame('100.00', $rows[$linkedOnlyInvoice->id]['outstanding_amount']);
+        $this->assertSame('0.00', $rows[$linkedOnlyInvoice->id]['confirmed_allocated']);
+        $this->assertSame('open_balance', $rows[$linkedOnlyInvoice->id]['balance_status']);
+        $this->assertSame($linkedOnlyLegacy->id, $linkedTransaction->customer_invoice_id);
+        $this->assertSame('fully_allocated_pending_settlement_confirmation', $rows[$allocatedInvoice->id]['balance_status']);
+        $this->assertNotSame('paid', $rows[$allocatedInvoice->id]['payment_state']);
+    }
+
     public function test_overpayment_is_reported_as_a_credit_balance_and_never_as_negative_outstanding(): void
     {
         $actor = User::factory()->create();
