@@ -71,16 +71,19 @@ class PayrollCalculationRun extends Model
         return $this->belongsTo(EmployeePaySlip::class, 'employee_pay_slip_id');
     }
 
+    /** @return HasMany<PayrollCalculationRunInput, $this> */
     public function inputVersions(): HasMany
     {
         return $this->hasMany(PayrollCalculationRunInput::class)->orderBy('segment_start');
     }
 
+    /** @return HasMany<PayrollException, $this> */
     public function exceptions(): HasMany
     {
         return $this->hasMany(PayrollException::class, 'payroll_calculation_run_id')->orderBy('id');
     }
 
+    /** @return HasOne<PayrollCalculationResult, $this> */
     public function result(): HasOne
     {
         return $this->hasOne(PayrollCalculationResult::class, 'payroll_calculation_run_id');

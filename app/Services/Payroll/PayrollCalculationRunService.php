@@ -93,6 +93,13 @@ class PayrollCalculationRunService
         }
 
         return DB::transaction(function () use ($actor, $contract, $start, $end, $idempotencyKey, $requestedInputIds, $policy, $paySlip, $calculate): PayrollCalculationRun {
+            $lockedPaySlip = $paySlip
+                ? EmployeePaySlip::query()->whereKey($paySlip->getKey())->lockForUpdate()->firstOrFail()
+                : null;
+            if ($lockedPaySlip && ! $lockedPaySlip->isOpen()) {
+                throw ValidationException::withMessages(['employee_pay_slip_id' => 'Calculation snapshots can only be recorded against a draft, open payslip.']);
+            }
+
             $lockedContract = EmployeeContract::query()->whereKey($contract->getKey())->lockForUpdate()->firstOrFail();
             $lockedInputs = $requestedInputIds === []
                 ? collect()
@@ -207,7 +214,7 @@ class PayrollCalculationRunService
                     $blockedReasons[] = 'policy_configuration_incomplete';
                 }
             }
-            if ($paySlip && $paySlip->status !== 'Open') {
+            if ($lockedPaySlip && ! $lockedPaySlip->isOpen()) {
                 $blockedReasons[] = 'payslip_is_locked';
             }
 

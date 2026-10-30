@@ -35,6 +35,7 @@ class PayrollCalculationResult extends Model
         });
     }
 
+    /** @return HasMany<PayrollCalculationResultItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(PayrollCalculationResultItem::class, 'payroll_calculation_result_id')->orderBy('line_number');

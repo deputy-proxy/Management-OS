@@ -15,10 +15,32 @@ class EmployeePaySlipInfolist
             TextEntry::make('employee.full_name')->label('Employee'),
             TextEntry::make('month')->date('F Y')->label('Pay Month'),
             TextEntry::make('status'),
+            TextEntry::make('approval_status')->label('Approval state')->badge(),
+            TextEntry::make('reviewer.name')->label('Reviewed by'),
+            TextEntry::make('reviewed_at')->dateTime(),
+            TextEntry::make('review_snapshot_hash')->label('Review snapshot SHA-256'),
+            TextEntry::make('approver.name')->label('Approved by'),
+            TextEntry::make('approved_at')->dateTime(),
+            TextEntry::make('approved_snapshot_hash')->label('Approved snapshot SHA-256'),
+            TextEntry::make('closer.name')->label('Closed by'),
+            TextEntry::make('closed_at')->dateTime(),
+            TextEntry::make('lifecycle_version')->label('Lifecycle version'),
             TextEntry::make('manual_amount')->money('RON')->label('Manual Baseline'),
             TextEntry::make('amount')->money('RON')->label('Calculated Total'),
             TextEntry::make('due_on')->date(),
             TextEntry::make('paid_on')->date(),
+            Section::make('Payroll period audit history')
+                ->schema([
+                    RepeatableEntry::make('lifecycleEvents')->schema([
+                        TextEntry::make('event_type')->badge(),
+                        TextEntry::make('actor.name')->label('Actor'),
+                        TextEntry::make('from_status')->label('From'),
+                        TextEntry::make('to_status')->label('To'),
+                        TextEntry::make('note'),
+                        TextEntry::make('snapshot_hash')->label('Snapshot SHA-256'),
+                        TextEntry::make('created_at')->dateTime(),
+                    ])->columns(3),
+                ]),
             Section::make('Versioned payroll calculation snapshots')
                 ->description('Snapshots are immutable. Ready means inputs are present; calculated means only configured arithmetic ran. Neither establishes statutory compliance or payment approval.')
                 ->schema([

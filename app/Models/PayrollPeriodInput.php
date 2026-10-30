@@ -90,8 +90,12 @@ class PayrollPeriodInput extends Model
             if ($input->effective_from && $input->effective_until && Carbon::parse((string) $input->effective_until)->lt(Carbon::parse((string) $input->effective_from))) {
                 $errors['effective_until'] = 'The effective end cannot precede the start.';
             }
-            if ($input->employee_id && $input->period_start && EmployeePaySlip::query()->where('employee_id', $input->employee_id)->whereDate('month', Carbon::parse((string) $input->period_start)->startOfMonth()->toDateString())->whereIn('status', ['Closed', 'Paid'])->exists()) {
-                $errors['period_start'] = 'The payroll period is closed. Record a correction in a later open period.';
+            if ($input->employee_id && $input->period_start && EmployeePaySlip::query()
+                ->where('employee_id', $input->employee_id)
+                ->whereDate('month', Carbon::parse((string) $input->period_start)->startOfMonth()->toDateString())
+                ->where(fn ($query) => $query->whereIn('status', ['Closed', 'Paid'])->orWhere('approval_status', '!=', 'draft'))
+                ->exists()) {
+                $errors['period_start'] = 'The payroll period is under review or locked. Record a correction in a later open period.';
             }
             if ($input->effective_from && $input->period_start && Carbon::parse((string) $input->effective_from)->lt(Carbon::parse((string) $input->period_start))) {
                 $errors['effective_from'] = 'The effective date must be inside the payroll period.';

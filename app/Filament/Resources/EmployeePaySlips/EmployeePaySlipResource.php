@@ -41,6 +41,7 @@ class EmployeePaySlipResource extends Resource
 
         $count = static::getModel()::query()
             ->where('status', 'Open')
+            ->where('approval_status', 'draft')
             ->count();
 
         return $count > 0 ? (string) $count : null;
@@ -94,7 +95,7 @@ class EmployeePaySlipResource extends Resource
 
     public function defineGates(): array
     {
-        return ['employee_pay_slip.index' => __('Allows viewing the employee pay slip list'), 'employee_pay_slip.create' => __('Allows creating a new employee pay slip'), 'employee_pay_slip.update' => __('Allows updating employee pay slips'), 'employee_pay_slip.delete' => __('Allows deleting employee pay slips'), 'payroll_calculation_run.create' => __('Allows recording immutable payroll calculation input and result snapshots')];
+        return ['employee_pay_slip.index' => __('Allows viewing the employee pay slip list'), 'employee_pay_slip.create' => __('Allows creating a new employee pay slip'), 'employee_pay_slip.update' => __('Allows updating employee pay slips'), 'employee_pay_slip.delete' => __('Allows deleting employee pay slips'), 'payroll_calculation_run.create' => __('Allows recording immutable payroll calculation input and result snapshots'), 'payroll_period.review' => __('Allows submitting a payroll period for review'), 'payroll_period.approve' => __('Allows approving a reviewed payroll period'), 'payroll_period.close' => __('Allows closing an approved payroll period'), 'payroll_period.correct' => __('Allows recording a correction against a closed payroll period')];
     }
 
     public static function getViewAnyAuthorizationResponse(): Response
@@ -109,8 +110,8 @@ class EmployeePaySlipResource extends Resource
 
     public static function getEditAuthorizationResponse(Model $record): Response
     {
-        if ($record->status === 'Paid') {
-            return Response::deny('Paid payslips are locked.');
+        if (! $record instanceof EmployeePaySlip || ! $record->isOpen()) {
+            return Response::deny('Only draft, open payslips can be edited. Use the payroll review and correction workflows for later states.');
         }
 
         return hexa()->can('employee_pay_slip.update') ? Response::allow() : Response::deny(__('You do not have permission to edit this.'));
@@ -118,7 +119,7 @@ class EmployeePaySlipResource extends Resource
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        if (! $record->isOpen() || $record->lineItems()->exists()) {
+        if (! $record instanceof EmployeePaySlip || ! $record->isOpen() || $record->approval_status !== 'draft' || $record->lineItems()->exists()) {
             return Response::deny('Payslips with source items or a locked status cannot be deleted.');
         }
 
