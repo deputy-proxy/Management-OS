@@ -6,9 +6,11 @@ use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeePaySlip;
 use App\Models\PayrollCalculationRun;
+use App\Models\PayrollException;
 use App\Models\PayrollPolicy;
 use App\Models\User;
 use App\Services\Payroll\PayrollCalculationRunService;
+use App\Services\Payroll\PayrollValidationService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +26,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
     {
         parent::setUp();
         Gate::define('payroll_calculation_run.create', static fn (): bool => true);
+        Gate::define('payroll_exception.resolve', static fn (): bool => true);
     }
 
     public function test_ready_run_persists_versioned_policy_and_explicit_input_snapshots_without_calculating_payroll(): void
@@ -119,6 +122,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertNull($run->result->net_amount);
         $this->assertSame([], $run->result->items->all());
         $this->assertContains('parameter_definition_invalid', array_column($run->result->result_snapshot['validation_messages'], 'code'));
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $run->id, 'code' => 'parameter_definition_invalid', 'severity' => 'blocking']);
     }
 
     public function test_missing_policy_or_unverified_inputs_create_explicit_blocked_snapshot_without_inventing_values(): void
@@ -134,6 +138,8 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $this->assertNull($run->result->currency_code);
         $this->assertNull($run->result->net_amount);
         $this->assertSame('blocked', $run->result->result_status);
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $run->id, 'code' => 'payroll_input_not_verified']);
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $run->id, 'code' => 'effective_policy_missing']);
     }
 
     public function test_verified_but_incomplete_inputs_are_blocked_instead_of_filling_unknown_values(): void
@@ -144,6 +150,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
 
         $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $run->run_status);
         $this->assertContains('payroll_input_incomplete', $run->blocked_reasons);
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $run->id, 'code' => 'payroll_input_incomplete']);
         $this->assertNull($run->input_snapshot['payroll_input']['salary_basis']);
         $this->assertNull($run->input_snapshot['payroll_input']['currency_code']);
         $this->assertNull($run->input_snapshot['payroll_input']['scheduled_hours_per_week']);
@@ -281,6 +288,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         $blocked = $service->calculate($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-contract-proration-blocked', $input, $policy, $paySlip);
         $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $blocked->run_status);
         $this->assertContains('contract_period_proration_rule_missing', $blocked->blocked_reasons);
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $blocked->id, 'code' => 'contract_period_proration_rule_missing']);
 
         $configuredPolicy = PayrollPolicy::factory()->create([
             'policy_key' => 'synthetic_contract_proration', 'version' => 1, 'status' => 'active',
@@ -305,6 +313,7 @@ class PayrollCalculationRunPersistenceTest extends TestCase
 
         $this->assertSame(PayrollCalculationRun::STATUS_BLOCKED, $run->run_status);
         $this->assertContains('payroll_input_effective_date_gap', $run->blocked_reasons);
+        $this->assertDatabaseHas('payroll_exceptions', ['payroll_calculation_run_id' => $run->id, 'code' => 'payroll_input_effective_date_gap']);
         $this->assertNull($run->result->net_amount);
         $this->assertCount(2, $run->inputVersions);
     }
@@ -337,6 +346,115 @@ class PayrollCalculationRunPersistenceTest extends TestCase
 
         $this->expectException(AuthorizationException::class);
         app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-denied-001');
+    }
+
+    public function test_blocking_validation_exceptions_are_persisted_and_prevent_payslip_close(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture(inputStatus: 'unverified');
+
+        $run = app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-exception-blocked-001', $input);
+        $exceptions = $run->exceptions()->get();
+
+        $this->assertTrue($exceptions->contains(fn (PayrollException $exception): bool => $exception->code === 'payroll_input_not_verified' && $exception->severity === PayrollException::SEVERITY_BLOCKING));
+        $this->assertTrue($exceptions->contains(fn (PayrollException $exception): bool => $exception->code === 'effective_policy_missing'));
+        $this->assertDatabaseHas('payroll_exception_events', [
+            'payroll_exception_id' => $exceptions->firstOrFail()->id,
+            'event_type' => 'detected',
+            'actor_id' => $actor->id,
+        ]);
+        $this->assertStringNotContainsString('4000.00', $exceptions->firstOrFail()->message);
+
+        try {
+            $paySlip->update(['status' => 'Closed']);
+            $this->fail('Blocking payroll exceptions must prevent closing a payslip.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('status', $exception->errors());
+            $this->assertSame('Open', $paySlip->fresh()->status);
+        }
+
+        foreach ($exceptions as $exception) {
+            app(PayrollValidationService::class)->resolve($actor, $exception, 'Synthetic evidence reviewed and condition corrected.');
+        }
+        $paySlip->refresh()->update(['status' => 'Closed']);
+        $this->assertSame('Closed', $paySlip->fresh()->status);
+    }
+
+    public function test_duplicate_period_runs_are_reported_as_warnings_and_can_be_resolved_with_audit_history(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture();
+        $service = app(PayrollCalculationRunService::class);
+        $service->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-duplicate-first-001', $input, $policy, $paySlip);
+        $second = $service->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-duplicate-second-001', $input, $policy, $paySlip);
+
+        $warning = $second->exceptions()->where('code', 'duplicate_calculation_run')->firstOrFail();
+        $this->assertSame(PayrollException::SEVERITY_WARNING, $warning->severity);
+        $this->assertSame(PayrollException::STATUS_OPEN, $warning->status);
+
+        $resolved = app(PayrollValidationService::class)->resolve($actor, $warning, 'Confirmed as an intentional synthetic correction run.');
+        $this->assertSame(PayrollException::STATUS_RESOLVED, $resolved->status);
+        $this->assertSame($actor->id, $resolved->resolved_by);
+        $this->assertCount(2, $resolved->events);
+        $this->assertSame('resolved', $resolved->events->last()->event_type);
+        $this->assertSame('Confirmed as an intentional synthetic correction run.', $resolved->resolution_note);
+    }
+
+    public function test_totals_inconsistency_is_a_blocking_exception(): void
+    {
+        [$actor, $contract, $input, $policy, $paySlip] = $this->fixture();
+        $run = app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-total-check-001', $input, $policy, $paySlip);
+
+        app(PayrollValidationService::class)->recordRun($run, [
+            'status' => 'calculated', 'gross_amount' => '100.00', 'deductions_amount' => '10.00', 'net_amount' => '80.00',
+            'validation_messages' => [],
+        ]);
+
+        $exception = $run->exceptions()->where('code', 'calculation_totals_inconsistent')->firstOrFail();
+        $this->assertSame(PayrollException::SEVERITY_BLOCKING, $exception->severity);
+    }
+
+    public function test_exception_resolution_requires_server_side_permission(): void
+    {
+        [$actor, $contract, $input] = $this->fixture(inputStatus: 'unverified');
+        $run = app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-exception-auth-001', $input);
+        $exception = $run->exceptions()->firstOrFail();
+        Gate::define('payroll_exception.resolve', static fn (): bool => false);
+
+        $this->expectException(AuthorizationException::class);
+        app(PayrollValidationService::class)->resolve($actor, $exception, 'Not authorized.');
+    }
+
+    public function test_exception_evidence_and_event_history_are_immutable_and_migration_refuses_to_drop_them(): void
+    {
+        [$actor, $contract, $input] = $this->fixture(inputStatus: 'unverified');
+        $run = app(PayrollCalculationRunService::class)->record($actor, $contract, '2026-01-01', '2026-01-31', 'synthetic-exception-retention-001', $input);
+        $exception = $run->exceptions()->firstOrFail();
+        $event = $exception->events()->firstOrFail();
+
+        try {
+            $exception->forceFill(['message' => 'Changed evidence'])->save();
+            $this->fail('Payroll exception evidence must be immutable.');
+        } catch (LogicException $exceptionError) {
+            $this->assertStringContainsString('immutable', $exceptionError->getMessage());
+        }
+
+        try {
+            $event->forceFill(['note' => 'Changed history'])->save();
+            $this->fail('Payroll exception events must be immutable.');
+        } catch (LogicException $exceptionError) {
+            $this->assertStringContainsString('immutable', $exceptionError->getMessage());
+        }
+
+        $exception->refresh();
+        try {
+            $exception->forceFill(['status' => PayrollException::STATUS_RESOLVED])->save();
+            $this->fail('Exceptions cannot be resolved without audited resolution metadata.');
+        } catch (LogicException $exceptionError) {
+            $this->assertStringContainsString('actor, timestamp, and note', $exceptionError->getMessage());
+        }
+
+        $migration = require base_path('database/migrations/2026_10_30_000002_create_payroll_exceptions_table.php');
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
     }
 
     private function makeVerifiedInput(User $actor, EmployeeContract $contract, string $start, string $end, string $baseAmount, string $allowanceAmount): EmployeeContractPayrollInput
