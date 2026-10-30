@@ -7,6 +7,7 @@ use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeePaySlip;
 use App\Models\PayrollCalculationResult;
 use App\Models\PayrollCalculationRun;
+use App\Models\PayrollPeriodInput;
 use App\Models\PayrollPolicy;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -110,6 +111,21 @@ class PayrollCalculationRunService
             $periodEnd = $end->toDateString();
             $blockedReasons = [];
             $policyConfigurationGaps = [];
+            $periodInputs = PayrollPeriodInput::query()->forPeriod((int) $lockedContract->getKey(), $periodStart, $periodEnd)->whereDoesntHave('corrections', fn ($query) => $query->where('status', 'approved'))->orderBy('effective_from')->orderBy('id')->lockForUpdate()->get();
+            foreach ($periodInputs as $periodInput) {
+                if ($periodInput->status !== 'approved') {
+                    $blockedReasons[] = 'period_input_not_approved';
+                } else {
+                    // Specialist-approved category rules are intentionally deferred. Capture and snapshot the input, but never guess its payroll effect.
+                    $blockedReasons[] = 'period_input_policy_unapproved';
+                }
+                if ($periodInput->amount === null && $periodInput->quantity === null) {
+                    $blockedReasons[] = 'period_input_source_value_missing';
+                }
+                if (! $periodInput->source_type || ! $periodInput->source_reference) {
+                    $blockedReasons[] = 'period_input_source_link_missing';
+                }
+            }
             if (in_array(str_replace(['-', ' '], '_', strtolower((string) $lockedContract->contract_type)), ['contractor', 'pfa_contractor'], true)) {
                 $blockedReasons[] = 'contract_type_separate_workflow';
             }
@@ -195,6 +211,20 @@ class PayrollCalculationRunService
                 $blockedReasons[] = 'payslip_is_locked';
             }
 
+            $periodInputSnapshots = [];
+            foreach ($periodInputs as $entry) {
+                $periodInputSnapshots[] = [
+                    'id' => (int) $entry->getKey(), 'corrects_id' => $entry->corrects_id,
+                    'period_start' => Carbon::parse((string) $entry->period_start)->toDateString(), 'period_end' => Carbon::parse((string) $entry->period_end)->toDateString(),
+                    'effective_from' => Carbon::parse((string) $entry->effective_from)->toDateString(), 'effective_until' => $entry->effective_until ? Carbon::parse((string) $entry->effective_until)->toDateString() : null,
+                    'category' => $entry->category, 'entry_type' => $entry->entry_type, 'description' => $entry->description,
+                    'quantity' => $entry->getRawOriginal('quantity'), 'unit' => $entry->unit, 'amount' => $entry->getRawOriginal('amount'),
+                    'currency_code' => $entry->currency_code, 'source_type' => $entry->source_type, 'source_reference' => $entry->source_reference,
+                    'status' => $entry->status, 'reviewed_by' => $entry->reviewed_by, 'reviewed_at' => $entry->reviewed_at ? Carbon::parse((string) $entry->reviewed_at)->toIso8601String() : null,
+                    'review_note' => $entry->review_note,
+                ];
+            }
+
             $inputSnapshot = [
                 'schema_version' => 1,
                 'captured_at' => now()->toIso8601String(),
@@ -210,6 +240,7 @@ class PayrollCalculationRunService
                 ],
                 'contract_active_period' => ['start' => $activeStart, 'end' => $activeEnd, 'days' => $activeDays, 'period_days' => $periodDays],
                 'selected_input_ids' => $requestedInputIds,
+                'period_inputs' => $periodInputSnapshots,
                 'payroll_input' => $inputSegments[0] ?? null,
                 'payroll_inputs' => $inputSegments,
             ];
