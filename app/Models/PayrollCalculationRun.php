@@ -76,6 +76,11 @@ class PayrollCalculationRun extends Model
         return $this->hasMany(PayrollCalculationRunInput::class)->orderBy('segment_start');
     }
 
+    public function exceptions(): HasMany
+    {
+        return $this->hasMany(PayrollException::class, 'payroll_calculation_run_id')->orderBy('id');
+    }
+
     public function result(): HasOne
     {
         return $this->hasOne(PayrollCalculationResult::class, 'payroll_calculation_run_id');

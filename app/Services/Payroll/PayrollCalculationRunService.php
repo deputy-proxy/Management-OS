@@ -377,6 +377,8 @@ class PayrollCalculationRunService
                 ]);
             }
 
+            app(PayrollValidationService::class)->recordRun($run->fresh(), $resultSnapshot);
+
             return $run->load('result.items');
         });
     }

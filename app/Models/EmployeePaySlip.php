@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
+use App\Services\Payroll\PayrollValidationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,6 +63,16 @@ class EmployeePaySlip extends Model
 
                 if ($paySlip->isDirty('status') && ! in_array($nextStatus, $allowedTransitions[$previousStatus] ?? [$previousStatus], true)) {
                     throw ValidationException::withMessages(['status' => "The payslip cannot transition from {$previousStatus} to {$nextStatus}."]);
+                }
+
+                if ($paySlip->isDirty('status') && $nextStatus === 'Closed') {
+                    $periodStart = Carbon::parse((string) $paySlip->month)->startOfMonth();
+                    app(PayrollValidationService::class)->assertNoBlockingExceptionsForPeriod(
+                        (int) $paySlip->employee_id,
+                        $periodStart->toDateString(),
+                        $periodStart->copy()->endOfMonth()->toDateString(),
+                        (int) $paySlip->getKey(),
+                    );
                 }
 
                 if ($previousStatus === 'Paid' && $paySlip->isDirty(['employee_id', 'month', 'manual_amount', 'items', 'amount', 'due_on', 'paid_on', 'status'])) {
