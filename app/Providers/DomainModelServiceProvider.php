@@ -39,6 +39,7 @@ use App\Models\NewsletterSubscriber;
 use App\Models\PaidCampaign;
 use App\Models\Partner;
 use App\Models\PaymentAllocation;
+use App\Models\PayrollPeriodInput;
 use App\Models\PayrollPolicy;
 use App\Models\PotentialPartner;
 use App\Models\Process;
@@ -122,6 +123,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'bank_statement_import_item' => BankStatementImportItem::class,
             'payment_allocation' => PaymentAllocation::class,
             'payroll_policy' => PayrollPolicy::class,
+            'payroll_period_input' => PayrollPeriodInput::class,
             'discount' => Discount::class,
             'competitor' => Competitor::class,
             'competitor_offer' => CompetitorOffer::class,
