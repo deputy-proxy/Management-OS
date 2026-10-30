@@ -24,9 +24,13 @@ The `Add to Pay Slip` action is available on non-cancelled Sessions, completed (
 
 ## Status, locking, and corrections
 
-Payslips start `Open`. Allowed transitions are `Open -> Closed -> Paid`; `Paid` requires `paid_on`. Closed and paid payslips cannot have their baseline or legacy breakdown recalculated, and source-linked items cannot be updated or deleted. `due_on` is optional because the repository does not define a payment deadline.
+New payslips start with `status=Open` and `approval_status=draft`. The guarded approval workflow is `draft -> in_review -> approved -> closed`; the legacy `status` field moves from `Open` to `Closed` only when the lifecycle service closes an approved period. Submission requires the latest run for the period to be successfully calculated and no unresolved blocking payroll exceptions. The review snapshot contains the payslip baseline and legacy breakdown, source-linked items, all calculation/input snapshots, policy and calculation versions, result hashes, and the calculation initiator. Its canonical SHA-256 hash is retained.
 
-If a source record changes or is cancelled after a line was added, the saved snapshot remains unchanged. Do not edit or delete the line to conceal the historical state. While the original payslip is still Open, record a signed adjustment on that same payslip. Once it is Closed or Paid, record the correction on a later Open payslip. Reference the original line and provide a reason: positive for an underpayment, negative for an overpayment. Paid periods remain locked. A source correction is a new audit event, not a rewrite of the original calculation.
+Approval requires a different actor from both the calculation initiator and reviewer. It re-reads the period under a row lock, verifies that the review hash still matches current records, and stores a second immutable approved snapshot/hash with actor and timestamp. Close again checks the current hash and blocking exceptions under a row lock, records the closer and timestamp, advances the lifecycle version, and appends an immutable audit event. Duplicate/stale transitions fail rather than generating a second approval or close. UI visibility is backed by service-layer permissions (`payroll_period.review`, `.approve`, `.close`, and `.correct`).
+
+Reviewed, approved, and closed periods cannot be edited or recalculated. Source-linked items and historical approved snapshots are immutable. Corrections to an item in the current draft/open period can be recorded on that same payslip. Once the original period is closed, the correction must be a signed adjustment on a later open period for the same employee. Both paths reference the original item, require a reason, and append a lifecycle event. The original item and approved snapshot are never rewritten. Legacy closed/paid rows are tagged `legacy_closed`/`legacy_paid` so their historical status is preserved without inventing approval evidence.
+
+New transitions to `Paid` are deliberately disabled until verified payment evidence is integrated. A payment date alone is not evidence and cannot mark a payslip Paid. Existing historical Paid rows remain readable and locked. `due_on` remains optional because the repository does not define a payment deadline.
 
 ## Migration and operations
 
@@ -47,11 +51,11 @@ The two representations are intentionally not interchangeable:
 
 ### Verified reads and writes
 
-- `EmployeePaySlip` casts `items` to an array and treats it as a fillable field; its save guard prevents `items` or `manual_amount` changes after the slip leaves Open, and locks all financial fields once Paid.
+- `EmployeePaySlip` casts `items` to an array and treats it as a fillable field; its save guard allows financial edits only while the slip is draft/Open, freezes the baseline, legacy JSON, aggregate amount, and due date after review begins, and prevents new Paid transitions without payment evidence.
 - `EmployeePaySlipForm` exposes the legacy JSON Builder and manual baseline only while Open. `EmployeePaySlipInfolist` displays the JSON breakdown separately from normalized source-linked rows.
-- `EmployeePaySlipService` writes normalized rows through `EmployeePaySlipItem`; it does not read, rewrite, or convert the legacy JSON. `EmployeePaySlip::recalculateAmount()` sums only `manual_amount` and normalized row amounts.
+- `EmployeePaySlipService` writes normalized rows through `EmployeePaySlipItem`; item creation and recalculation are draft/Open-only, and the source rows cannot be updated or deleted. The service does not read, rewrite, or convert the legacy JSON. `EmployeePaySlip::recalculateAmount()` sums only `manual_amount` and normalized row amounts.
 - `EmployeePaySlipSchemaMigrationTest` verifies the existing total is copied to `manual_amount`, the legacy JSON and payment dates are preserved, and duplicate employee/month rows stop migration pending reconciliation.
-- `EmployeePaySlipWorkflowTest` verifies the baseline plus source-line total, JSON preservation, locked Open/Closed/Paid behavior, immutable source rows, and signed adjustments.
+- `EmployeePaySlipWorkflowTest` verifies the baseline plus source-line total, JSON preservation, legacy Closed/Paid locking, immutable source rows, and signed adjustments. `PayrollPeriodLifecycleTest` verifies the separate review/approval/close state machine, actor separation, snapshot immutability, correction/reversal behavior, and transaction rollback.
 
 ### Retirement decision
 

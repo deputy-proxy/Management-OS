@@ -9,9 +9,12 @@ use App\Models\EmployeePaySlip;
 use App\Models\Session;
 use App\Models\SessionAssistance;
 use App\Models\TestSimulation;
+use App\Models\User;
 use App\Services\EmployeePaySlipService;
+use App\Services\Payroll\PayrollPeriodLifecycleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\TestCase;
@@ -241,7 +244,8 @@ class EmployeePaySlipWorkflowTest extends TestCase
         $service = app(EmployeePaySlipService::class);
         $original = $service->addSession($session)['item'];
         $octoberSlip = $original->paySlip;
-        $octoberSlip->update(['status' => 'Closed']);
+        DB::table('employee_pay_slips')->where('id', $octoberSlip->id)->update(['status' => 'Closed', 'approval_status' => 'legacy_closed']);
+        $octoberSlip->refresh();
         try {
             $octoberSlip->delete();
             $this->fail('A closed payslip with source items must not be deleted.');
@@ -261,22 +265,24 @@ class EmployeePaySlipWorkflowTest extends TestCase
         } catch (ValidationException) {
             $this->assertSame('Open', $nextMonthSlip->fresh()->status);
         }
-        $adjustment = $service->addAdjustment($nextMonthSlip, $original, -5.50, 'Correct overpaid session rate');
+        $actor = User::factory()->create();
+        Gate::define('payroll_period.correct', static fn (): bool => true);
+        $adjustment = app(PayrollPeriodLifecycleService::class)->recordCorrection($actor, $nextMonthSlip, $original, -5.50, 'Correct overpaid session rate');
 
         $this->assertTrue($adjustment['created']);
         $this->assertSame('-5.50', $adjustment['item']->amount);
         $this->assertSame('20.00', $original->fresh()->amount);
 
-        $nextMonthSlip->refresh()->update(['status' => 'Closed']);
         try {
-            $nextMonthSlip->refresh()->update(['status' => 'Paid']);
-            $this->fail('A paid payslip must have a payment date.');
+            $nextMonthSlip->refresh()->update(['status' => 'Paid', 'paid_on' => '2026-11-30']);
+            $this->fail('A payslip cannot be marked Paid without verified payment evidence.');
         } catch (ValidationException) {
-            $this->assertSame('Closed', $nextMonthSlip->fresh()->status);
+            $this->assertSame('Open', $nextMonthSlip->fresh()->status);
         }
-        $nextMonthSlip->refresh()->update(['status' => 'Paid', 'paid_on' => '2026-11-30']);
+        DB::table('employee_pay_slips')->where('id', $nextMonthSlip->id)->update(['status' => 'Paid', 'approval_status' => 'legacy_paid', 'paid_on' => '2026-11-30']);
+        $nextMonthSlip->refresh();
         $this->expectException(ValidationException::class);
-        $nextMonthSlip->refresh()->update(['manual_amount' => 1]);
+        $nextMonthSlip->update(['manual_amount' => 1]);
     }
 
     public function test_legacy_breakdown_and_manual_baseline_remain_separate_from_source_items_and_locked_states(): void
@@ -315,7 +321,8 @@ class EmployeePaySlipWorkflowTest extends TestCase
         $this->assertSame('143.45', $paySlip->amount);
         $this->assertSame(1, $paySlip->lineItems()->count());
 
-        $paySlip->update(['status' => 'Closed']);
+        DB::table('employee_pay_slips')->where('id', $paySlip->id)->update(['status' => 'Closed', 'approval_status' => 'legacy_closed']);
+        $paySlip->refresh();
         try {
             $paySlip->update(['items' => [], 'manual_amount' => 0]);
             $this->fail('A closed payslip must preserve its legacy breakdown and baseline.');
@@ -325,7 +332,8 @@ class EmployeePaySlipWorkflowTest extends TestCase
             $this->assertSame('143.45', $paySlip->fresh()->amount);
         }
 
-        $paySlip->refresh()->update(['status' => 'Paid', 'paid_on' => '2026-10-31']);
+        DB::table('employee_pay_slips')->where('id', $paySlip->id)->update(['status' => 'Paid', 'approval_status' => 'legacy_paid', 'paid_on' => '2026-10-31']);
+        $paySlip->refresh();
         try {
             $paySlip->refresh()->update(['items' => []]);
             $this->fail('A paid payslip must preserve its legacy breakdown.');

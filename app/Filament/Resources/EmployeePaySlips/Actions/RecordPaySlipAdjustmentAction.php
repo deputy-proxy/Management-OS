@@ -4,7 +4,7 @@ namespace App\Filament\Resources\EmployeePaySlips\Actions;
 
 use App\Models\EmployeePaySlip;
 use App\Models\EmployeePaySlipItem;
-use App\Services\EmployeePaySlipService;
+use App\Services\Payroll\PayrollPeriodLifecycleService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -19,7 +19,7 @@ class RecordPaySlipAdjustmentAction
         return Action::make('recordAdjustment')
             ->label('Record Adjustment')
             ->icon('heroicon-o-adjustments-horizontal')
-            ->visible(fn (EmployeePaySlip $record): bool => hexa()->can('employee_pay_slip.update') && $record->isOpen())
+            ->visible(fn (EmployeePaySlip $record): bool => hexa()->can('payroll_period.correct') && $record->isOpen())
             ->form([
                 Select::make('original_item_id')
                     ->label('Original payslip item')
@@ -29,12 +29,9 @@ class RecordPaySlipAdjustmentAction
                                 ->where(function ($period) use ($record): void {
                                     $period->where(function ($older) use ($record): void {
                                         $older->whereDate('month', '<', $record->month)->whereIn('status', ['Closed', 'Paid']);
+                                    })->orWhere(function ($same) use ($record): void {
+                                        $same->whereKey($record->getKey())->whereDate('month', '=', $record->month)->where('status', 'Open');
                                     });
-                                    if ($record->isOpen()) {
-                                        $period->orWhere(function ($same) use ($record): void {
-                                            $same->whereDate('month', '=', $record->month)->where('status', 'Open');
-                                        });
-                                    }
                                 });
                         })
                         ->with('paySlip')
@@ -52,12 +49,12 @@ class RecordPaySlipAdjustmentAction
                     ->required(),
                 Textarea::make('reason')->required()->maxLength(2000),
             ])
-            ->action(function (EmployeePaySlip $record, array $data, EmployeePaySlipService $service): void {
-                abort_unless(hexa()->can('employee_pay_slip.update'), 403);
+            ->action(function (EmployeePaySlip $record, array $data, PayrollPeriodLifecycleService $service): void {
+                abort_unless(hexa()->can('payroll_period.correct'), 403);
 
                 try {
                     $original = EmployeePaySlipItem::query()->with('paySlip')->findOrFail($data['original_item_id']);
-                    $result = $service->addAdjustment($record, $original, (float) $data['amount'], (string) $data['reason']);
+                    $result = $service->recordCorrection(auth()->user(), $record, $original, (float) $data['amount'], (string) $data['reason']);
                 } catch (ValidationException $exception) {
                     Notification::make()->title('Could not record adjustment')->body(collect($exception->errors())->flatten()->first() ?? 'Check the adjustment details.')->danger()->send();
 

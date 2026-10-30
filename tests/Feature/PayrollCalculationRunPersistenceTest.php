@@ -375,8 +375,10 @@ class PayrollCalculationRunPersistenceTest extends TestCase
         foreach ($exceptions as $exception) {
             app(PayrollValidationService::class)->resolve($actor, $exception, 'Synthetic evidence reviewed and condition corrected.');
         }
-        $paySlip->refresh()->update(['status' => 'Closed']);
-        $this->assertSame('Closed', $paySlip->fresh()->status);
+        app(PayrollValidationService::class)->assertNoBlockingExceptionsForPeriod(
+            (int) $paySlip->employee_id, '2026-01-01', '2026-01-31', (int) $paySlip->id,
+        );
+        $this->assertSame('Open', $paySlip->fresh()->status);
     }
 
     public function test_duplicate_period_runs_are_reported_as_warnings_and_can_be_resolved_with_audit_history(): void

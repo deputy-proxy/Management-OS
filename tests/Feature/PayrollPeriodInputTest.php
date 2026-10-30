@@ -11,6 +11,7 @@ use App\Services\Payroll\PayrollCalculationRunService;
 use App\Services\Payroll\PayrollPeriodInputService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -143,7 +144,7 @@ class PayrollPeriodInputTest extends TestCase
         $employee = Employee::factory()->create();
         $contract = EmployeeContract::factory()->create(['employee_id' => $employee->id, 'start_date' => '2026-01-01', 'end_date' => '2027-12-31']);
         $slip = EmployeePaySlip::factory()->create(['employee_id' => $employee->id, 'month' => '2026-01-01']);
-        $slip->update(['status' => 'Closed']);
+        DB::table('employee_pay_slips')->where('id', $slip->id)->update(['status' => 'Closed', 'approval_status' => 'legacy_closed']);
         $this->expectException(ValidationException::class);
         PayrollPeriodInput::query()->create([
             'employee_id' => $employee->id, 'employee_contract_id' => $contract->id,

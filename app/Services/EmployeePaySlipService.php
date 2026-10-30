@@ -10,8 +10,11 @@ use App\Models\EmployeePaySlipItem;
 use App\Models\Session;
 use App\Models\SessionAssistance;
 use App\Models\TestSimulation;
+use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class EmployeePaySlipService
@@ -188,8 +191,13 @@ class EmployeePaySlipService
      * Correct a locked historical item by recording a signed adjustment on a later open payslip.
      * The original item is never edited or deleted.
      */
-    public function addAdjustment(EmployeePaySlip $target, EmployeePaySlipItem $original, float $amount, string $reason): array
+    public function addAdjustment(User $actor, EmployeePaySlip $target, EmployeePaySlipItem $original, float $amount, string $reason): array
     {
+        if (! Gate::forUser($actor)->allows('payroll_period.correct')
+            && ! (auth()->id() === $actor->getKey() && function_exists('hexa') && hexa()->can('payroll_period.correct'))) {
+            throw new AuthorizationException('The payroll correction permission is required.');
+        }
+
         return DB::transaction(function () use ($target, $original, $amount, $reason): array {
             $target = EmployeePaySlip::query()->whereKey($target->getKey())->lockForUpdate()->firstOrFail();
 

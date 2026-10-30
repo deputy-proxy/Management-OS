@@ -63,7 +63,7 @@ For each field, specify type, required/optional status, validation, source of tr
 
 ### 5. Implement only after approvals, with regression protection
 
-- Preserve existing `Open → Closed → Paid` controls, immutable source-linked payslip items, duplicate-source protection, period locking and signed adjustment behavior.
+- Preserve immutable source-linked payslip items and duplicate-source protection; implement a distinct draft/review/approval/close workflow with immutable snapshots, audit history, concurrency guards and signed corrections. Keep new Paid transitions disabled until verified payment evidence is integrated.
 - Add tests from approved fixtures first, including effective-date boundaries, rounding, duplicate inputs, authorization, close/lock behavior and corrections.
 - Keep employee payroll and supplier invoices as distinct workflows and permissions.
 - Run focused tests and the repository CI gates; record the actual results. Do not claim validation while dependencies are missing or tests have not run.

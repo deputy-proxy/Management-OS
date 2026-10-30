@@ -3,17 +3,20 @@
 namespace App\Filament\Resources\EmployeePaySlips\Tables;
 
 use App\Filament\Resources\EmployeePaySlips\Actions\RecordPaySlipAdjustmentAction;
+use App\Filament\Resources\EmployeePaySlips\Actions\RecordPaySlipReversalAction;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeePaySlip;
 use App\Models\PayrollPolicy;
 use App\Services\Payroll\PayrollCalculationRunService;
+use App\Services\Payroll\PayrollPeriodLifecycleService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
@@ -40,6 +43,9 @@ class EmployeePaySlipsTable
                 Tables\Columns\TextColumn::make('paid_on')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('approval_status')->label('Approval')->badge(),
+                Tables\Columns\TextColumn::make('approved_at')->dateTime()->label('Approved at'),
+                Tables\Columns\TextColumn::make('closed_at')->dateTime()->label('Closed at'),
                 Tables\Columns\TextColumn::make('calculation_runs_count')->label('Calculation snapshots')->counts('calculationRuns'),
             ])
             ->filters([
@@ -72,7 +78,7 @@ class EmployeePaySlipsTable
                         TextInput::make('idempotency_key')->label('Request key')->default(fn (): string => (string) Str::uuid())->required()->maxLength(128),
                     ])
                     ->modalDescription('Records a versioned input/policy snapshot for this month. Missing or unverified data is recorded as blocked. This schema-only workflow does not calculate statutory pay, deductions, or net amounts.')
-                    ->visible(fn (): bool => hexa()->can('payroll_calculation_run.create'))
+                    ->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && hexa()->can('payroll_calculation_run.create'))
                     ->action(function (EmployeePaySlip $record, array $data, PayrollCalculationRunService $service): void {
                         $contract = EmployeeContract::query()->where('employee_id', $record->employee_id)->findOrFail($data['employee_contract_id']);
                         $input = filled($data['employee_contract_payroll_input_id'] ?? null)
@@ -145,8 +151,34 @@ class EmployeePaySlipsTable
                             ->send();
                     })
                     ->authorize(fn (): bool => hexa()->can('payroll_calculation_run.create')),
-                EditAction::make()->visible(fn (EmployeePaySlip $record): bool => $record->status !== 'Paid'),
+                Action::make('submitForReview')
+                    ->label('Submit for review')
+                    ->icon('heroicon-o-eye')
+                    ->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && hexa()->can('payroll_period.review'))
+                    ->form([Textarea::make('note')->label('Reviewer note')->maxLength(2000)])
+                    ->action(fn (EmployeePaySlip $record, array $data, PayrollPeriodLifecycleService $service) => $service->submitForReview(auth()->user(), $record, $data['note'] ?? null))
+                    ->authorize(fn (): bool => hexa()->can('payroll_period.review')),
+                Action::make('approvePeriod')
+                    ->label('Approve period')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn (EmployeePaySlip $record): bool => $record->approval_status === 'in_review' && hexa()->can('payroll_period.approve'))
+                    ->requiresConfirmation()
+                    ->form([Textarea::make('note')->label('Approval rationale')->required()->maxLength(2000)])
+                    ->action(fn (EmployeePaySlip $record, array $data, PayrollPeriodLifecycleService $service) => $service->approve(auth()->user(), $record, $data['note']))
+                    ->authorize(fn (): bool => hexa()->can('payroll_period.approve')),
+                Action::make('closePeriod')
+                    ->label('Close period')
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('success')
+                    ->visible(fn (EmployeePaySlip $record): bool => $record->approval_status === 'approved' && $record->status === 'Open' && hexa()->can('payroll_period.close'))
+                    ->requiresConfirmation()
+                    ->form([Textarea::make('note')->label('Close note')->required()->maxLength(2000)])
+                    ->action(fn (EmployeePaySlip $record, array $data, PayrollPeriodLifecycleService $service) => $service->close(auth()->user(), $record, $data['note']))
+                    ->authorize(fn (): bool => hexa()->can('payroll_period.close')),
+                EditAction::make()->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && hexa()->can('employee_pay_slip.update')),
                 RecordPaySlipAdjustmentAction::make(),
+                RecordPaySlipReversalAction::make(),
                 DeleteAction::make()->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && ! $record->lineItems()->exists()),
             ])
             ->toolbarActions([

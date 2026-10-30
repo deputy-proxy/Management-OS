@@ -126,23 +126,8 @@ parameters:
 			count: 1
 			path: app/Filament/Resources/EmployeePaySlips/Actions/RecordPaySlipAdjustmentAction.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
 
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isOpen\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
 
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:lineItems\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Filament/Resources/EmployeePaySlips/EmployeePaySlipResource.php
 
 		-
 			message: '#^Parameter \#1 \$paySlip of method App\\Services\\EmployeePaySlipService\:\:populateAutomaticItems\(\) expects App\\Models\\EmployeePaySlip, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
