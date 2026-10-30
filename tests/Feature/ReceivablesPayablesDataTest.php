@@ -16,6 +16,7 @@ use App\Services\Finance\ReceivablesPayablesData;
 use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
@@ -58,6 +59,44 @@ class ReceivablesPayablesDataTest extends TestCase
         $this->assertSame('issued', $issued->fresh()->document_status);
         $this->assertSame('RON', $legacy->fresh()->currency_code);
         $this->assertSame('50.00', $report['receivable_totals']['RON']['outstanding']);
+    }
+
+    public function test_historical_cutoff_uses_confirmation_and_reversal_timestamps_not_current_allocation_status(): void
+    {
+        $actor = User::factory()->create();
+        [$issued, $legacy] = $this->issuedInvoice('100.00', '2026-11-15');
+        $reversedLaterPayment = $this->payment($legacy, $actor, '100.00', 'money_in');
+        $reversedLater = $this->allocation($reversedLaterPayment, $legacy, null, $actor, '20.00', 'reversed');
+        DB::table('payment_allocations')->where('id', $reversedLater->id)->update([
+            'created_at' => '2026-10-29 10:00:00',
+            'confirmed_at' => '2026-10-29 11:00:00',
+            'reversed_at' => '2026-10-31 09:00:00',
+        ]);
+
+        $confirmedLaterPayment = $this->payment($legacy, $actor, '100.00', 'money_in');
+        $confirmedLater = $this->allocation($confirmedLaterPayment, $legacy, null, $actor, '30.00', 'confirmed');
+        DB::table('payment_allocations')->where('id', $confirmedLater->id)->update([
+            'created_at' => '2026-10-29 10:00:00',
+            'confirmed_at' => '2026-10-31 09:00:00',
+        ]);
+
+        $service = app(ReceivablesPayablesData::class);
+        $asOfOctober = collect($service->report(CarbonImmutable::parse('2026-10-30', 'Europe/Bucharest'))['receivables'])
+            ->firstWhere('source_id', $issued->id);
+        $asOfNovember = collect($service->report(CarbonImmutable::parse('2026-11-01', 'Europe/Bucharest'))['receivables'])
+            ->firstWhere('source_id', $issued->id);
+
+        $this->assertSame('20.00', $asOfOctober['confirmed_allocated']);
+        $this->assertSame('80.00', $asOfOctober['outstanding_amount']);
+        $this->assertSame(1, $asOfOctober['allocation_count']);
+        $this->assertSame(1, $asOfOctober['pending_allocation_count']);
+        $this->assertSame('confirmed', $asOfOctober['allocation_history'][0]['effective_status']);
+        $this->assertSame('proposed', $asOfOctober['allocation_history'][1]['effective_status']);
+
+        $this->assertSame('30.00', $asOfNovember['confirmed_allocated']);
+        $this->assertSame('70.00', $asOfNovember['outstanding_amount']);
+        $this->assertSame(1, $asOfNovember['allocation_count']);
+        $this->assertSame(1, $asOfNovember['reversed_allocation_count']);
     }
 
     public function test_transaction_invoice_link_alone_does_not_reduce_receivable_or_mark_invoice_settled(): void

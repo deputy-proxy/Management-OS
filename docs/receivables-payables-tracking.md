@@ -17,7 +17,7 @@ A customer receivable balance is calculated only when all of the following are t
 - The legacy target exists, is not soft-deleted, and its explicitly stored canonical currency matches the issued snapshot currency.
 - Every confirmed allocation has the same currency, a canonical money_in source transaction, a positive canonical payment amount, and no duplicate active allocation or source-payment over-allocation.
 
-Only confirmed invoice allocations are subtracted. Proposed, reversed, and rejected allocations remain visible in the history but do not reduce the balance. Multiple confirmed allocations from distinct transactions are reported as partial allocation. A duplicate confirmed allocation from the same source transaction to the same invoice makes that invoice unresolved.
+Allocation lifecycle is evaluated at the selected as-of date: confirmations after the cutoff are still proposals, and reversals or rejections after the cutoff are treated as not yet effective. Only allocations confirmed by the cutoff and not yet reversed are subtracted. Proposed, reversed, and rejected allocations remain visible in the history but do not reduce the balance. Multiple confirmed allocations from distinct transactions are reported as partial allocation. A duplicate confirmed allocation from the same source transaction to the same invoice makes that invoice unresolved.
 
 The report uses exact decimal arithmetic. It reports outstanding and credit amounts separately. If confirmed allocations exceed the issued gross total, the excess is shown as a credit balance rather than clamped or hidden. A zero outstanding balance is fully_allocated_pending_settlement_confirmation, not paid. No invoice status is changed.
 

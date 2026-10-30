@@ -92,7 +92,7 @@
                                         @else
                                             Transaction #{{ $allocation['transaction_id'] }}
                                         @endif
-                                        {{ $allocation['amount'] }} {{ $allocation['currency'] }} ({{ $allocation['status'] }})
+                                        {{ $allocation['amount'] }} {{ $allocation['currency'] }} (current: {{ $allocation['status'] }}; as of date: {{ $allocation['effective_status'] }})
                                         · {{ $allocation['reason'] }}
                                         @if ($allocation['confirmed_at'])
                                             · Confirmed {{ $allocation['confirmed_at'] }} by user #{{ $allocation['confirmed_by'] }}
@@ -102,6 +102,9 @@
                                         @endif
                                         @if ($allocation['reversal_reason'])
                                             · Reversal: {{ $allocation['reversal_reason'] }}
+                                        @endif
+                                        @if ($allocation['rejection_reason'])
+                                            · Rejection: {{ $allocation['rejection_reason'] }}
                                         @endif
                                         @if (! $loop->last); @endif
                                     @endforeach
@@ -199,7 +202,7 @@
                                         @else
                                             Transaction #{{ $allocation['transaction_id'] }}
                                         @endif
-                                        {{ $allocation['amount'] }} {{ $allocation['currency'] }} ({{ $allocation['status'] }})
+                                        {{ $allocation['amount'] }} {{ $allocation['currency'] }} (current: {{ $allocation['status'] }}; as of date: {{ $allocation['effective_status'] }})
                                         · {{ $allocation['reason'] }}
                                         @if ($allocation['confirmed_at'])
                                             · Confirmed {{ $allocation['confirmed_at'] }} by user #{{ $allocation['confirmed_by'] }}
@@ -209,6 +212,9 @@
                                         @endif
                                         @if ($allocation['reversal_reason'])
                                             · Reversal: {{ $allocation['reversal_reason'] }}
+                                        @endif
+                                        @if ($allocation['rejection_reason'])
+                                            · Rejection: {{ $allocation['rejection_reason'] }}
                                         @endif
                                         @if (! $loop->last); @endif
                                     @endforeach

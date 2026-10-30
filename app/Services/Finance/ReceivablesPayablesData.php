@@ -48,9 +48,9 @@ class ReceivablesPayablesData
             ? collect()
             : DB::table('customer_invoices')->whereIn('id', $legacyIds)->get(['id', 'currency_code', 'deleted_at'])->keyBy('id');
 
-        $customerAllocations = $this->loadAllocations('customer_invoice_id', $legacyIds);
+        $customerAllocations = $this->loadAllocations('customer_invoice_id', $legacyIds, $asOf);
         $customerTransactionIds = $customerAllocations->pluck('transaction_id')->unique()->values()->all();
-        $customerPaymentTotals = $this->loadSourcePaymentTotals($customerTransactionIds);
+        $customerPaymentTotals = $this->loadSourcePaymentTotals($customerTransactionIds, $asOf);
 
         $receivables = [];
         $totals = [];
@@ -160,7 +160,7 @@ class ReceivablesPayablesData
     /**
      * @param  Collection<int, \stdClass>  $legacyInvoices
      * @param  Collection<int, \stdClass>  $allocations
-     * @param  array<int, string>  $sourcePaymentTotals
+     * @param  array<int, array{total: string, currency_mismatches: int}>  $sourcePaymentTotals
      * @return array<string, mixed>
      */
     private function issuedInvoiceRow(
@@ -187,9 +187,9 @@ class ReceivablesPayablesData
             'confirmed_allocated' => null,
             'outstanding_amount' => null,
             'credit_amount' => null,
-            'allocation_count' => $invoiceAllocations->where('status', PaymentAllocation::STATUS_CONFIRMED)->count(),
-            'pending_allocation_count' => $invoiceAllocations->where('status', PaymentAllocation::STATUS_PROPOSED)->count(),
-            'reversed_allocation_count' => $invoiceAllocations->where('status', PaymentAllocation::STATUS_REVERSED)->count(),
+            'allocation_count' => $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_CONFIRMED)->count(),
+            'pending_allocation_count' => $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_PROPOSED)->count(),
+            'reversed_allocation_count' => $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_REVERSED)->count(),
             'allocation_history' => $this->allocationHistory($invoiceAllocations),
             'balance_status' => 'needs_review',
             'payment_state' => 'unresolved',
@@ -258,7 +258,7 @@ class ReceivablesPayablesData
      * @param  array<int, int>  $invoiceIds
      * @return Collection<int, \stdClass>
      */
-    private function loadAllocations(string $invoiceColumn, array $invoiceIds): Collection
+    private function loadAllocations(string $invoiceColumn, array $invoiceIds, CarbonImmutable $asOf): Collection
     {
         if ($invoiceIds === []) {
             return collect();
@@ -276,37 +276,73 @@ class ReceivablesPayablesData
                 'payment_allocations.confirmed_by', 'payment_allocations.confirmed_at',
                 'payment_allocations.reversed_by', 'payment_allocations.reversed_at',
                 'payment_allocations.reversal_reason',
+                'payment_allocations.rejected_by', 'payment_allocations.rejected_at',
+                'payment_allocations.rejection_reason', 'payment_allocations.created_at',
                 'transactions.amount_decimal as payment_amount',
                 'transactions.currency_code as payment_currency',
                 'transactions.transaction_type_code as payment_direction',
                 'transactions.deleted_at as payment_deleted_at',
             ])
             ->orderBy('payment_allocations.id')
-            ->get();
+            ->get()
+            ->map(function (\stdClass $allocation) use ($asOf): \stdClass {
+                $allocation->effective_status = $this->effectiveAllocationStatus($allocation, $asOf);
+
+                return $allocation;
+            })
+            ->reject(fn (\stdClass $allocation): bool => $allocation->effective_status === 'future')
+            ->values();
     }
 
     /**
      * @param  array<int, int>  $transactionIds
-     * @return array<int, string>
+     * @return array<int, array{total: string, currency_mismatches: int}>
      */
-    private function loadSourcePaymentTotals(array $transactionIds): array
+    private function loadSourcePaymentTotals(array $transactionIds, CarbonImmutable $asOf): array
     {
         if ($transactionIds === []) {
             return [];
         }
 
-        return DB::table('payment_allocations')
-            ->whereIn('transaction_id', $transactionIds)
-            ->where('status', PaymentAllocation::STATUS_CONFIRMED)
-            ->groupBy('transaction_id')
-            ->pluck(DB::raw('SUM(amount_decimal)'), 'transaction_id')
-            ->map(fn ($amount): string => (string) $amount)
-            ->all();
+        $allocations = DB::table('payment_allocations')
+            ->join('transactions', 'transactions.id', '=', 'payment_allocations.transaction_id')
+            ->whereIn('payment_allocations.transaction_id', $transactionIds)
+            ->select([
+                'payment_allocations.transaction_id', 'payment_allocations.amount_decimal',
+                'payment_allocations.currency_code', 'payment_allocations.status',
+                'payment_allocations.created_at', 'payment_allocations.confirmed_at',
+                'payment_allocations.reversed_at', 'payment_allocations.rejected_at',
+                'transactions.currency_code as payment_currency',
+            ])
+            ->get();
+        $totals = [];
+
+        foreach ($allocations as $allocation) {
+            if ($this->effectiveAllocationStatus($allocation, $asOf) !== PaymentAllocation::STATUS_CONFIRMED) {
+                continue;
+            }
+
+            $transactionId = (int) $allocation->transaction_id;
+            $totals[$transactionId] ??= ['total' => BigDecimal::zero(), 'currency_mismatches' => 0];
+            $totals[$transactionId]['total'] = $totals[$transactionId]['total']->plus(BigDecimal::of((string) $allocation->amount_decimal));
+            if (! $this->validCurrency($allocation->currency_code)
+                || ! $this->validCurrency($allocation->payment_currency)
+                || strtoupper((string) $allocation->currency_code) !== strtoupper((string) $allocation->payment_currency)) {
+                $totals[$transactionId]['currency_mismatches']++;
+            }
+        }
+
+        foreach ($totals as &$total) {
+            $total['total'] = $this->format($total['total']);
+        }
+        unset($total);
+
+        return $totals;
     }
 
     /**
      * @param  Collection<int, \stdClass>  $allocations
-     * @param  array<int, string>  $sourcePaymentTotals
+     * @param  array<int, array{total: string, currency_mismatches: int}>  $sourcePaymentTotals
      * @return array{total: string, reasons: array<int, string>}
      */
     private function summarizeConfirmedAllocations(
@@ -315,10 +351,13 @@ class ReceivablesPayablesData
         string $expectedDirection,
         array $sourcePaymentTotals,
     ): array {
-        $confirmed = $allocations->where('status', PaymentAllocation::STATUS_CONFIRMED)->values();
+        $confirmed = $allocations->where('effective_status', PaymentAllocation::STATUS_CONFIRMED)->values();
         $duplicateCounts = $confirmed->countBy('transaction_id');
         $total = BigDecimal::zero();
         $reasons = [];
+        if ($allocations->where('effective_status', 'invalid')->isNotEmpty()) {
+            $reasons['allocation_lifecycle_timestamp_unresolved'] = true;
+        }
 
         foreach ($confirmed as $allocation) {
             if (($duplicateCounts[$allocation->transaction_id] ?? 0) > 1) {
@@ -360,7 +399,13 @@ class ReceivablesPayablesData
 
                 continue;
             }
-            $sourceTotal = BigDecimal::of($sourcePaymentTotals[$allocation->transaction_id] ?? '0');
+            $sourcePayment = $sourcePaymentTotals[$allocation->transaction_id] ?? ['total' => '0.00', 'currency_mismatches' => 0];
+            if ($sourcePayment['currency_mismatches'] > 0) {
+                $reasons['source_payment_allocation_currency_mismatch'] = true;
+
+                continue;
+            }
+            $sourceTotal = BigDecimal::of($sourcePayment['total']);
             if ($sourceTotal->compareTo(BigDecimal::of((string) $allocation->payment_amount)) > 0) {
                 $reasons['source_payment_overallocated'] = true;
 
@@ -385,6 +430,11 @@ class ReceivablesPayablesData
             'amount' => (string) $allocation->amount_decimal,
             'currency' => (string) $allocation->currency_code,
             'status' => (string) $allocation->status,
+            'effective_status' => (string) $allocation->effective_status,
+            'created_at' => $allocation->created_at,
+            'rejected_by' => $allocation->rejected_by,
+            'rejected_at' => $allocation->rejected_at,
+            'rejection_reason' => $allocation->rejection_reason,
             'reason' => (string) $allocation->reason,
             'reversal_reason' => $allocation->reversal_reason,
             'confirmed_by' => $allocation->confirmed_by,
@@ -413,16 +463,16 @@ class ReceivablesPayablesData
             ->get();
 
         $ids = $invoices->pluck('id')->map(fn ($id): int => (int) $id)->all();
-        $allocations = $this->loadAllocations('vendor_invoice_id', $ids);
+        $allocations = $this->loadAllocations('vendor_invoice_id', $ids, $asOf);
         $transactionIds = $allocations->pluck('transaction_id')->unique()->values()->all();
-        $sourceTotals = $this->loadSourcePaymentTotals($transactionIds);
+        $sourceTotals = $this->loadSourcePaymentTotals($transactionIds, $asOf);
         $rows = [];
 
         foreach ($invoices as $invoice) {
             $invoiceAllocations = $allocations->where('vendor_invoice_id', $invoice->id)->values();
             $currency = strtoupper(trim((string) $invoice->currency_code));
             $currencyValid = $this->validCurrency($currency);
-            $confirmed = $invoiceAllocations->where('status', PaymentAllocation::STATUS_CONFIRMED);
+            $confirmed = $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_CONFIRMED);
             $summary = $currencyValid
                 ? $this->summarizeConfirmedAllocations($invoiceAllocations, $currency, 'money_out', $sourceTotals)
                 : ['total' => '0.00', 'reasons' => $confirmed->isNotEmpty() ? ['vendor_invoice_currency_unresolved'] : []];
@@ -443,8 +493,8 @@ class ReceivablesPayablesData
                 'confirmed_allocated' => $summary['reasons'] === [] && $currencyValid ? $summary['total'] : null,
                 'outstanding_amount' => null,
                 'allocation_count' => $confirmed->count(),
-                'pending_allocation_count' => $invoiceAllocations->where('status', PaymentAllocation::STATUS_PROPOSED)->count(),
-                'reversed_allocation_count' => $invoiceAllocations->where('status', PaymentAllocation::STATUS_REVERSED)->count(),
+                'pending_allocation_count' => $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_PROPOSED)->count(),
+                'reversed_allocation_count' => $invoiceAllocations->where('effective_status', PaymentAllocation::STATUS_REVERSED)->count(),
                 'allocation_history' => $this->allocationHistory($invoiceAllocations),
                 'payment_state' => $summary['reasons'] !== []
                     ? 'allocation_needs_review'
@@ -462,6 +512,45 @@ class ReceivablesPayablesData
         }
 
         return $rows;
+    }
+
+    private function effectiveAllocationStatus(\stdClass $allocation, CarbonImmutable $asOf): string
+    {
+        try {
+            $cutoff = $asOf->endOfDay();
+            $createdAt = CarbonImmutable::parse((string) $allocation->created_at, self::TIMEZONE);
+            if ($createdAt->greaterThan($cutoff)) {
+                return 'future';
+            }
+
+            $confirmedAt = $allocation->confirmed_at !== null
+                ? CarbonImmutable::parse((string) $allocation->confirmed_at, self::TIMEZONE)
+                : null;
+            $reversedAt = $allocation->reversed_at !== null
+                ? CarbonImmutable::parse((string) $allocation->reversed_at, self::TIMEZONE)
+                : null;
+            $rejectedAt = $allocation->rejected_at !== null
+                ? CarbonImmutable::parse((string) $allocation->rejected_at, self::TIMEZONE)
+                : null;
+
+            return match ($allocation->status) {
+                PaymentAllocation::STATUS_PROPOSED => PaymentAllocation::STATUS_PROPOSED,
+                PaymentAllocation::STATUS_CONFIRMED => $confirmedAt === null
+                    ? 'invalid'
+                    : ($confirmedAt->lessThanOrEqualTo($cutoff) ? PaymentAllocation::STATUS_CONFIRMED : PaymentAllocation::STATUS_PROPOSED),
+                PaymentAllocation::STATUS_REVERSED => $confirmedAt === null || $reversedAt === null
+                    ? 'invalid'
+                    : ($confirmedAt->greaterThan($cutoff)
+                        ? PaymentAllocation::STATUS_PROPOSED
+                        : ($reversedAt->greaterThan($cutoff) ? PaymentAllocation::STATUS_CONFIRMED : PaymentAllocation::STATUS_REVERSED)),
+                PaymentAllocation::STATUS_REJECTED => $rejectedAt === null
+                    ? 'invalid'
+                    : ($rejectedAt->greaterThan($cutoff) ? PaymentAllocation::STATUS_PROPOSED : PaymentAllocation::STATUS_REJECTED),
+                default => 'invalid',
+            };
+        } catch (\Throwable) {
+            return 'invalid';
+        }
     }
 
     /**
