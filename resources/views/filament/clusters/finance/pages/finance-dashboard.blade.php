@@ -2,6 +2,124 @@
     @php($summary = app(\App\Services\FinancialOverviewData::class)->summary())
 
     <div class="space-y-6">
+    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h2 class="text-base font-semibold text-gray-950 dark:text-white">Consolidated financial source activity</h2>
+                <p class="mt-1 max-w-4xl text-sm text-gray-600 dark:text-gray-300">
+                    Operational source records grouped by reporting month, category, entity and currency.
+                    This report does not calculate recognized revenue, recognized expense, profit, receivables or payables.
+                    Cash movements and issued-document amounts remain separate bases.
+                </p>
+            </div>
+            <div class="text-xs text-gray-500">Reporting timezone: {{ $consolidatedReport['timezone'] }}</div>
+        </div>
+
+        <div class="mt-4 grid gap-3 md:grid-cols-4">
+            <label class="text-sm">From
+                <input type="date" wire:model.live="reportFrom" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+            </label>
+            <label class="text-sm">To
+                <input type="date" wire:model.live="reportTo" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+            </label>
+            <label class="text-sm">Source basis
+                <select wire:model.live="reportBasis" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <option value="all">All supported sources</option>
+                    <option value="customer_documents">Issued customer documents</option>
+                    <option value="vendor_invoices">Vendor invoice records</option>
+                    <option value="cash_movements">Canonical cash movements</option>
+                </select>
+            </label>
+            <label class="text-sm">Currency code
+                <input type="text" maxlength="3" placeholder="All currencies" wire:model.live.debounce.500ms="reportCurrency" class="mt-1 w-full rounded-lg border-gray-300 text-sm uppercase dark:border-gray-700 dark:bg-gray-950">
+            </label>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-4">
+            <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <p class="text-xs text-gray-500">Included source records</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($consolidatedReport['totals']['included']) }}</p>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <p class="text-xs text-gray-500">Excluded by report contract</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($consolidatedReport['totals']['excluded']) }}</p>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <p class="text-xs text-gray-500">Unknown / incomplete</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($consolidatedReport['totals']['unknown']) }}</p>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                <p class="text-xs text-gray-500">Groups shown</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ number_format(count($consolidatedReport['groups'])) }}</p>
+            </div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="text-xs uppercase text-gray-500">
+                    <tr>
+                        <th class="px-3 py-2">Period</th>
+                        <th class="px-3 py-2">Basis / category</th>
+                        <th class="px-3 py-2">Entity</th>
+                        <th class="px-3 py-2">Currency</th>
+                        <th class="px-3 py-2 text-right">Supported amount</th>
+                        <th class="px-3 py-2 text-right">Included</th>
+                        <th class="px-3 py-2 text-right">Excluded</th>
+                        <th class="px-3 py-2 text-right">Unknown</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @forelse ($consolidatedReport['groups'] as $group)
+                        <tr>
+                            <td class="px-3 py-2">{{ $group['period'] }}</td>
+                            <td class="px-3 py-2">
+                                <span class="font-medium">{{ str_replace('_', ' ', ucfirst($group['basis'])) }}</span>
+                                <span class="block text-xs text-gray-500">{{ $group['category'] }}</span>
+                            </td>
+                            <td class="px-3 py-2">{{ $group['entity'] }}</td>
+                            <td class="px-3 py-2">{{ $group['currency'] }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">
+                                @if ($group['amount'] !== null)
+                                    {{ $group['amount'] }} {{ $group['currency'] }}
+                                @else
+                                    <span class="text-gray-500">Unavailable</span>
+                                @endif
+                            </td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($group['included_count']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($group['excluded_count']) }}</td>
+                            <td class="px-3 py-2 text-right tabular-nums">{{ number_format($group['unknown_count']) }}</td>
+                        </tr>
+                        <tr class="bg-gray-50/70 dark:bg-gray-800/40">
+                            <td colspan="8" class="px-3 py-2 text-xs text-gray-500">
+                                Source records:
+                                @foreach ($group['sources'] as $source)
+                                    @if ($source['url'])
+                                        <a href="{{ $source['url'] }}" class="font-medium text-primary-600 underline dark:text-primary-400">{{ $source['label'] }}</a>@if (! $loop->last), @endif
+                                    @else
+                                        <span>{{ $source['label'] }}</span>@if (! $loop->last), @endif
+                                    @endif
+                                @endforeach
+                                @if ($group['reasons'] !== [])
+                                    · Reasons: {{ implode(', ', $group['reasons']) }}
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="8" class="px-3 py-4 text-sm text-gray-500">No source records match these filters.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-3 text-xs text-gray-500">
+            Issued customer-document amounts use the immutable issued snapshot gross total and issue date; invoice, credit-note and debit-note categories are not netted.
+            Vendor invoice amounts remain unavailable because the canonical payable total is not approved.
+            Legacy customer invoice amounts remain outside monetary totals because their currency and units are unresolved.
+            Cash movements use only explicit direction, non-negative canonical decimal amount and a three-letter currency code; they are not revenue or expense.
+            Source IDs are included for drill-down and audit. Unknown records are never converted to zero.
+        </p>
+    </section>
+
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <h2 class="text-base font-semibold text-gray-950 dark:text-white">Recorded transactions</h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
