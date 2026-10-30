@@ -444,6 +444,14 @@ class PayrollCalculationRunPersistenceTest extends TestCase
             $this->assertStringContainsString('immutable', $exceptionError->getMessage());
         }
 
+        $exception->refresh();
+        try {
+            $exception->forceFill(['status' => PayrollException::STATUS_RESOLVED])->save();
+            $this->fail('Exceptions cannot be resolved without audited resolution metadata.');
+        } catch (LogicException $exceptionError) {
+            $this->assertStringContainsString('actor, timestamp, and note', $exceptionError->getMessage());
+        }
+
         $migration = require base_path('database/migrations/2026_10_30_000002_create_payroll_exceptions_table.php');
         $this->expectException(\RuntimeException::class);
         $migration->down();

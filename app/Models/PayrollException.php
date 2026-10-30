@@ -45,6 +45,9 @@ class PayrollException extends Model
             if ($exception->getOriginal('status') !== self::STATUS_OPEN || $exception->status !== self::STATUS_RESOLVED) {
                 throw new LogicException('Only open payroll exceptions can be resolved.');
             }
+            if (! $exception->resolved_by || ! $exception->resolved_at || trim((string) $exception->resolution_note) === '') {
+                throw new LogicException('Payroll exception resolution requires an actor, timestamp, and note from the resolution service.');
+            }
         });
         static::deleting(static function (): never {
             throw new LogicException('Payroll exceptions are retained as audit records and cannot be deleted.');
