@@ -176,6 +176,37 @@ class EmployeePaySlipsTable
                     ->form([Textarea::make('note')->label('Close note')->required()->maxLength(2000)])
                     ->action(fn (EmployeePaySlip $record, array $data, PayrollPeriodLifecycleService $service) => $service->close(auth()->user(), $record, $data['note']))
                     ->authorize(fn (): bool => hexa()->can('payroll_period.close')),
+                Action::make('exportPayrollReport')
+                    ->label('Export payroll report')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (EmployeePaySlip $record): bool => in_array($record->approval_status, ['approved', 'closed'], true) && hexa()->can('payroll_period.export'))
+                    ->form([
+                        Select::make('run_id')
+                            ->label('Approved calculation version')
+                            ->options(fn (EmployeePaySlip $record): array => collect((array) (($record->getAttribute('approved_snapshot')['calculation_runs'] ?? [])))
+                                ->mapWithKeys(static function (array $run): array {
+                                    $id = (int) ($run['id'] ?? 0);
+                                    if ($id <= 0) {
+                                        return [];
+                                    }
+
+                                    return [$id => sprintf('Run #%d · %s · %s', $id, (string) ($run['calculation_version'] ?? 'unknown'), (string) ($run['run_status'] ?? 'unknown'))];
+                                })->all())
+                            ->required(),
+                        Select::make('type')->label('Report')->options([
+                            'summary' => 'Internal period summary',
+                            'line_items' => 'Calculation line-item detail',
+                            'exceptions' => 'Calculation exception list',
+                        ])->required(),
+                        Select::make('format')->label('Format')->options(['csv' => 'CSV', 'json' => 'JSON'])->default('csv')->required(),
+                    ])
+                    ->action(fn (EmployeePaySlip $record, array $data) => redirect()->route('payroll.period.exports.download', [
+                        'paySlip' => $record->getKey(),
+                        'type' => $data['type'],
+                        'format' => $data['format'],
+                        'run' => $data['run_id'],
+                    ]))
+                    ->authorize(fn (): bool => hexa()->can('payroll_period.export')),
                 EditAction::make()->visible(fn (EmployeePaySlip $record): bool => $record->isOpen() && hexa()->can('employee_pay_slip.update')),
                 RecordPaySlipAdjustmentAction::make(),
                 RecordPaySlipReversalAction::make(),
