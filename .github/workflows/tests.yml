@@ -242,6 +242,7 @@ jobs:
           tests/Feature/Filament/ProductReviewResourceAuthorizationTest.php
           tests/Feature/CanonicalIssuedInvoiceSchemaTest.php
           tests/Feature/PayrollPeriodLifecycleTest.php
+          tests/Feature/PayrollPeriodExportTest.php
 
   frontend:
     name: Frontend build and dependency audit
