@@ -1156,24 +1156,6 @@ parameters:
 			path: app/Services/GeneralOverviewData.php
 
 		-
-			message: '#^Method App\\Services\\GeneralOverviewData\:\:weeklySchedule\(\) should return Illuminate\\Support\\Collection\<int, array\{type\: string, title\: string, teacher\: string, starts_at\: Carbon\\CarbonImmutable, ends_at\: Carbon\\CarbonImmutable\}\> but returns Illuminate\\Support\\Collection\<int, array\{type\: ''Group session''\|''Individual session'', title\: string, teacher\: mixed, starts_at\: Carbon\\CarbonImmutable, ends_at\: Carbon\\CarbonImmutable\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/GeneralOverviewData.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Session\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Services/GeneralOverviewData.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Services/GeneralOverviewData.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -1326,24 +1308,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Services/ProductsOverviewData.php
-
-		-
-			message: '#^Method App\\Services\\ProductsOverviewData\:\:summary\(\) should return array\{as_of\: string, total\: int, with_effective_price\: int, missing_price\: int, ambiguous_price\: int, missing_productable\: int, products\: Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>, statuses\: array\<int, string\>, \.\.\.\} but returns array\{as_of\: non\-falsy\-string, total\: int\<0, max\>, with_effective_price\: int\<0, max\>, missing_price\: int\<0, max\>, ambiguous_price\: int\<0, max\>, missing_productable\: int\<0, max\>, products\: Illuminate\\Support\\Collection\<int, array\{id\: int\<0, max\>, title\: string, status\: string, type\: string\|null, type_label\: string, productable_id\: int, productable_title\: mixed, productable_exists\: bool, \.\.\.\}\>, statuses\: array\<int, mixed\>, \.\.\.\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/ProductsOverviewData.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Product\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Services/ProductsOverviewData.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:filter\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
 			count: 1
 			path: app/Services/ProductsOverviewData.php
 
