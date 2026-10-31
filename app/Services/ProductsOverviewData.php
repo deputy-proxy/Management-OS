@@ -50,9 +50,7 @@ class ProductsOverviewData
             );
         }
 
-        $rows = $products->map(
-            /** @return array<string, mixed> */
-            function (Product $product) use ($pricesByOwner, $date): array {
+        $rows = $products->map(function (Product $product) use ($pricesByOwner, $date): array {
             $type = $product->productable_type;
             $owner = $product->productable;
             $ownerKey = $type.':'.$product->productable_id;
@@ -70,7 +68,8 @@ class ProductsOverviewData
             };
             $price = $effectivePrices->count() === 1 ? $effectivePrices->first() : null;
 
-            return [
+            /** @var array<string, mixed> $row */
+            $row = [
                 'id' => $product->id,
                 'title' => $product->title,
                 'status' => (string) ($product->status ?? ''),
@@ -86,6 +85,8 @@ class ProductsOverviewData
                 'valid_from' => $price?->valid_from?->toDateString(),
                 'valid_until' => $price?->valid_until?->toDateString(),
             ];
+
+            return $row;
         });
 
         $filtered = $rows->filter(function (array $row) use ($statusFilter, $typeFilter, $priceFilter): bool {
