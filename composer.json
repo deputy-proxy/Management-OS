@@ -35,7 +35,7 @@
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0.2",
         "lartisan/filament-architect": "^1.0",
         "rappasoft/laravel-authentication-log": "^6.0",
         "relaticle/comments": "^1.1.1",
