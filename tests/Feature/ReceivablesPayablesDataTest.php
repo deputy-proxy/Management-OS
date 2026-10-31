@@ -16,6 +16,7 @@ use App\Services\Finance\ReceivablesPayablesData;
 use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
@@ -27,7 +28,17 @@ class ReceivablesPayablesDataTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $fixedNow = CarbonImmutable::parse('2026-10-30 12:00:00', 'Europe/Bucharest');
+        Carbon::setTestNow($fixedNow);
+        CarbonImmutable::setTestNow($fixedNow);
         config(['app.key' => 'base64:'.base64_encode(str_repeat('a', 32))]);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        CarbonImmutable::setTestNow();
+        parent::tearDown();
     }
 
     public function test_partial_allocations_and_reversals_reconcile_to_the_issued_invoice_without_mutating_its_state(): void
