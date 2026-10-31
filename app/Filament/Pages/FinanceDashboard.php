@@ -29,6 +29,12 @@ class FinanceDashboard extends Page
 
     public string $reportCurrency = '';
 
+    public string $reportAccount = '';
+
+    public string $reportDirection = '';
+
+    public string $reportCategory = '';
+
     public function mount(): void
     {
         $today = CarbonImmutable::now('Europe/Bucharest');
@@ -61,6 +67,11 @@ class FinanceDashboard extends Page
                 in_array($this->reportBasis, ['all', 'customer_documents', 'vendor_invoices', 'cash_movements'], true)
                     ? $this->reportBasis
                     : 'all',
+                [
+                    'account_id' => $this->reportAccount,
+                    'direction' => $this->reportDirection,
+                    'category' => $this->reportCategory,
+                ],
             ),
         ];
     }

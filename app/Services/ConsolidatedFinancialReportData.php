@@ -22,6 +22,7 @@ class ConsolidatedFinancialReportData
         CarbonImmutable $end,
         ?string $currency = null,
         string $basis = 'all',
+        array $cashFilters = [],
     ): array {
         $timezone = 'Europe/Bucharest';
         $start = $start->setTimezone($timezone)->startOfDay();
@@ -33,6 +34,8 @@ class ConsolidatedFinancialReportData
 
         $currency = $currency !== null ? strtoupper(trim($currency)) : null;
         $currency = $currency === '' ? null : $currency;
+        $cashFilters = $this->normalizeCashFilters($cashFilters);
+        $cashFilterOptions = $this->cashMovementFilterOptions($start, $end);
 
         $records = [];
         $totals = ['included' => 0, 'excluded' => 0, 'unknown' => 0];
@@ -165,14 +168,23 @@ class ConsolidatedFinancialReportData
                 ->leftJoin('financial_accounts', 'financial_accounts.id', '=', 'transactions.financial_account_id')
                 ->whereNull('transactions.deleted_at')
                 ->whereBetween('transactions.timestamp', [$start, $end])
+                ->when($cashFilters['account_id'] !== null, fn ($query) => $query->where('transactions.financial_account_id', $cashFilters['account_id']))
                 ->select([
-                    'transactions.id', 'transactions.timestamp', 'transactions.transaction_type',
-                    'transactions.transaction_type_code', 'transactions.amount_decimal',
-                    'transactions.currency_code', 'financial_accounts.title as entity',
+                    'transactions.id', 'transactions.financial_account_id', 'transactions.timestamp',
+                    'transactions.transaction_type', 'transactions.transaction_type_code',
+                    'transactions.amount', 'transactions.amount_decimal', 'transactions.currency_code', 'transactions.payment_method',
+                    'transactions.customer_invoice_id', 'transactions.vendor_invoice_id', 'transactions.tax_id',
+                    'financial_accounts.title as entity',
                 ])
                 ->orderBy('transactions.timestamp')
                 ->orderBy('transactions.id')
                 ->get();
+
+            $duplicateCounts = [];
+            foreach ($transactions as $transaction) {
+                $signature = $this->duplicateSignature($transaction);
+                $duplicateCounts[$signature] = ($duplicateCounts[$signature] ?? 0) + 1;
+            }
 
             foreach ($transactions as $transaction) {
                 $validCurrency = is_string($transaction->currency_code) && preg_match('/\A[A-Z]{3}\z/', $transaction->currency_code) === 1;
@@ -186,24 +198,44 @@ class ConsolidatedFinancialReportData
                 $validDirection = in_array($transaction->transaction_type_code, ['money_in', 'money_out'], true);
                 $validClassification = $classification['status'] === 'classified';
                 $validAmount = $transaction->amount_decimal !== null && is_numeric($transaction->amount_decimal) && bccomp((string) $transaction->amount_decimal, '0', 2) >= 0;
-                $included = $validCurrency && $validDirection && $validAmount && $validClassification;
+                if ($cashFilters['direction'] !== null && ($cashFilters['direction'] === 'unknown' ? $classification['direction'] !== null : $classification['direction'] !== $cashFilters['direction'])) {
+                    continue;
+                }
+                if ($cashFilters['category'] !== null && $classification['code'] !== $cashFilters['category']) {
+                    continue;
+                }
+                // Match the canonical cash source contract: explicit direction,
+                // non-negative decimal amount, and valid currency determine inclusion.
+                // An unknown business category remains visible but does not erase a
+                // valid directional cash movement from the source totals.
+                $included = $validCurrency && $validDirection && $validAmount;
+                $signature = $this->duplicateSignature($transaction);
+                $duplicateCount = $duplicateCounts[$signature] ?? 1;
                 $records[] = [
                     'period' => substr((string) $transaction->timestamp, 0, 7),
                     'basis' => 'canonical_cash_movement',
                     'category' => $classification['code'],
                     'entity' => $transaction->entity ?: 'Unknown financial account',
+                    'account_id' => (int) $transaction->financial_account_id,
+                    'account_label' => $transaction->entity ?: 'Unknown financial account',
                     'currency' => $validCurrency ? $transaction->currency_code : 'Unknown',
-                    'amount' => $included ? (string) $transaction->amount_decimal : null,
+                    'amount' => $included ? bcadd((string) $transaction->amount_decimal, '0.00', 2) : null,
                     'source_type' => 'transaction',
                     'source_id' => (int) $transaction->id,
                     'source_reference' => 'Transaction #'.$transaction->id,
                     'source_url' => route('filament.admin.finance.resources.transactions.view', ['record' => $transaction->id]),
                     'source_date' => $transaction->timestamp,
                     'status' => $included ? 'included' : 'unknown',
-                    'reason' => $included ? null : (! $validDirection ? 'missing_or_unsupported_direction' : (! $validClassification ? 'unclassified_transaction_type_or_direction' : (! $validAmount ? 'missing_or_invalid_canonical_amount' : 'missing_or_invalid_currency'))),
+                    'reason' => $included ? null : (! $validDirection ? 'missing_or_unsupported_direction' : (! $validAmount ? 'missing_or_invalid_canonical_amount' : 'missing_or_invalid_currency')),
                     'classification_label' => $classification['label'],
+                    'classification_status' => $classification['status'],
+                    'classification_warning' => $validClassification ? null : 'unclassified_transaction_type',
                     'direction' => $classification['direction'],
                     'legacy_type' => $transaction->transaction_type,
+                    'duplicate_status' => $duplicateCount > 1 ? 'potential_duplicate' : 'not_flagged',
+                    'duplicate_count' => $duplicateCount,
+                    'special_event_status' => 'not_modelled',
+                    'special_event_note' => 'The transaction schema has no linked transfer, refund, or reversal fields; this row is shown only as its recorded directional cash movement.',
                 ];
             }
         }
@@ -212,7 +244,7 @@ class ConsolidatedFinancialReportData
         foreach ($records as $record) {
             $key = implode('|', [
                 $record['period'], $record['basis'], $record['category'],
-                $record['entity'], $record['currency'],
+                $record['entity'], $record['currency'], $record['account_id'] ?? '',
             ]);
             if (! isset($groups[$key])) {
                 $groups[$key] = [
@@ -220,6 +252,7 @@ class ConsolidatedFinancialReportData
                     'basis' => $record['basis'],
                     'category' => $record['category'],
                     'entity' => $record['entity'],
+                    'account_id' => $record['account_id'] ?? null,
                     'currency' => $record['currency'],
                     'amount' => '0.00',
                     'included_count' => 0,
@@ -270,6 +303,75 @@ class ConsolidatedFinancialReportData
             'groups' => $groups,
             'records' => $records,
             'totals' => $totals,
+            'cash_filter_options' => $cashFilterOptions,
         ];
+    }
+
+    /** @return array{account_id: int|null, direction: string|null, category: string|null} */
+    private function normalizeCashFilters(array $filters): array
+    {
+        $accountId = filter_var($filters['account_id'] ?? null, FILTER_VALIDATE_INT);
+        $accountId = is_int($accountId) && $accountId > 0 ? $accountId : null;
+        $direction = $filters['direction'] ?? null;
+        $direction = in_array($direction, ['money_in', 'money_out', 'unknown'], true) ? $direction : null;
+        $category = $filters['category'] ?? null;
+        $categories = [
+            'customer_money_in', 'customer_money_out', 'vendor_money_in', 'vendor_money_out',
+            'tax_money_in', 'tax_money_out', 'other_money_in', 'other_money_out', 'unclassified_legacy',
+        ];
+        $category = in_array($category, $categories, true) ? $category : null;
+
+        return ['account_id' => $accountId, 'direction' => $direction, 'category' => $category];
+    }
+
+    /** @return array{accounts: array<int, array{id: int, title: string}>, directions: array<string, string>, categories: array<string, string>} */
+    private function cashMovementFilterOptions(CarbonImmutable $start, CarbonImmutable $end): array
+    {
+        $accounts = DB::table('financial_accounts')
+            ->whereNull('financial_accounts.deleted_at')
+            ->whereExists(function ($query) use ($start, $end): void {
+                $query->selectRaw('1')
+                    ->from('transactions')
+                    ->whereColumn('transactions.financial_account_id', 'financial_accounts.id')
+                    ->whereNull('transactions.deleted_at')
+                    ->whereBetween('transactions.timestamp', [$start, $end]);
+            })
+            ->orderBy('title')
+            ->get(['id', 'title'])
+            ->map(fn (object $account): array => ['id' => (int) $account->id, 'title' => (string) $account->title])
+            ->all();
+
+        return [
+            'accounts' => $accounts,
+            'directions' => ['money_in' => 'Money in', 'money_out' => 'Money out', 'unknown' => 'Unknown direction'],
+            'categories' => [
+                'customer_money_in' => 'Customer-related money in',
+                'customer_money_out' => 'Customer-related money out',
+                'vendor_money_in' => 'Vendor-related money in',
+                'vendor_money_out' => 'Vendor-related money out',
+                'tax_money_in' => 'Tax-related money in',
+                'tax_money_out' => 'Tax-related money out',
+                'other_money_in' => 'Other money in',
+                'other_money_out' => 'Other money out',
+                'unclassified_legacy' => 'Unclassified / unresolved',
+            ],
+        ];
+    }
+
+    private function duplicateSignature(object $transaction): string
+    {
+        return hash('sha256', json_encode([
+            'financial_account_id' => (int) $transaction->financial_account_id,
+            'timestamp' => (string) $transaction->timestamp,
+            'transaction_type' => strtolower(trim((string) $transaction->transaction_type)),
+            'transaction_type_code' => $transaction->transaction_type_code,
+            'legacy_amount' => $transaction->amount,
+            'amount_decimal' => $transaction->amount_decimal,
+            'currency_code' => $transaction->currency_code,
+            'payment_method' => $transaction->payment_method,
+            'customer_invoice_id' => $transaction->customer_invoice_id,
+            'vendor_invoice_id' => $transaction->vendor_invoice_id,
+            'tax_id' => $transaction->tax_id,
+        ], JSON_THROW_ON_ERROR));
     }
 }

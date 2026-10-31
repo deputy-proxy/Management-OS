@@ -8,6 +8,7 @@ use App\Models\LegalEntity;
 use App\Models\Transaction;
 use App\Models\VendorInvoice;
 use App\Services\ConsolidatedFinancialReportData;
+use App\Services\FinancialOverviewData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -199,5 +200,246 @@ class ConsolidatedFinancialReportDataTest extends TestCase
         $this->assertCount(1, $ronOnly['groups']);
         $this->assertSame('RON', $ronOnly['groups'][0]['currency']);
         $this->assertSame('14.00', $ronOnly['groups'][0]['amount']);
+    }
+
+    public function test_cash_movement_filters_apply_account_direction_and_category_together(): void
+    {
+        $ronAccount = FinancialAccount::factory()->create(['title' => 'Synthetic RON operating']);
+        $eurAccount = FinancialAccount::factory()->create(['title' => 'Synthetic EUR reserve']);
+        $base = [
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'timestamp' => '2026-10-15 12:00:00',
+            'currency_code' => 'RON',
+        ];
+
+        Transaction::factory()->create($base + [
+            'financial_account_id' => $ronAccount->id,
+            'transaction_type' => 'Customer',
+            'transaction_type_code' => 'money_in',
+            'amount_decimal' => '100.00',
+        ]);
+        Transaction::factory()->create($base + [
+            'financial_account_id' => $ronAccount->id,
+            'transaction_type' => 'Vendor',
+            'transaction_type_code' => 'money_out',
+            'amount_decimal' => '25.00',
+        ]);
+        Transaction::factory()->create($base + [
+            'financial_account_id' => $eurAccount->id,
+            'transaction_type' => 'Customer',
+            'transaction_type_code' => 'money_in',
+            'amount_decimal' => '50.00',
+        ]);
+
+        $report = app(ConsolidatedFinancialReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+            null,
+            'cash_movements',
+            [
+                'account_id' => (string) $ronAccount->id,
+                'direction' => 'money_in',
+                'category' => 'customer_money_in',
+            ],
+        );
+
+        $this->assertCount(1, $report['records']);
+        $this->assertSame($ronAccount->id, $report['records'][0]['account_id']);
+        $this->assertSame('customer_money_in', $report['records'][0]['category']);
+        $this->assertSame('100.00', $report['records'][0]['amount']);
+        $this->assertSame(route('filament.admin.finance.resources.transactions.view', ['record' => $report['records'][0]['source_id']]), $report['records'][0]['source_url']);
+        $this->assertSame(1, $report['totals']['included']);
+        $this->assertSame('Synthetic RON operating', collect($report['cash_filter_options']['accounts'])->firstWhere('id', $ronAccount->id)['title']);
+    }
+
+    public function test_identical_transactions_are_flagged_as_potential_duplicates_but_both_remain_counted(): void
+    {
+        $account = FinancialAccount::factory()->create();
+        $attributes = [
+            'financial_account_id' => $account->id,
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'transaction_type' => 'Other',
+            'transaction_type_code' => 'money_in',
+            'amount' => 1250,
+            'amount_decimal' => '12.50',
+            'currency_code' => 'RON',
+            'payment_method' => 'Bank transfer',
+            'timestamp' => '2026-10-15 12:00:00',
+        ];
+        Transaction::factory()->create($attributes);
+        Transaction::factory()->create($attributes);
+
+        $report = app(ConsolidatedFinancialReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+            null,
+            'cash_movements',
+        );
+
+        $this->assertCount(2, $report['records']);
+        $this->assertSame(['potential_duplicate', 'potential_duplicate'], collect($report['records'])->pluck('duplicate_status')->all());
+        $this->assertSame([2, 2], collect($report['records'])->pluck('duplicate_count')->all());
+        $this->assertSame(2, $report['totals']['included']);
+        $this->assertSame('25.00', $report['groups'][0]['amount']);
+    }
+
+    public function test_transfer_and_reversal_semantics_are_not_inferred_or_netted(): void
+    {
+        $outAccount = FinancialAccount::factory()->create(['title' => 'Transfer source']);
+        $inAccount = FinancialAccount::factory()->create(['title' => 'Transfer destination']);
+        $common = [
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'amount_decimal' => '40.00',
+            'currency_code' => 'RON',
+            'timestamp' => '2026-10-15 12:00:00',
+        ];
+        Transaction::factory()->create($common + [
+            'financial_account_id' => $outAccount->id,
+            'transaction_type' => 'Other',
+            'transaction_type_code' => 'money_out',
+            'payment_method' => 'Transfer',
+        ]);
+        Transaction::factory()->create($common + [
+            'financial_account_id' => $inAccount->id,
+            'transaction_type' => 'Other',
+            'transaction_type_code' => 'money_in',
+            'payment_method' => 'Transfer',
+        ]);
+        Transaction::factory()->create($common + [
+            'financial_account_id' => $inAccount->id,
+            'transaction_type' => 'Other',
+            'transaction_type_code' => 'money_in',
+            'payment_method' => 'Reversal',
+            'timestamp' => '2026-10-16 12:00:00',
+        ]);
+
+        $report = app(ConsolidatedFinancialReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+            null,
+            'cash_movements',
+        );
+
+        $this->assertCount(3, $report['records']);
+        $this->assertSame(3, $report['totals']['included']);
+        $this->assertSame(['not_modelled', 'not_modelled', 'not_modelled'], collect($report['records'])->pluck('special_event_status')->all());
+        $this->assertSame(['other_money_out', 'other_money_in', 'other_money_in'], collect($report['records'])->pluck('category')->all());
+        $this->assertSame('40.00', collect($report['groups'])->firstWhere('entity', 'Transfer source')['amount']);
+        $this->assertSame('80.00', collect($report['groups'])->firstWhere('entity', 'Transfer destination')['amount']);
+    }
+
+    public function test_unknown_transaction_classifications_remain_visible_and_are_not_summed(): void
+    {
+        $account = FinancialAccount::factory()->create();
+        Transaction::factory()->create([
+            'financial_account_id' => $account->id,
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'transaction_type' => 'Unmapped legacy value',
+            'transaction_type_code' => null,
+            'amount_decimal' => '99.00',
+            'currency_code' => 'RON',
+            'timestamp' => '2026-10-15 12:00:00',
+        ]);
+
+        $report = app(ConsolidatedFinancialReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+            null,
+            'cash_movements',
+            ['direction' => 'unknown'],
+        );
+
+        $this->assertCount(1, $report['records']);
+        $this->assertSame('unclassified_legacy', $report['records'][0]['category']);
+        $this->assertSame('unknown', $report['records'][0]['status']);
+        $this->assertNull($report['records'][0]['amount']);
+        $this->assertSame(1, $report['totals']['unknown']);
+    }
+
+    public function test_unclassified_business_type_still_matches_canonical_cash_inclusion_fields(): void
+    {
+        $account = FinancialAccount::factory()->create();
+        Transaction::factory()->create([
+            'financial_account_id' => $account->id,
+            'vendor_invoice_id' => null,
+            'customer_invoice_id' => null,
+            'tax_id' => null,
+            'transaction_type' => 'Legacy category not mapped',
+            'transaction_type_code' => 'money_in',
+            'amount_decimal' => '99.00',
+            'currency_code' => 'RON',
+            'timestamp' => '2026-10-15 12:00:00',
+        ]);
+
+        $report = app(ConsolidatedFinancialReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+            null,
+            'cash_movements',
+            ['category' => 'unclassified_legacy'],
+        );
+
+        $this->assertCount(1, $report['records']);
+        $this->assertSame('included', $report['records'][0]['status']);
+        $this->assertSame('unclassified', $report['records'][0]['classification_status']);
+        $this->assertSame('unclassified_transaction_type', $report['records'][0]['classification_warning']);
+        $this->assertSame('99.00', $report['records'][0]['amount']);
+        $this->assertSame(1, $report['totals']['included']);
+        $this->assertSame(0, $report['totals']['unknown']);
+    }
+
+    public function test_cash_report_totals_match_the_canonical_financial_overview_source(): void
+    {
+        $account = FinancialAccount::factory()->create();
+        foreach ([
+            ['Customer', 'money_in', '100.25', 'RON', '2026-10-10 10:00:00'],
+            ['Vendor', 'money_out', '40.00', 'RON', '2026-10-11 10:00:00'],
+            ['Unmapped', 'money_in', '12.50', 'EUR', '2026-10-12 10:00:00'],
+            ['Other', null, '9.00', 'RON', '2026-10-13 10:00:00'],
+            ['Other', 'money_in', null, 'RON', '2026-10-14 10:00:00'],
+            ['Other', 'money_out', '4.00', null, '2026-10-15 10:00:00'],
+        ] as [$type, $direction, $amount, $currency, $timestamp]) {
+            Transaction::factory()->create([
+                'financial_account_id' => $account->id,
+                'vendor_invoice_id' => null,
+                'customer_invoice_id' => null,
+                'tax_id' => null,
+                'transaction_type' => $type,
+                'transaction_type_code' => $direction,
+                'amount_decimal' => $amount,
+                'currency_code' => $currency,
+                'timestamp' => $timestamp,
+            ]);
+        }
+
+        $start = CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest');
+        $end = CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest');
+        $report = app(ConsolidatedFinancialReportData::class)->report($start, $end, null, 'cash_movements');
+        $overview = app(FinancialOverviewData::class)->summary($start->addDays(10));
+
+        $actual = collect($report['records'])
+            ->where('status', 'included')
+            ->groupBy(fn (array $record): string => $record['currency'].'|'.$record['direction'])
+            ->map(fn ($records): string => $records->reduce(
+                fn (string $total, array $record): string => bcadd($total, $record['amount'], 2),
+                '0.00',
+            ));
+        $expected = collect($overview['canonical_cash_movements']['rows'])
+            ->mapWithKeys(fn (array $row): array => [$row['currency'].'|'.$row['direction'] => $row['current_amount']]);
+
+        foreach ($expected as $key => $amount) {
+            $this->assertSame($amount, $actual->get($key, '0.00'), $key);
+        }
+        foreach ($actual as $key => $amount) {
+            $this->assertSame($amount, $expected->get($key, '0.00'), $key);
+        }
     }
 }
