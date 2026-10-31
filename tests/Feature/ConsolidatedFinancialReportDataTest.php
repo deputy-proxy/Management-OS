@@ -249,6 +249,7 @@ class ConsolidatedFinancialReportDataTest extends TestCase
         $this->assertSame($ronAccount->id, $report['records'][0]['account_id']);
         $this->assertSame('customer_money_in', $report['records'][0]['category']);
         $this->assertSame('100.00', $report['records'][0]['amount']);
+        $this->assertSame(route('filament.admin.finance.resources.transactions.view', ['record' => $report['records'][0]['source_id']]), $report['records'][0]['source_url']);
         $this->assertSame(1, $report['totals']['included']);
         $this->assertSame('Synthetic RON operating', collect($report['cash_filter_options']['accounts'])->firstWhere('id', $ronAccount->id)['title']);
     }
@@ -263,6 +264,7 @@ class ConsolidatedFinancialReportDataTest extends TestCase
             'tax_id' => null,
             'transaction_type' => 'Other',
             'transaction_type_code' => 'money_in',
+            'amount' => 1250,
             'amount_decimal' => '12.50',
             'currency_code' => 'RON',
             'payment_method' => 'Bank transfer',

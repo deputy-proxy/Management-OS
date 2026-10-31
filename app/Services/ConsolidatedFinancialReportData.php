@@ -172,7 +172,7 @@ class ConsolidatedFinancialReportData
                 ->select([
                     'transactions.id', 'transactions.financial_account_id', 'transactions.timestamp',
                     'transactions.transaction_type', 'transactions.transaction_type_code',
-                    'transactions.amount_decimal', 'transactions.currency_code', 'transactions.payment_method',
+                    'transactions.amount', 'transactions.amount_decimal', 'transactions.currency_code', 'transactions.payment_method',
                     'transactions.customer_invoice_id', 'transactions.vendor_invoice_id', 'transactions.tax_id',
                     'financial_accounts.title as entity',
                 ])
@@ -365,6 +365,7 @@ class ConsolidatedFinancialReportData
             'timestamp' => (string) $transaction->timestamp,
             'transaction_type' => strtolower(trim((string) $transaction->transaction_type)),
             'transaction_type_code' => $transaction->transaction_type_code,
+            'legacy_amount' => $transaction->amount,
             'amount_decimal' => $transaction->amount_decimal,
             'currency_code' => $transaction->currency_code,
             'payment_method' => $transaction->payment_method,

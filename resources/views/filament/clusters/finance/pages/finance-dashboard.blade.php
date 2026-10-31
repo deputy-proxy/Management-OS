@@ -35,6 +35,7 @@
             </label>
         </div>
 
+        @if (in_array($reportBasis, ['all', 'cash_movements'], true))
         <div class="mt-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
             <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Cash movement filters</h3>
             <p class="mt-1 text-xs text-gray-500">Account, direction and category filters apply only to canonical cash-movement records, including when all source bases are displayed.</p>
@@ -65,6 +66,7 @@
                 </label>
             </div>
         </div>
+        @endif
 
         <div class="mt-4 grid gap-3 sm:grid-cols-4">
             <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
@@ -142,6 +144,7 @@
             </table>
         </div>
 
+        @if (in_array($reportBasis, ['all', 'cash_movements'], true))
         @php($cashRecords = collect($consolidatedReport['records'])->where('basis', 'canonical_cash_movement'))
         <section class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Cash movement transaction detail</h3>
@@ -197,15 +200,16 @@
                 </table>
             </div>
             <p class="mt-3 text-xs text-gray-500">
-                Potential duplicates are detected only when all currently available transaction fields match; they are review flags, not proof of duplication, and every row remains counted. The current transaction schema has no linked transfer, refund or reversal event model, so these semantics are not inferred from labels, direction or matching amounts. Such rows remain recorded cash movements and are never netted or suppressed by this report.
+                Potential duplicates are detected only when all report-relevant source fields match exactly; they are review flags, not proof of duplication, and every row remains counted. The current transaction schema has no linked transfer, refund or reversal event model, so these semantics are not inferred from labels, direction or matching amounts. Such rows remain recorded cash movements and are never netted or suppressed by this report.
             </p>
         </section>
+        @endif
 
         <p class="mt-3 text-xs text-gray-500">
             Issued customer-document amounts use the immutable issued snapshot gross total and issue date; invoice, credit-note and debit-note categories are not netted.
             Vendor invoice amounts remain unavailable because the canonical payable total is not approved.
             Legacy customer invoice amounts remain outside monetary totals because their currency and units are unresolved.
-            Cash movements use only explicit direction, non-negative canonical decimal amount and a three-letter currency code; they are not revenue or expense.
+            Cash movements use only explicit direction, non-negative canonical decimal amount and a three-letter currency code; they are not accrual revenue, profit, receivables, payables or proof of settlement.
             Source IDs are included for drill-down and audit. Unknown records are never converted to zero.
         </p>
     </section>
