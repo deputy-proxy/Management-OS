@@ -75,3 +75,7 @@ Issue #353 adds an application-side attribution contract without declaring an ac
 - Missing/deleted/unsupported targets produce an `unknown` run rather than silently allocating to another target. Product-cost rows remain a compatibility projection for existing product-only readers; the versioned snapshots are the auditable record for all supported target types.
 
 The UI exposes canonical source amount/currency and the supported attribution target types. Source-to-invoice/accounting taxonomy, eligibility rules, approval policy, and cross-currency conversion remain intentionally unimplemented pending owner-approved specifications. This engineering contract does not decide whether a source is an accounting direct cost.
+
+## Issue #354 allocation workflow update
+
+Product resources now have an explicit `direct` / `overhead` classification; legacy rows remain unclassified. Allocation rules support the configured percentage method with effective dates and an automatically advancing rule version. Direct and overhead partial allocations remain explicitly unallocated while finance policy is pending. Each allocation is rounded independently and any positive or negative rounding residual is retained as an unallocated snapshot rather than redistributed. Rule inputs and versions are preserved in immutable allocation history. See `docs/provisional-profitability-calculation-v1.md` for the provisional calculation boundary and deferred policy approvals.

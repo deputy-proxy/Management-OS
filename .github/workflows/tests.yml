@@ -240,6 +240,8 @@ jobs:
           tests/Feature/PublicFormsTest.php
           tests/Feature/DatabaseIntegrityAuditTest.php
           tests/Feature/ProductCostAllocationHistoryTest.php
+          tests/Feature/ProfitabilityCalculationServiceTest.php
+          tests/Feature/ProfitabilityPreviewAuthorizationTest.php
           tests/Feature/Filament/ProductReviewResourceAuthorizationTest.php
           tests/Feature/CanonicalIssuedInvoiceSchemaTest.php
           tests/Feature/PayrollPeriodLifecycleTest.php

@@ -3,22 +3,21 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
-
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\Support\LogOptions;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Activity;
 
-use App\Models\Concerns\HasTasks;
-
+/**
+ * @property string|null $amount_decimal
+ * @property string|null $currency_code
+ */
 class ProductRevenue extends Model
 {
-    use HasPanelSearchTitle;
-
     use HasFactory;
+    use HasPanelSearchTitle;
     use SoftDeletes;
 
     /** @var array<int, string> */
@@ -44,9 +43,8 @@ class ProductRevenue extends Model
         return $this->belongsTo(CustomerInvoice::class);
     }
 
-    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function activities(): MorphMany
     {
         return $this->morphMany(Activity::class, 'subject');
     }
-
 }

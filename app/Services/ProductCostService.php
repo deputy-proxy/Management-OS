@@ -11,6 +11,7 @@ use App\Models\ProductResourceAllocation;
 use App\Models\Project;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -24,12 +25,35 @@ class ProductCostService
             $lockedResource = ProductResource::withTrashed()->lockForUpdate()->findOrFail($resource->getKey());
             $allocations = ProductResourceAllocation::query()
                 ->where('product_resource_id', $lockedResource->getKey())
+                ->where(function ($query) use ($lockedResource): void {
+                    $query->whereDate('effective_from', '<=', $lockedResource->month)
+                        ->orWhere(function ($fallback) use ($lockedResource): void {
+                            $fallback->whereNull('effective_from')
+                                ->whereDate('month', '<=', $lockedResource->month);
+                        });
+                })
+                ->where(function ($query) use ($lockedResource): void {
+                    $query->whereNull('effective_until')
+                        ->orWhereDate('effective_until', '>=', $lockedResource->month);
+                })
                 ->lockForUpdate()
                 ->orderBy('id')
                 ->get();
 
             $percentTotal = 0;
             foreach ($allocations as $allocation) {
+                if ($allocation->allocation_method !== 'percentage') {
+                    throw ValidationException::withMessages([
+                        'allocation_method' => 'The configured allocation method is not supported.',
+                    ]);
+                }
+
+                if ($allocation->effective_from && $allocation->effective_until
+                    && Carbon::parse($allocation->effective_until)->lt(Carbon::parse($allocation->effective_from))) {
+                    throw ValidationException::withMessages([
+                        'effective_until' => 'The allocation end date must be on or after its start date.',
+                    ]);
+                }
                 $percent = (int) $allocation->allocation_percent;
                 if ($percent < 0 || $percent > 100) {
                     throw ValidationException::withMessages([
@@ -153,15 +177,11 @@ class ProductCostService
             }
 
             $allocatedPercent = array_sum(array_column($resolved, 'percent'));
-            $allocatedBudget = $sourceAmount->multipliedBy($allocatedPercent)
-                ->dividedBy(100, 2, RoundingMode::HALF_UP);
             $allocatedSoFar = BigDecimal::zero();
 
             foreach ($resolved as $index => $entry) {
-                $isLast = $index === array_key_last($resolved);
-                $allocatedAmount = $isLast
-                    ? $allocatedBudget->minus($allocatedSoFar)
-                    : $sourceAmount->multipliedBy($entry['percent'])->dividedBy(100, 2, RoundingMode::HALF_UP);
+                $allocatedAmount = $sourceAmount->multipliedBy($entry['percent'])
+                    ->dividedBy(100, 2, RoundingMode::HALF_UP);
                 $allocatedSoFar = $allocatedSoFar->plus($allocatedAmount);
                 $allocatedAmountString = $allocatedAmount->toScale(2, RoundingMode::HALF_UP)->__toString();
                 $resolved[$index]['allocated_amount_decimal'] = $allocatedAmountString;
@@ -176,13 +196,22 @@ class ProductCostService
                     $entry['percent'],
                     $allocatedAmountString,
                     $sourceSnapshot,
-                    ['allocation_id' => $entry['allocation']->getKey(), 'percentage' => $entry['percent'], 'currency' => $currency],
+                    [
+                        'allocation_id' => $entry['allocation']->getKey(),
+                        'percentage' => $entry['percent'],
+                        'currency' => $currency,
+                        'method' => $entry['allocation']->allocation_method,
+                        'effective_from' => Carbon::parse($entry['allocation']->effective_from ?? $entry['allocation']->month)->toDateString(),
+                        'effective_until' => $entry['allocation']->effective_until ? Carbon::parse($entry['allocation']->effective_until)->toDateString() : null,
+                        'rule_version' => $entry['allocation']->rule_version,
+                        'cost_type' => $lockedResource->cost_type,
+                    ],
                     $currency,
                     $amount,
                 );
             }
 
-            $unallocatedAmount = $sourceAmount->minus($allocatedBudget);
+            $unallocatedAmount = $sourceAmount->minus($allocatedSoFar);
             if (! $unallocatedAmount->isZero() || $resolved === []) {
                 $this->snapshot(
                     $lockedResource,
@@ -194,7 +223,19 @@ class ProductCostService
                     100 - $allocatedPercent,
                     $unallocatedAmount->toScale(2, RoundingMode::HALF_UP)->__toString(),
                     $sourceSnapshot,
-                    ['reason' => $resolved === [] ? 'No allocation rule is configured.' : 'The configured rules leave a portion unallocated.'],
+                    [
+                        'reason' => $resolved === []
+                            ? 'No allocation rule is configured.'
+                            : ($allocatedPercent < 100
+                                ? 'The configured rules leave a portion unallocated.'
+                                : 'Rounding residual remains visible; it is not redistributed.'),
+                        'rules' => array_map(fn (array $entry): array => [
+                            'allocation_id' => $entry['allocation']->getKey(),
+                            'rule_version' => $entry['allocation']->rule_version,
+                            'method' => $entry['allocation']->allocation_method,
+                            'percentage' => $entry['percent'],
+                        ], $resolved),
+                    ],
                     $currency,
                     $amount,
                 );
@@ -247,6 +288,7 @@ class ProductCostService
         return [
             'resource_id' => $resource->getKey(),
             'name' => $resource->name,
+            'cost_type' => $resource->cost_type,
             'month' => $resource->month?->toDateString(),
             'source_type' => $resource->resourceable_type,
             'source_id' => $resource->resourceable_id,

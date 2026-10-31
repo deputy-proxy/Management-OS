@@ -34,6 +34,10 @@ class ProductResourceAllocationsTable
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('allocation_percent'),
+                Tables\Columns\TextColumn::make('allocation_method')->badge(),
+                Tables\Columns\TextColumn::make('rule_version')->label('Version'),
+                Tables\Columns\TextColumn::make('effective_from')->date(),
+                Tables\Columns\TextColumn::make('effective_until')->date()->placeholder('Open ended'),
                 Tables\Columns\TextColumn::make('month')->dateTime(),
             ])
             ->filters([
