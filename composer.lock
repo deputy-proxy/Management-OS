@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3859022e0067a8ef6e6b34e579a6e8a9",
+    "content-hash": "c440bc981ee2118f4aca0cd23dbc0a8a",
     "packages": [
         {
             "name": "alizharb/filament-activity-log",
@@ -10355,16 +10355,16 @@
         },
         {
             "name": "usamamuneerchaudhary/filament-command-palette",
-            "version": "1.4",
+            "version": "2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/usamamuneerchaudhary/filament-command-palette.git",
-                "reference": "2ccf13137fc6aea7edabb54c1b4c904e17eea82a"
+                "reference": "d85a76db37070f69aee85957f9f5c00f5dc2a67b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/usamamuneerchaudhary/filament-command-palette/zipball/2ccf13137fc6aea7edabb54c1b4c904e17eea82a",
-                "reference": "2ccf13137fc6aea7edabb54c1b4c904e17eea82a",
+                "url": "https://api.github.com/repos/usamamuneerchaudhary/filament-command-palette/zipball/d85a76db37070f69aee85957f9f5c00f5dc2a67b",
+                "reference": "d85a76db37070f69aee85957f9f5c00f5dc2a67b",
                 "shasum": ""
             },
             "require": {
@@ -10375,8 +10375,11 @@
                 "spatie/laravel-package-tools": "^1.19"
             },
             "require-dev": {
-                "orchestra/testbench": "^9.0|^10.0",
-                "phpunit/phpunit": "^11.0|^12.0"
+                "larastan/larastan": "^2.9|^3.0",
+                "laravel/pint": "^1.17",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^11.0|^12.0",
+                "usamamuneerchaudhary/laravel-slipway": "^1.6"
             },
             "type": "library",
             "extra": {
@@ -10402,18 +10405,20 @@
                     "role": "Developer"
                 }
             ],
-            "description": "A Spotlight/CMD+K style command palette for quick navigation and actions across Filament panels.",
+            "description": "A Spotlight/CMD+K style command palette for Filament: fuzzy search across navigation, records and actions.",
             "keywords": [
+                "cmdk",
                 "command-palette",
                 "filament",
                 "filamentphp",
                 "laravel",
                 "php",
+                "spotlight",
                 "usamamuneerchaudhary"
             ],
             "support": {
                 "issues": "https://github.com/usamamuneerchaudhary/filament-command-palette/issues",
-                "source": "https://github.com/usamamuneerchaudhary/filament-command-palette/tree/1.4"
+                "source": "https://github.com/usamamuneerchaudhary/filament-command-palette/tree/2.0"
             },
             "funding": [
                 {
@@ -10421,7 +10426,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-10T10:20:28+00:00"
+            "time": "2026-10-12T18:42:51+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
