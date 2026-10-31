@@ -262,6 +262,47 @@ class ProductCostAllocationHistoryTest extends TestCase
         $this->assertSame(100, $snapshot->allocation_percent);
     }
 
+    public function test_invalid_allocation_rule_writes_roll_back_with_failed_recalculation(): void
+    {
+        $resource = $this->resource();
+        $product = $this->product();
+
+        try {
+            ProductResourceAllocation::query()->create([
+                'product_resource_id' => $resource->getKey(),
+                'targetable_type' => 'product',
+                'targetable_id' => $product->getKey(),
+                'allocation_percent' => 101,
+                'month' => '2026-10-01',
+            ]);
+            $this->fail('Expected the invalid allocation percentage to be rejected.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('product_resource_allocations', 0);
+            $this->assertDatabaseCount('product_cost_allocation_snapshots', 0);
+        }
+    }
+
+    public function test_unsupported_allocation_target_is_recorded_as_unknown(): void
+    {
+        $resource = $this->resource();
+        ProductResourceAllocation::withoutEvents(fn () => ProductResourceAllocation::query()->create([
+            'product_resource_id' => $resource->getKey(),
+            'targetable_type' => 'vendor_invoice',
+            'targetable_id' => $resource->resourceable_id,
+            'allocation_percent' => 100,
+            'month' => '2026-10-01',
+        ]));
+
+        app(ProductCostService::class)->recalculateForResource($resource);
+
+        $snapshot = ProductCostAllocationSnapshot::query()
+            ->where('product_resource_id', $resource->getKey())
+            ->first();
+
+        $this->assertSame(ProductCostAllocationSnapshot::STATUS_UNKNOWN, $snapshot->status);
+        $this->assertSame('vendor_invoice', $snapshot->rule_snapshot['invalid_targets'][0]['target_type']);
+    }
+
     public function test_currency_mismatch_and_invalid_percentages_roll_back_the_run(): void
     {
         $resource = $this->resource();
