@@ -47,6 +47,7 @@ class CustomerInvoice extends Model implements Commentable
         return ['amount_without_vat_decimal' => 'decimal:2', 'vat_decimal' => 'decimal:2'];
     }
 
+    /** @return BelongsTo<Customer, $this> */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

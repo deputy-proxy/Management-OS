@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property array<string, mixed> $assumptions
+ * @property array<int, array<string, mixed>> $exceptions
+ */
 class ProfitabilityCalculationRun extends Model
 {
     public $timestamps = false;
@@ -29,6 +33,7 @@ class ProfitabilityCalculationRun extends Model
         static::deleting(fn () => throw new LogicException('Profitability calculation runs are immutable.'));
     }
 
+    /** @return HasMany<ProfitabilityCalculationResult, $this> */
     public function results(): HasMany
     {
         return $this->hasMany(ProfitabilityCalculationResult::class);

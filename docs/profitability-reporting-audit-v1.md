@@ -61,3 +61,11 @@ This audit records current product/finance capabilities and the prerequisites fo
 ## Issue #354 engineering delivery update
 
 A provisional operational calculation workflow is now implemented in `docs/provisional-profitability-calculation-v1.md`. It uses only explicit canonical product-revenue values and versioned product-cost allocation snapshots, keeps direct and overhead costs separate, isolates currencies, and withholds provisional profit/margin when required coverage is incomplete. This does not remove the approval gates above: approved revenue/cost contracts, real-source mapping, and finance/accounting validation remain outstanding. The UI must continue to label all results provisional.
+
+## Issue #355 reporting application update
+
+The Finance > Profitability Reports page reads immutable calculation runs and supports period selection through run history, product filtering, currency filtering, per-currency totals, source references, and exception visibility. Customer drill-down is available only when both `finance-profitability.customer-view` and `customer_invoice.index` are granted. Customer attribution follows the explicit `ProductRevenue → CustomerInvoice → Customer` relationship; invoice status and invoice totals are not treated as revenue. Customer direct cost, overhead, profit, and margin are withheld because current cost snapshots do not attribute costs to customers.
+
+Project reporting is explicitly unavailable because the calculation contract contains no project attribution. No project/customer/product relationship is used to infer it. Customer revenue source rows are rechecked against the immutable run's stored product/currency total; missing, changed, or mismatched rows suppress the affected customer breakdown. The current customer relationship itself is not historically snapshotted, so a reassignment that preserves the revenue total can still change the displayed customer grouping. This remains a source-history limitation, not an approved historical attribution report.
+
+See `docs/profitability-reports-v1.md` for the delivered report contract and limitations.

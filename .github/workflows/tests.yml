@@ -242,6 +242,7 @@ jobs:
           tests/Feature/ProductCostAllocationHistoryTest.php
           tests/Feature/ProfitabilityCalculationServiceTest.php
           tests/Feature/ProfitabilityPreviewAuthorizationTest.php
+          tests/Feature/ProfitabilityReportServiceTest.php
           tests/Feature/Filament/ProductReviewResourceAuthorizationTest.php
           tests/Feature/CanonicalIssuedInvoiceSchemaTest.php
           tests/Feature/PayrollPeriodLifecycleTest.php
