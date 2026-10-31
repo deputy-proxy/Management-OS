@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
+
+class PayrollCalculationResult extends Model
+{
+    protected $fillable = [
+        'payroll_calculation_run_id', 'result_status', 'currency_code', 'gross_amount',
+        'deductions_amount', 'net_amount', 'result_snapshot', 'snapshot_hash', 'snapshotted_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'gross_amount' => 'decimal:6',
+            'deductions_amount' => 'decimal:6',
+            'net_amount' => 'decimal:6',
+            'result_snapshot' => 'array',
+            'snapshotted_at' => 'immutable_datetime',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(static function (): never {
+            throw new LogicException('Payroll result snapshots are immutable. Create a new calculation run for corrections.');
+        });
+        static::deleting(static function (): never {
+            throw new LogicException('Payroll result snapshots cannot be deleted.');
+        });
+    }
+
+    /** @return HasMany<PayrollCalculationResultItem, $this> */
+    public function items(): HasMany
+    {
+        return $this->hasMany(PayrollCalculationResultItem::class, 'payroll_calculation_result_id')->orderBy('line_number');
+    }
+
+    public function run(): BelongsTo
+    {
+        return $this->belongsTo(PayrollCalculationRun::class, 'payroll_calculation_run_id');
+    }
+}

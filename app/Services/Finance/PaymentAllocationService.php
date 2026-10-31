@@ -83,6 +83,7 @@ class PaymentAllocationService
             if ($targetType === 'customer_invoice') {
                 $customerInvoiceId = $invoice->getKey();
             } else {
+                $this->assertContractorInvoicePayable($invoice);
                 $vendorInvoiceId = $invoice->getKey();
             }
         }
@@ -128,6 +129,9 @@ class PaymentAllocationService
                 $invoice = $allocation->customer_invoice_id !== null
                     ? CustomerInvoice::query()->findOrFail($allocation->customer_invoice_id)
                     : VendorInvoice::query()->findOrFail($allocation->vendor_invoice_id);
+                if ($invoice instanceof VendorInvoice) {
+                    $this->assertContractorInvoicePayable($invoice);
+                }
                 $invoiceCurrency = strtoupper(trim((string) $invoice->getAttribute('currency_code')));
                 if (preg_match('/^[A-Z]{3}$/', $invoiceCurrency) !== 1 || $invoiceCurrency !== $paymentCurrency) {
                     throw ValidationException::withMessages(['target_id' => 'Invoice currency is unresolved or no longer matches the source payment.']);
@@ -351,6 +355,13 @@ class PaymentAllocationService
     private function formatAmount(BigDecimal $amount): string
     {
         return (string) $amount->toScale(2);
+    }
+
+    private function assertContractorInvoicePayable(VendorInvoice $invoice): void
+    {
+        if ($invoice->worker_engagement_id !== null && $invoice->workflow_status !== 'payable') {
+            throw ValidationException::withMessages(['target_id' => 'PFA contractor invoices must complete review and be marked payable before payment allocation.']);
+        }
     }
 
     private function positiveAmount(mixed $amount): ?BigDecimal

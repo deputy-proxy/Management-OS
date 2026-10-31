@@ -3,6 +3,8 @@ namespace App\Filament\Resources\EmployeeContracts\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
+use App\Models\EmployeeContractPayrollInput;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Schemas\Components\Section;
@@ -58,6 +60,49 @@ class EmployeeContractForm
                             ->required(),
                     ])
                     ->columns(2),
+
+                Section::make('Effective-dated payroll inputs')
+                    ->description('Input records preserve their own effective periods. Blank fields mean unknown, not zero, exempt, or approved. Do not put personal identifiers or medical details in source references.')
+                    ->schema([
+                        Forms\Components\Repeater::make('payrollInputs')
+                            ->relationship()
+                            ->schema([
+                                Forms\Components\DatePicker::make('effective_from')->required(),
+                                Forms\Components\DatePicker::make('effective_until')->afterOrEqual('effective_from'),
+                                Forms\Components\Select::make('salary_basis')->options(EmployeeContractPayrollInput::SALARY_BASES)->placeholder('Unknown')->native(false),
+                                Forms\Components\TextInput::make('base_amount')->numeric()->minValue(0)->step('0.000001')->helperText('Explicit amount for the configured salary basis. Never inferred from legacy contract salary fields.'),
+                                Forms\Components\TextInput::make('currency_code')->label('Currency code')->length(3)->placeholder('RON')->dehydrateStateUsing(fn ($state) => $state === null || trim((string) $state) === '' ? null : strtoupper(trim((string) $state))),
+                                Forms\Components\TextInput::make('scheduled_hours_per_week')->numeric()->minValue(0)->maxValue(168)->step('0.25'),
+                                Forms\Components\KeyValue::make('work_schedule')->label('Schedule details')->keyLabel('Field')->valueLabel('Value')->addable()->deletable()->reorderable(),
+                                Forms\Components\Repeater::make('allowance_inputs')
+                                    ->label('Allowance inputs')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('code')->required()->maxLength(64),
+                                        Forms\Components\TextInput::make('amount')->numeric()->minValue(0)->required(),
+                                        Forms\Components\TextInput::make('currency_code')->length(3)->required()->dehydrateStateUsing(fn ($state) => strtoupper(trim((string) $state))),
+                                    ])->columns(3)->defaultItems(0)->addActionLabel('Add allowance'),
+                                Forms\Components\TextInput::make('tax_status_code')->maxLength(64)->helperText('Optional configured code only. Blank means unknown; this field does not calculate or infer tax treatment.'),
+                                Forms\Components\TextInput::make('source_reference')->maxLength(255)->helperText('Reference only. Keep sensitive documents outside this field.'),
+                                Forms\Components\Select::make('input_status')
+                                    ->options(EmployeeContractPayrollInput::STATUSES)->required()->default('unverified')->native(false)
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, ?string $state): void {
+                                        if ($state === 'verified') {
+                                            $set('reviewed_by', auth()->id());
+                                            $set('reviewed_at', now()->toDateTimeString());
+                                        } else {
+                                            $set('reviewed_by', null);
+                                            $set('reviewed_at', null);
+                                        }
+                                    }),
+                                Forms\Components\Hidden::make('reviewed_by'),
+                                Forms\Components\Hidden::make('reviewed_at'),
+                            ])
+                            ->columns(2)
+                            ->defaultItems(0)
+                            ->addActionLabel('Add effective-dated input set')
+                            ->reorderable(false),
+                    ]),
 
                 Section::make('Clauses')
                     ->description('Define the legal clauses that apply to this contract.')

@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Filament\Resources\VendorInvoices\Schemas;
 
+use App\Models\Vendor;
+use App\Models\WorkerEngagement;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\FileUpload;
+use Filament\Schemas\Schema;
 
 class VendorInvoiceForm
 {
@@ -34,6 +36,16 @@ class VendorInvoiceForm
                         Forms\Components\Select::make('vendor_contract_id')
                             ->relationship('vendorContract', 'contract_code')
                             ->required(),
+                        Forms\Components\Select::make('worker_engagement_id')
+                            ->label('PFA contractor engagement')
+                            ->options(fn (): array => WorkerEngagement::query()->where('engagement_type', 'pfa_contractor')->where('status', 'active')->with('vendor:id,name')->get()->mapWithKeys(function (WorkerEngagement $engagement): array {
+                                /** @var Vendor|null $vendor */
+                                $vendor = $engagement->vendor;
+
+                                return [$engagement->id => ($vendor->name ?? 'Vendor #'.$engagement->vendor_id).' · engagement #'.$engagement->id];
+                            })->all())
+                            ->searchable()->preload()
+                            ->helperText('Required for the contractor review workflow. Employee payroll is separate.'),
                     ]),
 
                 Section::make('Financial Details')
@@ -58,6 +70,12 @@ class VendorInvoiceForm
                             ->required(),
                         Forms\Components\TextInput::make('status')
                             ->required(),
+                        Forms\Components\TextInput::make('workflow_status')
+                            ->disabled()->dehydrated(false)
+                            ->helperText('Lifecycle status is changed only through the authorized review service.'),
+                        Forms\Components\TextInput::make('tax_treatment_status')
+                            ->disabled()->dehydrated(false)
+                            ->helperText('Tax treatment remains unsupported until a reviewed rule is configured.'),
                     ]),
             ]);
     }

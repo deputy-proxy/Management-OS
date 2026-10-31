@@ -22,7 +22,7 @@ class ProductsOverviewData
     ];
 
     /**
-     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array<string, mixed>>, statuses: array<int, string>, types: array<string, string>}
+     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array<string, mixed>>, statuses: array<int, non-empty-string>, types: array<string, string>}
      */
     public function summary(
         ?CarbonImmutable $now = null,
@@ -68,7 +68,8 @@ class ProductsOverviewData
             };
             $price = $effectivePrices->count() === 1 ? $effectivePrices->first() : null;
 
-            return [
+            /** @var array<string, mixed> $row */
+            $row = [
                 'id' => $product->id,
                 'title' => $product->title,
                 'status' => (string) ($product->status ?? ''),
@@ -84,6 +85,8 @@ class ProductsOverviewData
                 'valid_from' => $price?->valid_from?->toDateString(),
                 'valid_until' => $price?->valid_until?->toDateString(),
             ];
+
+            return $row;
         });
 
         $filtered = $rows->filter(function (array $row) use ($statusFilter, $typeFilter, $priceFilter): bool {
@@ -100,7 +103,7 @@ class ProductsOverviewData
             'ambiguous_price' => $rows->where('price_state', 'ambiguous')->count(),
             'missing_productable' => $rows->where('productable_exists', false)->count(),
             'products' => $filtered,
-            'statuses' => $rows->pluck('status')->filter(fn (string $status): bool => $status !== '')->unique()->sort()->values()->all(),
+            'statuses' => $rows->pluck('status')->map(fn ($status): string => (string) $status)->filter(fn (string $status): bool => $status !== '')->unique()->sort()->values()->all(),
             'types' => collect(self::PRODUCTABLE_TYPES)->mapWithKeys(fn (string $class, string $type): array => [$type => self::typeLabel($type)])->all(),
         ];
     }

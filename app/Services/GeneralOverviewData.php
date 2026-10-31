@@ -121,7 +121,7 @@ class GeneralOverviewData
                 'title' => $session->session_type === Session::TYPE_GROUP
                     ? trim(($session->group?->title ?? 'Group') . ' · ' . ($session->course?->title ?? 'Course'))
                     : trim(($session->course?->title ?? 'Course') . ' · ' . ($session->customer?->name ?? 'Customer')),
-                'teacher' => $session->teacher?->full_name ?? 'Unassigned',
+                'teacher' => (string) ($session->teacher?->full_name ?? 'Unassigned'),
                 'starts_at' => CarbonImmutable::parse($session->starts_at, config('app.timezone')),
                 'ends_at' => CarbonImmutable::parse($session->ends_at, config('app.timezone')),
             ])

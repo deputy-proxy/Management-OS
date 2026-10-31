@@ -19,6 +19,7 @@ use App\Models\CustomerLead;
 use App\Models\Discount;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
+use App\Models\EmployeeContractPayrollInput;
 use App\Models\EmployeeEvaluation;
 use App\Models\EmployeeEvaluationForm;
 use App\Models\EmployeeHoliday;
@@ -38,6 +39,8 @@ use App\Models\NewsletterSubscriber;
 use App\Models\PaidCampaign;
 use App\Models\Partner;
 use App\Models\PaymentAllocation;
+use App\Models\PayrollPeriodInput;
+use App\Models\PayrollPolicy;
 use App\Models\PotentialPartner;
 use App\Models\Process;
 use App\Models\ProductPrice;
@@ -67,6 +70,7 @@ use App\Models\Vendor;
 use App\Models\VendorCategory;
 use App\Models\VendorContract;
 use App\Models\VendorInvoice;
+use App\Models\WorkerEngagement;
 use App\Models\Workshop;
 use App\Models\WorkshopMaterial;
 use App\Models\WorkshopParticipant;
@@ -100,6 +104,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'employee_evaluation' => EmployeeEvaluation::class,
             'employee_salary' => EmployeeSalary::class,
             'employee_contract' => EmployeeContract::class,
+            'employee_contract_payroll_input' => EmployeeContractPayrollInput::class,
             'employee_medical_leave' => EmployeeMedicalLeave::class,
             'employee_timesheet' => EmployeeTimesheet::class,
             'job_description' => JobDescription::class,
@@ -117,6 +122,8 @@ class DomainModelServiceProvider extends ServiceProvider
             'transaction' => Transaction::class,
             'bank_statement_import_item' => BankStatementImportItem::class,
             'payment_allocation' => PaymentAllocation::class,
+            'payroll_policy' => PayrollPolicy::class,
+            'payroll_period_input' => PayrollPeriodInput::class,
             'discount' => Discount::class,
             'competitor' => Competitor::class,
             'competitor_offer' => CompetitorOffer::class,
@@ -145,6 +152,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'vendor_category' => VendorCategory::class,
             'vendor_contract' => VendorContract::class,
             'vendor_invoice' => VendorInvoice::class,
+            'worker_engagement' => WorkerEngagement::class,
             'workshop_participant' => WorkshopParticipant::class,
             'workshop_price' => ProductPrice::class,
             'workshop_material' => WorkshopMaterial::class,

@@ -80,6 +80,16 @@ class EmployeeContract extends Model implements Commentable
         return null;
     }
 
+    public function payrollInputs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmployeeContractPayrollInput::class)->orderByDesc('effective_from');
+    }
+
+    public function workerEngagements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkerEngagement::class);
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
@@ -88,5 +98,10 @@ class EmployeeContract extends Model implements Commentable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logOnly(['start_date', 'end_date', 'contract_type'])->logOnlyDirty()->dontLogEmptyChanges();
+    }
+
+    public function payrollCalculationRuns(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PayrollCalculationRun::class);
     }
 }

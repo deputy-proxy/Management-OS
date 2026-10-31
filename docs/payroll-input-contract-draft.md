@@ -1,6 +1,6 @@
 # Payroll input contract and schema-gap draft
 
-**Status: engineering draft, not approved for production or statutory calculation.** This document inventories existing repository fields and proposes a contract for review. It does not establish Romanian legal rules, decide employee eligibility, or authorize a migration. Finance/HR and a qualified Romanian payroll specialist must approve the policy and required fields before implementation.
+**Status: historical engineering draft.** The current implemented effective-dated input persistence contract is documented in [`payroll-contract-inputs.md`](payroll-contract-inputs.md). This inventory remains useful for legacy-field context but is not a blocker to application-side schema, validation, UI, and test development. It does not establish Romanian legal rules or authorize statutory calculations.
 
 ## Contract boundaries
 
@@ -60,11 +60,11 @@ This is a field-group proposal, not a final API or database schema. Field names 
 | Historical baseline and legacy breakdown | Finance reconciles sample records and signs off mapping and totals. | Preserve legacy JSON and baseline; no backfill or destructive migration. |
 | Result approval and correction | Finance/HR defines roles, evidence, locks, corrections and release gate. | Preserve current status/immutability controls and test them; do not mark results approved by default. |
 
-## Required approval record before schema work
+## Deferred policy decisions (not blockers to application-side data-contract work)
 
-Record each decision with an owner, reviewer, date, effective date where applicable, source document/version, and approval evidence. The required approvers are Finance/HR for company-specific inputs and workflow choices, plus a qualified Romanian payroll/accounting specialist for statutory inputs and expected calculation results. A named reviewer and actual approval artifact have not been supplied in this repository context, so approval remains **pending**.
+Policy-specific values and statutory calculation behavior must remain configurable and must not be guessed. These decisions do not block building typed nullable inputs, effective dating, permissions, validation, and synthetic regression tests. When a statutory calculation path is enabled, its configuration must explicitly identify missing parameters and block unsupported calculations. A migration does not imply that statutory rules or production use have been approved.
 
-Before a migration or statutory engine is authorized, the review package must include:
+For any future statutory rule configuration or production rollout, the review package should include:
 
 1. A reconciled real roster/contract inventory held in an access-controlled location outside Git, with unresolved cases flagged.
 2. Approved field definitions, types, requiredness, validation, source of truth, effective dating, authorization and audit requirements.
@@ -76,4 +76,4 @@ Synthetic fixtures are useful for testing validation and missing-input behavior 
 
 ## Status
 
-**Draft for review.** This document advances issue #338's engineering inventory and field-group proposal. It does not satisfy the acceptance criterion for an approved input contract or authorize schema changes. Issue #335's real roster/classifications and issue #337's approved policy/test vectors remain prerequisites.
+**Historical draft.** Issue #338 now has an implemented effective-dated input model and form. The current schema and validation behavior are described in `docs/payroll-contract-inputs.md`. Statutory calculations still require explicit configured parameters and do not infer missing values.

@@ -59,6 +59,14 @@ Evidence includes app/Models/Transaction.php, CustomerInvoice.php, VendorInvoice
 | product_revenues.product_id, customer_invoice_id, month, id/timestamps/deleted_at | Product and invoice association, operational revenue period and record metadata. | Amount has no currency and its relation to invoice totals is not enforced. Preserve source links and avoid double-counting. |
 | product_prices.priceable_type/id, price_type, valid_from/until, legacy_source_type/id, id/timestamps/deleted_at | Polymorphic price target, price category, effective interval and legacy migration provenance. | Current price has two-decimal cast; currency may be null for migrated legacy rows. Keep source provenance and unknown currency. |
 | employee_pay_slip_items.source_type/id/key, period_key, occurred_on, description, quantity, unit, unit_rate, amount, currency, calculation_snapshot | Source-linked activity-pay line with period, source occurrence, calculation details and immutable snapshot. | Unique source keys and employee/source identity prevent duplicates; line currency defaults to RON. These fields do not implement statutory deductions, tax or payroll reporting. |
+| payroll_calculation_runs.employee_id, employee_contract_id, employee_contract_payroll_input_id, payroll_policy_id, employee_pay_slip_id, period, idempotency_key, request_fingerprint, status, input/policy snapshots | Immutable versioned record of explicit contract/input/policy references for one complete month. | Missing or incomplete facts block calculation; legacy contract salary/rate are context only and never inferred as inputs. |
+| payroll_calculation_results.run_id, result_status, currency, nullable gross/deductions/net, result_snapshot, snapshot_hash | One immutable hash-identified result state per calculation run. | Blocked and not-calculated results have null totals; successful totals are produced only by explicitly configured arithmetic. |
+| payroll_calculation_result_items.result_id, line_number, item_code/type, calculation_method, input_value, rate_percent, amount, currency, rounding, calculation_snapshot | Immutable ordered line-level arithmetic and formula evidence. | Unique line numbers and codes per result; no FX or statutory rates are supplied by the engine. |
+| employee_contract_payroll_inputs.base_amount | Explicit effective-dated amount for the configured salary basis. | Nullable for legacy rows; never backfilled from `EmployeeContract.base_salary` or `hourly_rate`. Missing explicit inputs block calculation. |
+
+| payroll_policies.contract_rules, proration_rule | Explicit contract-type/salary-basis routing and optional calendar-day proration rule for each immutable policy version. | Missing contract routes or partial-period proration rules block calculation; no default rule is inferred. |
+| payroll_calculation_run_inputs.run_id, employee_contract_payroll_input_id, segment_start/end, segment_days, period_days, input_snapshot | Immutable link from a run to every effective-dated input version used for the contract-active portion of a payroll month. | Gaps, overlaps, unverified versions and out-of-period selections block calculation. |
+
 
 ### Representative contract examples (specification only)
 
@@ -175,3 +183,6 @@ Before #307 migration planning or #308 schema implementation:
 2. Resolve canonical-field choices and legacy value maps without mutating data.
 3. Use [#307 currency and precision migration plan](https://github.com/deputy-proxy/Management-OS/issues/307) and the [migration-plan document](financial-precision-migration-plan.md) to quantify legacy rows and specify backfills/reconciliation/recovery. Do not start #308 schema work until contract and migration plan are approved.
 4. Keep the [finance/payroll capability matrix](finance-payroll-readiness.md) and [decision register](financial-rules-decision-register.md) aligned with any new decisions.
+
+
+Payroll calculation runs and results use immutable, idempotent snapshots; see [finance/payroll readiness](finance-payroll-readiness.md). No monetary or statutory results are inferred.
