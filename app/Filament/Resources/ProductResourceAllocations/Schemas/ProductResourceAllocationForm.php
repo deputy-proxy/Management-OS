@@ -42,6 +42,21 @@ class ProductResourceAllocationForm
                             default => [],
                         };
                     }),
+                Forms\Components\DatePicker::make('month')
+                    ->required()
+                    ->default(fn () => now()->startOfMonth())
+                    ->helperText('Legacy period field retained for compatibility; effective dates select the rule for a source period.'),
+                Forms\Components\Select::make('allocation_method')
+                    ->label('Allocation method')
+                    ->options(['percentage' => 'Percentage'])
+                    ->default('percentage')
+                    ->required(),
+                Forms\Components\DatePicker::make('effective_from')
+                    ->required()
+                    ->default(fn (Get $get) => $get('month') ?: now()->startOfMonth()),
+                Forms\Components\DatePicker::make('effective_until')
+                    ->afterOrEqual('effective_from')
+                    ->nullable(),
                 Forms\Components\TextInput::make('allocation_percent')
                     ->numeric()
                     ->integer()
@@ -53,8 +68,6 @@ class ProductResourceAllocationForm
                     ->length(3)
                     ->maxLength(3)
                     ->dehydrateStateUsing(fn ($state) => $state === null ? null : strtoupper($state)),
-                Forms\Components\DatePicker::make('month')
-                    ->required(),
             ]);
     }
 }

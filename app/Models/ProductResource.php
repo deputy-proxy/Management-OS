@@ -15,6 +15,7 @@ use Spatie\Activitylog\Models\Activity;
 
 /**
  * @property int $amount
+ * @property string|null $cost_type
  * @property string|null $amount_decimal
  * @property string|null $currency_code
  * @property Carbon|null $month
@@ -30,7 +31,7 @@ class ProductResource extends Model
 
     /** @var array<int, string> */
     protected $fillable = [
-        'name', 'amount', 'amount_decimal', 'currency_code', 'month', 'resourceable_type', 'resourceable_id', 'allocated_percentage',
+        'name', 'cost_type', 'amount', 'amount_decimal', 'currency_code', 'month', 'resourceable_type', 'resourceable_id', 'allocated_percentage',
     ];
 
     protected function casts(): array

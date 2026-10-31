@@ -160,11 +160,16 @@ class ProductCostAllocationHistoryTest extends TestCase
             ->pluck('allocated_amount_decimal')
             ->all();
 
-        $this->assertSame(['0.03', '0.02'], $entries);
-        $this->assertSame(0, ProductCostAllocationSnapshot::query()
+        $this->assertSame(['0.03', '0.03'], $entries);
+        $this->assertSame('-0.01', ProductCostAllocationSnapshot::query()
             ->where('product_resource_id', $resource->getKey())
             ->where('status', ProductCostAllocationSnapshot::STATUS_UNALLOCATED)
-            ->count());
+            ->value('allocated_amount_decimal'));
+        $residual = ProductCostAllocationSnapshot::query()
+            ->where('product_resource_id', $resource->getKey())
+            ->where('status', ProductCostAllocationSnapshot::STATUS_UNALLOCATED)
+            ->firstOrFail();
+        $this->assertSame('Rounding residual remains visible; it is not redistributed.', $residual->rule_snapshot['reason']);
     }
 
     public function test_missing_canonical_source_values_are_marked_unknown_not_zero(): void

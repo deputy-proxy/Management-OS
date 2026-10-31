@@ -22,12 +22,15 @@ class ProductResourceAllocation extends Model
     protected $fillable = [
         'product_id', 'product_resource_id', 'allocation_percent', 'month',
         'targetable_type', 'targetable_id', 'currency_code',
+        'allocation_method', 'effective_from', 'effective_until', 'rule_version',
     ];
 
     protected function casts(): array
     {
         return [
             'month' => 'date',
+            'effective_from' => 'date',
+            'effective_until' => 'date',
         ];
     }
 
@@ -39,6 +42,17 @@ class ProductResourceAllocation extends Model
     protected static function booted(): void
     {
         static::saving(function (self $allocation): void {
+            $allocation->allocation_method ??= 'percentage';
+            $allocation->rule_version ??= 1;
+            $allocation->effective_from ??= $allocation->month;
+
+            if ($allocation->exists && $allocation->isDirty([
+                'product_id', 'targetable_type', 'targetable_id', 'allocation_percent', 'allocation_method',
+                'effective_from', 'effective_until', 'currency_code',
+            ])) {
+                $allocation->rule_version = ((int) $allocation->getOriginal('rule_version')) + 1;
+            }
+
             if ($allocation->targetable_type === 'product') {
                 if ($allocation->isDirty('product_id') && ! $allocation->isDirty('targetable_id')) {
                     $allocation->targetable_id = $allocation->product_id;

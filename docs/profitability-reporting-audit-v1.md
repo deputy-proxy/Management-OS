@@ -57,3 +57,7 @@ Do not implement a margin by subtracting legacy product costs from product reven
 ## Acceptance status
 
 This audit records current product/finance capabilities and the prerequisites for reproducible profitability reporting. It does not add a margin formula, alter historical amounts, recalculate allocations, infer accounting recognition, or claim reconciled profitability. Implementation remains gated on approved revenue/cost contracts and traceable, independently reconciled fixtures.
+
+## Issue #354 engineering delivery update
+
+A provisional operational calculation workflow is now implemented in `docs/provisional-profitability-calculation-v1.md`. It uses only explicit canonical product-revenue values and versioned product-cost allocation snapshots, keeps direct and overhead costs separate, isolates currencies, and withholds provisional profit/margin when required coverage is incomplete. This does not remove the approval gates above: approved revenue/cost contracts, real-source mapping, and finance/accounting validation remain outstanding. The UI must continue to label all results provisional.

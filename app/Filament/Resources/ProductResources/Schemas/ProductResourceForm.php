@@ -18,6 +18,15 @@ class ProductResourceForm
                 Forms\Components\TextInput::make('name')
                     ->required(),
 
+                Forms\Components\Select::make('cost_type')
+                    ->label('Cost classification')
+                    ->options([
+                        'direct' => 'Direct cost',
+                        'overhead' => 'Overhead',
+                    ])
+                    ->helperText('Legacy resources remain unclassified until explicitly reviewed. Any unallocated overhead remainder stays visible.')
+                    ->required(),
+
                 Forms\Components\Select::make('resourceable_type')
                     ->label('Resource Type')
                     ->options([

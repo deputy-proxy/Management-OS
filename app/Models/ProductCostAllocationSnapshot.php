@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use LogicException;
 
+/**
+ * @property array<string, mixed> $rule_snapshot
+ * @property array<string, mixed> $source_snapshot
+ */
 class ProductCostAllocationSnapshot extends Model
 {
     public const STATUS_ALLOCATED = 'allocated';
