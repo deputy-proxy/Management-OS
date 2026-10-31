@@ -29,6 +29,8 @@ class ProductResourceForm
                     ->afterStateUpdated(function (Set $set) {
                         $set('resourceable_id', null);
                         $set('amount', null);
+                        $set('amount_decimal', null);
+                        $set('currency_code', null);
                     }),
 
                 Forms\Components\Select::make('resourceable_id')
@@ -61,6 +63,9 @@ class ProductResourceForm
                         $type = $get('resourceable_type');
                         $id = $get('resourceable_id');
 
+                        $set('amount_decimal', null);
+                        $set('currency_code', null);
+
                         if (! $type || ! $id) {
                             $set('amount', null);
 
@@ -90,8 +95,7 @@ class ProductResourceForm
                 Forms\Components\TextInput::make('amount_decimal')
                     ->label('Canonical source amount')
                     ->numeric()
-                    ->minValue(0)
-                    ->helperText('Enter the exact source amount. Legacy integer units are not inferred and no currency conversion is applied.')
+                    ->helperText('Enter the exact source amount, including a negative adjustment when present. Legacy integer units are not inferred and no currency conversion is applied.')
                     ->required(),
 
                 Forms\Components\TextInput::make('currency_code')

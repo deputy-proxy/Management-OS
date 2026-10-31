@@ -119,6 +119,30 @@ class ProductCostAllocationHistoryTest extends TestCase
             ->first()->source_amount_decimal);
     }
 
+    public function test_negative_source_adjustments_keep_their_sign_and_reconcile(): void
+    {
+        $resource = $this->resource(['amount_decimal' => '-12.50']);
+        $first = $this->product();
+        $second = $this->product();
+        $this->allocation($resource, $first, 50);
+        $this->allocation($resource, $second, 50);
+
+        app(ProductCostService::class)->recalculateForResource($resource);
+
+        $amounts = ProductCostAllocationSnapshot::query()
+            ->where('product_resource_id', $resource->getKey())
+            ->where('status', ProductCostAllocationSnapshot::STATUS_ALLOCATED)
+            ->orderBy('id')
+            ->pluck('allocated_amount_decimal')
+            ->all();
+
+        $this->assertSame(['-6.25', '-6.25'], $amounts);
+        $this->assertSame(0, ProductCostAllocationSnapshot::query()
+            ->where('product_resource_id', $resource->getKey())
+            ->where('status', ProductCostAllocationSnapshot::STATUS_UNALLOCATED)
+            ->count());
+    }
+
     public function test_rounding_residual_is_deterministic_and_unallocated_amount_remains_visible(): void
     {
         $resource = $this->resource(['amount_decimal' => '0.05']);

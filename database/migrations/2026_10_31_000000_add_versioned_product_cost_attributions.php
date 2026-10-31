@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('targetable_type')->nullable();
             $table->unsignedBigInteger('targetable_id')->nullable();
             $table->char('currency_code', 3)->nullable();
-            $table->index(['targetable_type', 'targetable_id']);
+            $table->index(['targetable_type', 'targetable_id'], 'pra_targetable_idx');
         });
 
         DB::table('product_resource_allocations')
@@ -29,7 +29,8 @@ return new class extends Migration
 
         Schema::create('product_cost_allocation_snapshots', function (Blueprint $table): void {
             $table->id();
-            $table->unsignedBigInteger('product_resource_id')->index();
+            $table->unsignedBigInteger('product_resource_id');
+            $table->index('product_resource_id', 'pcas_resource_idx');
             $table->uuid('run_id');
             $table->unsignedInteger('version');
             $table->string('status', 24);
@@ -44,9 +45,9 @@ return new class extends Migration
             $table->json('source_snapshot');
             $table->json('rule_snapshot');
             $table->timestamp('created_at')->useCurrent();
-            $table->index(['product_resource_id', 'version']);
-            $table->index(['targetable_type', 'targetable_id']);
-            $table->index('run_id');
+            $table->index(['product_resource_id', 'version'], 'pcas_resource_version_idx');
+            $table->index(['targetable_type', 'targetable_id'], 'pcas_targetable_idx');
+            $table->index('run_id', 'pcas_run_idx');
         });
     }
 
@@ -59,7 +60,7 @@ return new class extends Migration
         Schema::dropIfExists('product_cost_allocation_snapshots');
 
         Schema::table('product_resource_allocations', function (Blueprint $table): void {
-            $table->dropIndex(['targetable_type', 'targetable_id']);
+            $table->dropIndex('pra_targetable_idx');
             $table->dropColumn(['targetable_type', 'targetable_id', 'currency_code']);
             $table->unsignedBigInteger('product_id')->nullable(false)->change();
         });
