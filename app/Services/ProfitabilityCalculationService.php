@@ -176,6 +176,32 @@ class ProfitabilityCalculationService
                 $buckets[$key][$costField] = $buckets[$key][$costField]->plus($amount);
                 $buckets[$key]['cost_snapshot_ids'][] = $snapshot->getKey();
                 $buckets[$key]['cost_resource_ids'][] = $resource->getKey();
+                $buckets[$key]['cost_rule_versions'][] = [
+                    'snapshot_id' => $snapshot->getKey(),
+                    'resource_id' => $resource->getKey(),
+                    'allocation_id' => $snapshot->rule_snapshot['allocation_id'] ?? null,
+                    'rule_version' => $snapshot->rule_snapshot['rule_version'] ?? null,
+                ];
+            }
+
+            foreach ($buckets as $bucket) {
+                if ($bucket['revenue_ids'] === []) {
+                    $exceptions[] = [
+                        'type' => 'missing_revenue_coverage',
+                        'product_id' => $bucket['product_id'],
+                        'currency' => $bucket['currency'],
+                        'reason' => 'No canonical product revenue input exists for this product and currency.',
+                    ];
+                }
+
+                if ($bucket['cost_resource_ids'] === []) {
+                    $exceptions[] = [
+                        'type' => 'missing_cost_coverage',
+                        'product_id' => $bucket['product_id'],
+                        'currency' => $bucket['currency'],
+                        'reason' => 'No classified product cost allocation exists; missing costs are not treated as zero.',
+                    ];
+                }
             }
 
             $run = ProfitabilityCalculationRun::query()->create([
@@ -227,6 +253,7 @@ class ProfitabilityCalculationService
                         'revenue_ids' => $bucket['revenue_ids'],
                         'cost_snapshot_ids' => $bucket['cost_snapshot_ids'],
                         'cost_resource_ids' => array_values(array_unique($bucket['cost_resource_ids'])),
+                        'cost_rule_versions' => $bucket['cost_rule_versions'],
                         'currency_complete' => $currencyComplete,
                     ],
                 ]);
@@ -253,6 +280,7 @@ class ProfitabilityCalculationService
             'revenue_ids' => [],
             'cost_snapshot_ids' => [],
             'cost_resource_ids' => [],
+            'cost_rule_versions' => [],
         ];
     }
 }

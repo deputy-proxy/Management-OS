@@ -71,6 +71,7 @@
                                             <div>{{ $result->product?->title ?? 'Deleted / unavailable product' }}</div>
                                             <div class="mt-1 text-xs text-gray-500">Revenue rows: {{ implode(', ', $result->source_snapshot['revenue_ids'] ?? []) ?: 'none' }}</div>
                                             <div class="text-xs text-gray-500">Allocation snapshots: {{ implode(', ', $result->source_snapshot['cost_snapshot_ids'] ?? []) ?: 'none' }}</div>
+                                            <div class="text-xs text-gray-500">Rule versions: {{ collect($result->source_snapshot['cost_rule_versions'] ?? [])->map(fn ($rule) => 'resource #'.$rule['resource_id'].' / rule #'.$rule['allocation_id'].' / v'.$rule['rule_version'])->implode('; ') ?: 'none' }}</div>
                                         </td>
                                         <td class="p-3">{{ $result->currency_code }}</td>
                                         <td class="p-3">{{ $result->revenue_amount ?? 'Unknown' }}</td>

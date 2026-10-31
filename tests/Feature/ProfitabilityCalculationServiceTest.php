@@ -158,6 +158,7 @@ class ProfitabilityCalculationServiceTest extends TestCase
         $this->assertSame('50.00', $result->provisional_margin_percent);
         $this->assertCount(1, $result->source_snapshot['revenue_ids']);
         $this->assertCount(2, $result->source_snapshot['cost_snapshot_ids']);
+        $this->assertSame([1, 1], array_column($result->source_snapshot['cost_rule_versions'], 'rule_version'));
     }
 
     public function test_unallocated_costs_and_missing_revenue_prevent_profit_from_being_presented_as_zero_or_complete(): void
@@ -176,6 +177,21 @@ class ProfitabilityCalculationServiceTest extends TestCase
         $this->assertNull($result->provisional_margin_percent);
         $this->assertSame('20.00', $result->direct_cost_amount);
         $this->assertSame('unallocated_cost', $run->exceptions[0]['type']);
+    }
+
+    public function test_missing_costs_are_null_not_zero_and_are_reported_as_an_exception(): void
+    {
+        $product = $this->product();
+        $this->revenue($product, '100.00');
+
+        $run = app(ProfitabilityCalculationService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame('incomplete', $result->result_status);
+        $this->assertNull($result->direct_cost_amount);
+        $this->assertNull($result->overhead_cost_amount);
+        $this->assertNull($result->provisional_profit_amount);
+        $this->assertContains('missing_cost_coverage', array_column($run->exceptions, 'type'));
     }
 
     public function test_currencies_are_separate_and_unknown_canonical_revenue_is_excluded(): void
