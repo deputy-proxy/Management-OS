@@ -35,6 +35,37 @@
             </label>
         </div>
 
+        <div class="mt-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Cash movement filters</h3>
+            <p class="mt-1 text-xs text-gray-500">Account, direction and category filters apply only to canonical cash-movement records, including when all source bases are displayed.</p>
+            <div class="mt-3 grid gap-3 md:grid-cols-3">
+                <label class="text-sm">Financial account / source
+                    <select wire:model.live="reportAccount" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                        <option value="">All accounts</option>
+                        @foreach ($consolidatedReport['cash_filter_options']['accounts'] as $account)
+                            <option value="{{ $account['id'] }}">{{ $account['title'] }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="text-sm">Direction
+                    <select wire:model.live="reportDirection" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                        <option value="">All directions</option>
+                        @foreach ($consolidatedReport['cash_filter_options']['directions'] as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="text-sm">Transaction category
+                    <select wire:model.live="reportCategory" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                        <option value="">All categories</option>
+                        @foreach ($consolidatedReport['cash_filter_options']['categories'] as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
+        </div>
+
         <div class="mt-4 grid gap-3 sm:grid-cols-4">
             <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                 <p class="text-xs text-gray-500">Included source records</p>
@@ -110,6 +141,65 @@
                 </tbody>
             </table>
         </div>
+
+        @php($cashRecords = collect($consolidatedReport['records'])->where('basis', 'canonical_cash_movement'))
+        <section class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Cash movement transaction detail</h3>
+            <p class="mt-1 text-xs text-gray-500">Every source transaction remains visible as an individual row. Open the source record for its full history and available audit details.</p>
+            <div class="mt-3 overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-xs uppercase text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Date</th>
+                            <th class="px-3 py-2">Source record</th>
+                            <th class="px-3 py-2">Account</th>
+                            <th class="px-3 py-2">Category</th>
+                            <th class="px-3 py-2">Direction</th>
+                            <th class="px-3 py-2 text-right">Amount</th>
+                            <th class="px-3 py-2">Classification</th>
+                            <th class="px-3 py-2">Review notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @forelse ($cashRecords as $record)
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-2">{{ $record['source_date'] }}</td>
+                                <td class="px-3 py-2">
+                                    <a href="{{ $record['source_url'] }}" class="font-medium text-primary-600 underline dark:text-primary-400">{{ $record['source_reference'] }}</a>
+                                </td>
+                                <td class="px-3 py-2">{{ $record['account_label'] }}</td>
+                                <td class="px-3 py-2">
+                                    {{ $record['classification_label'] }}
+                                    @if ($record['classification_status'] !== 'classified')
+                                        <span class="block text-xs text-warning-600">Unclassified business type</span>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2">{{ $record['direction'] === 'money_in' ? 'Money in' : ($record['direction'] === 'money_out' ? 'Money out' : 'Unknown') }}</td>
+                                <td class="whitespace-nowrap px-3 py-2 text-right tabular-nums">
+                                    @if ($record['amount'] !== null)
+                                        {{ $record['amount'] }} {{ $record['currency'] }}
+                                    @else
+                                        <span class="text-gray-500">Unavailable</span>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2">{{ ucfirst($record['status']) }}@if ($record['reason'])<span class="block text-xs text-gray-500">{{ $record['reason'] }}</span>@endif</td>
+                                <td class="px-3 py-2 text-xs text-gray-500">
+                                    @if ($record['duplicate_status'] === 'potential_duplicate')
+                                        <span class="block font-medium text-warning-600">Potential duplicate: {{ $record['duplicate_count'] }} identical records</span>
+                                    @endif
+                                    {{ $record['special_event_note'] }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="px-3 py-4 text-sm text-gray-500">No cash movement transactions match these filters.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-3 text-xs text-gray-500">
+                Potential duplicates are detected only when all currently available transaction fields match; they are review flags, not proof of duplication, and every row remains counted. The current transaction schema has no linked transfer, refund or reversal event model, so these semantics are not inferred from labels, direction or matching amounts. Such rows remain recorded cash movements and are never netted or suppressed by this report.
+            </p>
+        </section>
 
         <p class="mt-3 text-xs text-gray-500">
             Issued customer-document amounts use the immutable issued snapshot gross total and issue date; invoice, credit-note and debit-note categories are not netted.
