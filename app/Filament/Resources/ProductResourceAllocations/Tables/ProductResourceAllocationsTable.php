@@ -6,9 +6,10 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Table;
-
 
 class ProductResourceAllocationsTable
 {
@@ -16,9 +17,17 @@ class ProductResourceAllocationsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('product.title')
-                    ->label('Product')
-                    ->sortable()
+                Tables\Columns\TextColumn::make('targetable_type')
+                    ->label('Target type')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'product' => 'Product',
+                        'project' => 'Project',
+                        'paid_campaign' => 'Paid campaign',
+                        default => 'Unknown',
+                    }),
+                Tables\Columns\TextColumn::make('targetable.title')
+                    ->label('Target')
+                    ->placeholder('Unknown target')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('productResource.name')
                     ->label('Product Resource')
@@ -37,8 +46,8 @@ class ProductResourceAllocationsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    \Filament\Actions\ForceDeleteBulkAction::make(),
-                    \Filament\Actions\RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

@@ -60,3 +60,18 @@ Each approved rule should include a named owner, effective date/version, represe
 ## Acceptance status
 
 This audit makes the current implementation and open decisions reviewable. It does **not** satisfy the requirement for approved attribution rules or specialist sign-off, and it does not authorize new accounting calculations.
+
+
+## Engineering implementation status (2026-10-31)
+
+Issue #353 adds an application-side attribution contract without declaring an accounting policy:
+
+- Allocation rules can target the existing Product, Project, and PaidCampaign records. Existing product allocations are retained and backfilled to the `product` target alias.
+- Allocation percentages are validated as 0–100 per rule and may not total more than 100. Any remainder is recorded as `unallocated`; no rule configured is also explicitly `unallocated`.
+- Canonical source amount and three-letter currency are required before calculating an allocation. Missing canonical values create an `unknown` snapshot. Legacy integer amounts are not converted or interpreted as minor/major units.
+- A configured rule currency, when supplied, must match the source currency. Currency conversion is not performed.
+- Each recalculation runs in a database transaction, locks the source resource and rules, and appends immutable snapshot rows grouped by run ID and monotonically increasing version. Source references, source inputs, and rule inputs are retained with each run.
+- Rounding uses decimal arithmetic at the two-place currency precision. The final allocation receives the deterministic residual so allocated entries sum to the configured allocation share; any remaining source amount is separately recorded as unallocated.
+- Missing/deleted/unsupported targets produce an `unknown` run rather than silently allocating to another target. Product-cost rows remain a compatibility projection for existing product-only readers; the versioned snapshots are the auditable record for all supported target types.
+
+The UI exposes canonical source amount/currency and the supported attribution target types. Source-to-invoice/accounting taxonomy, eligibility rules, approval policy, and cross-currency conversion remain intentionally unimplemented pending owner-approved specifications. This engineering contract does not decide whether a source is an accounting direct cost.
