@@ -239,6 +239,7 @@ jobs:
           php artisan test
           tests/Feature/PublicFormsTest.php
           tests/Feature/DatabaseIntegrityAuditTest.php
+          tests/Feature/ProductCostAllocationHistoryTest.php
           tests/Feature/Filament/ProductReviewResourceAuthorizationTest.php
           tests/Feature/CanonicalIssuedInvoiceSchemaTest.php
           tests/Feature/PayrollPeriodLifecycleTest.php

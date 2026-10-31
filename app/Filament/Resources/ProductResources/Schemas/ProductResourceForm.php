@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\ProductResources\Schemas;
 
+use App\Models\EmployeeSalary;
+use App\Models\VendorInvoice;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use App\Models\VendorInvoice;
-use App\Models\EmployeeSalary;
+use Filament\Schemas\Schema;
 
 class ProductResourceForm
 {
@@ -21,14 +21,16 @@ class ProductResourceForm
                 Forms\Components\Select::make('resourceable_type')
                     ->label('Resource Type')
                     ->options([
-                        'vendor_invoice'   => 'Vendor Invoice',
-                        'employee_salary'  => 'Employee Salary',
+                        'vendor_invoice' => 'Vendor Invoice',
+                        'employee_salary' => 'Employee Salary',
                     ])
                     ->required()
                     ->live()
                     ->afterStateUpdated(function (Set $set) {
                         $set('resourceable_id', null);
                         $set('amount', null);
+                        $set('amount_decimal', null);
+                        $set('currency_code', null);
                     }),
 
                 Forms\Components\Select::make('resourceable_id')
@@ -42,7 +44,7 @@ class ProductResourceForm
                         }
 
                         return match ($type) {
-                            'vendor_invoice'  => VendorInvoice::query()
+                            'vendor_invoice' => VendorInvoice::query()
                                 ->get()
                                 ->mapWithKeys(fn ($invoice) => [
                                     $invoice->id => "{$invoice->vendor->name} — {$invoice->month->format('M Y')}",
@@ -59,23 +61,27 @@ class ProductResourceForm
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) {
                         $type = $get('resourceable_type');
-                        $id   = $get('resourceable_id');
+                        $id = $get('resourceable_id');
+
+                        $set('amount_decimal', null);
+                        $set('currency_code', null);
 
                         if (! $type || ! $id) {
                             $set('amount', null);
+
                             return;
                         }
 
                         $record = match ($type) {
-                            'vendor_invoice'  => VendorInvoice::find($id),
+                            'vendor_invoice' => VendorInvoice::find($id),
                             'employee_salary' => EmployeeSalary::find($id),
-                            default           => null,
+                            default => null,
                         };
 
                         $amount = match ($type) {
-                            'vendor_invoice'  => $record?->amount,
+                            'vendor_invoice' => $record?->amount,
                             'employee_salary' => $record?->amount,
-                            default           => null,
+                            default => null,
                         };
 
                         $set('amount', $amount);
@@ -84,6 +90,19 @@ class ProductResourceForm
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->readOnly()
+                    ->required(),
+
+                Forms\Components\TextInput::make('amount_decimal')
+                    ->label('Canonical source amount')
+                    ->numeric()
+                    ->helperText('Enter the exact source amount, including a negative adjustment when present. Legacy integer units are not inferred and no currency conversion is applied.')
+                    ->required(),
+
+                Forms\Components\TextInput::make('currency_code')
+                    ->label('Source currency')
+                    ->length(3)
+                    ->maxLength(3)
+                    ->dehydrateStateUsing(fn ($state) => strtoupper($state))
                     ->required(),
 
                 Forms\Components\TextInput::make('allocated_percentage')

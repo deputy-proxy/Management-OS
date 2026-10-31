@@ -916,12 +916,6 @@ parameters:
 			path: app/Models/WorkshopParticipant.php
 
 		-
-			message: '#^Parameter \#1 \$resource of method App\\Services\\ProductCostService\:\:recalculateForResource\(\) expects App\\Models\\ProductResource, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 4
-			path: app/Observers/ProductResourceAllocationObserver.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1274,18 +1268,6 @@ parameters:
 			identifier: deadCode.unreachable
 			count: 1
 			path: app/Services/NotificationPreferenceService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$allocation_percent\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/ProductCostService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/ProductCostService.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:productPrices\(\)\.$#'

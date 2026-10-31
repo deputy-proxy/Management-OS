@@ -21,8 +21,10 @@ class ProductResourceObserver
 
     public function deleted(ProductResource $resource): void
     {
-        // Soft delete cascades: costs for this resource are no longer valid
-        $this->service->recalculateForResource($resource);
+        // Keep soft-deleted source history inspectable without leaving active cost projections.
+        if ($resource->exists) {
+            $this->service->recalculateForResource($resource);
+        }
     }
 
     public function restored(ProductResource $resource): void

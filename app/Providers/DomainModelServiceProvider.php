@@ -43,6 +43,7 @@ use App\Models\PayrollPeriodInput;
 use App\Models\PayrollPolicy;
 use App\Models\PotentialPartner;
 use App\Models\Process;
+use App\Models\Product;
 use App\Models\ProductPrice;
 use App\Models\ProductResource;
 use App\Models\ProductResourceAllocation;
@@ -146,6 +147,7 @@ class DomainModelServiceProvider extends ServiceProvider
             'session_attendance' => SessionAttendance::class,
             'newsletter' => Newsletter::class,
             'newsletter_subscriber' => NewsletterSubscriber::class,
+            'product' => Product::class,
             'product_review' => ProductReview::class,
             'quarterly_objective' => QuarterlyObjective::class,
             'vendor' => Vendor::class,
