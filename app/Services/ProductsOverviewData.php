@@ -22,7 +22,7 @@ class ProductsOverviewData
     ];
 
     /**
-     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array<string, mixed>>, statuses: array<int, string>, types: array<string, string>}
+     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array{id: int, title: string, status: string, type: string|null, type_label: string, productable_id: int, productable_title: mixed, productable_exists: bool, price_state: string, price: mixed, currency: mixed, availability: string, valid_from: string|null, valid_until: string|null}>, statuses: array<int, string>, types: array<string, string>}
      */
     public function summary(
         ?CarbonImmutable $now = null,
@@ -100,7 +100,7 @@ class ProductsOverviewData
             'ambiguous_price' => $rows->where('price_state', 'ambiguous')->count(),
             'missing_productable' => $rows->where('productable_exists', false)->count(),
             'products' => $filtered,
-            'statuses' => $rows->pluck('status')->filter(fn (string $status): bool => $status !== '')->unique()->sort()->values()->all(),
+            'statuses' => $rows->pluck('status')->map(fn ($status): string => (string) $status)->filter(fn (string $status): bool => $status !== '')->unique()->sort()->values()->all(),
             'types' => collect(self::PRODUCTABLE_TYPES)->mapWithKeys(fn (string $class, string $type): array => [$type => self::typeLabel($type)])->all(),
         ];
     }
