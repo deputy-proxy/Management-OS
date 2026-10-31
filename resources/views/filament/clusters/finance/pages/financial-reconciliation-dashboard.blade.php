@@ -70,6 +70,43 @@
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <h2 class="text-base font-semibold text-gray-950 dark:text-white">Statement totals by currency and direction</h2>
+            <p class="mt-1 text-xs text-gray-500">Amounts are summed only within the same currency and direction. Exact-match amounts require a recorded manual exact-match decision; partial candidates remain unresolved.</p>
+            <div class="mt-3 overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-xs uppercase text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Currency</th>
+                            <th class="px-3 py-2">Direction</th>
+                            <th class="px-3 py-2 text-right">Rows</th>
+                            <th class="px-3 py-2 text-right">Statement amount</th>
+                            <th class="px-3 py-2 text-right">Exact matched</th>
+                            <th class="px-3 py-2 text-right">Partial candidate</th>
+                            <th class="px-3 py-2 text-right">Unmatched</th>
+                            <th class="px-3 py-2 text-right">Ambiguous</th>
+                            <th class="px-3 py-2 text-right">Unreviewed</th>
+                            <th class="px-3 py-2 text-right">Rejected</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @forelse ($report['totals_by_currency'] as $total)
+                            <tr>
+                                <td class="px-3 py-2">{{ $total['currency'] }}</td>
+                                <td class="px-3 py-2">{{ $total['direction'] === 'money_in' ? 'Money in' : 'Money out' }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ number_format($total['statement_rows']) }}</td>
+                                @foreach (['statement_amount', 'exact_match_amount', 'partial_candidate_amount', 'unmatched_amount', 'ambiguous_amount', 'unreviewed_amount', 'rejected_amount'] as $amountKey)
+                                    <td class="whitespace-nowrap px-3 py-2 text-right tabular-nums">{{ $total[$amountKey] }} {{ $total['currency'] }}</td>
+                                @endforeach
+                            </tr>
+                        @empty
+                            <tr><td colspan="10" class="px-3 py-4 text-sm text-gray-500">No statement totals are available for these filters.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 class="text-base font-semibold text-gray-950 dark:text-white">Statement rows and candidate matches</h2>

@@ -177,6 +177,38 @@ class FinancialReconciliationReportData
             $summary['partial_candidates'] += count(array_filter($row['candidates'], static fn (array $candidate): bool => $candidate['match_type'] === 'partial_amount'));
         }
 
+        $currencyTotals = [];
+        foreach ($rows as $row) {
+            $key = $row['currency'].'|'.$row['direction'];
+            if (! isset($currencyTotals[$key])) {
+                $currencyTotals[$key] = [
+                    'currency' => $row['currency'],
+                    'direction' => $row['direction'],
+                    'statement_rows' => 0,
+                    'statement_amount' => '0.00',
+                    'exact_match_amount' => '0.00',
+                    'partial_candidate_amount' => '0.00',
+                    'unmatched_amount' => '0.00',
+                    'ambiguous_amount' => '0.00',
+                    'unreviewed_amount' => '0.00',
+                    'rejected_amount' => '0.00',
+                ];
+            }
+            $currencyTotals[$key]['statement_rows']++;
+            $currencyTotals[$key]['statement_amount'] = bcadd($currencyTotals[$key]['statement_amount'], $row['amount'], 2);
+            $statusAmount = match ($row['status']) {
+                'exact_match' => 'exact_match_amount',
+                'partial_candidate' => 'partial_candidate_amount',
+                'unmatched' => 'unmatched_amount',
+                'ambiguous' => 'ambiguous_amount',
+                'rejected' => 'rejected_amount',
+                default => 'unreviewed_amount',
+            };
+            $currencyTotals[$key][$statusAmount] = bcadd($currencyTotals[$key][$statusAmount], $row['amount'], 2);
+        }
+        $currencyTotals = array_values($currencyTotals);
+        usort($currencyTotals, static fn (array $left, array $right): int => strcmp($left['currency'], $right['currency']) ?: strcmp($left['direction'], $right['direction']));
+
         $accounts = (clone $optionsQuery)->select(['account.id', 'account.title'])
             ->distinct()->orderBy('account.title')->get()
             ->map(fn (object $account): array => ['id' => (int) $account->id, 'title' => (string) $account->title])->all();
@@ -187,6 +219,7 @@ class FinancialReconciliationReportData
             'to' => $to->toDateString(),
             'generated_at' => CarbonImmutable::now($timezone)->toDateTimeString(),
             'summary' => $summary,
+            'totals_by_currency' => $currencyTotals,
             'rows' => $rows,
             'accounts' => $accounts,
             'currencies' => $currencies,

@@ -59,6 +59,8 @@ class FinancialReconciliationReportDataTest extends TestCase
         $this->assertSame('125.00', $exact->fresh()->amount_decimal);
         $this->assertSame('RON', $near->fresh()->currency_code);
         $this->assertSame(1, $report['summary']['unreviewed']);
+        $this->assertSame('125.00', $report['totals_by_currency'][0]['statement_amount']);
+        $this->assertSame('125.00', $report['totals_by_currency'][0]['unreviewed_amount']);
     }
 
     public function test_multiple_exact_candidates_are_ambiguous_and_currency_and_account_boundaries_are_preserved(): void
@@ -125,6 +127,26 @@ class FinancialReconciliationReportDataTest extends TestCase
         $this->assertSame('unmatched', $row['history'][1]['outcome']);
         $this->assertSame('60.00', $transaction->fresh()->amount_decimal);
         $this->assertSame(1, $report['summary']['unmatched']);
+    }
+
+    public function test_exact_manual_decisions_are_reconciled_in_currency_scoped_totals(): void
+    {
+        [$account, $item, $actor] = $this->completedStatementItem();
+        $transaction = $this->transaction($account, '2026-10-15 12:00:00', 'money_in', '125.00', 'RON');
+        app(BankStatementMatchingService::class)->recordDecision($item->id, $actor, 'exact_match', 'transaction', $transaction->id, 'Exact source amount and date');
+
+        $report = app(FinancialReconciliationReportData::class)->report(
+            CarbonImmutable::parse('2026-10-01', 'Europe/Bucharest'),
+            CarbonImmutable::parse('2026-10-31', 'Europe/Bucharest'),
+        );
+
+        $total = $report['totals_by_currency'][0];
+        $this->assertSame('RON', $total['currency']);
+        $this->assertSame('money_in', $total['direction']);
+        $this->assertSame('125.00', $total['statement_amount']);
+        $this->assertSame('125.00', $total['exact_match_amount']);
+        $this->assertSame('0.00', $total['unmatched_amount']);
+        $this->assertSame('0.00', $total['unreviewed_amount']);
     }
 
     public function test_date_boundaries_and_decision_filter_are_applied_to_completed_statement_rows(): void
