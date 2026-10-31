@@ -22,7 +22,7 @@ class ProductsOverviewData
     ];
 
     /**
-     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array{id: int, title: string, status: string, type: string|null, type_label: string, productable_id: int, productable_title: mixed, productable_exists: bool, price_state: string, price: mixed, currency: mixed, availability: string, valid_from: string|null, valid_until: string|null}>, statuses: array<int, string>, types: array<string, string>}
+     * @return array{as_of: string, total: int, with_effective_price: int, missing_price: int, ambiguous_price: int, missing_productable: int, products: Collection<int, array{id: int, title: string, status: string, type: string|null, type_label: string, productable_id: int, productable_title: mixed, productable_exists: bool, price_state: string, price: mixed, currency: mixed, availability: string, valid_from: string|null, valid_until: string|null}>, statuses: array<int, non-empty-string>, types: array<string, string>}
      */
     public function summary(
         ?CarbonImmutable $now = null,
