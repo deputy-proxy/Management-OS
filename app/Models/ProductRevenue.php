@@ -13,6 +13,8 @@ use Spatie\Activitylog\Models\Activity;
 /**
  * @property string|null $amount_decimal
  * @property string|null $currency_code
+ * @property int $product_id
+ * @property int $customer_invoice_id
  */
 class ProductRevenue extends Model
 {
@@ -33,11 +35,13 @@ class ProductRevenue extends Model
         ];
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return BelongsTo<CustomerInvoice, $this> */
     public function customerInvoice(): BelongsTo
     {
         return $this->belongsTo(CustomerInvoice::class);

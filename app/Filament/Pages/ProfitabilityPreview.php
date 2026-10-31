@@ -3,8 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Clusters\Finance\FinanceCluster;
+use App\Filament\Resources\CustomerInvoices\CustomerInvoiceResource;
+use App\Filament\Resources\Customers\CustomerResource;
+use App\Filament\Resources\ProductRevenues\ProductRevenueResource;
+use App\Filament\Resources\Products\ProductResource as ProductFilamentResource;
 use App\Models\ProfitabilityCalculationRun;
 use App\Services\ProfitabilityCalculationService;
+use App\Services\ProfitabilityReportService;
 use Carbon\CarbonImmutable;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -18,7 +23,7 @@ class ProfitabilityPreview extends Page
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $navigationLabel = 'Profitability Preview';
+    protected static ?string $navigationLabel = 'Profitability Reports';
 
     protected static string|UnitEnum|null $navigationGroup = 'Overview';
 
@@ -32,6 +37,10 @@ class ProfitabilityPreview extends Page
 
     public ?int $selectedRunId = null;
 
+    public ?int $productFilter = null;
+
+    public ?string $currencyFilter = null;
+
     public function mount(): void
     {
         $today = CarbonImmutable::now('Europe/Bucharest');
@@ -39,11 +48,13 @@ class ProfitabilityPreview extends Page
         $this->periodEnd = $today->toDateString();
     }
 
+    /** @return array<string, string> */
     public function defineGates(): array
     {
         return [
             'finance-profitability.view' => __('Allows viewing provisional profitability calculation runs'),
             'finance-profitability.calculate' => __('Allows creating provisional profitability calculation runs'),
+            'finance-profitability.customer-view' => __('Allows viewing customer revenue attribution in provisional profitability reports'),
         ];
     }
 
@@ -62,7 +73,9 @@ class ProfitabilityPreview extends Page
             throw $exception;
         }
 
-        $this->selectedRunId = $run->getKey();
+        $this->selectedRunId = (int) $run->getKey();
+        $this->resetFilters();
+
         Notification::make()
             ->title('Provisional calculation saved')
             ->body('The run is immutable and remains explicitly provisional.')
@@ -74,7 +87,43 @@ class ProfitabilityPreview extends Page
     {
         abort_unless(hexa()->can('finance-profitability.view'), 403);
         abort_unless(ProfitabilityCalculationRun::query()->whereKey($runId)->exists(), 404);
+
         $this->selectedRunId = $runId;
+        $this->resetFilters();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->productFilter = null;
+        $this->currencyFilter = null;
+    }
+
+    public function productUrl(int $productId): ?string
+    {
+        return hexa()->can('product.index')
+            ? ProductFilamentResource::getUrl('view', ['record' => $productId])
+            : null;
+    }
+
+    public function productRevenueUrl(int $revenueId): ?string
+    {
+        return hexa()->can('product_revenue.index')
+            ? ProductRevenueResource::getUrl('view', ['record' => $revenueId])
+            : null;
+    }
+
+    public function customerInvoiceUrl(int $invoiceId): ?string
+    {
+        return hexa()->can('customer_invoice.index')
+            ? CustomerInvoiceResource::getUrl('view', ['record' => $invoiceId])
+            : null;
+    }
+
+    public function customerUrl(int $customerId): ?string
+    {
+        return hexa()->can('customer.index')
+            ? CustomerResource::getUrl('view', ['record' => $customerId])
+            : null;
     }
 
     /** @return array<string, mixed> */
@@ -88,11 +137,21 @@ class ProfitabilityPreview extends Page
         $selectedRun = $this->selectedRunId
             ? $runs->firstWhere('id', $this->selectedRunId)
             : $runs->first();
+        $canViewCustomerDetails = hexa()->can('finance-profitability.customer-view')
+            && hexa()->can('customer_invoice.index');
+        $report = $selectedRun
+            ? app(ProfitabilityReportService::class)->report($selectedRun, [
+                'product_id' => $this->productFilter,
+                'currency_code' => $this->currencyFilter,
+            ], $canViewCustomerDetails)
+            : null;
 
         return [
             'runs' => $runs,
             'selectedRun' => $selectedRun,
+            'report' => $report,
             'canCalculate' => hexa()->can('finance-profitability.calculate'),
+            'canViewCustomerDetails' => $canViewCustomerDetails,
         ];
     }
 }
