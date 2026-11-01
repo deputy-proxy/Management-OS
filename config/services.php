@@ -60,6 +60,10 @@ return [
         ],
     ],
 
+    'market_intelligence' => [
+        'max_attempts' => (int) env('MARKET_INTELLIGENCE_MAX_ATTEMPTS', 3),
+        'retry_delay_ms' => (int) env('MARKET_INTELLIGENCE_RETRY_DELAY_MS', 100),
+    ],
 
     'google_ads' => [
         'client_id' => env('GOOGLE_ADS_CLIENT_ID'),
