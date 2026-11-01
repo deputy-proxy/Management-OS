@@ -151,7 +151,7 @@ class KpiDefinitionConfiguration
                     'eq' => $actual === $expected,
                     'neq' => $actual !== $expected,
                     'in' => in_array($actual, $expected, true),
-                    default => throw new \\LogicException('Unregistered KPI preview operator.'),
+                    default => throw new \LogicException('Unregistered KPI preview operator.'),
                 };
                 if (! $matches) {
                     return false;
