@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\CustomerLead;
 use App\Models\KpiDefinition;
 use App\Models\User;
 use App\Services\KpiAggregationService;
