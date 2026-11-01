@@ -99,7 +99,31 @@ class OverviewDashboard extends BaseDashboard
         }
         $permissions['task.view_all'] = hexa()->can('task.view_all');
 
-        return app(AdminOverviewDashboardData::class)->summary($permissions);
+        $summary = app(AdminOverviewDashboardData::class)->summary($permissions);
+        $kpiSources = [
+            'customer_record_count' => ['permission' => 'customer.index', 'resource' => CustomerResource::class],
+            'unconverted_lead_count' => ['permission' => 'customer_lead.index', 'resource' => CustomerLeadResource::class],
+            'unknown_lead_source_count' => ['permission' => 'customer_lead.index', 'resource' => CustomerLeadResource::class],
+            'open_task_count' => ['permission' => 'task.index', 'resource' => TaskResource::class],
+            'overdue_task_count' => ['permission' => 'task.index', 'resource' => TaskResource::class],
+            'competitor_offer_snapshot_count' => ['permission' => 'competitor_offer.index', 'resource' => CompetitorOfferResource::class],
+        ];
+
+        foreach ($summary['kpis']['results'] as &$kpi) {
+            $source = $kpiSources[$kpi['key']] ?? null;
+            $kpi['source_url'] = null;
+
+            if ($source !== null && ($permissions[$source['permission']] ?? false)) {
+                $resource = $source['resource'];
+                $kpi['source_url'] = $resource::getUrl('index');
+            }
+
+            $kpi['source_record_ids'] = $kpi['provenance']['source_record_ids'] ?? [];
+            $kpi['source_record_ids_truncated'] = $kpi['provenance']['source_record_ids_truncated'] ?? false;
+        }
+        unset($kpi);
+
+        return $summary;
     }
 
     /**

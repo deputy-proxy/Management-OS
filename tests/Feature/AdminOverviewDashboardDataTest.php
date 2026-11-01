@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\AdminOverviewDashboardData;
+use App\Services\KpiAggregationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Activitylog\Models\Activity;
@@ -97,6 +98,20 @@ class AdminOverviewDashboardDataTest extends TestCase
         $this->assertTrue($summary['activity_available']);
         $this->assertSame(['Student updated'], $summary['recent_activity']->pluck('description')->all());
         $this->assertArrayNotHasKey('properties', $summary['recent_activity']->first()->getAttributes());
+    }
+
+    public function test_kpi_aggregation_failure_returns_a_dashboard_error_state_without_breaking_summary(): void
+    {
+        $aggregation = \Mockery::mock(KpiAggregationService::class);
+        $aggregation->shouldReceive('current')->once()->andThrow(new \RuntimeException('Synthetic aggregation failure.'));
+        app()->instance(KpiAggregationService::class, $aggregation);
+
+        $summary = app(AdminOverviewDashboardData::class)->summary([]);
+
+        $this->assertSame('error', $summary['kpis']['status']);
+        $this->assertSame([], $summary['kpis']['results']);
+        $this->assertSame([], $summary['metrics']);
+        $this->assertFalse($summary['activity_available']);
     }
 
     public function test_no_metrics_or_activity_are_returned_without_resource_permissions(): void
