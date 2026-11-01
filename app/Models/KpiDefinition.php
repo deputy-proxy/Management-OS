@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\KpiCatalogueRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -40,9 +41,9 @@ class KpiDefinition extends Model
     protected static function booted(): void
     {
         static::creating(function (self $definition): void {
-            $catalogue = config('kpi_catalogue.definitions.'.$definition->key);
-            if (! is_array($catalogue)) {
-                throw ValidationException::withMessages(['key' => 'Choose a KPI key from the approved catalogue.']);
+            $catalogue = app(KpiCatalogueRegistry::class)->get($definition->key);
+            if (! is_array($catalogue) || $catalogue['availability'] !== 'available') {
+                throw ValidationException::withMessages(['key' => 'Choose a registered KPI key with an available source and calculation contract.']);
             }
 
             $definition->version = (int) self::query()->where('key', $definition->key)->max('version') + 1;

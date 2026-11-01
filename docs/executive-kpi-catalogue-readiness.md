@@ -2,7 +2,9 @@
 
 ## Scope and status
 
-This is an evidence-based inventory of metrics already exposed by overview services and the decisions needed before adding configurable executive KPIs. It is not a business-approved KPI catalogue. Existing cards should not be treated as approved financial, HR, or operating policy merely because they render in a dashboard.
+**Implementation priority update:** Executive/business-owner approval of final definitions is deferred. The repository proceeds with a provisional code-backed catalogue, explicit calculation contracts, provenance, and synthetic examples. This document remains a readiness audit; it does not record owner approval or real-source reconciliation.
+
+This is an evidence-based inventory of metrics already exposed by overview services and the decisions needed before provisional executive KPIs can be treated as approved business measures. It is not a business-approved KPI catalogue. Existing cards should not be treated as approved financial, HR, or operating policy merely because they render in a dashboard.
 
 ## Existing metric inventory
 
@@ -32,17 +34,17 @@ Before configuring a KPI, the accountable domain owner should approve a record c
 
 ## Configuration safety requirements
 
-The future configuration layer should use a typed calculation registry or a tightly validated expression language. It must not evaluate arbitrary PHP, SQL, or user-provided executable code. Supported dimensions and source fields should be allow-listed. Authorization must be enforced in the service layer, not only in the Filament interface. Every result should identify the definition version, period, freshness/as-of time, and incomplete-data state.
+The implemented configuration layer uses a code-backed typed calculation registry and does not evaluate arbitrary PHP, SQL, or user-provided executable code. Supported dimensions, calculation types, and source mappings are allow-listed. Authorization is enforced in the service layer, not only in the Filament interface. Results expose the catalogue/definition version, supported period, source mapping, formula, and explicit unavailable state.
 
 Thresholds and alerts are separate policy decisions. Do not activate alerts until the owner has approved thresholds, severity, deduplication/cooldown, acknowledgement, escalation owner, stale-data suppression, and notification permissions.
 
 ## Recommended sequence
 
-1. Domain owners approve the initial KPI catalogue and reconcile conflicting definitions.
-2. For each KPI, add a deterministic calculation service and synthetic expected-result fixtures before making it configurable.
-3. Implement versioned definitions and permission enforcement using only approved calculation types.
-4. Add aggregation with bounded query cost, explicit freshness/missing states, and source drill-down.
-5. Integrate into the existing executive overview only after values reconcile to the calculation service and source records.
+1. Maintain a provisional technical catalogue with deterministic calculation contracts and synthetic expected-result fixtures.
+2. Keep versioned definitions constrained to registered calculation types and enforce source permissions in the service layer.
+3. Add aggregation with explicit period, provenance, and missing/unavailable states.
+4. Keep dashboard output clearly marked provisional until domain owners complete definition review and source reconciliation.
+5. Defer final business approval, real-source reconciliation, and any expansion of KPI scope to the relevant owners.
 6. Add variance alerts only after threshold and operational ownership decisions are approved.
 
 ## Validation cases
@@ -51,4 +53,4 @@ Cover current/previous period boundaries and timezone changes; empty and zero-de
 
 ## Current decision status
 
-The repository documents several existing metric formulas and important limitations, but no single approved cross-domain KPI catalogue or owner-approved policy for configuring arbitrary KPIs was identified. Finance, HR/Operations, and relevant domain owners must approve the initial definitions before KPI configuration, aggregation, or alerting is implemented. This audit intentionally does not assign universal business meaning to current dashboard cards.
+The repository contains a provisional technical catalogue and constrained calculation framework. It is not a single approved cross-domain KPI policy, and no owner approval or real-source reconciliation is recorded. Finance, HR/Operations, and relevant domain owners must validate business meaning before any provisional metric is treated as a committed business KPI. This audit intentionally does not assign universal business meaning to current dashboard cards.

@@ -38,6 +38,14 @@ class AdminOverviewDashboardDataTest extends TestCase
         // Student fixtures create their own customer records; all are visible under customer.index.
         $this->assertSame(config('app.timezone'), $summary['timezone']);
         $this->assertSame('October 18, 2026', $summary['as_of']);
+
+        $customerKpi = collect($summary['kpis']['results'])->firstWhere('key', 'customer_record_count');
+        $this->assertSame('provisional', $summary['kpis']['catalogue_approval_status']);
+        $this->assertSame(Customer::class, $customerKpi['source_service']);
+        $this->assertSame('customer_record_count', $customerKpi['calculation_type']);
+        $this->assertSame('COUNT(customers.id) WHERE customers.deleted_at IS NULL', $customerKpi['formula']);
+        $this->assertSame([], $customerKpi['dimensions']);
+        $this->assertSame(['kind' => 'as_of', 'granularity' => 'day', 'historical' => false], $customerKpi['supported_period']);
     }
 
     public function test_overdue_tasks_follow_the_existing_assigned_or_created_visibility_scope(): void

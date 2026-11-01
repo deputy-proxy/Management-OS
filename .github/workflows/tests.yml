@@ -256,6 +256,9 @@ jobs:
           tests/Feature/MarketIntelligenceConfigurationTest.php
           tests/Feature/MarketDataImportAdaptersTest.php
           tests/Feature/MarketAnalysisDashboardDataTest.php
+          tests/Feature/ExecutiveKpiCatalogueTest.php
+          tests/Feature/KpiCatalogueRegistryTest.php
+          tests/Feature/KpiDefinitionTest.php
 
   frontend:
     name: Frontend build and dependency audit

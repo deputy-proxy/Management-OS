@@ -21,7 +21,7 @@ class KpiDefinitionService
 
         return DB::transaction(function () use ($definition): KpiDefinition {
             $effectiveFrom = Carbon::parse($definition->effective_from)->startOfDay();
-            if ($effectiveFrom->lt(Carbon::today((string) config('kpi_catalogue.timezone', 'Europe/Bucharest')))) {
+            if ($effectiveFrom->lt(Carbon::today(app(KpiCatalogueRegistry::class)->timezone()))) {
                 throw ValidationException::withMessages(['effective_from' => 'KPI definitions cannot be activated retroactively. Create a prospective version or follow the documented correction process.']);
             }
             if ($effectiveFrom->lt(now()->startOfDay())) {
