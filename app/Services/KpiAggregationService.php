@@ -78,9 +78,13 @@ class KpiAggregationService
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
 
-        $filters = $definition->filters ?? [];
+        $filters = $definition->getAttribute('filters') ?? [];
+        $dimensions = $definition->getAttribute('dimensions') ?? [];
+        if (! is_array($filters) || ! is_array($dimensions)) {
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        }
         $value = $this->calculate($definition->calculation_type, $permissions, $date, $filters);
-        $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $definition->dimensions ?? []);
+        $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $dimensions);
 
         return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract, $breakdown);
     }
