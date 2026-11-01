@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MarketTrends\Tables;
 
+use App\Models\MarketTrend;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -45,9 +46,11 @@ class MarketTrendsTable
                 Tables\Columns\TextColumn::make('observed_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('status')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('data_status')->badge(),
+                Tables\Columns\TextColumn::make('source_type')->badge(),
+                Tables\Columns\TextColumn::make('freshness_status')->badge(),
+                Tables\Columns\TextColumn::make('verification_status')->badge(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
@@ -59,7 +62,7 @@ class MarketTrendsTable
                         'growth' => 'Growth',
                     ]),
                 Tables\Filters\SelectFilter::make('market')
-                    ->options(fn (): array => \App\Models\MarketTrend::query()
+                    ->options(fn (): array => MarketTrend::query()
                         ->distinct()
                         ->orderBy('market')
                         ->pluck('market', 'market')

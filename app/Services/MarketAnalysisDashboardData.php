@@ -240,7 +240,7 @@ class MarketAnalysisDashboardData
                 ->where('status', 'active')
                 ->orderByDesc('observed_at')->orderByDesc('id')
                 ->limit(10)
-                ->get(['id', 'name', 'category', 'metric_key', 'value', 'unit', 'market', 'segment', 'period_start', 'period_end', 'source_name', 'source_url', 'observed_at', 'change_pct', 'confidence'])
+                ->get(['id', 'name', 'category', 'metric_key', 'value', 'unit', 'market', 'segment', 'period_start', 'period_end', 'source_name', 'source_url', 'observed_at', 'change_pct', 'confidence', 'data_status', 'source_type', 'freshness_status', 'verification_status', 'source_reference', 'source_revision', 'source_metadata', 'missing_reason', 'methodology'])
                 ->map(fn (MarketTrend $trend): array => [
                     'name' => $trend->name,
                     'category' => $trend->category,
@@ -256,6 +256,15 @@ class MarketAnalysisDashboardData
                     'observed_at' => $this->formatDateTime($trend->observed_at),
                     'change_pct' => $trend->change_pct,
                     'confidence' => $trend->confidence,
+                    'data_status' => $trend->data_status,
+                    'source_type' => $trend->source_type,
+                    'freshness_status' => $trend->freshness_status,
+                    'verification_status' => $trend->verification_status,
+                    'source_reference' => $trend->source_reference,
+                    'source_revision' => $trend->source_revision,
+                    'source_metadata' => $trend->source_metadata,
+                    'missing_reason' => $trend->missing_reason,
+                    'methodology' => $trend->methodology,
                 ])->all();
         }
 

@@ -5,7 +5,10 @@
 
 ## Scope and evidence boundary
 
-This audit inspects the current `MarketTrend`, `Competitor`, `CompetitorOffer`, `CompetitorOfferObservation`, `GoogleAdsCampaignDailyMetric`, and `MarketAnalysisDashboardData` model/service surfaces. It identifies what those surfaces support and the remaining contract gaps. It does not claim a complete migration/admin-resource review or a live-provider integration test; those should be completed before schema changes or ingestion are approved.
+Issue #359 now adds a provisional, permissioned market-intelligence catalogue for tracked markets, segments, and metric definitions, plus explicit observation availability, source type, freshness, and verification fields. This implements an engineering configuration contract without approving business taxonomy, provider access, source terms, or freshness thresholds. See [market intelligence data contracts](market-intelligence-data-contracts.md).
+
+
+This audit inspects the current `MarketTrend`, `Competitor`, `CompetitorOffer`, `CompetitorOfferObservation`, `GoogleAdsCampaignDailyMetric`, and `MarketAnalysisDashboardData` model/service surfaces. It identifies what those surfaces support and the remaining contract gaps. Issue #359 completes the provisional market-catalogue migration and admin-resource review. This audit still does not claim a live-provider integration test or approve source terms, ingestion cadence, or business definitions.
 
 ## Existing data structures
 

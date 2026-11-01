@@ -249,6 +249,9 @@ jobs:
           tests/Feature/PayrollPeriodExportTest.php
           tests/Feature/BudgetVersionWorkflowTest.php
           tests/Feature/CashForecastServiceTest.php
+          tests/Feature/MarketTrendTest.php
+          tests/Feature/MarketIntelligenceConfigurationTest.php
+          tests/Feature/MarketAnalysisDashboardDataTest.php
 
   frontend:
     name: Frontend build and dependency audit
