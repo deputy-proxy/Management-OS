@@ -116,8 +116,8 @@ class ExecutiveKpiCatalogueTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
         Gate::define('kpi_definition.create', fn (): bool => true);
-        \Illuminate\Support\Facades\Gate::define('kpi_definition.approve', fn (): bool => true);
-        \Illuminate\Support\Facades\Gate::define('customer_lead.index', fn (): bool => true);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        Gate::define('customer_lead.index', fn (): bool => true);
 
         $definition = app(KpiDefinitionService::class)->createDraft([
             'key' => 'unconverted_lead_count',
@@ -143,7 +143,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        \Illuminate\Support\Facades\Gate::define('customer_lead.index', fn (): bool => true);
+        Gate::define('customer_lead.index', fn (): bool => true);
         $lead = CustomerLead::factory()->create(['converted_customer_id' => null]);
         $service = app(KpiAggregationService::class);
 
