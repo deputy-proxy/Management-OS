@@ -71,9 +71,7 @@ class KpiDefinitionConfiguration
             }
             $values = $operator === 'in' ? $value : [$value];
             if (! is_array($values) || $values === [] || count($values) > 20) {
-                if ($operator !== 'in' || ! is_array($values) || $values === [] || count($values) > 20) {
-                    throw ValidationException::withMessages(["filters.{$index}.value" => 'Provide between one and twenty allowed values.']);
-                }
+                throw ValidationException::withMessages(["filters.{$index}.value" => 'Provide between one and twenty allowed values.']);
             }
             foreach ($values as $item) {
                 if (! is_string($item) || ! in_array($item, $fields[$field]['values'], true)) {
