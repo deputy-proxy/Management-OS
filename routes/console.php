@@ -32,3 +32,9 @@ Schedule::command('tasks:escalate-overdue')
     ->dailyAt('08:00')
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();
+
+Schedule::command('market:refresh-google-ads')
+    ->dailyAt('06:00')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping()
+    ->when(fn (): bool => (bool) config('services.google_ads.scheduled_refresh_enabled', false));

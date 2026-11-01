@@ -15,6 +15,7 @@ use InvalidArgumentException;
  * @property Carbon|null $date_range_end
  * @property array<string, string>|null $metric_mapping
  * @property string $customer_id
+ * @property string|null $account_timezone
  * @property string|null $login_customer_id
  * @property string|null $currency_code
  * @property string|null $credential_reference
@@ -37,7 +38,7 @@ class GoogleAdsImportConfiguration extends Model
     ];
 
     protected $fillable = [
-        'name', 'customer_id', 'login_customer_id', 'selected_campaign_ids',
+        'name', 'customer_id', 'account_timezone', 'login_customer_id', 'selected_campaign_ids',
         'date_range_days', 'date_range_start', 'date_range_end', 'metric_mapping',
         'currency_code', 'credential_reference', 'is_active',
     ];
@@ -74,6 +75,9 @@ class GoogleAdsImportConfiguration extends Model
 
             if ($configuration->name === '' || mb_strlen($configuration->name) > 120) {
                 throw new InvalidArgumentException('Google Ads configuration name is required and must not exceed 120 characters.');
+            }
+            if ($configuration->account_timezone !== null && ! in_array($configuration->account_timezone, timezone_identifiers_list(), true)) {
+                throw new InvalidArgumentException('Google Ads account timezone must be a valid IANA timezone identifier.');
             }
             if ($configuration->date_range_days < 1 || $configuration->date_range_days > 90) {
                 throw new InvalidArgumentException('Google Ads default date range must be between 1 and 90 days.');
@@ -142,6 +146,7 @@ class GoogleAdsImportConfiguration extends Model
         return $date && $date->format('Y-m-d') === $value ? $date : null;
     }
 
+    /** @return HasMany<GoogleAdsImportBatch, $this> */
     public function importBatches(): HasMany
     {
         return $this->hasMany(GoogleAdsImportBatch::class, 'configuration_id');

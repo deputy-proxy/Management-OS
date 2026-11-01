@@ -74,5 +74,8 @@ return [
         'api_version' => 'v26',
         'timeout' => (int) env('GOOGLE_ADS_TIMEOUT', 30),
         'max_range_days' => (int) env('GOOGLE_ADS_MAX_RANGE_DAYS', 90),
+        'stale_after_hours' => (int) env('GOOGLE_ADS_STALE_AFTER_HOURS', 36),
+        'retry_base_delay_minutes' => (int) env('GOOGLE_ADS_RETRY_BASE_DELAY_MINUTES', 5),
+        'scheduled_refresh_enabled' => (bool) env('GOOGLE_ADS_SCHEDULED_REFRESH_ENABLED', false),
     ],
 ];

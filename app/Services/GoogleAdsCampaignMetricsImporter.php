@@ -8,6 +8,7 @@ use App\Models\GoogleAdsImportBatch;
 use App\Models\GoogleAdsImportConfiguration;
 use App\Services\GoogleAds\GoogleAdsAdapterException;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -16,13 +17,18 @@ class GoogleAdsCampaignMetricsImporter
 {
     public function __construct(private readonly GoogleAdsCampaignMetricsAdapter $adapter) {}
 
-    /** @return array{customer_id: string, from: string, to: string, row_count: int, dry_run: bool, batch_id: int|null, status: string} */
-    public function import(string $from, string $to, bool $dryRun = false, ?GoogleAdsImportConfiguration $configuration = null): array
-    {
+    /** @return array{customer_id: string, from: string, to: string, row_count: int, rows_inserted: int, rows_updated: int, rows_unchanged: int, dry_run: bool, batch_id: int|null, status: string} */
+    public function import(
+        string $from,
+        string $to,
+        bool $dryRun = false,
+        ?GoogleAdsImportConfiguration $configuration = null,
+        ?GoogleAdsImportBatch $retryOfBatch = null,
+    ): array {
         $configuration ??= $this->environmentConfiguration();
         [$start, $end] = $this->validateRequest($from, $to, $configuration);
         $status = $configuration->configurationStatus();
-        if ($status !== 'ready') {
+        if (! in_array($status, ['ready', 'error'], true)) {
             $message = $status === 'disabled'
                 ? 'Google Ads import configuration is disabled.'
                 : 'Google Ads integration is not configured. Add the approved deployment secret bundle reference and configure all OAuth credentials in the deployment secret manager.';
@@ -39,6 +45,8 @@ class GoogleAdsCampaignMetricsImporter
             'status' => GoogleAdsImportBatch::STATUS_RUNNING,
             'row_count' => 0,
             'started_at' => now(),
+            'retry_of_batch_id' => $retryOfBatch?->getKey(),
+            'retry_attempt' => $retryOfBatch === null ? 0 : $retryOfBatch->retry_attempt + 1,
         ]);
 
         try {
@@ -58,17 +66,25 @@ class GoogleAdsCampaignMetricsImporter
                 throw new RuntimeException('Google Ads adapter returned rows from mixed source API versions.');
             }
             $sourceVersion = array_key_first($versions) ?? (string) config('services.google_ads.api_version', 'v26');
+            $counts = ['inserted' => 0, 'updated' => 0, 'unchanged' => 0];
 
             if (! $dryRun && $batch instanceof GoogleAdsImportBatch) {
-                DB::transaction(function () use ($rows, $batch, $sourceVersion, $configuration): void {
+                DB::transaction(function () use ($rows, $batch, $sourceVersion, $configuration, &$counts): void {
                     foreach ($rows as $row) {
-                        $this->persistRow($row, $batch, $sourceVersion);
+                        $outcome = $this->persistRow($row, $batch, $sourceVersion);
+                        $counts[$outcome]++;
                     }
                     $batch->forceFill([
                         'source_version' => $sourceVersion,
                         'status' => GoogleAdsImportBatch::STATUS_COMPLETED,
                         'row_count' => count($rows),
+                        'rows_received' => count($rows),
+                        'rows_inserted' => $counts['inserted'],
+                        'rows_updated' => $counts['updated'],
+                        'rows_unchanged' => $counts['unchanged'],
                         'error_code' => null,
+                        'retryable' => false,
+                        'failure_message' => null,
                         'completed_at' => now(),
                     ])->save();
                     $configuration->markAdapterReady();
@@ -80,15 +96,27 @@ class GoogleAdsCampaignMetricsImporter
             if ($batch instanceof GoogleAdsImportBatch) {
                 $batch->forceFill([
                     'status' => GoogleAdsImportBatch::STATUS_FAILED,
-                    'error_code' => $exception instanceof GoogleAdsAdapterException
-                        ? $exception->errorCode
-                        : ($exception instanceof RuntimeException ? 'invalid_import_payload' : 'import_failed'),
+                    'rows_received' => isset($rows) ? count($rows) : 0,
+                    'error_code' => match (true) {
+                        $exception instanceof GoogleAdsAdapterException => $exception->errorCode,
+                        $exception instanceof QueryException => 'persistence_failed',
+                        $exception instanceof RuntimeException => 'invalid_import_payload',
+                        default => 'import_failed',
+                    },
+                    'retryable' => $exception instanceof GoogleAdsAdapterException && $exception->retryable,
+                    'next_retry_at' => $exception instanceof GoogleAdsAdapterException && $exception->retryable
+                        ? now()->addMinutes(min(360, max(0, (int) config('services.google_ads.retry_base_delay_minutes', 5)) * (2 ** (int) $batch->retry_attempt)))
+                        : null,
+                    'failure_message' => $this->safeFailureMessage($exception),
                     'completed_at' => now(),
                 ])->save();
             }
-            $configuration->markAdapterError($exception instanceof GoogleAdsAdapterException
-                ? $exception->errorCode
-                : ($exception instanceof RuntimeException ? 'invalid_adapter_payload' : 'import_failed'));
+            $configuration->markAdapterError(match (true) {
+                $exception instanceof GoogleAdsAdapterException => $exception->errorCode,
+                $exception instanceof QueryException => 'persistence_failed',
+                $exception instanceof RuntimeException => 'invalid_adapter_payload',
+                default => 'import_failed',
+            });
             throw $exception;
         }
 
@@ -97,6 +125,9 @@ class GoogleAdsCampaignMetricsImporter
             'from' => $start->toDateString(),
             'to' => $end->toDateString(),
             'row_count' => count($rows),
+            'rows_inserted' => $counts['inserted'],
+            'rows_updated' => $counts['updated'],
+            'rows_unchanged' => $counts['unchanged'],
             'dry_run' => $dryRun,
             'batch_id' => $batch?->getKey(),
             'status' => $dryRun ? 'validated' : GoogleAdsImportBatch::STATUS_COMPLETED,
@@ -104,7 +135,7 @@ class GoogleAdsCampaignMetricsImporter
     }
 
     /** @param array<string, mixed> $row */
-    private function persistRow(array $row, GoogleAdsImportBatch $batch, string $sourceVersion): void
+    private function persistRow(array $row, GoogleAdsImportBatch $batch, string $sourceVersion): string
     {
         $identity = [
             'account_customer_id' => $row['account_customer_id'],
@@ -135,7 +166,7 @@ class GoogleAdsCampaignMetricsImporter
                 'imported_at' => $importedAt,
             ]);
 
-            return;
+            return 'inserted';
         }
 
         $changed = false;
@@ -181,6 +212,28 @@ class GoogleAdsCampaignMetricsImporter
             'import_batch_id' => $batch->getKey(),
             'imported_at' => $freshestImportedAt,
         ]);
+
+        return $changed ? 'updated' : 'unchanged';
+    }
+
+    private function safeFailureMessage(\Throwable $exception): string
+    {
+        if ($exception instanceof GoogleAdsAdapterException) {
+            return match (true) {
+                $exception->retryable => 'The provider request failed temporarily. Retry this date range after the provider recovers.',
+                str_starts_with($exception->errorCode, 'provider_http_401'), str_starts_with($exception->errorCode, 'oauth_') => 'Google Ads authentication failed. Check the deployment secret bundle and account authorization.',
+                str_starts_with($exception->errorCode, 'provider_http_403') => 'Google Ads denied access. Check the account scope and API access level.',
+                default => 'Google Ads rejected the request. Review the safe error code and configured account/date scope.',
+            };
+        }
+
+        if ($exception instanceof QueryException) {
+            return 'The database transaction failed. No metric rows were committed; inspect database diagnostics before starting a fresh import.';
+        }
+
+        return $exception instanceof RuntimeException
+            ? 'The provider payload failed validation. Correct the source response or mapping before retrying.'
+            : 'The import could not be committed. Check application diagnostics before retrying.';
     }
 
     /** @param array<string, mixed> $row */

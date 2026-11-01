@@ -21,6 +21,7 @@ class GoogleAdsImportConfigurationForm
             Section::make('Account and campaigns')->schema([
                 TextInput::make('name')->required()->maxLength(120)->unique(ignoreRecord: true),
                 TextInput::make('customer_id')->required()->mask('999-999-9999')->helperText('10-digit Google Ads account customer ID.'),
+                TextInput::make('account_timezone')->maxLength(64)->placeholder('Europe/Bucharest')->helperText('IANA timezone from Google Ads account settings. Required for scheduled refresh; dates are account-local.'),
                 TextInput::make('login_customer_id')->mask('999-999-9999')->helperText('Optional manager account ID.'),
                 TagsInput::make('selected_campaign_ids')->placeholder('Add numeric campaign IDs')->helperText('Leave empty to include all campaigns. Maximum 500 unique campaign IDs.'),
                 TextInput::make('currency_code')->maxLength(3)->minLength(3)->helperText('Optional expected account currency, for example RON. Values are never converted.'),
@@ -40,6 +41,9 @@ class GoogleAdsImportConfigurationForm
                     ->placeholder('Not configured')
                     ->helperText('Stores only a reference. OAuth client ID, client secret, and refresh token remain in the deployment secret manager and are never entered or stored here.'),
                 Toggle::make('is_active')->default(true),
+                Placeholder::make('refresh_policy')
+                    ->label('Refresh policy')
+                    ->content('Scheduled refresh runs daily at 06:00 application time only when GOOGLE_ADS_SCHEDULED_REFRESH_ENABLED is enabled. Data is marked stale after '.(int) config('services.google_ads.stale_after_hours', 36).' hours without a successful batch.'),
             ])->columns(2),
         ]);
     }
