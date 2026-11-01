@@ -112,14 +112,14 @@ class KpiDefinitionService
                 if (Carbon::parse($active->effective_from)->gte($effectiveFrom)) {
                     throw ValidationException::withMessages(['effective_from' => 'A KPI version already exists for this effective period.']);
                 }
-                $priorUntil = $active->effective_until?->toDateString();
+                $priorUntil = $active->effective_until !== null ? Carbon::parse($active->effective_until)->toDateString() : null;
                 $active->effective_until = $effectiveFrom->copy()->subDay()->toDateString();
                 $active->save();
                 $this->recordAudit(
                     $active,
                     'superseded',
                     'Effective period closed when KPI definition version '.$definition->version.' was activated.',
-                    ['effective_until' => ['before' => $priorUntil, 'after' => $active->effective_until->toDateString()]],
+                    ['effective_until' => ['before' => $priorUntil, 'after' => Carbon::parse($active->effective_until)->toDateString()]],
                 );
             }
 
