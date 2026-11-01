@@ -166,6 +166,30 @@ class KpiDefinitionTest extends TestCase
         $this->assertSame(['organic_search' => 2], $preview['breakdown']);
     }
 
+    public function test_registered_lead_filters_and_dimensions_are_applied_to_live_aggregation(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        Gate::define('customer_lead.index', fn (): bool => true);
+
+        CustomerLead::factory()->create(['status' => 'new', 'source_category' => 'organic_search']);
+        CustomerLead::factory()->create(['status' => 'lost', 'source_category' => 'referral']);
+
+        $definition = KpiDefinition::query()->create([
+            'key' => 'unconverted_lead_count',
+            'effective_from' => Carbon::now('Europe/Bucharest')->toDateString(),
+            'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],
+            'dimensions' => ['source_category'],
+        ]);
+        app(KpiDefinitionService::class)->activate($definition);
+
+        $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), ['customer_lead.index' => true]);
+
+        $this->assertSame(1, $result['value']);
+        $this->assertSame(['source_category=organic_search' => 1], $result['dimension_breakdown']);
+    }
+
     public function test_synthetic_preview_rejects_more_than_one_hundred_rows(): void
     {
         $this->expectException(ValidationException::class);
