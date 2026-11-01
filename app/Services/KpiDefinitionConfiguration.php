@@ -152,7 +152,7 @@ class KpiDefinitionConfiguration
                 $matches = match ($filter['operator']) {
                     'eq' => $actual === $expected,
                     'neq' => $actual !== $expected,
-                    'in' => in_array($actual, $expected, true),
+                    'in' => in_array($actual, (array) $expected, true),
                     default => throw new \LogicException('Unregistered KPI preview operator.'),
                 };
                 if (! $matches) {
