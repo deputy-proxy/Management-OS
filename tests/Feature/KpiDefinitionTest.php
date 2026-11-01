@@ -12,6 +12,7 @@ use App\Services\KpiDefinitionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\TestCase;
@@ -196,4 +197,31 @@ class KpiDefinitionTest extends TestCase
         $this->expectException(ValidationException::class);
         app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [], array_fill(0, 101, []));
     }
+
+    public function test_aggregation_returns_a_typed_invalid_state_for_tampered_persisted_configuration(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('customer_lead.index', fn (): bool => true);
+
+        $definition = KpiDefinition::query()->create([
+            'key' => 'unconverted_lead_count',
+            'effective_from' => Carbon::now('Europe/Bucharest')->toDateString(),
+        ]);
+
+        DB::table('kpi_definitions')->where('id', $definition->id)->update([
+            'filters' => json_encode([['field' => 'email', 'operator' => 'eq', 'value' => 'private@example.test']]),
+        ]);
+
+        $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), [
+            'customer_lead.index' => true,
+        ]);
+
+        $this->assertNull($result['value']);
+        $this->assertSame('unavailable_invalid_definition', $result['availability']);
+        $this->assertSame('unavailable', $result['state']);
+        $this->assertNull($result['included_count']);
+        $this->assertSame([], $result['provenance']['source_record_ids']);
+    }
+
 }
