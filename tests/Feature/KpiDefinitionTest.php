@@ -196,5 +196,4 @@ class KpiDefinitionTest extends TestCase
         $this->expectException(ValidationException::class);
         app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [], array_fill(0, 101, []));
     }
-
 }
