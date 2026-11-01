@@ -31,7 +31,7 @@ class KpiDefinitionsTable
                 Action::make('preview')
                     ->label('Preview synthetic sample')
                     ->icon('heroicon-o-beaker')
-                    ->visible(fn (KpiDefinition $record): bool => $record->status === KpiDefinition::STATUS_DRAFT)
+                    ->visible(fn (KpiDefinition $record): bool => $record->status === KpiDefinition::STATUS_DRAFT && hexa()->can('kpi_definition.index'))
                     ->action(function (KpiDefinition $record): void {
                         $preview = app(KpiDefinitionConfiguration::class)->preview($record->calculation_type, [
                             'filters' => $record->filters ?? [],
@@ -49,7 +49,7 @@ class KpiDefinitionsTable
                             ->info()
                             ->send();
                     }),
-                EditAction::make()->visible(fn (KpiDefinition $record): bool => $record->status === KpiDefinition::STATUS_DRAFT),
+                EditAction::make()->visible(fn (KpiDefinition $record): bool => $record->status === KpiDefinition::STATUS_DRAFT && hexa()->can('kpi_definition.update')),
                 Action::make('activate')
                     ->label('Approve and activate')
                     ->color('success')

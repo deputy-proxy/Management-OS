@@ -12,6 +12,8 @@ class ListKpiDefinitions extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [
+            CreateAction::make()->visible(fn (): bool => hexa()->can('kpi_definition.create')),
+        ];
     }
 }

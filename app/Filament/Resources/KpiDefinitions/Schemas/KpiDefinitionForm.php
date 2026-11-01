@@ -9,6 +9,7 @@ use App\Services\KpiDefinitionConfiguration;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -74,6 +75,12 @@ class KpiDefinitionForm
                 ->numeric()->minValue(0)->step('0.000001'),
             TextInput::make('critical_threshold')
                 ->numeric()->minValue(0)->step('0.000001'),
+            Textarea::make('change_summary')
+                ->label('Change summary')
+                ->required()
+                ->maxLength(500)
+                ->rows(2)
+                ->helperText('Recorded in the immutable KPI audit history.'),
         ]);
     }
 

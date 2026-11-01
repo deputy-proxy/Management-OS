@@ -6,6 +6,7 @@ use App\Services\KpiCatalogueRegistry;
 use App\Services\KpiDefinitionConfiguration;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -163,6 +164,12 @@ class KpiDefinition extends Model
             }
         });
         static::deleting(fn () => throw new LogicException('KPI definitions are versioned audit records and cannot be deleted.'));
+    }
+
+    /** @return HasMany<KpiDefinitionAudit, $this> */
+    public function auditHistory(): HasMany
+    {
+        return $this->hasMany(KpiDefinitionAudit::class)->orderBy('created_at')->orderBy('id');
     }
 
     /** @return BelongsTo<User, $this> */
