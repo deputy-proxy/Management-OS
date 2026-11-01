@@ -58,7 +58,12 @@ class KpiDefinition extends Model
             if ($definition->period !== null && ! is_array($definition->period)) {
                 throw ValidationException::withMessages(['period' => 'KPI period settings must be a structured object.']);
             }
-            $definition->period = array_merge(['kind' => 'as_of', 'granularity' => 'day', 'historical' => false], $definition->period ?? []);
+            $period = $definition->period ?? [];
+            $definition->period = [
+                'kind' => (string) ($period['kind'] ?? 'as_of'),
+                'granularity' => (string) ($period['granularity'] ?? 'day'),
+                'historical' => (bool) ($period['historical'] ?? false),
+            ];
             $definition->created_by ??= auth()->id();
             $definition->effective_from ??= now()->toDateString();
         });
