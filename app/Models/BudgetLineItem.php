@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 
+/**
+ * @property string $amount
+ * @property array<string, string>|null $dimensions
+ */
 class BudgetLineItem extends Model
 {
     protected $fillable = ['budget_version_id', 'code', 'description', 'amount', 'dimensions', 'position'];

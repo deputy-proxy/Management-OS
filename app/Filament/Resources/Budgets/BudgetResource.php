@@ -41,6 +41,7 @@ class BudgetResource extends Resource
             'budget.submit' => __('Allows submitting budget versions'),
             'budget.approve' => __('Allows approving submitted budget versions'),
             'budget.retire' => __('Allows retiring approved budget versions'),
+            'budget.actuals.view' => __('Allows viewing budget-versus-actual cash movement comparisons'),
         ];
     }
 
