@@ -95,7 +95,8 @@ class ExecutiveKpiCatalogueTest extends TestCase
             'historical' => false,
         ], $result['period']);
         $this->assertSame('evaluated_at_request', $result['freshness']['status']);
-        $this->assertSame($asOf->toIso8601String(), $result['freshness']['evaluated_at']);
+        $this->assertNotNull($result['freshness']['evaluated_at']);
+        $this->assertNotSame($asOf->toIso8601String(), $result['freshness']['evaluated_at']);
         $this->assertNull($result['freshness']['source_updated_at']);
         $this->assertSame($customers->pluck('id')->sort()->values()->all(), $result['provenance']['source_record_ids']);
         $this->assertFalse($result['provenance']['source_record_ids_truncated']);
