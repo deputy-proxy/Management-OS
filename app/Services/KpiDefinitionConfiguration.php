@@ -54,6 +54,9 @@ class KpiDefinitionConfiguration
 
         $validatedFilters = [];
         foreach ($filters as $index => $filter) {
+            if (! is_array($filter)) {
+                throw ValidationException::withMessages(["filters.{$index}" => 'Each filter must be a structured field/operator/value record.']);
+            }
             $field = $filter['field'] ?? null;
             $operator = $filter['operator'] ?? null;
             $value = $filter['value'] ?? null;
@@ -114,6 +117,11 @@ class KpiDefinitionConfiguration
         if (count($rows) > self::MAX_PREVIEW_ROWS) {
             throw ValidationException::withMessages(['preview' => 'Synthetic previews are limited to 100 rows.']);
         }
+        foreach ($rows as $index => $row) {
+            if (! is_array($row)) {
+                throw ValidationException::withMessages(["preview.{$index}" => 'Each synthetic sample row must be an object-like array.']);
+            }
+        }
         $config = $this->validate(
             $calculationType,
             $configuration['filters'] ?? [],
@@ -141,9 +149,10 @@ class KpiDefinitionConfiguration
 
         $breakdown = [];
         if ($config['dimensions'] !== []) {
-            $dimension = $config['dimensions'][0];
             foreach ($matched as $row) {
-                $key = (string) ($row[$dimension] ?? '(empty)');
+                $key = collect($config['dimensions'])
+                    ->map(fn (string $field): string => $field.'='.((string) ($row[$field] ?? '(empty)')))
+                    ->implode(' / ');
                 $breakdown[$key] = ($breakdown[$key] ?? 0) + 1;
             }
             ksort($breakdown);
