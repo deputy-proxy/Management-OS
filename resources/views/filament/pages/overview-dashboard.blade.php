@@ -30,8 +30,8 @@
 
         <section aria-labelledby="executive-kpis-heading" class="space-y-3">
             <div>
-                <h2 id="executive-kpis-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Executive KPI catalogue {{ $summary['kpis']['catalogue_version'] }}</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Explicit operational definitions as of {{ $summary['kpis']['as_of'] }} ({{ $summary['kpis']['timezone'] }}). Each value is shown only when its source permission is available.</p>
+                <h2 id="executive-kpis-heading" class="text-lg font-semibold text-gray-950 dark:text-white">Executive KPI catalogue {{ $summary['kpis']['catalogue_version'] }} · {{ ucfirst($summary['kpis']['catalogue_approval_status']) }}</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Provisional technical definitions as of {{ $summary['kpis']['as_of'] }} ({{ $summary['kpis']['timezone'] }}). Not owner-approved; each value is shown only when its source and calculation contracts and permissions are available.</p>
             </div>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($summary['kpis']['results'] as $kpi)
@@ -40,6 +40,10 @@
                         <p class="mt-2 text-3xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ $kpi['state'] === 'available' ? number_format($kpi['value']) : 'Unavailable' }}</p>
                         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $kpi['definition'] }}</p>
                         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Source: {{ $kpi['source'] }} · Unit: {{ $kpi['unit'] }}@if ($kpi['version']) · Definition v{{ $kpi['version'] }}@endif</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Formula: {{ $kpi['formula'] ?? 'Unavailable calculation contract' }}</p>
+                        @if ($kpi['unavailable_reason'])
+                            <p class="mt-1 text-xs text-warning-600 dark:text-warning-400">{{ $kpi['unavailable_reason'] }}</p>
+                        @endif
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Threshold state: {{ str_replace('_', ' ', $kpi['threshold_status']) }}. Informational only; no notification is implied.</p>
                     </x-filament::section>
                 @endforeach

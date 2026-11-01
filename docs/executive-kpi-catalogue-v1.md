@@ -1,50 +1,68 @@
 # Executive KPI catalogue v1
 
-**Version:** `v1`  
-**Effective date:** 2026-10-27  
-**Reporting timezone:** `KPI_REPORTING_TIMEZONE`, default `Europe/Bucharest`  
-**Scope:** Initial operational inventory KPIs with explicit source and permission contracts.
+**Version:** v1
+**Approval status:** Provisional; no executive or domain-owner sign-off is recorded.
+**Reporting timezone:** KPI_REPORTING_TIMEZONE, default Europe/Bucharest
+**Scope:** Operational inventory KPIs with explicit source, calculation, period, dimension, permission, and missing-data contracts.
 
-This catalogue is intentionally narrow. It does not turn existing financial, HR, customer-lifecycle, or market dashboard cards into approved business KPIs merely because they already exist. Definitions are allow-listed in `config/kpi_catalogue.php`; calculations must use typed calculation services, not arbitrary PHP, SQL, or user-entered formulas.
+This is a code-backed technical catalogue, not a business-approved KPI policy. The definitions are provisional examples grounded in existing application behavior. Final business definitions and reconciliation against real source data remain deferred. Existing financial, HR, customer-lifecycle, and market dashboard cards are not automatically approved KPIs.
 
-## Approved initial definitions
+## Catalogue contract
 
-| Key | Calculation | Source | Unit | Semantics / exclusions |
-| --- | --- | --- | --- | --- |
-| `customer_record_count` | `customer_record_count` | Non-soft-deleted customer records | Records | Not active customers, paying customers, or unique people across merged identities. Requires `customer.index`. |
-| `unconverted_lead_count` | `unconverted_lead_count` | Non-soft-deleted leads with no converted-customer link | Records | Stored status does not override the conversion link. Requires `customer_lead.index`. |
-| `unknown_lead_source_count` | `unknown_lead_source_count` | Controlled lead source category | Records | `unknown` is explicit and never inferred from legacy source text. Requires `customer_lead.index`. |
-| `open_task_count` | `open_task_count` | Tasks whose status is not exactly `done` | Records | Assigned-to/created-by visibility unless `task.view_all` is granted. Requires `task.index`. |
-| `overdue_task_count` | `overdue_task_count` | Visible tasks with status not `done` and due date strictly before local reporting date | Records | Due today is not overdue. This is not capacity or severity scoring. Requires `task.index`. |
-| `competitor_offer_snapshot_count` | `competitor_offer_snapshot_count` | Append-only competitor offer observations | Snapshots | Includes historical observations for later soft-deleted offers; does not measure market share or source accuracy. Requires `competitor_offer.index`. |
+Each definition in config/kpi_catalogue.php has:
 
-## Shared calculation contract
+- A stable, unique key, label, description, and domain.
+- A unit and explicit list of supported dimensions. The initial catalogue supports no dimensions; unsupported dimensions are rejected.
+- A supported period contract. v1 supports daily as-of snapshots only. Historical point-in-time reconstruction and date-range aggregation are not supported.
+- An allow-listed calculation type and calculation service.
+- A source model/service class and a human-readable source mapping.
+- A required permission and explicit missing-data behavior.
+- A formula documenting the calculation and its key inclusion/exclusion rules.
+- A provisional approval status.
 
-- The stable key and calculation type are code allow-listed. A definition cannot introduce an unregistered calculation type or source field.
-- A result must carry its key, catalogue version, reporting date/timezone, source query scope, result value, freshness/as-of timestamp, and an unavailable/incomplete state where required.
-- Authorization is enforced in the service layer as well as the UI. If the required source permission is absent, the result is unavailable, not zero.
-- Counts exclude soft-deleted source rows unless the definition explicitly counts immutable history snapshots. Unknown values remain explicit categories; missing data is not silently converted to zero.
-- Reporting periods must state whether they use an effective date, event date, or current inventory. Local-date cutoffs use the configured reporting timezone.
-- Targets and thresholds are not part of this v1 catalogue. Alert severity, cooldown, acknowledgement, escalation owner, and delivery policy require separate definitions before alerts are enabled.
-- Financial totals, margins, payroll values, CAC, CLV, retention revenue, and cross-currency comparisons are excluded pending their own domain-specific definitions and reconciliation fixtures.
+KpiCatalogueRegistry validates records, rejects duplicate keys and invalid dimensions/period contracts, and marks definitions unavailable when their source model or calculation handler is missing. KpiAggregationService consumes the registry and returns the definition metadata alongside the result, so dashboard and downstream services receive the same machine-readable contract.
+
+## Provisional definitions
+
+| Key | Formula | Source service / source | Unit | Permission | Period |
+| --- | --- | --- | --- | --- | --- |
+| customer_record_count | COUNT(customers.id) WHERE deleted_at IS NULL | Customer / customers | Records | customer.index | Daily as-of |
+| unconverted_lead_count | COUNT(customer_leads.id) WHERE deleted_at IS NULL AND converted_customer_id IS NULL | CustomerLead / customer_leads | Records | customer_lead.index | Daily as-of |
+| unknown_lead_source_count | COUNT(customer_leads.id) WHERE deleted_at IS NULL AND source_category = 'unknown' | CustomerLead / customer_leads.source_category | Records | customer_lead.index | Daily as-of |
+| open_task_count | COUNT(tasks.id) WHERE status != 'done' AND visible_to_viewer | Task / tasks | Records | task.index | Daily as-of |
+| overdue_task_count | COUNT(tasks.id) WHERE status != 'done' AND due_date < reporting_local_date AND visible_to_viewer | Task / tasks.due_date,status | Records | task.index | Daily as-of |
+| competitor_offer_snapshot_count | COUNT(competitor_offer_observations.id) | CompetitorOfferObservation / append-only observations | Snapshots | competitor_offer.index | Daily as-of |
+
+### Calculation semantics and limitations
+
+- Customer count is not active customers, paying customers, or unique people across merged identities.
+- Unconverted lead count follows the converted-customer link, not stored lead status.
+- Unknown lead source is an explicit controlled category; legacy free text is not used to infer attribution.
+- Task counts include tasks whose status is not exactly done. Unless task.view_all is granted, visibility is limited to tasks assigned to or created by the current viewer.
+- A task due on the reporting date is not overdue. The comparison uses the configured reporting timezone.
+- Competitor offer snapshot count includes append-only observations for offers later soft-deleted. It is inventory coverage, not market share or source accuracy.
+- No KPI in v1 supports dimensions, historical reconstruction, arbitrary date ranges, currency conversion, or financial aggregation.
+
+## Missing and unavailable behavior
+
+- A denied source permission returns a null value with unavailable_permission_denied; it never returns zero.
+- A missing source model returns unavailable_missing_source.
+- A missing calculation service or unregistered calculation type returns unavailable_missing_calculation.
+- A query that cannot produce a value returns an unavailable state with a null value. Missing data is not silently converted to zero.
+- Explicit unknown categories remain categories; they are not inferred or discarded.
 
 ## Version and change control
 
-Changes to business meaning require a new catalogue version, updated synthetic expected-result fixtures, source reconciliation, and review by the relevant domain owner. Retired definitions remain available for historical interpretation. Do not rewrite prior result meaning silently when a calculation changes.
+The catalogue has its own version (v1). Database-backed KpiDefinition records are effective-dated versions of an existing stable key; they cannot add new executable calculations, source fields, or dimensions. Approved definition semantics are immutable. A semantic change requires a new catalogue release, code-backed calculation contract, synthetic expected-result fixtures, and subsequent domain-owner review. No approval is implied by the existence of a registry entry or a database definition.
 
-## Validation requirements
+## Validation
 
-Tests should assert unique stable keys, allow-listed calculation types, required source/permission metadata, nonempty descriptions, and explicit missing-data behavior. Runtime configuration must reject unsupported keys/types and enforce source permissions before querying data.
+Run the catalogue and versioned-definition suites:
 
-## Versioned KPI definition workflow
+    php artisan test --compact tests/Feature/ExecutiveKpiCatalogueTest.php tests/Feature/KpiCatalogueRegistryTest.php tests/Feature/KpiDefinitionTest.php
 
-The initial definitions are supplied by the allow-listed `config/kpi_catalogue.php` registry. The `KpiDefinition` workflow adds effective-dated, versioned operational configuration without allowing a user to introduce executable formulas or arbitrary source fields.
+Coverage includes unique stable keys, malformed metadata, unsupported dimensions and period contracts, missing source/calculation handlers, explicit unavailable results, permission gating, synthetic calculation values, and reporting-timezone date boundaries.
 
-- A draft is created by selecting an existing catalogue key. Its label, description, domain, calculation type, unit, source, date basis, permission and missing-data contract are copied from the allow-list and are not user-editable.
-- Drafts may set a target and optional warning/critical thresholds, with an explicit direction (`higher_is_worse`, `lower_is_worse`, or `target_only`). Thresholds are inert when direction is `target_only`; they do not send notifications.
-- Only a user with `kpi_definition.approve` may activate or retire a definition. Activation records approver and timestamp. A new effective version closes the previous version on the preceding calendar day; approved calculation semantics cannot be edited in place.
-- Definition records cannot be deleted. Historical versions remain available for audit and interpretation. A new version receives a monotonically increasing version number for its stable key.
-- Aggregation uses the fixed calculation registry. Source permissions are checked in the service layer; unavailable values remain null with an explicit availability state. Task counts preserve the assigned-to/created-by scope unless `task.view_all` is granted.
-- The overview displays the v1 catalogue with the active effective-dated database definition taking precedence for a matching key. Threshold state is informational only; no alert, escalation, or notification delivery is implied.
+## Deferred business validation
 
-The supported configuration surface is deliberately narrower than arbitrary KPI authoring. Adding a new calculation requires code, a source contract, permission review, expected-result fixtures, and a new catalogue release.
+Executive/business-owner approval of the final KPI catalogue and definitions is deferred. The current formulas document existing application behavior only. Final business meaning, ownership, real-source reconciliation, historical reporting requirements, and any expansion to additional dimensions or periods require later domain review. No owner sign-off is fabricated or assumed.

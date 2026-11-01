@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\KpiDefinitions\Schemas;
 
 use App\Models\KpiDefinition;
+use App\Services\KpiCatalogueRegistry;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,8 +15,8 @@ class KpiDefinitionForm
     {
         return $schema->components([
             Select::make('key')
-                ->label('Approved KPI key')
-                ->options(collect(config('kpi_catalogue.definitions', []))->mapWithKeys(fn (array $definition, string $key): array => [$key => $definition['label']])->all())
+                ->label('Registered KPI key')
+                ->options(app(KpiCatalogueRegistry::class)->options())
                 ->required()
                 ->searchable()
                 ->disabled(fn (?KpiDefinition $record): bool => $record !== null),

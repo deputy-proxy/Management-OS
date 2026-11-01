@@ -12,17 +12,27 @@ use Illuminate\Database\Eloquent\Builder;
 
 class KpiAggregationService
 {
+    public const CALCULATION_TYPES = [
+        'customer_record_count',
+        'unconverted_lead_count',
+        'unknown_lead_source_count',
+        'open_task_count',
+        'overdue_task_count',
+        'competitor_offer_snapshot_count',
+    ];
+
+    public function __construct(private readonly KpiCatalogueRegistry $catalogue) {}
+
     /**
      * Evaluate the allow-listed catalogue. An active, effective-dated database
      * definition overrides its static v1 definition without changing the key.
      *
      * @param  array<string, bool>  $permissions
-     * @return array{catalogue_version: string, as_of: string, timezone: string, results: list<array<string, mixed>>}
+     * @return array{catalogue_version: string, catalogue_approval_status: string, as_of: string, timezone: string, results: list<array<string, mixed>>}
      */
     public function current(array $permissions = [], ?CarbonImmutable $asOf = null): array
     {
-        $catalogue = config('kpi_catalogue');
-        $timezone = (string) ($catalogue['timezone'] ?? 'Europe/Bucharest');
+        $timezone = $this->catalogue->timezone();
         $asOf = ($asOf ?? CarbonImmutable::now($timezone))->setTimezone($timezone);
         $date = $asOf->toDateString();
         $activeDefinitions = KpiDefinition::query()
@@ -33,7 +43,7 @@ class KpiAggregationService
             ->keyBy('key');
 
         $results = [];
-        foreach ($catalogue['definitions'] as $key => $definition) {
+        foreach ($this->catalogue->all() as $key => $definition) {
             $active = $activeDefinitions->get($key);
             $results[] = $active instanceof KpiDefinition
                 ? $this->aggregate($active, $permissions, $asOf, $date)
@@ -41,7 +51,8 @@ class KpiAggregationService
         }
 
         return [
-            'catalogue_version' => (string) $catalogue['version'],
+            'catalogue_version' => $this->catalogue->version(),
+            'catalogue_approval_status' => $this->catalogue->approvalStatus(),
             'as_of' => $date,
             'timezone' => $timezone,
             'results' => $results,
@@ -53,16 +64,23 @@ class KpiAggregationService
      */
     public function aggregate(KpiDefinition $definition, array $permissions, ?CarbonImmutable $asOf = null, ?string $date = null): array
     {
-        $timezone = (string) config('kpi_catalogue.timezone', 'Europe/Bucharest');
+        $timezone = $this->catalogue->timezone();
         $asOf = ($asOf ?? CarbonImmutable::now($timezone))->setTimezone($timezone);
         $date ??= $asOf->toDateString();
         if (! ($permissions[$definition->permission] ?? false)) {
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_permission_denied', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition);
         }
 
+        $contract = $this->catalogue->get($definition->key);
+        if ($contract === null || $contract['availability'] !== 'available') {
+            $reason = $contract['availability'] ?? 'unavailable_missing_calculation';
+
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        }
+
         $value = $this->calculate($definition->calculation_type, $permissions, $date);
 
-        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition);
+        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
     }
 
     /** @param array<string, mixed> $definition
@@ -71,7 +89,10 @@ class KpiAggregationService
      */
     private function aggregateStatic(string $key, array $definition, array $permissions, CarbonImmutable $asOf, string $date): array
     {
-        if (! ($permissions[$definition['permission']] ?? false)) {
+        if ($definition['availability'] !== 'available') {
+            $value = null;
+            $availability = $definition['availability'];
+        } elseif (! ($permissions[$definition['permission']] ?? false)) {
             $value = null;
             $availability = 'unavailable_permission_denied';
         } else {
@@ -79,7 +100,7 @@ class KpiAggregationService
             $availability = $value === null ? 'unavailable' : 'available';
         }
 
-        return $this->result($key, $definition['label'], $definition['domain'], $definition['unit'], $value, $availability, $definition['source'], $definition['permission'], $definition['description'], $asOf, null, null);
+        return $this->result($key, $definition['label'], $definition['domain'], $definition['unit'], $value, $availability, $definition['source'], $definition['permission'], $definition['description'], $asOf, null, null, $definition);
     }
 
     /** @param array<string, bool> $permissions */
@@ -115,20 +136,31 @@ class KpiAggregationService
     }
 
     /** @return array<string, mixed> */
-    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition): array
+    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null): array
     {
+        $contract ??= $this->catalogue->get($key) ?? [];
+
         return [
             'key' => $key,
             'label' => $label,
             'domain' => $domain,
             'version' => $version,
-            'catalogue_version' => config('kpi_catalogue.version'),
+            'catalogue_version' => $this->catalogue->version(),
             'unit' => $unit,
             'value' => $value,
             'state' => $availability === 'available' ? 'available' : 'unavailable',
             'availability' => $availability,
             'as_of' => $asOf->toIso8601String(),
             'source' => $source,
+            'source_service' => $contract['source_service'] ?? null,
+            'calculation_service' => $contract['calculation_service'] ?? null,
+            'calculation_type' => $contract['calculation_type'] ?? null,
+            'formula' => $contract['formula'] ?? null,
+            'dimensions' => $contract['dimensions'] ?? [],
+            'supported_period' => $contract['supported_period'] ?? null,
+            'missing_data' => $contract['missing_data'] ?? null,
+            'approval_status' => $contract['approval_status'] ?? 'provisional',
+            'unavailable_reason' => $contract['unavailable_reason'] ?? null,
             'permission' => $permission,
             'definition' => $description,
             'target_value' => $definition?->target_value,
