@@ -50,7 +50,7 @@ class KpiDefinition extends Model
             $definition->filters ??= [];
             $definition->dimensions ??= [];
             $definition->aggregation ??= 'count';
-            $definition->period ??= ['kind' => 'as_of', 'granularity' => 'day', 'historical' => false];
+            $definition->period = array_merge(['kind' => 'as_of', 'granularity' => 'day', 'historical' => false], $definition->period ?? []);
             $definition->created_by ??= auth()->id();
             $definition->effective_from ??= now()->toDateString();
         });
