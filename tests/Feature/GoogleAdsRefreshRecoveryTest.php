@@ -100,6 +100,38 @@ class GoogleAdsRefreshRecoveryTest extends TestCase
         $this->assertSame(1, $successfulRetry->rows_inserted);
         $this->assertSame(1, GoogleAdsCampaignDailyMetric::query()->count());
         $this->assertSame('ready', $configuration->fresh()->configurationStatus());
+
+        // Duplicate delivery of the original retry request must reuse the same child batch.
+        $duplicateRetry = app(GoogleAdsCampaignMetricsRefreshService::class)->retry($failedBatch, $failedBatch->next_retry_at);
+        $this->assertSame($retry['retry_batch_id'], $duplicateRetry['retry_batch_id']);
+        $this->assertSame('completed', $duplicateRetry['status']);
+        $this->assertSame(2, $adapter->calls);
+        $this->assertDatabaseCount('google_ads_import_batches', 2);
+        $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 1);
+    }
+
+    public function test_scheduled_refresh_command_exits_unsuccessfully_when_a_configuration_fails(): void
+    {
+        $configuration = GoogleAdsImportConfiguration::query()->create($this->configurationAttributes());
+        $adapter = new class implements GoogleAdsCampaignMetricsAdapter
+        {
+            public function fetch(GoogleAdsImportConfiguration $configuration, string $from, string $to): array
+            {
+                throw new GoogleAdsAdapterException('provider_http_503', 'Synthetic provider outage.', true);
+            }
+        };
+        $this->app->instance(GoogleAdsCampaignMetricsAdapter::class, $adapter);
+
+        $this->artisan('market:refresh-google-ads')
+            ->expectsOutput('Google Ads refresh: 0 completed, 1 failed, 0 skipped (of 1 active configurations).')
+            ->assertExitCode(1);
+
+        $this->assertDatabaseHas('google_ads_import_batches', [
+            'configuration_id' => $configuration->getKey(),
+            'status' => 'failed',
+            'error_code' => 'provider_http_503',
+            'retryable' => true,
+        ]);
     }
 
     public function test_non_retryable_payload_failures_are_not_retried(): void

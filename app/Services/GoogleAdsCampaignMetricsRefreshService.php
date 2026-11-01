@@ -38,6 +38,21 @@ class GoogleAdsCampaignMetricsRefreshService
         if ($batch->status !== GoogleAdsImportBatch::STATUS_FAILED || ! $batch->retryable) {
             throw ValidationException::withMessages(['batch' => 'Only failed batches explicitly marked retryable can be retried.']);
         }
+
+        // A retry request may be delivered more than once. Return the first child batch
+        // rather than invoking the provider again; a later attempt must target that child.
+        $existingRetry = GoogleAdsImportBatch::query()
+            ->where('retry_of_batch_id', $batch->getKey())
+            ->first();
+
+        if ($existingRetry instanceof GoogleAdsImportBatch) {
+            return [
+                'batch_id' => $batch->getKey(),
+                'retry_batch_id' => (int) $existingRetry->getKey(),
+                'status' => $existingRetry->status,
+            ];
+        }
+
         if ($batch->next_retry_at !== null && $batch->next_retry_at->gt($now ?? CarbonImmutable::now())) {
             throw ValidationException::withMessages(['batch' => 'Retry is delayed until '.$batch->next_retry_at->toDateTimeString().' by the provider backoff policy.']);
         }
