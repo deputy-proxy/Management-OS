@@ -33,7 +33,7 @@ class KpiDefinitionForm
                         ->options(fn (Get $get): array => self::configurationOptions($get))
                         ->required(),
                     Select::make('operator')
-                        ->options(['eq' => 'Equals', 'neq' => 'Does not equal', 'in' => 'Is one of'])
+                        ->options(['eq' => 'Equals', 'neq' => 'Does not equal'])
                         ->default('eq')
                         ->required(),
                     TextInput::make('value')
