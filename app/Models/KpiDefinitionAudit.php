@@ -4,9 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class KpiDefinitionAudit extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(fn () => throw new LogicException('KPI definition audit records are immutable.'));
+        static::deleting(fn () => throw new LogicException('KPI definition audit records are immutable.'));
+    }
+
     public $timestamps = false;
 
     protected $fillable = [

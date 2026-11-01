@@ -125,6 +125,28 @@ class KpiDefinitionGovernanceTest extends TestCase
         }
     }
 
+    public function test_audit_records_cannot_be_updated_or_deleted(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.create', fn (): bool => true);
+        $definition = app(KpiDefinitionService::class)->createDraft([
+            'key' => 'customer_record_count',
+            'effective_from' => Carbon::tomorrow('Europe/Bucharest')->toDateString(),
+        ]);
+        $audit = KpiDefinitionAudit::query()->where('kpi_definition_id', $definition->id)->firstOrFail();
+
+        try {
+            $audit->update(['change_summary' => 'Tampered history.']);
+            $this->fail('Expected audit updates to be rejected.');
+        } catch (\LogicException) {
+            $this->assertDatabaseHas('kpi_definition_audits', ['id' => $audit->id, 'change_summary' => 'Created KPI definition draft.']);
+        }
+
+        $this->expectException(\LogicException::class);
+        $audit->delete();
+    }
+
     public function test_service_rejects_attempts_to_change_non_draft_fields(): void
     {
         $user = User::factory()->create();
