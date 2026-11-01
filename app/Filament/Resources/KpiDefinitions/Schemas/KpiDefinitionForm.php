@@ -23,6 +23,7 @@ class KpiDefinitionForm
                 ->options(app(KpiCatalogueRegistry::class)->options())
                 ->required()
                 ->searchable()
+                ->live()
                 ->disabled(fn (?KpiDefinition $record): bool => $record !== null),
             DatePicker::make('effective_from')
                 ->required()
