@@ -108,4 +108,7 @@ Use synthetic fixtures and provider-approved test accounts to verify pagination,
 
 ## Acceptance status
 
-This document proposes a requirements contract grounded in the existing model/service surface. It is not an approved business specification, provider-access approval, legal/terms review, or proof of live data freshness. No integration or calculation behavior is changed here; implementation remains gated on explicit owner decisions and source review.
+Issue #359 implements a configurable provisional catalogue for tracked markets, segments, and metrics, with exact allowed-unit and period-length checks. Existing `MarketTrend` string fields remain compatible and can optionally link to configured definitions. Data availability, source type, freshness, and verification are represented independently. The seeded catalogue entries remain provisional; business-owner approval, metric semantics, source selection, and freshness thresholds are still pending. See [market intelligence data contracts](market-intelligence-data-contracts.md).
+
+
+This document proposes a requirements contract grounded in the existing model/service surface. It is not an approved business specification, provider-access approval, legal/terms review, or proof of live data freshness. The configuration contract is implemented provisionally; provider integrations, source-specific calculations, and business-facing KPI commitments remain gated on explicit owner decisions and source review.

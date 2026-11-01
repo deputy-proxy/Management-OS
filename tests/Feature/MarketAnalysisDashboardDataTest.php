@@ -134,6 +134,30 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertSame([], $hidden['market_trends']['recent']);
     }
 
+    public function test_dashboard_preserves_missing_and_source_quality_states_without_zero_imputation(): void
+    {
+        MarketTrend::query()->create([
+            'name' => 'Unavailable search index', 'category' => 'search_interest', 'metric_key' => 'search_interest_index',
+            'value' => null, 'unit' => 'index', 'market' => 'Romania', 'segment' => null,
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'source_name' => 'Public source',
+            'observed_at' => '2026-11-01 10:00:00', 'status' => 'active', 'data_status' => 'missing',
+            'missing_reason' => 'The source did not publish a value.', 'source_type' => 'imported',
+            'source_reference' => 'provider:missing:2026-10', 'freshness_status' => 'stale',
+            'verification_status' => 'unverified',
+        ]);
+
+        $summary = app(MarketAnalysisDashboardData::class)->summary(['market_trend.index' => true]);
+        $trend = $summary['market_trends']['recent'][0];
+
+        $this->assertNull($trend['value']);
+        $this->assertSame('missing', $trend['data_status']);
+        $this->assertSame('imported', $trend['source_type']);
+        $this->assertSame('stale', $trend['freshness_status']);
+        $this->assertSame('unverified', $trend['verification_status']);
+        $this->assertSame('provider:missing:2026-10', $trend['source_reference']);
+        $this->assertSame('The source did not publish a value.', $trend['missing_reason']);
+    }
+
     public function test_freshness_window_includes_today_and_the_prior_29_days_and_flags_future_dates(): void
     {
         $today = CarbonImmutable::parse('2026-10-18 12:00:00', config('app.timezone'));

@@ -47,4 +47,7 @@ Use synthetic fixtures for overlapping and adjacent periods, repeated imports, s
 
 ## Current decision status
 
+Issue #359 adds permissioned configuration for tracked markets, segments, and metric definitions. Initial catalogue entries are explicitly provisional examples based on synthetic fixtures; they are not business-owner-approved taxonomy. Trend observations can link to these definitions while retaining legacy string fields. Missing data is represented without a numeric zero, and source type, freshness, and verification are separate dimensions. These changes do not validate live sources or approve provider terms.
+
+
 The repository now contains a versioned manual-observation policy and a Google Ads import policy, plus synthetic tests for provenance, idempotency, permission gating, and currency separation. This does not substitute for deployment evidence: no live Google Ads credentials were used during tests, and source accuracy, Cloud-project access, data-use terms, and imported totals still need operational verification. Public-market provider selection and automated collection remain out of scope for this implementation.
