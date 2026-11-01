@@ -80,9 +80,18 @@ class KpiAggregationService
 
         $filters = $definition->getAttribute('filters') ?? [];
         $dimensions = $definition->getAttribute('dimensions') ?? [];
-        if (! is_array($filters) || ! is_array($dimensions)) {
+        $aggregation = $definition->getAttribute('aggregation') ?? 'count';
+        $period = $definition->getAttribute('period') ?? ['kind' => 'as_of', 'granularity' => 'day', 'historical' => false];
+        if (! is_array($filters) || ! is_array($dimensions) || ! is_string($aggregation) || ! is_array($period)) {
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
+        try {
+            $configuration = app(KpiDefinitionConfiguration::class)->validate($definition->calculation_type, $filters, $dimensions, $aggregation, $period);
+        } catch (ValidationException) {
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        }
+        $filters = $configuration['filters'];
+        $dimensions = $configuration['dimensions'];
         $value = $this->calculate($definition->calculation_type, $permissions, $date, $filters);
         $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $dimensions);
 
