@@ -61,6 +61,7 @@ class CustomerLeadsTable
             ])
             ->filters([
                 SelectFilter::make('status')->options(CustomerLead::statuses()),
+                SelectFilter::make('source_category')->label('Source category')->options(CustomerLead::sourceCategories()),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([

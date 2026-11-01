@@ -6,6 +6,7 @@ use App\Events\CustomerLeadConverted;
 use App\Models\Customer;
 use App\Models\CustomerContract;
 use App\Models\CustomerLead;
+use App\Services\CustomerLeadAttributionHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
@@ -108,6 +109,8 @@ class ConvertCustomerLead
                 'converted_customer_id' => $customer->getKey(),
                 'converted_at' => now(),
             ])->save();
+
+            app(CustomerLeadAttributionHistory::class)->recordConversion($lockedLead);
 
             Event::dispatch(new CustomerLeadConverted(
                 (int) $lockedLead->getKey(),

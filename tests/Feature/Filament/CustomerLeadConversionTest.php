@@ -72,6 +72,8 @@ class CustomerLeadConversionTest extends TestCase
         $this->assertSame('converted', $lead->status);
         $this->assertSame($customer->getKey(), $lead->converted_customer_id);
         $this->assertNotNull($lead->converted_at);
+        $this->assertSame(1, $lead->attributionEvents()->where('event_type', 'conversion')->count());
+        $this->assertSame($customer->getKey(), $lead->attributionEvents()->where('event_type', 'conversion')->first()->snapshot['conversion']['customer_id']);
         $this->assertSame($customer->getKey(), $lead->convertedCustomer->getKey());
         $this->assertSame($contract->getKey(), $lead->customerContract->getKey());
     }
