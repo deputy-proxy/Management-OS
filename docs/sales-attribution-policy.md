@@ -31,7 +31,8 @@ Capture a consistent source category while retaining the original free-text sour
 - Existing leads receive `unknown` for the normalized category. No category is inferred from legacy free text by migration.
 - Campaign and referral fields are optional. Missing values remain null; no campaign ID, referral, advertising platform, or spend is invented.
 - `attribution_policy_version` records the policy version used when captured. `source_captured_at` records the time when the source was captured if known, not an inferred lead creation time.
-- Source metadata changes are activity-logged. Existing lead status history remains separate from attribution metadata.
+- Source metadata changes are activity-logged and appended to `customer_lead_attribution_events` as immutable snapshots. The first-touch event records the initial captured state; each subsequent attribution edit appends a last-touch candidate. Existing lead status history remains separate from attribution metadata.
+- Conversion appends one idempotent conversion event containing separate lead-level `first_touch` and `last_touch` snapshots plus the linked customer and conversion timestamp. These snapshots describe this lead only; they do not assign customer-level or multi-touch marketing credit. Leads that predate event capture have no fabricated first-touch event, and their conversion snapshot keeps first touch unavailable.
 - Multiple leads may refer to one customer. Do not deduplicate or merge them automatically, and do not treat a lead source as a customer's unique first-touch source without a separately defined customer-level attribution rule.
 - A lead's source category alone is not enough to calculate CAC, CLV, retention, or campaign ROI. Those reports require separately approved cost, conversion, identity, revenue, and observation-window contracts.
 
@@ -41,8 +42,8 @@ Reports must group on the controlled category and show `unknown` and `other` sep
 
 ## Validation
 
-The application rejects categories outside the controlled vocabulary. Legacy source detail is preserved. Tests cover migration-compatible unknown values, valid category changes, and invalid category rejection.
+The application rejects categories outside the controlled vocabulary. Legacy source detail is preserved. Tests cover migration-compatible unknown values, valid category changes, invalid category rejection, immutable attribution history, conversion snapshots, duplicate conversion attempts, and exact capture-time boundaries.
 
 ## Limitations
 
-This policy is version `v1` and is an operational taxonomy, not a claim of complete advertising attribution. It does not establish first-touch/last-touch/multi-touch credit, cross-device identity resolution, campaign cost allocation, or Google Ads synchronization. Those require separate contracts and tests.
+This policy is version `v1` and is an operational taxonomy, not a claim of complete advertising attribution. It does not establish customer-level first-touch/last-touch/multi-touch credit, cross-device identity resolution, campaign cost allocation, or Google Ads synchronization. Lead-level first/last snapshots are audit evidence only. Customer-level credit and production taxonomy approval require separate contracts and tests.

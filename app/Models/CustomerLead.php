@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
 use App\Models\Concerns\HasTasks;
+use App\Services\CustomerLeadAttributionHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,6 +49,11 @@ class CustomerLead extends Model implements Commentable
     public function statusHistory(): HasMany
     {
         return $this->hasMany(CustomerLeadStatusHistory::class)->orderBy('changed_at')->orderBy('id');
+    }
+
+    public function attributionEvents(): HasMany
+    {
+        return $this->hasMany(CustomerLeadAttributionEvent::class)->orderBy('occurred_at')->orderBy('id');
     }
 
     public function customerContract(): HasOne
@@ -105,11 +111,17 @@ class CustomerLead extends Model implements Commentable
 
         static::created(function (CustomerLead $lead): void {
             $lead->recordStatusHistory(null, (string) $lead->status);
+            app(CustomerLeadAttributionHistory::class)->recordFirstTouch($lead);
         });
 
         static::updated(function (CustomerLead $lead): void {
             if ($lead->statusBeforeSave !== null) {
                 $lead->recordStatusHistory($lead->statusBeforeSave, (string) $lead->status);
+            }
+
+            $attributionHistory = app(CustomerLeadAttributionHistory::class);
+            if ($attributionHistory->hasAttributionChanged($lead)) {
+                $attributionHistory->recordAttributionChange($lead);
             }
 
             $lead->statusBeforeSave = null;
