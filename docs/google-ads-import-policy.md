@@ -11,6 +11,14 @@ The importer uses the Google Ads REST `GoogleAdsService.Search` endpoint and GAQ
 
 Google's official guidance says developer tokens were sunset on 9 September 2026 and access levels are now associated with Google Cloud projects. The implementation therefore uses OAuth credentials and does not send a developer-token header. Confirm the configured Cloud project has the required API access level before production use: [developer-token/access migration](https://developers.google.com/google-ads/api/docs/api-policy/developer-token).
 
+## Application configuration and adapter boundary
+
+`GoogleAdsImportConfiguration` stores the account and optional manager customer IDs, a bounded campaign selection, a default date-window length or an explicit fixed date window, the expected account currency, and the canonical metric-field mapping. Empty campaign selection means all campaigns in the configured account. A configured currency is an assertion: a provider response with a different currency is rejected, never converted.
+
+The Filament configuration resource uses the existing `market_intelligence_configuration.view` and `market_intelligence_configuration.manage` permissions. Configuration status is explicit (`ready`, `not_configured`, `disabled`, or `error`); the last safe provider error code and check timestamp are visible to configuration viewers, and a successful check clears the prior error. The importer depends on `GoogleAdsCampaignMetricsAdapter`; the production REST adapter and deterministic mock adapter share the same normalized row contract. Provider errors expose a safe error code and retryability classification without recording response bodies or credentials. The importer validates every normalized row before the existing transaction/upsert boundary, including rows returned by mock adapters.
+
+The database stores only the approved `env:GOOGLE_ADS` credential reference. It never stores OAuth client secrets, refresh tokens, or access tokens. The reference resolves to deployment-managed `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, and `GOOGLE_ADS_REFRESH_TOKEN` configuration. A missing reference or missing credential makes the integration `not_configured`; it does not trigger a live request. The fixed metric mapping is versioned in application code and stored with each configuration so arbitrary provider fields cannot be injected into GAQL.
+
 ## Imported grain and fields
 
 One row represents one Ads account, campaign, and calendar date. The natural key is `(account_customer_id, campaign_id, metric_date)`. Fields are campaign name, impressions, clicks, cost in provider micros, conversions, account currency, API version, and import timestamp. Cost is not silently converted to RON or another currency. Provider conversions are not automatically equated to unique converted leads or customer revenue.
@@ -30,7 +38,7 @@ One row represents one Ads account, campaign, and calendar date. The natural key
 - Do not combine currencies or infer VAT, refunds, net spend, marketing attribution, CAC, or LTV from these rows.
 - Do not match Ads conversions to leads without an approved click/conversion identity and deduplication contract.
 - Provider responses and tokens are not logged. Failure messages expose HTTP status and request ID only where available.
-- The import is read-only against Ads. It does not create campaigns or change bids, budgets, ads, audiences, or conversion actions.
+- Use `--configuration=<id>` to run against a saved configuration; without it, the command uses deployment environment defaults. The import is read-only against Ads. It does not create campaigns or change bids, budgets, ads, audiences, or conversion actions.
 
 ## Operational setup
 

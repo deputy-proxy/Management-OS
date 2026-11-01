@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\GoogleAdsImportConfiguration;
 use App\Services\GoogleAdsCampaignMetricsImporter;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
@@ -9,7 +10,7 @@ use Throwable;
 
 class ImportGoogleAdsCampaignMetrics extends Command
 {
-    protected $signature = 'market:import-google-ads {--from= : First date YYYY-MM-DD} {--to= : Last date YYYY-MM-DD} {--dry-run : Fetch and validate without writing rows}';
+    protected $signature = 'market:import-google-ads {--from= : First date YYYY-MM-DD} {--to= : Last date YYYY-MM-DD} {--configuration= : Saved Google Ads import configuration ID} {--dry-run : Fetch and validate without writing rows}';
 
     protected $description = 'Import daily Google Ads campaign metrics for a bounded date range.';
 
@@ -23,8 +24,18 @@ class ImportGoogleAdsCampaignMetrics extends Command
             return self::INVALID;
         }
 
+        $configuration = null;
+        if ($this->option('configuration') !== null) {
+            $configuration = GoogleAdsImportConfiguration::query()->find($this->option('configuration'));
+            if (! $configuration) {
+                $this->error('Google Ads import configuration was not found.');
+
+                return self::INVALID;
+            }
+        }
+
         try {
-            $result = $importer->import($from, $to, (bool) $this->option('dry-run'));
+            $result = $importer->import($from, $to, (bool) $this->option('dry-run'), $configuration);
         } catch (ValidationException $exception) {
             $this->error(collect($exception->errors())->flatten()->implode(' '));
 
