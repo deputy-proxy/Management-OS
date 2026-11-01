@@ -134,13 +134,13 @@ class KpiAggregationService
             $column = match ($filter['field']) {
                 'status' => 'status',
                 'source_category' => 'source_category',
-                default => throw new \\LogicException('Unregistered KPI filter field.'),
+                default => throw new \LogicException('Unregistered KPI filter field.'),
             };
             match ($filter['operator']) {
                 'eq' => $query->where($column, '=', $filter['value']),
                 'neq' => $query->where($column, '!=', $filter['value']),
                 'in' => $query->whereIn($column, $filter['value']),
-                default => throw new \\LogicException('Unregistered KPI filter operator.'),
+                default => throw new \LogicException('Unregistered KPI filter operator.'),
             };
         }
 
@@ -180,7 +180,7 @@ class KpiAggregationService
         $breakdown = [];
         foreach ($rows as $row) {
             $label = collect($dimensions)
-                ->map(fn (string $field): string => $field.'='.((string) ($row->{$field} ?? '(empty)')))
+                ->map(fn (string $field): string => $field.'='.((string) ($row->getAttribute($field) ?? '(empty)')))
                 ->implode(' / ');
             $breakdown[$label] = (int) $row->aggregate;
         }
