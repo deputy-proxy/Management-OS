@@ -10,6 +10,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
+/**
+ * @property array<int, array{field: string, operator: string, value: string|array<int, string>}>|null $filters
+ * @property array<int, string>|null $dimensions
+ * @property array{kind: string, granularity: string, historical: bool}|null $period
+ */
 class KpiDefinition extends Model
 {
     public const STATUS_DRAFT = 'draft';
