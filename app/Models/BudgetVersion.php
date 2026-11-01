@@ -57,6 +57,10 @@ class BudgetVersion extends Model
 
         static::updating(function (self $version): void {
             $originalStatus = $version->getOriginal('status');
+            $persistedStatus = static::query()->whereKey($version->getKey())->value('status');
+            if ((string) $persistedStatus !== (string) $originalStatus) {
+                throw new LogicException('Budget version state changed. Refresh the record before editing it.');
+            }
             if ($originalStatus === self::STATUS_DRAFT) {
                 return;
             }

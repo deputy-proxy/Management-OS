@@ -69,6 +69,10 @@ class BudgetVersionService
         }
 
         return DB::transaction(function () use ($version, $data): BudgetVersion {
+            $version = BudgetVersion::query()->lockForUpdate()->findOrFail($version->getKey());
+            if ($version->status !== BudgetVersion::STATUS_DRAFT) {
+                throw ValidationException::withMessages(['status' => 'Only draft budget versions can be edited.']);
+            }
             $normalized = $this->normalizeVersionData($data);
             $version->fill($normalized);
             $version->save();
@@ -89,6 +93,9 @@ class BudgetVersionService
 
         return DB::transaction(function () use ($version): BudgetVersion {
             $version = BudgetVersion::query()->with('lineItems')->lockForUpdate()->findOrFail($version->getKey());
+            if ($version->status !== BudgetVersion::STATUS_DRAFT) {
+                throw ValidationException::withMessages(['status' => 'Only draft budget versions can be submitted.']);
+            }
             $this->assertNoPeriodOverlap($version);
             $this->assertLineItemDimensions($version);
             if ($version->lineItems->isEmpty()) {
@@ -113,6 +120,9 @@ class BudgetVersionService
 
         return DB::transaction(function () use ($version): BudgetVersion {
             $version = BudgetVersion::query()->with('lineItems')->lockForUpdate()->findOrFail($version->getKey());
+            if ($version->status !== BudgetVersion::STATUS_SUBMITTED) {
+                throw ValidationException::withMessages(['status' => 'Only submitted budget versions can be approved.']);
+            }
             $this->assertNoPeriodOverlap($version);
             $version->status = BudgetVersion::STATUS_APPROVED;
             $version->approved_by = auth()->id();
@@ -132,6 +142,10 @@ class BudgetVersionService
         }
 
         return DB::transaction(function () use ($version): BudgetVersion {
+            $version = BudgetVersion::query()->lockForUpdate()->findOrFail($version->getKey());
+            if ($version->status !== BudgetVersion::STATUS_APPROVED) {
+                throw ValidationException::withMessages(['status' => 'Only approved budget versions can be retired.']);
+            }
             $version->status = BudgetVersion::STATUS_RETIRED;
             $version->retired_by = auth()->id();
             $version->retired_at = now();

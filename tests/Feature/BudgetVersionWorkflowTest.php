@@ -48,6 +48,12 @@ class BudgetVersionWorkflowTest extends TestCase
         $service = app(BudgetVersionService::class);
 
         $submitted = $service->submit($version);
+        try {
+            $version->update(['period_end' => '2028-01-01']);
+            $this->fail('A stale draft instance must not mutate a submitted version.');
+        } catch (LogicException) {
+            $this->assertSame('2027-12-31', $submitted->fresh()->period_end->toDateString());
+        }
         $this->assertSame(BudgetVersion::STATUS_SUBMITTED, $submitted->status);
         $this->assertNotNull($submitted->submitted_at);
 
