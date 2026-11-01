@@ -35,7 +35,7 @@ class KpiDefinitionConfiguration
     }
 
     /**
-     * @param array<int, array{field?: mixed, operator?: mixed, value?: mixed}> $filters
+     * @param array<int, mixed> $filters
      * @param array<int, mixed> $dimensions
      * @return array{filters: array<int, array{field: string, operator: string, value: string|array<int, string>}>, dimensions: list<string>, aggregation: string, period: array{kind: string, granularity: string, historical: bool}}
      */
@@ -111,7 +111,7 @@ class KpiDefinitionConfiguration
      * Preview only uses caller-supplied synthetic rows and is deliberately
      * bounded. It never queries production records.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param array<int, mixed> $rows
      * @param array<string, mixed> $configuration
      * @return array{synthetic: bool, sample_size: int, value: int, breakdown: array<string, int>}
      */
