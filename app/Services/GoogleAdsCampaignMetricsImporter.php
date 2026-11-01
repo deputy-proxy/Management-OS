@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Contracts\Advertising\GoogleAdsCampaignMetricsAdapter;
+use App\Models\GoogleAdsCampaignDailyMetricRevision;
+use App\Models\GoogleAdsImportBatch;
 use App\Models\GoogleAdsImportConfiguration;
 use App\Services\GoogleAds\GoogleAdsAdapterException;
 use Carbon\CarbonImmutable;
@@ -14,7 +16,7 @@ class GoogleAdsCampaignMetricsImporter
 {
     public function __construct(private readonly GoogleAdsCampaignMetricsAdapter $adapter) {}
 
-    /** @return array{customer_id: string, from: string, to: string, row_count: int, dry_run: bool} */
+    /** @return array{customer_id: string, from: string, to: string, row_count: int, dry_run: bool, batch_id: int|null, status: string} */
     public function import(string $from, string $to, bool $dryRun = false, ?GoogleAdsImportConfiguration $configuration = null): array
     {
         $configuration ??= $this->environmentConfiguration();
@@ -27,27 +29,67 @@ class GoogleAdsCampaignMetricsImporter
             throw ValidationException::withMessages(['configuration' => $message]);
         }
 
+        $batch = $dryRun ? null : GoogleAdsImportBatch::query()->create([
+            'configuration_id' => $configuration->exists ? $configuration->getKey() : null,
+            'account_customer_id' => $configuration->customer_id,
+            'period_start' => $start->toDateString(),
+            'period_end' => $end->toDateString(),
+            'source_name' => 'google_ads',
+            'source_version' => (string) config('services.google_ads.api_version', 'v26'),
+            'status' => GoogleAdsImportBatch::STATUS_RUNNING,
+            'row_count' => 0,
+            'started_at' => now(),
+        ]);
+
         try {
             $rows = $this->adapter->fetch($configuration, $start->toDateString(), $end->toDateString());
+            $identities = [];
+            $versions = [];
             foreach ($rows as $row) {
                 $this->validateNormalizedRow($row, $configuration, $start->toDateString(), $end->toDateString());
+                $identity = $row['account_customer_id'].'|'.$row['campaign_id'].'|'.$row['metric_date'];
+                if (isset($identities[$identity])) {
+                    throw new RuntimeException('Google Ads adapter returned a duplicate campaign-day identity.');
+                }
+                $identities[$identity] = true;
+                $versions[$row['api_version']] = true;
+            }
+            if (count($versions) > 1) {
+                throw new RuntimeException('Google Ads adapter returned rows from mixed source API versions.');
+            }
+            $sourceVersion = array_key_first($versions) ?? (string) config('services.google_ads.api_version', 'v26');
+
+            if (! $dryRun && $batch instanceof GoogleAdsImportBatch) {
+                DB::transaction(function () use ($rows, $batch, $sourceVersion, $configuration): void {
+                    foreach ($rows as $row) {
+                        $this->persistRow($row, $batch, $sourceVersion);
+                    }
+                    $batch->forceFill([
+                        'source_version' => $sourceVersion,
+                        'status' => GoogleAdsImportBatch::STATUS_COMPLETED,
+                        'row_count' => count($rows),
+                        'error_code' => null,
+                        'completed_at' => now(),
+                    ])->save();
+                    $configuration->markAdapterReady();
+                });
+            } else {
+                $configuration->markAdapterReady();
             }
         } catch (\Throwable $exception) {
-            $configuration->markAdapterError($exception instanceof GoogleAdsAdapterException ? $exception->errorCode : 'invalid_adapter_payload');
+            if ($batch instanceof GoogleAdsImportBatch) {
+                $batch->forceFill([
+                    'status' => GoogleAdsImportBatch::STATUS_FAILED,
+                    'error_code' => $exception instanceof GoogleAdsAdapterException
+                        ? $exception->errorCode
+                        : ($exception instanceof RuntimeException ? 'invalid_import_payload' : 'import_failed'),
+                    'completed_at' => now(),
+                ])->save();
+            }
+            $configuration->markAdapterError($exception instanceof GoogleAdsAdapterException
+                ? $exception->errorCode
+                : ($exception instanceof RuntimeException ? 'invalid_adapter_payload' : 'import_failed'));
             throw $exception;
-        }
-        $configuration->markAdapterReady();
-
-        if (! $dryRun && $rows !== []) {
-            DB::transaction(function () use ($rows): void {
-                foreach (array_chunk($rows, 500) as $chunk) {
-                    DB::table('google_ads_campaign_daily_metrics')->upsert(
-                        $chunk,
-                        ['account_customer_id', 'campaign_id', 'metric_date'],
-                        ['campaign_name', 'impressions', 'clicks', 'cost_micros', 'conversions', 'currency_code', 'api_version', 'imported_at'],
-                    );
-                }
-            });
         }
 
         return [
@@ -56,7 +98,89 @@ class GoogleAdsCampaignMetricsImporter
             'to' => $end->toDateString(),
             'row_count' => count($rows),
             'dry_run' => $dryRun,
+            'batch_id' => $batch?->getKey(),
+            'status' => $dryRun ? 'validated' : GoogleAdsImportBatch::STATUS_COMPLETED,
         ];
+    }
+
+    /** @param array<string, mixed> $row */
+    private function persistRow(array $row, GoogleAdsImportBatch $batch, string $sourceVersion): void
+    {
+        $identity = [
+            'account_customer_id' => $row['account_customer_id'],
+            'campaign_id' => $row['campaign_id'],
+            'metric_date' => $row['metric_date'],
+        ];
+        $existing = DB::table('google_ads_campaign_daily_metrics')
+            ->where($identity)
+            ->lockForUpdate()
+            ->first();
+        $values = [
+            'campaign_name' => $row['campaign_name'],
+            'impressions' => $row['impressions'],
+            'clicks' => $row['clicks'],
+            'cost_micros' => $row['cost_micros'],
+            'conversions' => $row['conversions'],
+            'currency_code' => $row['currency_code'],
+            'api_version' => $sourceVersion,
+            'source_name' => 'google_ads',
+            'source_version' => $sourceVersion,
+        ];
+        $now = now();
+        $importedAt = CarbonImmutable::parse($row['imported_at']);
+
+        if ($existing === null) {
+            DB::table('google_ads_campaign_daily_metrics')->insert($identity + $values + [
+                'import_batch_id' => $batch->getKey(),
+                'imported_at' => $importedAt,
+            ]);
+
+            return;
+        }
+
+        $changed = false;
+        foreach ($values as $field => $value) {
+            $existingValue = (string) $existing->{$field};
+            $incomingValue = (string) $value;
+            if ($field === 'conversions') {
+                $existingValue = number_format((float) $existingValue, 6, '.', '');
+                $incomingValue = number_format((float) $incomingValue, 6, '.', '');
+            }
+            if ($existingValue !== $incomingValue) {
+                $changed = true;
+                break;
+            }
+        }
+        if ($changed) {
+            GoogleAdsCampaignDailyMetricRevision::query()->create([
+                'metric_id' => $existing->id,
+                'import_batch_id' => $batch->getKey(),
+                'previous_values' => [
+                    'account_customer_id' => $existing->account_customer_id,
+                    'campaign_id' => $existing->campaign_id,
+                    'campaign_name' => $existing->campaign_name,
+                    'metric_date' => $existing->metric_date,
+                    'impressions' => (string) $existing->impressions,
+                    'clicks' => (string) $existing->clicks,
+                    'cost_micros' => (string) $existing->cost_micros,
+                    'conversions' => (string) $existing->conversions,
+                    'currency_code' => $existing->currency_code,
+                    'api_version' => $existing->api_version,
+                    'source_name' => $existing->source_name,
+                    'source_version' => $existing->source_version,
+                    'import_batch_id' => $existing->import_batch_id,
+                    'imported_at' => $existing->imported_at,
+                ],
+                'revised_at' => $now,
+            ]);
+        }
+
+        $previousImportedAt = CarbonImmutable::parse($existing->imported_at);
+        $freshestImportedAt = $previousImportedAt->greaterThan($importedAt) ? $previousImportedAt : $importedAt;
+        DB::table('google_ads_campaign_daily_metrics')->where('id', $existing->id)->update($values + [
+            'import_batch_id' => $batch->getKey(),
+            'imported_at' => $freshestImportedAt,
+        ]);
     }
 
     /** @param array<string, mixed> $row */

@@ -27,9 +27,11 @@ One row represents one Ads account, campaign, and calendar date. The natural key
 
 - Imports require explicit `--from` and `--to` dates in `YYYY-MM-DD` format.
 - The range must be ordered, not in the future, and no wider than the configured 90-day maximum by default.
-- Repeated imports upsert the same natural key so provider corrections replace prior values rather than duplicating rows.
-- All pages are fetched and validated before a transaction writes data. Malformed rows or provider failures fail the import without partial persistence.
-- `--dry-run` fetches and validates without writing. A zero-row response is valid and does not delete prior records.
+- Each non-dry-run execution creates a durable import batch with account, requested period, source name/version, status, row count, start/completion timestamps, and a safe error code on failure. The CLI prints the batch ID.
+- Repeated imports upsert the same natural key. Exact replays refresh row provenance/freshness without creating a false revision; provider corrections replace current values and write the complete prior metric/provenance snapshot to `google_ads_campaign_daily_metric_revisions`.
+- Current metric rows identify their latest successful batch, source name/version, API version, and import timestamp. Batch and revision history is retained for auditability.
+- All pages are fetched and every normalized row is validated, including duplicate natural keys and consistent source version, before a transaction writes data. Metric updates, correction snapshots, and successful batch completion commit together. Malformed rows, provider failures, or database errors leave metric data unchanged and mark the batch failed with a safe code.
+- `--dry-run` fetches and validates without creating a batch or writing rows. A zero-row response is a completed batch and does not delete prior records or infer zero-valued metrics for campaigns absent from the response.
 - Routine refresh should re-fetch a bounded recent window to capture attribution adjustments. Scheduling is not enabled by this change.
 
 ## Reporting guardrails
@@ -52,4 +54,4 @@ After output reconciles to the Ads UI, an authorized operator can run without `-
 
 ## Validation
 
-Tests cover pagination, idempotent upserts, currency preservation, manager-account headers, dry-run, invalid date ranges, and malformed provider rows. Live integration remains unverified until valid credentials and account access are configured in deployment.
+Tests cover pagination, replayed batches, correction snapshots, missing campaigns, source/version/freshness provenance, currency preservation, manager-account headers, dry-run, invalid date ranges, duplicate natural keys, and malformed provider rows. Live integration remains unverified until valid credentials and account access are configured in deployment.

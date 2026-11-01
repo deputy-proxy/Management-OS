@@ -49,6 +49,9 @@ class ImportGoogleAdsCampaignMetrics extends Command
 
         $verb = $result['dry_run'] ? 'Validated' : 'Imported';
         $this->info(sprintf('%s %d campaign-day rows for customer %s (%s through %s).', $verb, $result['row_count'], $result['customer_id'], $result['from'], $result['to']));
+        if ($result['batch_id'] !== null) {
+            $this->line('Import batch: '.$result['batch_id']);
+        }
         if ($result['dry_run']) {
             $this->warn('Dry run: no rows were written.');
         }
