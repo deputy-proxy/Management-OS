@@ -55,10 +55,11 @@ class KpiDefinition extends Model
             $definition->filters ??= [];
             $definition->dimensions ??= [];
             $definition->aggregation ??= 'count';
-            if ($definition->period !== null && ! is_array($definition->period)) {
+            $period = $definition->getAttribute('period');
+            if ($period !== null && ! is_array($period)) {
                 throw ValidationException::withMessages(['period' => 'KPI period settings must be a structured object.']);
             }
-            $period = $definition->period ?? [];
+            $period = is_array($period) ? $period : [];
             $definition->period = [
                 'kind' => (string) ($period['kind'] ?? 'as_of'),
                 'granularity' => (string) ($period['granularity'] ?? 'day'),
@@ -70,15 +71,18 @@ class KpiDefinition extends Model
 
         static::saving(function (self $definition): void {
             $definition->threshold_direction ??= 'target_only';
-            if (! is_array($definition->filters) || ! is_array($definition->dimensions) || ! is_array($definition->period)) {
+            $filters = $definition->getAttribute('filters');
+            $dimensions = $definition->getAttribute('dimensions');
+            $period = $definition->getAttribute('period');
+            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period)) {
                 throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, and period must be structured arrays.']);
             }
             app(KpiDefinitionConfiguration::class)->validate(
                 (string) $definition->calculation_type,
-                $definition->filters ?? [],
-                $definition->dimensions ?? [],
+                $filters,
+                $dimensions,
                 $definition->aggregation ?? 'count',
-                $definition->period,
+                $period,
             );
             if (! in_array($definition->threshold_direction, ['higher_is_worse', 'lower_is_worse', 'target_only'], true)) {
                 throw ValidationException::withMessages(['threshold_direction' => 'Choose a supported threshold direction.']);
