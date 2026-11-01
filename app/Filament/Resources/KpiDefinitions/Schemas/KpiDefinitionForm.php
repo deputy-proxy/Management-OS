@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\KpiDefinitions\Schemas;
 
-use App\Models\CustomerLead;
 use App\Models\KpiDefinition;
+use App\Models\User;
 use App\Services\KpiCatalogueRegistry;
 use App\Services\KpiDefinitionConfiguration;
 use Filament\Forms\Components\DatePicker;
@@ -11,6 +11,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
@@ -75,6 +76,17 @@ class KpiDefinitionForm
                 ->numeric()->minValue(0)->step('0.000001'),
             TextInput::make('critical_threshold')
                 ->numeric()->minValue(0)->step('0.000001'),
+            Toggle::make('alerts_enabled')
+                ->label('Enable KPI threshold alerts')
+                ->default(false)
+                ->helperText('Threshold rules remain provisional. Notification delivery is disabled until separately approved and configured.'),
+            TextInput::make('alert_cooldown_minutes')
+                ->numeric()->integer()->minValue(1)->maxValue(10080)->default(60)
+                ->label('Alert cooldown (minutes)'),
+            Select::make('alert_owner_id')
+                ->label('Alert owner')
+                ->options(fn (): array => User::query()->orderBy('name')->pluck('name', 'id')->all())
+                ->searchable(),
             Textarea::make('change_summary')
                 ->label('Change summary')
                 ->required()

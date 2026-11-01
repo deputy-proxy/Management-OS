@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\KpiDefinition;
 use App\Models\KpiDefinitionAudit;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +22,9 @@ class KpiDefinitionService
         'warning_threshold',
         'critical_threshold',
         'threshold_direction',
+        'alerts_enabled',
+        'alert_cooldown_minutes',
+        'alert_owner_id',
     ];
 
     public function queryForCurrentUser(): Builder

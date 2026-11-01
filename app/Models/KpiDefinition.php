@@ -19,13 +19,16 @@ use LogicException;
 class KpiDefinition extends Model
 {
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_RETIRED = 'retired';
 
     protected $fillable = [
         'key', 'version', 'label', 'description', 'domain', 'calculation_type', 'unit', 'source',
         'date_basis', 'permission', 'missing_data', 'filters', 'dimensions', 'aggregation', 'period',
         'target_value', 'warning_threshold', 'critical_threshold', 'threshold_direction',
+        'alerts_enabled', 'alert_cooldown_minutes', 'alert_owner_id',
         'effective_from', 'effective_until', 'status', 'created_by', 'approved_by', 'approved_at',
         'retired_by', 'retired_at',
     ];
@@ -34,6 +37,7 @@ class KpiDefinition extends Model
     {
         return [
             'version' => 'integer', 'filters' => 'array', 'dimensions' => 'array', 'period' => 'array',
+            'alerts_enabled' => 'boolean', 'alert_cooldown_minutes' => 'integer',
             'target_value' => 'decimal:6', 'warning_threshold' => 'decimal:6', 'critical_threshold' => 'decimal:6',
             'effective_from' => 'date', 'effective_until' => 'date',
             'approved_at' => 'immutable_datetime', 'retired_at' => 'immutable_datetime',
@@ -109,6 +113,12 @@ class KpiDefinition extends Model
                 $aggregation = 'count';
                 $definition->setAttribute('aggregation', $aggregation);
             }
+            if ($definition->getAttribute('alerts_enabled') === null) {
+                $definition->setAttribute('alerts_enabled', false);
+            }
+            if ($definition->getAttribute('alert_cooldown_minutes') === null) {
+                $definition->setAttribute('alert_cooldown_minutes', 60);
+            }
 
             if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period) || ! is_string($aggregation)) {
                 throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, period, and aggregation must use supported structured values.']);
@@ -138,6 +148,12 @@ class KpiDefinition extends Model
             if ($definition->threshold_direction === 'lower_is_worse' && $definition->warning_threshold !== null && $definition->critical_threshold !== null && (float) $definition->warning_threshold < (float) $definition->critical_threshold) {
                 throw ValidationException::withMessages(['critical_threshold' => 'Critical threshold must be less than or equal to the warning threshold.']);
             }
+            if ((int) $definition->alert_cooldown_minutes < 1 || (int) $definition->alert_cooldown_minutes > 10080) {
+                throw ValidationException::withMessages(['alert_cooldown_minutes' => 'Alert cooldown must be between 1 minute and 7 days.']);
+            }
+            if ($definition->alerts_enabled && ($definition->threshold_direction === 'target_only' || ($definition->warning_threshold === null && $definition->critical_threshold === null) || $definition->alert_owner_id === null)) {
+                throw ValidationException::withMessages(['alerts_enabled' => 'Enable alerts only after setting a threshold direction, at least one threshold, and an owner.']);
+            }
         });
 
         static::updating(function (self $definition): void {
@@ -149,6 +165,7 @@ class KpiDefinition extends Model
                 if ($definition->status === self::STATUS_ACTIVE && (! $definition->approved_by || ! $definition->approved_at)) {
                     throw ValidationException::withMessages(['status' => 'Activation requires an approving user and timestamp.']);
                 }
+
                 return;
             }
             $dirty = array_keys($definition->getDirty());
@@ -172,10 +189,33 @@ class KpiDefinition extends Model
         return $this->hasMany(KpiDefinitionAudit::class)->orderBy('created_at')->orderBy('id');
     }
 
+    /** @return HasMany<KpiAlert, $this> */
+    public function alerts(): HasMany
+    {
+        return $this->hasMany(KpiAlert::class)->latest('created_at');
+    }
+
     /** @return BelongsTo<User, $this> */
-    public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function alertOwner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'alert_owner_id');
+    }
+
     /** @return BelongsTo<User, $this> */
-    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     /** @return BelongsTo<User, $this> */
-    public function retirer(): BelongsTo { return $this->belongsTo(User::class, 'retired_by'); }
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function retirer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'retired_by');
+    }
 }

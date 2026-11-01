@@ -38,3 +38,8 @@ Schedule::command('market:refresh-google-ads')
     ->timezone(config('app.timezone'))
     ->withoutOverlapping()
     ->when(fn (): bool => (bool) config('services.google_ads.scheduled_refresh_enabled', false));
+
+Schedule::command('kpi:alerts-evaluate')
+    ->everyFiveMinutes()
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
