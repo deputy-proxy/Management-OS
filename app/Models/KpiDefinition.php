@@ -50,6 +50,9 @@ class KpiDefinition extends Model
             $definition->filters ??= [];
             $definition->dimensions ??= [];
             $definition->aggregation ??= 'count';
+            if ($definition->period !== null && ! is_array($definition->period)) {
+                throw ValidationException::withMessages(['period' => 'KPI period settings must be a structured object.']);
+            }
             $definition->period = array_merge(['kind' => 'as_of', 'granularity' => 'day', 'historical' => false], $definition->period ?? []);
             $definition->created_by ??= auth()->id();
             $definition->effective_from ??= now()->toDateString();
@@ -57,6 +60,9 @@ class KpiDefinition extends Model
 
         static::saving(function (self $definition): void {
             $definition->threshold_direction ??= 'target_only';
+            if (! is_array($definition->filters) || ! is_array($definition->dimensions) || ! is_array($definition->period)) {
+                throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, and period must be structured arrays.']);
+            }
             app(KpiDefinitionConfiguration::class)->validate(
                 (string) $definition->calculation_type,
                 $definition->filters ?? [],
