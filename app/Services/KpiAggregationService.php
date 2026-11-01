@@ -196,7 +196,7 @@ class KpiAggregationService
             $label = collect($dimensions)
                 ->map(fn (string $field): string => $field.'='.((string) ($row->getAttribute($field) ?? '(empty)')))
                 ->implode(' / ');
-            $breakdown[$label] = (int) $row->aggregate;
+            $breakdown[$label] = (int) $row->getAttribute('aggregate');
         }
 
         return $breakdown;

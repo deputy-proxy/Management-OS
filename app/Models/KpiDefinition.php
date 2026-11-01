@@ -75,9 +75,31 @@ class KpiDefinition extends Model
             $dimensions = $definition->getAttribute('dimensions');
             $period = $definition->getAttribute('period');
             $aggregation = $definition->getAttribute('aggregation');
-            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period) || ! is_string($aggregation)) {
-                throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, and period must be structured arrays.']);
+
+            // Null is the database default for the newly introduced JSON
+            // columns. Normalize it before validation, but reject malformed
+            // non-null values rather than silently replacing them.
+            if ($filters === null) {
+                $filters = [];
+                $definition->setAttribute('filters', $filters);
             }
+            if ($dimensions === null) {
+                $dimensions = [];
+                $definition->setAttribute('dimensions', $dimensions);
+            }
+            if ($period === null) {
+                $period = ['kind' => 'as_of', 'granularity' => 'day', 'historical' => false];
+                $definition->setAttribute('period', $period);
+            }
+            if ($aggregation === null) {
+                $aggregation = 'count';
+                $definition->setAttribute('aggregation', $aggregation);
+            }
+
+            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period) || ! is_string($aggregation)) {
+                throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, period, and aggregation must use supported structured values.']);
+            }
+
             app(KpiDefinitionConfiguration::class)->validate(
                 (string) $definition->calculation_type,
                 $filters,
