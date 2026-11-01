@@ -9,6 +9,7 @@ use App\Models\KpiDefinition;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 class KpiAggregationService
 {
