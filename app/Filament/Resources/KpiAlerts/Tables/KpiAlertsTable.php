@@ -28,7 +28,7 @@ class KpiAlertsTable
                 TextColumn::make('last_seen_at')->dateTime()->sortable(),
                 TextColumn::make('evidence_url')
                     ->label('Evidence')
-                    ->formatStateUsing(fn (?string $state): string => $state ? 'Open dashboard' : 'Unavailable')
+                    ->formatStateUsing(fn (?string $state): string => $state ? 'Open evidence' : 'Unavailable')
                     ->url(fn (KpiAlert $record): ?string => $record->evidence_url)
                     ->openUrlInNewTab(),
             ])

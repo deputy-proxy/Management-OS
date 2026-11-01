@@ -31,10 +31,10 @@ class KpiAlertService
         }
 
         $helper = (new HexaHelper)->user($user);
-        if ($helper->can('kpi_alert.index')) {
+        if ($helper->can(['kpi_alert.index', 'kpi_alert.manage'])) {
             return KpiAlert::query()->with(['definition', 'owner']);
         }
-        if ($helper->can('kpi_alert.view_own')) {
+        if ($helper->can(['kpi_alert.view_own', 'kpi_alert.manage_own'])) {
             return KpiAlert::query()->where('owner_id', $user->getKey())->with(['definition', 'owner']);
         }
 

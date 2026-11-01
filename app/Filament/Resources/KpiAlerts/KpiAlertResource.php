@@ -71,7 +71,10 @@ class KpiAlertResource extends Resource
 
     public static function getViewAnyAuthorizationResponse(): Response
     {
-        return hexa()->can('kpi_alert.index') || hexa()->can('kpi_alert.view_own')
+        return hexa()->can('kpi_alert.index')
+            || hexa()->can('kpi_alert.manage')
+            || hexa()->can('kpi_alert.view_own')
+            || hexa()->can('kpi_alert.manage_own')
             ? Response::allow()
             : Response::deny();
     }
@@ -79,7 +82,9 @@ class KpiAlertResource extends Resource
     public static function getViewAuthorizationResponse(Model $record): Response
     {
         $canView = hexa()->can('kpi_alert.index')
-            || ((int) $record->getAttribute('owner_id') === (int) Auth::id() && hexa()->can('kpi_alert.view_own'));
+            || hexa()->can('kpi_alert.manage')
+            || ((int) $record->getAttribute('owner_id') === (int) Auth::id()
+                && (hexa()->can('kpi_alert.view_own') || hexa()->can('kpi_alert.manage_own')));
 
         return $canView ? Response::allow() : Response::deny();
     }
