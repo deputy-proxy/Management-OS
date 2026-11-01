@@ -139,7 +139,7 @@ class KpiAggregationService
             match ($filter['operator']) {
                 'eq' => $query->where($column, '=', $filter['value']),
                 'neq' => $query->where($column, '!=', $filter['value']),
-                'in' => $query->whereIn($column, $filter['value']),
+                'in' => $query->whereIn($column, (array) $filter['value']),
                 default => throw new \LogicException('Unregistered KPI filter operator.'),
             };
         }
