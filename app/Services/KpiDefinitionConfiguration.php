@@ -117,6 +117,9 @@ class KpiDefinitionConfiguration
      */
     public function preview(string $calculationType, array $configuration, array $rows): array
     {
+        if (! array_is_list($rows)) {
+            throw ValidationException::withMessages(['preview' => 'Synthetic preview rows must be an ordered list.']);
+        }
         if (count($rows) > self::MAX_PREVIEW_ROWS) {
             throw ValidationException::withMessages(['preview' => 'Synthetic previews are limited to 100 rows.']);
         }
@@ -127,15 +130,17 @@ class KpiDefinitionConfiguration
         }
         $filters = $configuration['filters'] ?? [];
         $dimensions = $configuration['dimensions'] ?? [];
-        if (! is_array($filters) || ! is_array($dimensions)) {
+        $aggregation = $configuration['aggregation'] ?? 'count';
+        $period = $configuration['period'] ?? null;
+        if (! is_array($filters) || ! is_array($dimensions) || ! is_string($aggregation) || ($period !== null && ! is_array($period))) {
             throw ValidationException::withMessages(['configuration' => 'Synthetic preview filters and dimensions must be lists.']);
         }
         $config = $this->validate(
             $calculationType,
             $filters,
             $dimensions,
-            $configuration['aggregation'] ?? 'count',
-            $configuration['period'] ?? null,
+            $aggregation,
+            $period,
         );
 
         $matched = array_values(array_filter($rows, function (array $row) use ($config): bool {
