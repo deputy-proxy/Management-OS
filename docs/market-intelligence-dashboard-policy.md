@@ -9,20 +9,20 @@
 The dashboard combines three evidence classes without pretending they are interchangeable:
 
 1. **Market trend observations** describe a source-reported metric over a declared market, segment, and period.
-2. **Competitor-offer observations** preserve the offer terms, price basis, currency, validity, source, and observation/recording timestamps available at capture time.
+2. **Competitor-offer observations** preserve the offer terms, price basis, currency, validity, source, and observation/recording timestamps available at capture time. Dashboard snapshot links open the related offer detail and its append-only observation history, subject to `competitor_offer.index`.
 3. **Google Ads campaign metrics** are provider-reported performance for a specific advertising account, campaign, date, and account currency.
 
 The dashboard is decision support, not an automatic pricing, product-launch, budget-allocation, or campaign-pausing system. A trend, competitor offer, or ad conversion is not proof of demand, a unique customer, revenue, profit, or causal impact.
 
 ## Market trend contract
 
-- Display active `MarketTrend` records by observation time, newest first, with a bounded recent list.
-- Preserve metric key, value, unit, market, segment, period, source name/URL, observed time, reported change, and confidence as supplied.
+- Display active `MarketTrend` records by observation time, newest first, with a bounded recent list. The dashboard supports inclusive period-overlap, market, segment, and metric-key filters; the filter choices come from active stored observations.
+- Preserve metric key, value, unit, market, segment, period, source name/URL, observed time, reported change, confidence, data status, freshness, source type, and verification status as supplied. Trend rows link to their existing observation detail when `market_trend.index` is granted.
 - A reported percentage change is displayed as source-recorded metadata. The dashboard does not recalculate it unless the source contract explicitly defines comparable values and formula.
 - Do not merge different metric keys, units, markets, segments, or periods into one aggregate.
 - `confidence` is shown as supplied on the underlying record and is not converted into an approval status.
 - Archived records are excluded from the active view, not deleted.
-- Missing observations are unavailable data, not zero demand. Missing sources, dates, segments, and confidence remain visible as unknown/unspecified.
+- Missing observations are unavailable data, not zero demand. Missing sources, dates, segments, and confidence remain visible as unknown/unspecified. An empty filter result is distinct from unavailable data.
 
 ## Google Ads metric contract
 
