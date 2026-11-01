@@ -70,6 +70,19 @@ class KpiDefinition extends Model
         });
 
         static::saving(function (self $definition): void {
+            // Eloquent fires "saving" before "creating". Resolve the catalogue
+            // contract here so validation sees the registered calculation
+            // type on a new draft, rather than a null/untrusted input value.
+            if (! $definition->exists) {
+                $catalogue = app(KpiCatalogueRegistry::class)->get((string) $definition->key);
+                if (! is_array($catalogue) || $catalogue['availability'] !== 'available') {
+                    throw ValidationException::withMessages(['key' => 'Choose a registered KPI key with an available source and calculation contract.']);
+                }
+                foreach (['label', 'description', 'domain', 'calculation_type', 'unit', 'source', 'date_basis', 'permission', 'missing_data'] as $field) {
+                    $definition->{$field} = $catalogue[$field];
+                }
+            }
+
             $definition->threshold_direction ??= 'target_only';
             $filters = $definition->getAttribute('filters');
             $dimensions = $definition->getAttribute('dimensions');
