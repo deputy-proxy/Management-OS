@@ -123,10 +123,12 @@ class KpiDefinitionConfiguration
         if (count($rows) > self::MAX_PREVIEW_ROWS) {
             throw ValidationException::withMessages(['preview' => 'Synthetic previews are limited to 100 rows.']);
         }
+        $validatedRows = [];
         foreach ($rows as $index => $row) {
             if (! is_array($row)) {
                 throw ValidationException::withMessages(["preview.{$index}" => 'Each synthetic sample row must be an object-like array.']);
             }
+            $validatedRows[] = $row;
         }
         $filters = $configuration['filters'] ?? [];
         $dimensions = $configuration['dimensions'] ?? [];
@@ -143,7 +145,7 @@ class KpiDefinitionConfiguration
             $period,
         );
 
-        $matched = array_values(array_filter($rows, function (array $row) use ($config): bool {
+        $matched = array_values(array_filter($validatedRows, function (array $row) use ($config): bool {
             foreach ($config['filters'] as $filter) {
                 $actual = $row[$filter['field']] ?? null;
                 $expected = $filter['value'];
