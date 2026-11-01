@@ -78,7 +78,7 @@ class KpiAggregationService
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
 
-        $value = $this->calculate($definition->calculation_type, $permissions, $date);
+        $value = $this->calculate($definition->calculation_type, $permissions, $date, $definition->filters ?? []);
 
         return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
     }
@@ -104,17 +104,43 @@ class KpiAggregationService
     }
 
     /** @param array<string, bool> $permissions */
-    private function calculate(string $type, array $permissions, string $date): ?int
+    private function calculate(string $type, array $permissions, string $date, array $filters = []): ?int
     {
         return match ($type) {
             'customer_record_count' => Customer::query()->count(),
-            'unconverted_lead_count' => CustomerLead::query()->whereNull('converted_customer_id')->count(),
-            'unknown_lead_source_count' => CustomerLead::query()->where('source_category', 'unknown')->count(),
+            'unconverted_lead_count' => $this->applyLeadFilters(CustomerLead::query()->whereNull('converted_customer_id'), $filters)->count(),
+            'unknown_lead_source_count' => $this->applyLeadFilters(CustomerLead::query()->where('source_category', 'unknown'), $filters)->count(),
             'open_task_count' => $this->taskCount(false, $date, $permissions),
             'overdue_task_count' => $this->taskCount(true, $date, $permissions),
             'competitor_offer_snapshot_count' => CompetitorOfferObservation::query()->count(),
             default => null,
         };
+    }
+
+    /**
+     * Apply only the validated lead filter contract. Field names and operators
+     * are checked again at execution time so stale or tampered stored JSON
+     * cannot widen the query surface.
+     *
+     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
+     */
+    private function applyLeadFilters(Builder $query, array $filters): Builder
+    {
+        $configuration = app(KpiDefinitionConfiguration::class);
+        $validated = $configuration->validate('unconverted_lead_count', $filters);
+        foreach ($validated['filters'] as $filter) {
+            $column = match ($filter['field']) {
+                'status' => 'status',
+                'source_category' => 'source_category',
+            };
+            match ($filter['operator']) {
+                'eq' => $query->where($column, '=', $filter['value']),
+                'neq' => $query->where($column, '!=', $filter['value']),
+                'in' => $query->whereIn($column, $filter['value']),
+            };
+        }
+
+        return $query;
     }
 
     /** @param array<string, bool> $permissions */
