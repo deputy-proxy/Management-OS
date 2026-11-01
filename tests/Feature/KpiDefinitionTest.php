@@ -127,4 +127,48 @@ class KpiDefinitionTest extends TestCase
         $this->assertNull($restricted['value']);
         $this->assertSame('unavailable_permission_denied', $restricted['availability']);
     }
+
+    public function test_configuration_rejects_unregistered_fields_operators_and_unbounded_filters(): void
+    {
+        $configuration = app(KpiDefinitionConfiguration::class);
+
+        foreach ([
+            fn () => $configuration->validate('unconverted_lead_count', [['field' => 'email', 'operator' => 'eq', 'value' => 'a@example.test']]),
+            fn () => $configuration->validate('unconverted_lead_count', [['field' => 'status', 'operator' => 'raw', 'value' => 'new']]),
+            fn () => $configuration->validate('unconverted_lead_count', array_fill(0, 6, ['field' => 'status', 'operator' => 'eq', 'value' => 'new'])),
+            fn () => $configuration->validate('unconverted_lead_count', [], [], 'sum'),
+            fn () => $configuration->validate('unconverted_lead_count', [], [], 'count', ['kind' => 'range', 'granularity' => 'day', 'historical' => true]),
+        ] as $invalidConfiguration) {
+            try {
+                $invalidConfiguration();
+                $this->fail('Expected unsupported KPI configuration to be rejected.');
+            } catch (ValidationException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function test_synthetic_preview_applies_validated_filters_and_dimensions(): void
+    {
+        $preview = app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [
+            'filters' => [['field' => 'status', 'operator' => 'neq', 'value' => 'lost']],
+            'dimensions' => ['source_category'],
+        ], [
+            ['status' => 'new', 'source_category' => 'organic_search'],
+            ['status' => 'lost', 'source_category' => 'referral'],
+            ['status' => 'qualified', 'source_category' => 'organic_search'],
+        ]);
+
+        $this->assertTrue($preview['synthetic']);
+        $this->assertSame(3, $preview['sample_size']);
+        $this->assertSame(2, $preview['value']);
+        $this->assertSame(['organic_search' => 2], $preview['breakdown']);
+    }
+
+    public function test_synthetic_preview_rejects_more_than_one_hundred_rows(): void
+    {
+        $this->expectException(ValidationException::class);
+        app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [], array_fill(0, 101, []));
+    }
+
 }
