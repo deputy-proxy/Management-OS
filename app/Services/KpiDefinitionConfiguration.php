@@ -15,7 +15,7 @@ class KpiDefinitionConfiguration
      * Fields are explicitly mapped to persisted columns. No user-supplied
      * property paths, SQL fragments, or operators reach the query builder.
      *
-     * @return array<string, array<string, array{type: string, values?: array<int, string>}>>
+     * @return array<string, array{type: string, values: array<int, string>}>
      */
     private function fields(string $calculationType): array
     {
