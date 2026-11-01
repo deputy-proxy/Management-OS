@@ -28,15 +28,21 @@ return new class extends Migration
         });
 
         Schema::table('google_ads_campaign_daily_metrics', function (Blueprint $table): void {
-            $table->foreignId('import_batch_id')->nullable()->after('id')->constrained('google_ads_import_batches')->nullOnDelete();
+            $table->foreignId('import_batch_id')->nullable()->after('id');
+            $table->foreign('import_batch_id', 'ga_campaign_metrics_batch_fk')
+                ->references('id')->on('google_ads_import_batches')->nullOnDelete();
             $table->string('source_name', 40)->default('google_ads')->after('api_version');
             $table->string('source_version', 16)->default('v26')->after('source_name');
         });
 
         Schema::create('google_ads_campaign_daily_metric_revisions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('metric_id')->constrained('google_ads_campaign_daily_metrics')->restrictOnDelete();
-            $table->foreignId('import_batch_id')->constrained('google_ads_import_batches')->restrictOnDelete();
+            $table->foreignId('metric_id');
+            $table->foreignId('import_batch_id');
+            $table->foreign('metric_id', 'ga_metric_revisions_metric_fk')
+                ->references('id')->on('google_ads_campaign_daily_metrics')->restrictOnDelete();
+            $table->foreign('import_batch_id', 'ga_metric_revisions_batch_fk')
+                ->references('id')->on('google_ads_import_batches')->restrictOnDelete();
             $table->json('previous_values');
             $table->timestamp('revised_at');
             $table->index(['metric_id', 'revised_at']);
@@ -53,7 +59,8 @@ return new class extends Migration
 
         Schema::dropIfExists('google_ads_campaign_daily_metric_revisions');
         Schema::table('google_ads_campaign_daily_metrics', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('import_batch_id');
+            $table->dropForeign('ga_campaign_metrics_batch_fk');
+            $table->dropColumn('import_batch_id');
             $table->dropColumn(['source_name', 'source_version']);
         });
         Schema::dropIfExists('google_ads_import_batches');
