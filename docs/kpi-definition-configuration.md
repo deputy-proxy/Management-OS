@@ -30,3 +30,10 @@
 KPI definition list, draft creation, editing, approval, and retirement use separate gates: `kpi_definition.index`, `kpi_definition.create`, `kpi_definition.update`, and `kpi_definition.approve`. No delete action is provided. Tests cover allow-listed keys, version increments, effective-date handoff, immutability, permission-gated aggregation, and threshold evaluation.
 
 The catalogue registry currently supports daily as-of periods and no dimensions. It rejects duplicate keys, unsupported dimensions, and unsupported period contracts. A missing source model or calculation handler makes the KPI explicitly unavailable; it does not produce a fabricated zero. Final business definitions and real-source reconciliation are deferred.
+
+
+## Configurable draft settings
+
+Drafts persist filter, dimension, aggregation, and period settings alongside the versioned definition. The v1 configuration service currently permits only registered lead fields (status and source_category) for lead-count calculations, with controlled values from the lead model. Filters are capped at five, dimensions at two, and synthetic preview input at 100 rows. Only the registered count aggregation and daily as-of period are accepted; unsupported operators, fields, values, and historical/range periods fail validation.
+
+Synthetic preview runs against caller-supplied sample rows only. Its response is explicitly marked synthetic; it does not query production records or claim to forecast live KPI values. Live lead-count aggregations apply the validated filters. Dimension breakdown is currently provided by the synthetic preview contract; other calculation families remain unconfigurable until their source-specific field contracts are registered.
