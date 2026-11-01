@@ -79,6 +79,22 @@ php artisan employee-payslips:generate --month=YYYY-MM
 
 Replace `YYYY-MM` with the approved calendar month. After execution, verify the command exit status, employee/month payslip count, linked source IDs, saved snapshots and totals. Do not delete/recreate closed or paid payslips to force a rerun; preserve financial history and follow `docs/employee-payslip-workflow.md` for adjustments. Record the operator, period, reason, result and reconciliation approval in the restricted operational record.
 
+## Application resilience tests
+
+The application-level recovery checks use synthetic fixtures and isolated test databases. Run the focused suites from a clean checkout with the repository's locked dependencies installed:
+
+```sh
+php artisan test tests/Feature/Operations/HealthAndObservabilityTest.php
+php artisan test tests/Feature/GoogleAdsRefreshRecoveryTest.php
+php artisan test tests/Feature/DatabaseIntegrityAuditTest.php tests/Feature/FinanceReconciliationAuditTest.php
+```
+
+These suites cover database-readiness failures, missing/stale worker and scheduler heartbeats, failed-job threshold reporting without payload disclosure, backup artifact digest validation, retryable and non-retryable import failures, duplicate retry delivery, rollback after a partial metric write, a subsequent clean import, and read-only financial/data-integrity audits. The Google Ads retry lineage is constrained to one child batch per failed batch so a duplicated retry request does not repeat the provider operation. A later retry must target the latest failed child batch.
+
+The full PHP suite runs in the `php` CI job. The MySQL CI job also runs `GoogleAdsRefreshRecoveryTest` so retry-lineage constraints and transaction rollback are exercised against MySQL 8.0, in addition to SQLite. No test uses production credentials, live provider requests, customer data, production queue retries, or destructive restore operations.
+
+The repository currently has no provider-specific restore adapter or safe application command capable of restoring a backup into a newly provisioned isolated database and file namespace. Do not add a fake restore implementation around shell commands or infer provider behavior. The supported application hook is the read-only `ops:verify-backup` artifact check; the actual isolated restore, service startup, integrity reconciliation, alert-receipt verification, and cleanup remain authorized operator activities documented below and in the restricted evidence template.
+
 ## Backup policy and restore drill
 
 The owner-approved policy is RPO 1 day, RTO 4 hours, daily backups, and 14-day retention. The owner reports that backups include MySQL and required files and are stored separately from the hosting environment. Verify the actual provider configuration, storage region, and retention. Backups are not encrypted, and no separate deletion/immutability safeguard is enabled. Backup access is reported restricted to the owner. The owner approved monthly isolated restore drills. These are owner-reported configuration details and policy decisions; they do not independently prove the provider settings or restore guarantees.
