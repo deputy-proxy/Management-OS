@@ -72,7 +72,7 @@
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Threshold state: {{ str_replace('_', ' ', $kpi['threshold_status']) }}. Informational only; no notification is implied.</p>
 
                             @if ($kpi['source_url'])
-                                <x-filament::link class="mt-3" :href="$kpi['source_url']">Open permitted source records</x-filament::link>
+                                <x-filament::link class="mt-3" :href="$kpi['source_url']">Open source list</x-filament::link>
                             @endif
                             @if (count($kpi['source_record_ids']) > 0)
                                 <details class="mt-3 text-xs text-gray-600 dark:text-gray-300">

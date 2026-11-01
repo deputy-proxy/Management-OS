@@ -105,7 +105,7 @@ class OverviewDashboardTest extends TestCase
         $this->assertStringContainsString('historical reconstruction and date-range selection are not supported', strtolower($view));
         $this->assertStringContainsString('Source freshness:', $view);
         $this->assertStringContainsString('Source record IDs', $view);
-        $this->assertStringContainsString('Open permitted source records', $view);
+        $this->assertStringContainsString('Open source list', $view);
         $this->assertStringContainsString('KPI data is temporarily unavailable', $view);
         $this->assertStringContainsString('No KPI definitions are currently registered', $view);
     }
