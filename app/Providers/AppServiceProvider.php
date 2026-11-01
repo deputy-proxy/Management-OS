@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\Advertising\GoogleAdsCampaignMetricsAdapter;
+use App\Services\GoogleAds\GoogleAdsRestCampaignMetricsAdapter;
 use App\Services\MarketIntelligence\MarketDataSourceRegistry;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -18,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Application-wide bindings belong here.
         $this->app->singleton(MarketDataSourceRegistry::class);
+        $this->app->bind(GoogleAdsCampaignMetricsAdapter::class, GoogleAdsRestCampaignMetricsAdapter::class);
     }
 
     public function boot(): void
