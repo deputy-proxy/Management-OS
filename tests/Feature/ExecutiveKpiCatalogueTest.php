@@ -12,6 +12,7 @@ use App\Services\KpiAggregationService;
 use App\Services\KpiDefinitionService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class ExecutiveKpiCatalogueTest extends TestCase
@@ -114,7 +115,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
 
         $user = User::factory()->create();
         $this->actingAs($user);
-        \Illuminate\Support\Facades\Gate::define('kpi_definition.create', fn (): bool => true);
+        Gate::define('kpi_definition.create', fn (): bool => true);
         \Illuminate\Support\Facades\Gate::define('kpi_definition.approve', fn (): bool => true);
         \Illuminate\Support\Facades\Gate::define('customer_lead.index', fn (): bool => true);
 
@@ -124,7 +125,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
             'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],
             'change_summary' => 'Test scoped filter counts.',
         ]);
-        app(\App\Services\KpiDefinitionService::class)->activate($definition);
+        app(KpiDefinitionService::class)->activate($definition);
 
         $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), [
             'customer_lead.index' => true,
