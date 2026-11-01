@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\\Filament\\Pages;
 
-use App\Filament\Resources\Articles\ArticleResource;
-use App\Filament\Resources\CompetitorOffers\CompetitorOfferResource;
-use App\Filament\Resources\CustomerLeads\CustomerLeadResource;
-use App\Filament\Resources\Customers\CustomerResource;
-use App\Filament\Resources\Employees\EmployeeResource;
-use App\Filament\Resources\Newsletters\NewsletterResource;
-use App\Filament\Resources\PaidCampaigns\PaidCampaignResource;
-use App\Filament\Resources\Projects\ProjectResource;
-use App\Filament\Resources\Students\StudentResource;
-use App\Filament\Resources\Tasks\TaskResource;
-use App\Services\AdminOverviewDashboardData;
-use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Pages\Page;
-use Hexters\HexaLite\HasHexaLite;
+use App\\Filament\\Resources\\Articles\\ArticleResource;
+use App\\Filament\\Resources\\CompetitorOffers\\CompetitorOfferResource;
+use App\\Filament\\Resources\\CustomerLeads\\CustomerLeadResource;
+use App\\Filament\\Resources\\Customers\\CustomerResource;
+use App\\Filament\\Resources\\Employees\\EmployeeResource;
+use App\\Filament\\Resources\\Newsletters\\NewsletterResource;
+use App\\Filament\\Resources\\PaidCampaigns\\PaidCampaignResource;
+use App\\Filament\\Resources\\Projects\\ProjectResource;
+use App\\Filament\\Resources\\Students\\StudentResource;
+use App\\Filament\\Resources\\Tasks\\TaskResource;
+use App\\Services\\AdminOverviewDashboardData;
+use Filament\\Pages\\Dashboard as BaseDashboard;
+use Filament\\Pages\\Page;
+use Hexters\\HexaLite\\HasHexaLite;
 
 class OverviewDashboard extends BaseDashboard
 {
@@ -99,7 +99,31 @@ class OverviewDashboard extends BaseDashboard
         }
         $permissions['task.view_all'] = hexa()->can('task.view_all');
 
-        return app(AdminOverviewDashboardData::class)->summary($permissions);
+        $summary = app(AdminOverviewDashboardData::class)->summary($permissions);
+        $kpiSources = [
+            'customer_record_count' => ['permission' => 'customer.index', 'resource' => CustomerResource::class],
+            'unconverted_lead_count' => ['permission' => 'customer_lead.index', 'resource' => CustomerLeadResource::class],
+            'unknown_lead_source_count' => ['permission' => 'customer_lead.index', 'resource' => CustomerLeadResource::class],
+            'open_task_count' => ['permission' => 'task.index', 'resource' => TaskResource::class],
+            'overdue_task_count' => ['permission' => 'task.index', 'resource' => TaskResource::class],
+            'competitor_offer_snapshot_count' => ['permission' => 'competitor_offer.index', 'resource' => CompetitorOfferResource::class],
+        ];
+
+        foreach ($summary['kpis']['results'] as &$kpi) {
+            $source = $kpiSources[$kpi['key']] ?? null;
+            $kpi['source_url'] = null;
+
+            if ($source !== null && ($permissions[$source['permission']] ?? false)) {
+                $resource = $source['resource'];
+                $kpi['source_url'] = $resource::getUrl('index');
+            }
+
+            $kpi['source_record_ids'] = $kpi['provenance']['source_record_ids'] ?? [];
+            $kpi['source_record_ids_truncated'] = $kpi['provenance']['source_record_ids_truncated'] ?? false;
+        }
+        unset($kpi);
+
+        return $summary;
     }
 
     /**

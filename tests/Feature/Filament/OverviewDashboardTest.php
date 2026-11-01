@@ -1,17 +1,17 @@
 <?php
 
-namespace Tests\Feature\Filament;
+namespace Tests\\Feature\\Filament;
 
-use App\Filament\Pages\CustomerDashboard;
-use App\Filament\Pages\FinanceDashboard;
-use App\Filament\Pages\GeneralDashboard;
-use App\Filament\Pages\OverviewDashboard;
-use App\Filament\Pages\PortfolioOverview;
-use App\Filament\Pages\TasksAndProjects;
-use Filament\Facades\Filament;
-use Filament\Pages\Dashboard;
-use Filament\Pages\Page;
-use Tests\TestCase;
+use App\\Filament\\Pages\\CustomerDashboard;
+use App\\Filament\\Pages\\FinanceDashboard;
+use App\\Filament\\Pages\\GeneralDashboard;
+use App\\Filament\\Pages\\OverviewDashboard;
+use App\\Filament\\Pages\\PortfolioOverview;
+use App\\Filament\\Pages\\TasksAndProjects;
+use Filament\\Facades\\Filament;
+use Filament\\Pages\\Dashboard;
+use Filament\\Pages\\Page;
+use Tests\\TestCase;
 
 class OverviewDashboardTest extends TestCase
 {
@@ -95,5 +95,18 @@ class OverviewDashboardTest extends TestCase
             ['overview-dashboard.view' => __('Allows viewing the overview dashboard')],
             (new OverviewDashboard)->defineGates(),
         );
+    }
+
+    public function test_dashboard_kpi_view_documents_supported_period_and_drilldown_states(): void
+    {
+        $view = file_get_contents(resource_path('views/filament/pages/overview-dashboard.blade.php'));
+
+        $this->assertStringContainsString('Daily as-of snapshot', $view);
+        $this->assertStringContainsString('historical reconstruction and date-range selection are not supported', strtolower($view));
+        $this->assertStringContainsString('Source freshness:', $view);
+        $this->assertStringContainsString('Source record IDs', $view);
+        $this->assertStringContainsString('Open permitted source records', $view);
+        $this->assertStringContainsString('KPI data is temporarily unavailable', $view);
+        $this->assertStringContainsString('No KPI definitions are currently registered', $view);
     }
 }
