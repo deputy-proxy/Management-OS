@@ -46,6 +46,8 @@ class MarketTrend extends Model
         'freshness_status',
         'verification_status',
         'source_reference',
+        'source_idempotency_key',
+        'source_import_run_id',
         'source_revision',
         'source_metadata',
         'missing_reason',
@@ -153,6 +155,12 @@ class MarketTrend extends Model
                 }
             }
         });
+    }
+
+    /** @return BelongsTo<MarketDataImportRun, $this> */
+    public function sourceImportRun(): BelongsTo
+    {
+        return $this->belongsTo(MarketDataImportRun::class, 'source_import_run_id');
     }
 
     /** @return BelongsTo<MarketIntelligenceMetric, $this> */

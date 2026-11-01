@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\MarketIntelligence\MarketDataSourceRegistry;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -16,6 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Application-wide bindings belong here.
+        $this->app->singleton(MarketDataSourceRegistry::class);
     }
 
     public function boot(): void

@@ -251,6 +251,7 @@ jobs:
           tests/Feature/CashForecastServiceTest.php
           tests/Feature/MarketTrendTest.php
           tests/Feature/MarketIntelligenceConfigurationTest.php
+          tests/Feature/MarketDataImportAdaptersTest.php
           tests/Feature/MarketAnalysisDashboardDataTest.php
 
   frontend:
