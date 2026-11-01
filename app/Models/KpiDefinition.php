@@ -74,14 +74,15 @@ class KpiDefinition extends Model
             $filters = $definition->getAttribute('filters');
             $dimensions = $definition->getAttribute('dimensions');
             $period = $definition->getAttribute('period');
-            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period)) {
+            $aggregation = $definition->getAttribute('aggregation');
+            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period) || ! is_string($aggregation)) {
                 throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, and period must be structured arrays.']);
             }
             app(KpiDefinitionConfiguration::class)->validate(
                 (string) $definition->calculation_type,
                 $filters,
                 $dimensions,
-                $definition->aggregation ?? 'count',
+                $aggregation,
                 $period,
             );
             if (! in_array($definition->threshold_direction, ['higher_is_worse', 'lower_is_worse', 'target_only'], true)) {
