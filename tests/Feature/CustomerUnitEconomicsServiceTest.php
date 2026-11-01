@@ -62,7 +62,7 @@ class CustomerUnitEconomicsServiceTest extends TestCase
         if ($recordRetention && ! CustomerRetentionObservation::query()->where('customer_id', $customer->getKey())->exists()) {
             app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
                 'customer_id' => (int) $customer->getKey(),
-                'observed_on' => $date,
+                'observed_on' => '2026-10-31',
                 'state' => 'retained',
                 'source_reference' => 'retention-source:'.$customer->getKey(),
                 'evidence_reference' => 'retention-evidence:'.$customer->getKey(),
@@ -268,6 +268,28 @@ class CustomerUnitEconomicsServiceTest extends TestCase
         $types = array_column($run->exceptions, 'type');
         $this->assertContains('missing_retention_observation', $types);
         $this->assertContains('unusable_retention_observation', $types);
+    }
+
+    public function test_retained_observation_does_not_extend_revenue_beyond_its_observed_date(): void
+    {
+        $customer = Customer::factory()->create();
+        $this->convertedLead($customer, 'event', '2026-10-05', null, false);
+        app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $customer->getKey(),
+            'observed_on' => '2026-10-15',
+            'state' => 'retained',
+            'source_reference' => 'crm-retention:'.$customer->getKey(),
+            'evidence_reference' => 'crm-retention-evidence:'.$customer->getKey(),
+        ]);
+        $this->cost('event', '20.00');
+        $this->revenue($customer, '2026-10-10', '30.00');
+        $this->revenue($customer, '2026-10-20', '40.00');
+
+        $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame('30.00', $result->revenue_amount);
+        $this->assertSame('30.00', $result->ltv_amount);
     }
 
     public function test_reactivation_observation_is_not_used_without_an_approved_reactivation_rule(): void

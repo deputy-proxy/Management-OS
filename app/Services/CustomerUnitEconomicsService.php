@@ -326,7 +326,7 @@ class CustomerUnitEconomicsService
                     $retentionByCustomer[$customerId] = [
                         'observation_id' => (int) $observation->getKey(),
                         'state' => $observation->state,
-                        'cutoff_date' => $observation->state === 'churned' ? $observedOn : $to->toDateString(),
+                        'cutoff_date' => $observedOn,
                     ];
                 }
             }

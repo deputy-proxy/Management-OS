@@ -21,7 +21,7 @@ The supported implementation options are present for isolated tests and future o
 | `deduplication` | `earliest_verified_conversion` | Count one customer at the earliest verified conversion in the selected acquisition cohort |
 | `cac_basis` | `source_category_matched_entries` | Match evidence-backed acquisition-cost entries to the selected source category and currency |
 | `revenue_basis` | `canonical_product_revenue` | Use signed `ProductRevenue.amount_decimal` rows linked through `CustomerInvoice.customer_id` |
-| `ltv_window` | `monthly_rows_from_conversion_date` | Include monthly revenue rows whose date is on/after conversion date, through the approved retention cutoff, without partial-month proration |
+| `ltv_window` | `monthly_rows_from_conversion_date` | Include monthly revenue rows whose date is on/after conversion date, through the latest approved retention observation date, without partial-month proration |
 | `retention_basis` | `latest_explicit_observation` | Require the latest evidence-backed retained/churned/reactivated observation, recorded under the configured retention policy version, for every acquired customer |
 
 Changing these settings requires explicit Sales/Finance/business-owner approval and matching policy-version and regression-test updates. Merely setting environment variables is not approval.
@@ -35,7 +35,7 @@ Calculation runs snapshot the configuration, selected period, source record IDs,
 When the corresponding policy gates are approved and configured:
 
 - CAC is matched source-category acquisition cost divided by distinct acquired customers for that source and currency.
-- Retention is captured as append-only `retained`, `churned`, `reactivated`, or `unknown` observations. Churn caps the revenue window at its explicit observation date; retained observations use the run end date. Reactivated observations are retained as evidence but are not used for LTV until a reactivation-window rule is approved. Missing, unknown, pre-acquisition, or wrong-policy-version observations withhold LTV.
+- Retention is captured as append-only `retained`, `churned`, `reactivated`, or `unknown` observations. Both retained and churned observations cap the revenue window at the latest explicit observation date; no retention is projected beyond the evidence date. Reactivated observations are retained as evidence but are not used for LTV until a reactivation-window rule is approved. Missing, unknown, pre-acquisition, or wrong-policy-version observations withhold LTV.
 - LTV is average signed canonical product revenue for the acquired cohort and currency, but only when every cohort customer has both a valid retention observation and revenue coverage in that currency.
 - Multiple converted leads, missing conversion events, mismatched customer links, unknown attribution, shared costs, missing invoice links, and incomplete revenue coverage remain explicit exceptions or withheld values.
 
