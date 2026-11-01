@@ -17,6 +17,23 @@ class KpiDefinitionGovernanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_service_queries_require_view_permission(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.index', fn (): bool => false);
+
+        try {
+            app(KpiDefinitionService::class)->queryForCurrentUser();
+            $this->fail('Expected view permission to be enforced by the service.');
+        } catch (AuthorizationException) {
+            $this->assertTrue(true);
+        }
+
+        Gate::define('kpi_definition.index', fn (): bool => true);
+        $this->assertSame(0, app(KpiDefinitionService::class)->queryForCurrentUser()->count());
+    }
+
     public function test_service_create_and_update_require_their_own_permissions(): void
     {
         $user = User::factory()->create();

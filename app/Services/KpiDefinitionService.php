@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\KpiDefinition;
 use App\Models\KpiDefinitionAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,13 @@ class KpiDefinitionService
         'critical_threshold',
         'threshold_direction',
     ];
+
+    public function queryForCurrentUser(): Builder
+    {
+        $this->authorize('kpi_definition.index', 'KPI definition view permission is required.');
+
+        return KpiDefinition::query();
+    }
 
     public function createDraft(array $attributes): KpiDefinition
     {

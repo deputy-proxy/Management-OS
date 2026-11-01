@@ -6,11 +6,13 @@ use App\Filament\Clusters\General\GeneralCluster;
 use App\Filament\Resources\KpiDefinitions\Schemas\KpiDefinitionForm;
 use App\Filament\Resources\KpiDefinitions\Tables\KpiDefinitionsTable;
 use App\Models\KpiDefinition;
+use App\Services\KpiDefinitionService;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Hexters\HexaLite\HasHexaLite;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
@@ -38,6 +40,11 @@ class KpiDefinitionResource extends Resource
             'kpi_definition.update' => __('Allows editing KPI definition drafts'),
             'kpi_definition.approve' => __('Allows approving, activating, and retiring KPI definitions'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return app(KpiDefinitionService::class)->queryForCurrentUser();
     }
 
     public static function form(Schema $schema): Schema
