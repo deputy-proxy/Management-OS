@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Budgets\Tables;
 
+use App\Filament\Pages\BudgetActualsReport;
 use App\Filament\Resources\Budgets\Schemas\BudgetVersionForm;
 use App\Models\Budget;
 use App\Models\BudgetVersion;
@@ -24,6 +25,14 @@ class BudgetsTable
             TextColumn::make('latestVersion.lineItems_count')->label('Lines')->state(fn (Budget $record): int => $record->latestVersion?->lineItems->count() ?? 0),
             TextColumn::make('created_at')->dateTime()->since(),
         ])->recordActions([
+            Action::make('actuals_comparison')
+                ->label('Budget vs actual')
+                ->icon('heroicon-o-scale')
+                ->url(fn (Budget $record): string => BudgetActualsReport::getUrl([
+                    'budget' => $record->getKey(),
+                    'version' => $record->latestVersion?->getKey(),
+                ]))
+                ->visible(fn (Budget $record): bool => $record->latestVersion !== null && hexa()->can('budget.actuals.view')),
             Action::make('edit_draft')
                 ->label('Edit draft')
                 ->icon('heroicon-o-pencil-square')

@@ -9,6 +9,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
+/**
+ * @property Carbon $period_start
+ * @property Carbon $period_end
+ * @property array<string, string> $dimensions
+ */
 class BudgetVersion extends Model
 {
     public const STATUS_DRAFT = 'draft';
