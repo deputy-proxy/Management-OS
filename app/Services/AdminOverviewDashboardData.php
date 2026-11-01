@@ -20,7 +20,7 @@ class AdminOverviewDashboardData
 {
     /**
      * @param  array<string, bool>  $permissions
-     * @return array{as_of: string, timezone: string, metrics: array<int, array{label: string, value: int|null, definition: string, url: string|null}>, overdue_tasks: Collection, recent_activity: Collection, activity_available: bool}
+     * @return array{as_of: string, timezone: string, metrics: array<int, array{label: string, value: int|null, definition: string, url: string|null}>, kpis: array<string, mixed>, overdue_tasks: Collection, recent_activity: Collection, activity_available: bool}
      */
     public function summary(array $permissions, ?CarbonImmutable $now = null): array
     {
