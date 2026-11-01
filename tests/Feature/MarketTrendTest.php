@@ -84,6 +84,56 @@ class MarketTrendTest extends TestCase
         MarketTrend::create($attributes);
     }
 
+    public function test_null_segment_identity_cannot_be_inserted_twice(): void
+    {
+        $attributes = $this->validAttributes(['segment' => null]);
+        MarketTrend::query()->create($attributes);
+
+        $this->expectException(InvalidArgumentException::class);
+        MarketTrend::query()->create($attributes);
+    }
+
+    public function test_numeric_values_respect_decimal_precision_and_range(): void
+    {
+        foreach ([
+            ['value' => -INF],
+            ['value' => 100000000000000.0],
+            ['previous_value' => 1.1234567],
+            ['change_pct' => 1.12345],
+            ['confidence' => 0.12345],
+        ] as $overrides) {
+            try {
+                MarketTrend::query()->create($this->validAttributes($overrides));
+                $this->fail('Invalid decimal values must be rejected.');
+            } catch (InvalidArgumentException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function test_decimal_precision_maxima_are_accepted_without_float_rounding(): void
+    {
+        $trend = MarketTrend::query()->create($this->validAttributes([
+            'value' => '99999999999999.999999',
+            'change_pct' => '99999999.9999',
+            'confidence' => '1.0000',
+        ]));
+
+        $this->assertNotNull($trend->getKey());
+    }
+
+    public function test_dashboard_period_filter_rejects_reversed_boundaries(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        MarketTrend::query()->withinPeriod('2026-02-01', '2026-01-01')->get();
+    }
+
+    public function test_dashboard_period_filter_rejects_invalid_calendar_dates(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        MarketTrend::query()->withinPeriod('2026-02-30', '2026-03-01')->get();
+    }
+
     public function test_period_start_cannot_be_after_period_end(): void
     {
         $this->expectException(InvalidArgumentException::class);

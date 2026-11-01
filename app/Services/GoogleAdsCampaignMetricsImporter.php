@@ -42,7 +42,11 @@ class GoogleAdsCampaignMetricsImporter
                 if (! is_array($result)) {
                     throw new RuntimeException('Google Ads API returned a malformed campaign row.');
                 }
-                $rows[] = $this->normalizeRow($result, $customerId, $version);
+                $row = $this->normalizeRow($result, $customerId, $version);
+                if ($row['metric_date'] < $start->toDateString() || $row['metric_date'] > $end->toDateString()) {
+                    throw new RuntimeException('Google Ads API returned a metric date outside the requested period.');
+                }
+                $rows[] = $row;
             }
             $pageToken = $body['nextPageToken'] ?? null;
         } while (is_string($pageToken) && $pageToken !== '');
@@ -153,7 +157,11 @@ class GoogleAdsCampaignMetricsImporter
         if (preg_match('/\A[A-Z]{3}\z/', $currency) !== 1) {
             throw new RuntimeException('Google Ads API returned an invalid account currency.');
         }
-        if (! is_numeric($conversions) || (float) $conversions < 0) {
+        if (! is_string($conversions) && ! is_int($conversions) && ! is_float($conversions)) {
+            throw new RuntimeException('Google Ads API returned an invalid conversion metric.');
+        }
+        $conversions = (string) $conversions;
+        if (preg_match('/\A\d{1,12}(?:\.\d{1,6})?\z/', $conversions) !== 1 || ! is_finite((float) $conversions)) {
             throw new RuntimeException('Google Ads API returned an invalid conversion metric.');
         }
 
@@ -165,17 +173,25 @@ class GoogleAdsCampaignMetricsImporter
             'impressions' => $impressions,
             'clicks' => $clicks,
             'cost_micros' => $costMicros,
-            'conversions' => number_format((float) $conversions, 6, '.', ''),
+            'conversions' => $this->normalizeDecimal($conversions),
             'currency_code' => $currency,
             'api_version' => $version,
             'imported_at' => now(),
         ];
     }
 
+    private function normalizeDecimal(string $value): string
+    {
+        [$whole, $fraction] = array_pad(explode('.', $value, 2), 2, '');
+        $whole = ltrim($whole, '0');
+
+        return ($whole === '' ? '0' : $whole).'.'.str_pad($fraction, 6, '0');
+    }
+
     private function unsignedInteger(mixed $value, string $field): string
     {
         $value = (string) $value;
-        if (preg_match('/\A[0-9]+\z/', $value) !== 1) {
+        if (preg_match('/\A[0-9]+\z/', $value) !== 1 || strlen(ltrim($value, '0')) > 19 || (strlen(ltrim($value, '0')) === 19 && strcmp(ltrim($value, '0'), '9223372036854775807') > 0)) {
             throw new RuntimeException('Google Ads API returned an invalid '.$field.' metric.');
         }
 
