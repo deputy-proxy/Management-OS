@@ -73,19 +73,56 @@ class MarketTrend extends Model
     {
         static::saving(function (self $marketTrend): void {
             try {
-                $periodStart = Carbon::parse((string) $marketTrend->period_start)->startOfDay();
-                $periodEnd = Carbon::parse((string) $marketTrend->period_end)->startOfDay();
+                $rawPeriodStart = $marketTrend->getAttributes()['period_start'] ?? null;
+                $rawPeriodEnd = $marketTrend->getAttributes()['period_end'] ?? null;
+                $periodStartDate = is_string($rawPeriodStart) ? substr($rawPeriodStart, 0, 10) : '';
+                $periodEndDate = is_string($rawPeriodEnd) ? substr($rawPeriodEnd, 0, 10) : '';
+                if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $periodStartDate) !== 1 || preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $periodEndDate) !== 1) {
+                    throw new InvalidArgumentException('Market trend period dates must use YYYY-MM-DD format.');
+                }
+                $periodStart = Carbon::createFromFormat('!Y-m-d', $periodStartDate)->startOfDay();
+                $periodEnd = Carbon::createFromFormat('!Y-m-d', $periodEndDate)->startOfDay();
             } catch (\Throwable) {
                 throw new InvalidArgumentException('Market trend period dates must be valid dates.');
+            }
+
+            if ($periodStart->format('Y-m-d') !== $periodStartDate || $periodEnd->format('Y-m-d') !== $periodEndDate) {
+                throw new InvalidArgumentException('Market trend period dates must use valid calendar dates.');
             }
 
             if ($periodStart->gt($periodEnd)) {
                 throw new InvalidArgumentException('The market trend period start must be on or before its end.');
             }
 
+            foreach ([
+                'name' => 255, 'category' => 100, 'metric_key' => 100, 'unit' => 50,
+                'market' => 100, 'segment' => 100, 'source_name' => 100,
+            ] as $field => $maxLength) {
+                if (($field !== 'segment' && trim((string) $marketTrend->{$field}) === '') || mb_strlen((string) $marketTrend->{$field}) > $maxLength) {
+                    throw new InvalidArgumentException("Market trend {$field} is required and cannot exceed {$maxLength} characters.");
+                }
+            }
+
+            foreach ([
+                'value' => [14, 6],
+                'previous_value' => [14, 6],
+                'change_pct' => [8, 4],
+            ] as $field => [$integerDigits, $scale]) {
+                $value = $marketTrend->getAttributes()[$field] ?? null;
+                $unsigned = ltrim((string) $value, '-');
+                $whole = ltrim(explode('.', $unsigned)[0], '0');
+                if ($value !== null && (! is_numeric($value) || ! is_finite((float) $value) || strlen($whole) > $integerDigits || preg_match('/\A-?\d+(?:\.\d{1,'.$scale.'})?\z/', (string) $value) !== 1)) {
+                    throw new InvalidArgumentException("Market trend {$field} must be a finite decimal with at most {$scale} decimal places and within the supported range.");
+                }
+            }
+
+            if (filled($marketTrend->source_url) && (mb_strlen($marketTrend->source_url) > 2048 || filter_var($marketTrend->source_url, FILTER_VALIDATE_URL) === false)) {
+                throw new InvalidArgumentException('Market trend source URL must be a valid URL of at most 2048 characters.');
+            }
+
             if (
-                $marketTrend->confidence !== null
-                && ((float) $marketTrend->confidence < 0 || (float) $marketTrend->confidence > 1)
+                ($confidence = $marketTrend->getAttributes()['confidence'] ?? null) !== null
+                && (! is_numeric($confidence) || ! is_finite((float) $confidence) || (float) $confidence < 0 || (float) $confidence > 1 || preg_match('/\A\d+(?:\.\d{1,4})?\z/', (string) $confidence) !== 1)
             ) {
                 throw new InvalidArgumentException('Market trend confidence must be between 0 and 1.');
             }
@@ -122,6 +159,21 @@ class MarketTrend extends Model
             }
             if ($marketTrend->verification_status === 'verified' && blank($marketTrend->source_reference) && blank($marketTrend->source_url)) {
                 throw new InvalidArgumentException('Verified observations require a source URL or stable source reference.');
+            }
+
+            if ($marketTrend->segment === null) {
+                $duplicate = static::query()
+                    ->where('metric_key', $marketTrend->metric_key)
+                    ->where('market', $marketTrend->market)
+                    ->whereNull('segment')
+                    ->whereDate('period_start', $periodStart->toDateString())
+                    ->whereDate('period_end', $periodEnd->toDateString())
+                    ->where('source_name', $marketTrend->source_name)
+                    ->when($marketTrend->exists, fn ($query) => $query->whereKeyNot($marketTrend->getKey()))
+                    ->exists();
+                if ($duplicate) {
+                    throw new InvalidArgumentException('A market trend observation with this identity already exists.');
+                }
             }
 
             $metric = $marketTrend->market_intelligence_metric_id
@@ -210,6 +262,26 @@ class MarketTrend extends Model
      */
     public function scopeWithinPeriod(Builder $query, string $start, string $end): Builder
     {
+        try {
+            $periodStart = preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $start) === 1
+                ? Carbon::createFromFormat('!Y-m-d', $start)
+                : false;
+            $periodEnd = preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $end) === 1
+                ? Carbon::createFromFormat('!Y-m-d', $end)
+                : false;
+            if (! $periodStart || ! $periodEnd || $periodStart->format('Y-m-d') !== $start || $periodEnd->format('Y-m-d') !== $end) {
+                throw new InvalidArgumentException('Market trend filter dates must use valid YYYY-MM-DD dates.');
+            }
+        } catch (\Throwable $exception) {
+            if ($exception instanceof InvalidArgumentException) {
+                throw $exception;
+            }
+            throw new InvalidArgumentException('Market trend filter dates must be valid dates.', previous: $exception);
+        }
+        if ($periodStart->gt($periodEnd)) {
+            throw new InvalidArgumentException('Market trend filter start must be on or before its end.');
+        }
+
         return $query
             ->whereDate('period_start', '<=', $end)
             ->whereDate('period_end', '>=', $start);

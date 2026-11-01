@@ -42,6 +42,17 @@ class CompetitorOffer extends Model implements Commentable
         'title', 'competitor_id', 'offer_type', 'offer_description', 'offer_price', 'our_similar_offer', 'their_differentiator', 'last_check', 'status', 'source_url', 'currency', 'price_basis', 'valid_from', 'valid_until', 'observed_at',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'offer_price' => 'decimal:2',
+            'last_check' => 'date',
+            'valid_from' => 'date',
+            'valid_until' => 'date',
+            'observed_at' => 'immutable_datetime',
+        ];
+    }
+
     public function competitor(): BelongsTo
     {
         return $this->belongsTo(Competitor::class);
@@ -56,15 +67,56 @@ class CompetitorOffer extends Model implements Commentable
     protected static function booted(): void
     {
         static::saving(function (self $offer): void {
-            if (filled($offer->currency)) {
+            $isNewOrDirty = static fn (string $field): bool => ! $offer->exists || $offer->isDirty($field);
+
+            foreach (['title', 'offer_type', 'offer_description', 'status'] as $field) {
+                if ($isNewOrDirty($field) && trim((string) $offer->{$field}) === '') {
+                    throw new InvalidArgumentException("Competitor offer {$field} is required.");
+                }
+            }
+
+            if ($isNewOrDirty('competitor_id') && (! $offer->competitor_id || ! Competitor::withTrashed()->whereKey($offer->competitor_id)->exists())) {
+                throw new InvalidArgumentException('An existing competitor record must be selected for an offer.');
+            }
+
+            $rawPrice = $offer->getAttributes()['offer_price'] ?? null;
+            $wholePrice = ltrim(explode('.', (string) $rawPrice)[0], '0');
+            if ($isNewOrDirty('offer_price') && (! is_numeric($rawPrice) || ! is_finite((float) $rawPrice) || (float) $rawPrice < 0 || strlen($wholePrice) > 12 || preg_match('/\A\d+(?:\.\d{1,2})?\z/', (string) $rawPrice) !== 1)) {
+                throw new InvalidArgumentException('Competitor offer price must be between 0 and 999999999999.99 with at most two decimal places.');
+            }
+
+            if ($isNewOrDirty('currency') && filled($offer->currency)) {
                 $offer->currency = strtoupper(trim((string) $offer->currency));
                 if (preg_match('/\A[A-Z]{3}\z/', $offer->currency) !== 1) {
                     throw new InvalidArgumentException('Offer currency must be a three-letter ISO currency code or unknown.');
                 }
             }
 
-            if ($offer->valid_from && $offer->valid_until && Carbon::parse($offer->valid_from)->gt(Carbon::parse($offer->valid_until))) {
-                throw new InvalidArgumentException('Offer validity start must be on or before its end.');
+            if ($isNewOrDirty('price_basis') && filled($offer->price_basis) && ! in_array($offer->price_basis, ['one_time', 'monthly', 'annual', 'per_unit', 'from', 'unknown'], true)) {
+                throw new InvalidArgumentException('Choose a supported competitor offer price basis.');
+            }
+
+            if ($isNewOrDirty('source_url') && filled($offer->source_url) && (mb_strlen($offer->source_url) > 2048 || filter_var($offer->source_url, FILTER_VALIDATE_URL) === false)) {
+                throw new InvalidArgumentException('Offer source URL must be a valid URL of at most 2048 characters.');
+            }
+
+            try {
+                $validFrom = $isNewOrDirty('valid_from') || $isNewOrDirty('valid_until') ? self::parseDateAttribute($offer, 'valid_from') : null;
+                $validUntil = $isNewOrDirty('valid_from') || $isNewOrDirty('valid_until') ? self::parseDateAttribute($offer, 'valid_until') : null;
+                if ($isNewOrDirty('last_check')) {
+                    self::parseDateAttribute($offer, 'last_check');
+                }
+                if ($validFrom && $validUntil && $validFrom->gt($validUntil)) {
+                    throw new InvalidArgumentException('Offer validity start must be on or before its end.');
+                }
+                if ($isNewOrDirty('observed_at') && $offer->observed_at && Carbon::parse($offer->observed_at)->gt(now())) {
+                    throw new InvalidArgumentException('Offer observation timestamp cannot be in the future.');
+                }
+            } catch (\Throwable $exception) {
+                if ($exception instanceof InvalidArgumentException) {
+                    throw $exception;
+                }
+                throw new InvalidArgumentException('Offer validity dates must be valid dates.', previous: $exception);
             }
         });
 
@@ -80,9 +132,33 @@ class CompetitorOffer extends Model implements Commentable
         });
     }
 
+    private static function parseDateAttribute(self $offer, string $field): ?Carbon
+    {
+        $raw = $offer->getAttributes()[$field] ?? null;
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        $date = is_string($raw) ? substr($raw, 0, 10) : '';
+        if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date) !== 1) {
+            throw new InvalidArgumentException("Offer {$field} must use YYYY-MM-DD format.");
+        }
+
+        try {
+            $parsed = Carbon::createFromFormat('!Y-m-d', $date);
+        } catch (\Throwable $exception) {
+            throw new InvalidArgumentException("Offer {$field} must be a valid calendar date.", previous: $exception);
+        }
+        if (! $parsed || $parsed->format('Y-m-d') !== $date) {
+            throw new InvalidArgumentException("Offer {$field} must be a valid calendar date.");
+        }
+
+        return $parsed;
+    }
+
     private function recordObservation(): void
     {
-        $this->observations()->create([
+        $snapshot = [
             'title' => $this->title,
             'offer_type' => $this->offer_type,
             'offer_description' => $this->offer_description,
@@ -96,7 +172,16 @@ class CompetitorOffer extends Model implements Commentable
             'recorded_at' => now(),
             'recorded_by' => auth()->id(),
             'source_status' => filled($this->source_url) ? 'provided' : 'unknown',
+        ];
+        $snapshot['observation_key'] = CompetitorOfferObservation::makeObservationKey([
+            'competitor_offer_id' => $this->getKey(),
+            ...$snapshot,
         ]);
+
+        $this->observations()->firstOrCreate(
+            ['observation_key' => $snapshot['observation_key']],
+            $snapshot,
+        );
     }
 
     public function getActivitylogOptions(): LogOptions

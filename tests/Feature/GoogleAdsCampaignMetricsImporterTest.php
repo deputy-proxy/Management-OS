@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\GoogleAdsCampaignDailyMetric;
 use App\Services\GoogleAdsCampaignMetricsImporter;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
@@ -57,6 +59,97 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
         $this->assertSame('RON', GoogleAdsCampaignDailyMetric::query()->where('campaign_id', '1001')->value('currency_code'));
         $this->assertSame('3.000000', GoogleAdsCampaignDailyMetric::query()->where('campaign_id', '1001')->value('conversions'));
         Http::assertSent(fn ($request): bool => $request->hasHeader('login-customer-id', '9998887777') && $request->hasHeader('Authorization', 'Bearer access-token'));
+    }
+
+    public function test_provider_rows_outside_the_requested_period_are_rejected_without_partial_writes(): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response(['access_token' => 'access-token'], 200),
+            'https://googleads.googleapis.com/*' => Http::response(['results' => [
+                $this->row('1001', 'Campaign One', '2026-10-02', 1, 1, 100, 0, 'RON'),
+            ]], 200),
+        ]);
+
+        try {
+            app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
+            $this->fail('Out-of-range provider dates must be rejected.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('outside the requested period', $exception->getMessage());
+            $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 0);
+        }
+    }
+
+    public function test_daily_metric_model_validates_identity_counters_currency_and_date(): void
+    {
+        $attributes = $this->modelAttributes();
+        $metric = GoogleAdsCampaignDailyMetric::query()->create($attributes);
+        $this->assertSame('1234567890', $metric->account_customer_id);
+        $this->assertSame('RON', $metric->currency_code);
+        $this->assertInstanceOf(CarbonImmutable::class, $metric->imported_at);
+
+        foreach ([
+            ['clicks' => -1],
+            ['conversions' => 1000000000000],
+            ['currency_code' => 'EURO'],
+            ['campaign_id' => 'not-numeric'],
+            ['api_version' => 'latest'],
+            ['metric_date' => '2026-12-01'],
+        ] as $overrides) {
+            try {
+                GoogleAdsCampaignDailyMetric::query()->create(array_replace($this->modelAttributes(), $overrides));
+                $this->fail('Invalid daily metrics must be rejected.');
+            } catch (\InvalidArgumentException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function test_daily_metric_accepts_the_maximum_six_decimal_conversion_value(): void
+    {
+        $metric = GoogleAdsCampaignDailyMetric::query()->create(array_replace(
+            $this->modelAttributes(),
+            ['conversions' => '999999999999.999999'],
+        ));
+
+        $this->assertSame('999999999999.999999', $metric->conversions);
+    }
+
+    public function test_daily_metric_query_scopes_normalize_account_and_validate_period(): void
+    {
+        GoogleAdsCampaignDailyMetric::query()->create($this->modelAttributes());
+
+        $this->assertSame(1, GoogleAdsCampaignDailyMetric::query()->forAccount('123-456-7890')->withinPeriod('2026-10-01', '2026-10-01')->count());
+        try {
+            GoogleAdsCampaignDailyMetric::query()->withinPeriod('2026-10-02', '2026-10-01')->count();
+            $this->fail('Reversed periods must be rejected.');
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
+
+        $this->expectException(\InvalidArgumentException::class);
+        GoogleAdsCampaignDailyMetric::query()->withinPeriod('not-a-date', '2026-10-01')->count();
+    }
+
+    public function test_daily_metric_identity_is_unique_per_account_campaign_and_day(): void
+    {
+        $attributes = $this->modelAttributes();
+        GoogleAdsCampaignDailyMetric::query()->create($attributes);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        GoogleAdsCampaignDailyMetric::query()->create($attributes);
+    }
+
+    public function test_provider_counter_values_above_database_range_are_rejected(): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response(['access_token' => 'access-token'], 200),
+            'https://googleads.googleapis.com/*' => Http::response(['results' => [
+                $this->row('1001', 'Campaign One', '2026-10-01', 1, 1, 9223372036854775808, 0, 'RON'),
+            ]], 200),
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
     }
 
     public function test_dry_run_validates_rows_without_persisting_them(): void
@@ -113,7 +206,19 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
     }
 
     /** @return array<string, mixed> */
-    private function row(string $id, string $name, string $date, int $impressions, int $clicks, int $costMicros, float $conversions, string $currency): array
+    private function modelAttributes(): array
+    {
+        return [
+            'account_customer_id' => '123-456-7890', 'campaign_id' => '1001',
+            'campaign_name' => 'Campaign One', 'metric_date' => '2026-10-01',
+            'impressions' => 100, 'clicks' => 10, 'cost_micros' => 100000,
+            'conversions' => '2.500000', 'currency_code' => 'ron',
+            'api_version' => 'v26', 'imported_at' => '2026-10-02 12:00:00',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function row(string $id, string $name, string $date, int $impressions, int $clicks, int|float|string $costMicros, float $conversions, string $currency): array
     {
         return [
             'campaign' => ['id' => $id, 'name' => $name],

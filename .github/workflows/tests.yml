@@ -250,6 +250,8 @@ jobs:
           tests/Feature/BudgetVersionWorkflowTest.php
           tests/Feature/CashForecastServiceTest.php
           tests/Feature/MarketTrendTest.php
+          tests/Feature/CompetitorOfferObservationTest.php
+          tests/Feature/GoogleAdsCampaignMetricsImporterTest.php
           tests/Feature/MarketIntelligenceConfigurationTest.php
           tests/Feature/MarketDataImportAdaptersTest.php
           tests/Feature/MarketAnalysisDashboardDataTest.php
