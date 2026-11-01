@@ -118,7 +118,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
 
         $definition = app(\App\Services\KpiDefinitionService::class)->createDraft([
             'key' => 'unconverted_lead_count',
-            'effective_from' => CarbonImmutable::now('Europe/Bucharest')->toDateString(),
+            'effective_from' => CarbonImmutable::tomorrow('Europe/Bucharest')->toDateString(),
             'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],
             'change_summary' => 'Test scoped filter counts.',
         ]);
