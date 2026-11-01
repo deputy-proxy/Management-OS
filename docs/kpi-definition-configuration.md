@@ -29,7 +29,7 @@
 
 KPI definition list, draft creation, editing, approval, and retirement use separate gates: `kpi_definition.index`, `kpi_definition.create`, `kpi_definition.update`, and `kpi_definition.approve`. No delete action is provided. Tests cover allow-listed keys, version increments, effective-date handoff, immutability, permission-gated aggregation, and threshold evaluation.
 
-The catalogue registry currently supports daily as-of periods and no dimensions. It rejects duplicate keys, unsupported dimensions, and unsupported period contracts. A missing source model or calculation handler makes the KPI explicitly unavailable; it does not produce a fabricated zero. Final business definitions and real-source reconciliation are deferred.
+The catalogue registry supports daily as-of periods. Versioned lead-count definitions additionally support the registered status and source-category dimensions; other calculation families currently expose no configurable dimensions. The configuration service rejects duplicate or unsupported dimensions, unsupported fields/operators/values, excessive filter or dimension counts, and unsupported period contracts. A missing source model or calculation handler makes the KPI explicitly unavailable; it does not produce a fabricated zero. Final business definitions and real-source reconciliation are deferred.
 
 
 ## Configurable draft settings
