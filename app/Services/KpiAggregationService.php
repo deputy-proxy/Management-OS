@@ -152,13 +152,14 @@ class KpiAggregationService
      */
     private function dimensionBreakdown(string $type, array $filters, array $dimensions): array
     {
+        $allowed = app(KpiDefinitionConfiguration::class)->dimensions($type);
         if ($dimensions === [] || ! in_array($type, ['unconverted_lead_count', 'unknown_lead_source_count'], true)) {
             return [];
         }
-
-        $field = app(KpiDefinitionConfiguration::class)->dimensions($type)[0] ?? null;
-        if (! is_string($field) || ! in_array($field, $dimensions, true)) {
-            return [];
+        foreach ($dimensions as $dimension) {
+            if (! in_array($dimension, $allowed, true)) {
+                return [];
+            }
         }
 
         $query = CustomerLead::query();
@@ -168,13 +169,21 @@ class KpiAggregationService
             $query->where('source_category', 'unknown');
         }
         $rows = $this->applyLeadFilters($query, $filters)
-            ->select($field)
+            ->select($dimensions)
             ->selectRaw('COUNT(*) as aggregate')
-            ->groupBy($field)
+            ->groupBy(...$dimensions)
             ->limit(50)
             ->get();
 
-        return $rows->mapWithKeys(fn (CustomerLead $row): array => [(string) ($row->{$field} ?? '(empty)') => (int) $row->aggregate])->all();
+        $breakdown = [];
+        foreach ($rows as $row) {
+            $label = collect($dimensions)
+                ->map(fn (string $field): string => $field.'='.((string) ($row->{$field} ?? '(empty)')))
+                ->implode(' / ');
+            $breakdown[$label] = (int) $row->aggregate;
+        }
+
+        return $breakdown;
     }
 
     /** @param array<string, bool> $permissions */
