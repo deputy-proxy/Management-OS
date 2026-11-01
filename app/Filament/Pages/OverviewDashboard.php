@@ -1,21 +1,21 @@
 <?php
 
-namespace App\\Filament\\Pages;
+namespace App\Filament\Pages;
 
-use App\\Filament\\Resources\\Articles\\ArticleResource;
-use App\\Filament\\Resources\\CompetitorOffers\\CompetitorOfferResource;
-use App\\Filament\\Resources\\CustomerLeads\\CustomerLeadResource;
-use App\\Filament\\Resources\\Customers\\CustomerResource;
-use App\\Filament\\Resources\\Employees\\EmployeeResource;
-use App\\Filament\\Resources\\Newsletters\\NewsletterResource;
-use App\\Filament\\Resources\\PaidCampaigns\\PaidCampaignResource;
-use App\\Filament\\Resources\\Projects\\ProjectResource;
-use App\\Filament\\Resources\\Students\\StudentResource;
-use App\\Filament\\Resources\\Tasks\\TaskResource;
-use App\\Services\\AdminOverviewDashboardData;
-use Filament\\Pages\\Dashboard as BaseDashboard;
-use Filament\\Pages\\Page;
-use Hexters\\HexaLite\\HasHexaLite;
+use App\Filament\Resources\Articles\ArticleResource;
+use App\Filament\Resources\CompetitorOffers\CompetitorOfferResource;
+use App\Filament\Resources\CustomerLeads\CustomerLeadResource;
+use App\Filament\Resources\Customers\CustomerResource;
+use App\Filament\Resources\Employees\EmployeeResource;
+use App\Filament\Resources\Newsletters\NewsletterResource;
+use App\Filament\Resources\PaidCampaigns\PaidCampaignResource;
+use App\Filament\Resources\Projects\ProjectResource;
+use App\Filament\Resources\Students\StudentResource;
+use App\Filament\Resources\Tasks\TaskResource;
+use App\Services\AdminOverviewDashboardData;
+use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Pages\Page;
+use Hexters\HexaLite\HasHexaLite;
 
 class OverviewDashboard extends BaseDashboard
 {

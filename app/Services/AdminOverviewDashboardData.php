@@ -1,20 +1,20 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Models\\Article;
-use App\\Models\\Customer;
-use App\\Models\\CustomerLead;
-use App\\Models\\Employee;
-use App\\Models\\Newsletter;
-use App\\Models\\PaidCampaign;
-use App\\Models\\Project;
-use App\\Models\\Student;
-use App\\Models\\Task;
-use Carbon\\CarbonImmutable;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Support\\Collection;
-use Spatie\\Activitylog\\Models\\Activity;
+use App\Models\Article;
+use App\Models\Customer;
+use App\Models\CustomerLead;
+use App\Models\Employee;
+use App\Models\Newsletter;
+use App\Models\PaidCampaign;
+use App\Models\Project;
+use App\Models\Student;
+use App\Models\Task;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Spatie\Activitylog\Models\Activity;
 
 class AdminOverviewDashboardData
 {
@@ -111,7 +111,7 @@ class AdminOverviewDashboardData
         try {
             $kpis = app(KpiAggregationService::class)->current($permissions, $now);
             $kpis['status'] = 'available';
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
             $kpis = [
                 'status' => 'error',

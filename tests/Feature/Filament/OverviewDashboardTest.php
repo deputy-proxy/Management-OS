@@ -1,17 +1,17 @@
 <?php
 
-namespace Tests\\Feature\\Filament;
+namespace Tests\Feature\Filament;
 
-use App\\Filament\\Pages\\CustomerDashboard;
-use App\\Filament\\Pages\\FinanceDashboard;
-use App\\Filament\\Pages\\GeneralDashboard;
-use App\\Filament\\Pages\\OverviewDashboard;
-use App\\Filament\\Pages\\PortfolioOverview;
-use App\\Filament\\Pages\\TasksAndProjects;
-use Filament\\Facades\\Filament;
-use Filament\\Pages\\Dashboard;
-use Filament\\Pages\\Page;
-use Tests\\TestCase;
+use App\Filament\Pages\CustomerDashboard;
+use App\Filament\Pages\FinanceDashboard;
+use App\Filament\Pages\GeneralDashboard;
+use App\Filament\Pages\OverviewDashboard;
+use App\Filament\Pages\PortfolioOverview;
+use App\Filament\Pages\TasksAndProjects;
+use Filament\Facades\Filament;
+use Filament\Pages\Dashboard;
+use Filament\Pages\Page;
+use Tests\TestCase;
 
 class OverviewDashboardTest extends TestCase
 {
