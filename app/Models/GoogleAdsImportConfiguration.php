@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
@@ -139,6 +140,11 @@ class GoogleAdsImportConfiguration extends Model
         }
 
         return $date && $date->format('Y-m-d') === $value ? $date : null;
+    }
+
+    public function importBatches(): HasMany
+    {
+        return $this->hasMany(GoogleAdsImportBatch::class, 'configuration_id');
     }
 
     public function configurationStatus(): string

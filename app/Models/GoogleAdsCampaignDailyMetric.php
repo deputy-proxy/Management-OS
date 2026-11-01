@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 class GoogleAdsCampaignDailyMetric extends Model
@@ -12,8 +14,8 @@ class GoogleAdsCampaignDailyMetric extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'account_customer_id', 'campaign_id', 'campaign_name', 'metric_date', 'impressions',
-        'clicks', 'cost_micros', 'conversions', 'currency_code', 'api_version', 'imported_at',
+        'import_batch_id', 'account_customer_id', 'campaign_id', 'campaign_name', 'metric_date', 'impressions',
+        'clicks', 'cost_micros', 'conversions', 'currency_code', 'api_version', 'source_name', 'source_version', 'imported_at',
     ];
 
     protected function casts(): array
@@ -81,6 +83,16 @@ class GoogleAdsCampaignDailyMetric extends Model
                 throw new InvalidArgumentException('Google Ads metric date and import timestamp must be valid.', previous: $exception);
             }
         });
+    }
+
+    public function importBatch(): BelongsTo
+    {
+        return $this->belongsTo(GoogleAdsImportBatch::class, 'import_batch_id');
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(GoogleAdsCampaignDailyMetricRevision::class, 'metric_id');
     }
 
     /** @param Builder<GoogleAdsCampaignDailyMetric> $query

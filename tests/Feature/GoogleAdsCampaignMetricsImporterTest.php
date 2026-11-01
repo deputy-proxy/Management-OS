@@ -2,7 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\Advertising\GoogleAdsCampaignMetricsAdapter;
 use App\Models\GoogleAdsCampaignDailyMetric;
+use App\Models\GoogleAdsCampaignDailyMetricRevision;
+use App\Models\GoogleAdsImportBatch;
+use App\Models\GoogleAdsImportConfiguration;
+use App\Services\GoogleAds\MockGoogleAdsCampaignMetricsAdapter;
 use App\Services\GoogleAdsCampaignMetricsImporter;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -202,7 +207,142 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
             $this->fail('Malformed rows must be rejected.');
         } catch (RuntimeException) {
             $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 0);
+            $this->assertDatabaseHas('google_ads_import_batches', ['status' => 'failed']);
         }
+    }
+
+    public function test_replayed_identical_batches_are_audited_without_creating_false_revisions(): void
+    {
+        $row = $this->normalizedRow();
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$row]));
+        $importer = app(GoogleAdsCampaignMetricsImporter::class);
+
+        $first = $importer->import('2026-10-01', '2026-10-01');
+        $second = $importer->import('2026-10-01', '2026-10-01');
+
+        $this->assertNotSame($first['batch_id'], $second['batch_id']);
+        $this->assertDatabaseCount('google_ads_import_batches', 2);
+        $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 1);
+        $this->assertDatabaseCount('google_ads_campaign_daily_metric_revisions', 0);
+        $metric = GoogleAdsCampaignDailyMetric::query()->firstOrFail();
+        $this->assertSame($second['batch_id'], $metric->import_batch_id);
+        $this->assertSame('google_ads', $metric->source_name);
+        $this->assertSame('v26', $metric->source_version);
+        $this->assertSame('completed', GoogleAdsImportBatch::query()->findOrFail($second['batch_id'])->status);
+    }
+
+    public function test_provider_corrections_preserve_the_previous_metric_revision(): void
+    {
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$this->normalizedRow()]));
+        $importer = app(GoogleAdsCampaignMetricsImporter::class);
+        $importer->import('2026-10-01', '2026-10-01');
+
+        $corrected = $this->normalizedRow(['impressions' => '125', 'clicks' => '15', 'cost_micros' => '250000', 'conversions' => '3.250000']);
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$corrected]));
+        $result = app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
+
+        $metric = GoogleAdsCampaignDailyMetric::query()->firstOrFail();
+        $revision = GoogleAdsCampaignDailyMetricRevision::query()->firstOrFail();
+        $this->assertSame('125', (string) $metric->impressions);
+        $this->assertSame('100', $revision->previous_values['impressions']);
+        $this->assertSame('10', $revision->previous_values['clicks']);
+        $this->assertSame($result['batch_id'], $revision->import_batch_id);
+        $this->assertSame($result['batch_id'], $metric->import_batch_id);
+    }
+
+    public function test_empty_source_result_records_a_successful_batch_without_deleting_missing_campaign_metrics(): void
+    {
+        GoogleAdsCampaignDailyMetric::query()->create($this->modelAttributes());
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([]));
+
+        $result = app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
+
+        $this->assertSame(0, $result['row_count']);
+        $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 1);
+        $this->assertDatabaseHas('google_ads_import_batches', [
+            'id' => $result['batch_id'], 'status' => 'completed', 'row_count' => 0,
+        ]);
+    }
+
+    public function test_duplicate_campaign_day_rows_fail_the_batch_before_any_metric_writes(): void
+    {
+        $row = $this->normalizedRow();
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$row, $row]));
+
+        try {
+            app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
+            $this->fail('Duplicate natural keys must fail the batch.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('duplicate campaign-day', $exception->getMessage());
+            $this->assertDatabaseCount('google_ads_campaign_daily_metrics', 0);
+            $this->assertDatabaseHas('google_ads_import_batches', ['status' => 'failed', 'error_code' => 'invalid_import_payload']);
+        }
+    }
+
+    public function test_malformed_later_row_cannot_partially_apply_an_earlier_correction(): void
+    {
+        GoogleAdsCampaignDailyMetric::query()->create($this->modelAttributes());
+        $corrected = $this->normalizedRow(['impressions' => '999']);
+        $malformed = $this->normalizedRow(['campaign_id' => 'bad-id']);
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$corrected, $malformed]));
+
+        try {
+            app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01');
+            $this->fail('A malformed row must reject the complete import batch.');
+        } catch (RuntimeException) {
+            $this->assertSame('100', (string) GoogleAdsCampaignDailyMetric::query()->value('impressions'));
+            $this->assertDatabaseCount('google_ads_campaign_daily_metric_revisions', 0);
+            $this->assertDatabaseHas('google_ads_import_batches', ['status' => 'failed']);
+        }
+    }
+
+    public function test_currency_mismatch_fails_batch_without_changing_existing_data(): void
+    {
+        GoogleAdsCampaignDailyMetric::query()->create($this->modelAttributes());
+        $row = $this->normalizedRow(['currency_code' => 'USD']);
+        app()->instance(GoogleAdsCampaignMetricsAdapter::class, new MockGoogleAdsCampaignMetricsAdapter([$row]));
+
+        try {
+            app(GoogleAdsCampaignMetricsImporter::class)->import('2026-10-01', '2026-10-01', false, $this->configuredImport());
+            $this->fail('A currency mismatch must fail the import.');
+        } catch (RuntimeException) {
+            $this->assertSame('RON', GoogleAdsCampaignDailyMetric::query()->value('currency_code'));
+            $this->assertDatabaseCount('google_ads_campaign_daily_metric_revisions', 0);
+            $this->assertDatabaseHas('google_ads_import_batches', ['status' => 'failed']);
+        }
+    }
+
+    private function configuredImport(): GoogleAdsImportConfiguration
+    {
+        return new GoogleAdsImportConfiguration([
+            'name' => 'Test configuration',
+            'customer_id' => '1234567890',
+            'login_customer_id' => null,
+            'selected_campaign_ids' => [],
+            'date_range_days' => 90,
+            'metric_mapping' => GoogleAdsImportConfiguration::METRIC_MAPPING,
+            'currency_code' => 'RON',
+            'credential_reference' => 'env:GOOGLE_ADS',
+            'is_active' => true,
+        ]);
+    }
+
+    /** @param array<string, mixed> $overrides @return array<string, mixed> */
+    private function normalizedRow(array $overrides = []): array
+    {
+        return array_replace([
+            'account_customer_id' => '1234567890',
+            'campaign_id' => '1001',
+            'campaign_name' => 'Campaign One',
+            'metric_date' => '2026-10-01',
+            'impressions' => '100',
+            'clicks' => '10',
+            'cost_micros' => '100000',
+            'conversions' => '2.500000',
+            'currency_code' => 'RON',
+            'api_version' => 'v26',
+            'imported_at' => '2026-10-02 12:00:00',
+        ], $overrides);
     }
 
     /** @return array<string, mixed> */
