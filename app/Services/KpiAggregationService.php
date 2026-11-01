@@ -134,11 +134,13 @@ class KpiAggregationService
             $column = match ($filter['field']) {
                 'status' => 'status',
                 'source_category' => 'source_category',
+                default => throw new \\LogicException('Unregistered KPI filter field.'),
             };
             match ($filter['operator']) {
                 'eq' => $query->where($column, '=', $filter['value']),
                 'neq' => $query->where($column, '!=', $filter['value']),
                 'in' => $query->whereIn($column, $filter['value']),
+                default => throw new \\LogicException('Unregistered KPI filter operator.'),
             };
         }
 
@@ -208,6 +210,7 @@ class KpiAggregationService
     private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null, array $breakdown = []): array
     {
         $contract ??= $this->catalogue->get($key) ?? [];
+        $dimensions = $definition instanceof KpiDefinition ? ($definition->dimensions ?? []) : ($contract['dimensions'] ?? []);
 
         return [
             'key' => $key,
@@ -225,7 +228,7 @@ class KpiAggregationService
             'calculation_service' => $contract['calculation_service'] ?? null,
             'calculation_type' => $contract['calculation_type'] ?? null,
             'formula' => $contract['formula'] ?? null,
-            'dimensions' => $definition?->dimensions ?? ($contract['dimensions'] ?? []),
+            'dimensions' => $dimensions,
             'dimension_breakdown' => $breakdown,
             'supported_period' => $contract['supported_period'] ?? null,
             'missing_data' => $contract['missing_data'] ?? null,
