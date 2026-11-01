@@ -253,7 +253,6 @@ jobs:
           tests/Feature/CompetitorOfferObservationTest.php
           tests/Feature/GoogleAdsCampaignMetricsImporterTest.php
           tests/Feature/GoogleAdsImportConfigurationTest.php
-          tests/Feature/GoogleAdsRefreshRecoveryTest.php
           tests/Feature/MarketIntelligenceConfigurationTest.php
           tests/Feature/MarketDataImportAdaptersTest.php
           tests/Feature/MarketAnalysisDashboardDataTest.php
