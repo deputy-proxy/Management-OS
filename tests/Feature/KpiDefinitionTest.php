@@ -164,7 +164,7 @@ class KpiDefinitionTest extends TestCase
         $this->assertTrue($preview['synthetic']);
         $this->assertSame(3, $preview['sample_size']);
         $this->assertSame(2, $preview['value']);
-        $this->assertSame(['organic_search' => 2], $preview['breakdown']);
+        $this->assertSame(['source_category=organic_search' => 2], $preview['breakdown']);
     }
 
     public function test_registered_lead_filters_and_dimensions_are_applied_to_live_aggregation(): void
