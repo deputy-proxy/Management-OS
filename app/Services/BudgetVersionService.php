@@ -124,6 +124,21 @@ class BudgetVersionService
                 throw ValidationException::withMessages(['status' => 'Only submitted budget versions can be approved.']);
             }
             $this->assertNoPeriodOverlap($version);
+            $previousApproved = BudgetVersion::query()
+                ->where('budget_id', $version->budget_id)
+                ->whereKeyNot($version->getKey())
+                ->where('status', BudgetVersion::STATUS_APPROVED)
+                ->lockForUpdate()
+                ->first();
+            if ($previousApproved) {
+                $this->authorize('budget.retire');
+                $previousApproved->status = BudgetVersion::STATUS_RETIRED;
+                $previousApproved->retired_by = auth()->id();
+                $previousApproved->retired_at = now();
+                $previousApproved->save();
+                $this->recordEvent($previousApproved, 'retired');
+            }
+
             $version->status = BudgetVersion::STATUS_APPROVED;
             $version->approved_by = auth()->id();
             $version->approved_at = now();

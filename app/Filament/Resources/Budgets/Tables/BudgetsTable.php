@@ -48,7 +48,9 @@ class BudgetsTable
                 ->label('Approve')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn (Budget $record): bool => $record->latestVersion?->status === BudgetVersion::STATUS_SUBMITTED && hexa()->can('budget.approve'))
+                ->visible(fn (Budget $record): bool => $record->latestVersion?->status === BudgetVersion::STATUS_SUBMITTED
+                    && hexa()->can('budget.approve')
+                    && (! $record->versions()->where('status', BudgetVersion::STATUS_APPROVED)->exists() || hexa()->can('budget.retire')))
                 ->action(fn (Budget $record, BudgetVersionService $service) => $service->approve($record->latestVersion)),
             Action::make('retire')
                 ->label('Retire')

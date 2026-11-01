@@ -152,6 +152,22 @@ class BudgetVersionWorkflowTest extends TestCase
         $this->assertSame('approved', $first->fresh()->status);
         $this->assertSame('draft', $second->fresh()->status);
         $this->assertSame('Updated forecast amount', $second->change_summary);
+
+        $second = $service->submit($second->fresh());
+        Gate::define('budget.retire', fn (): bool => false);
+        try {
+            $service->approve($second);
+            $this->fail('Approving a replacement version must require permission to retire the prior version.');
+        } catch (AuthorizationException) {
+            $this->assertSame(BudgetVersion::STATUS_SUBMITTED, $second->fresh()->status);
+            $this->assertSame(BudgetVersion::STATUS_APPROVED, $first->fresh()->status);
+        }
+        Gate::define('budget.retire', fn (): bool => true);
+        $approvedSecond = $service->approve($second);
+        $this->assertSame(BudgetVersion::STATUS_APPROVED, $approvedSecond->status);
+        $this->assertSame(BudgetVersion::STATUS_RETIRED, $first->fresh()->status);
+        $this->assertSame('1250.50', $first->fresh()->lineItems->first()->amount);
+        $this->assertSame(['created', 'submitted', 'approved', 'retired'], $first->fresh()->events->pluck('event')->all());
     }
 
     public function test_invalid_period_currency_and_dimension_contract_are_rejected(): void

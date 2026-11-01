@@ -16,7 +16,7 @@ Management-OS stores budgets in a dedicated ledger. The legacy integer `projects
 
 - Draft versions can be edited. Editing replaces the draft's line items inside a transaction and appends an audit snapshot.
 - Submission validates the period, currency, dimension contract, line items, and overlap against other submitted or approved budgets.
-- Approval repeats the overlap check and records the approving actor and timestamp.
+- Approval repeats the overlap check and records the approving actor and timestamp. Approving a replacement version automatically retires the prior approved version in the same transaction; that transition also requires `budget.retire`.
 - Submitted and approved version contents are immutable. Corrections require a new draft version.
 - Retirement is a lifecycle event, not deletion. Retired versions and their line items remain available for historical review.
 - Each create, edit, submit, approve, and retire operation appends an immutable event containing a complete version snapshot.
