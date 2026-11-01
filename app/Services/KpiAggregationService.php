@@ -22,14 +22,17 @@ class KpiAggregationService
         'competitor_offer_snapshot_count',
     ];
 
+    public const MAX_PROVENANCE_RECORDS = 100;
+    public const MAX_DIMENSION_GROUPS = 50;
+
     public function __construct(private readonly KpiCatalogueRegistry $catalogue) {}
 
     /**
      * Evaluate the allow-listed catalogue. An active, effective-dated database
      * definition overrides its static v1 definition without changing the key.
      *
-     * @param  array<string, bool>  $permissions
-     * @return array{catalogue_version: string, catalogue_approval_status: string, as_of: string, timezone: string, results: list<array<string, mixed>>}
+     * @param array<string, bool> $permissions
+     * @return array<string, mixed>
      */
     public function current(array $permissions = [], ?CarbonImmutable $asOf = null): array
     {
@@ -68,12 +71,13 @@ class KpiAggregationService
         $timezone = $this->catalogue->timezone();
         $asOf = ($asOf ?? CarbonImmutable::now($timezone))->setTimezone($timezone);
         $date ??= $asOf->toDateString();
+        $contract = $this->catalogue->get($definition->key);
+
         if (! ($permissions[$definition->permission] ?? false)) {
-            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_permission_denied', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition);
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_permission_denied', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
 
-        $contract = $this->catalogue->get($definition->key);
-        if ($contract === null || $contract['availability'] !== 'available') {
+        if ($contract === null || ($contract['availability'] ?? null) !== 'available') {
             $reason = $contract['availability'] ?? 'unavailable_missing_calculation';
 
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
@@ -86,64 +90,163 @@ class KpiAggregationService
         if (! is_array($filters) || ! is_array($dimensions) || ! is_string($aggregation) || ! is_array($period)) {
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
+
         try {
             $configuration = app(KpiDefinitionConfiguration::class)->validate($definition->calculation_type, $filters, $dimensions, $aggregation, $period);
         } catch (ValidationException) {
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
-        $filters = $configuration['filters'];
-        $dimensions = $configuration['dimensions'];
-        $value = $this->calculate($definition->calculation_type, $permissions, $date, $filters);
-        $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $dimensions);
 
-        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract, $breakdown);
+        $evaluation = $this->evaluate(
+            $definition->calculation_type,
+            $permissions,
+            $date,
+            $configuration['filters'],
+            $configuration['dimensions'],
+        );
+
+        return $this->result(
+            $definition->key,
+            $definition->label,
+            $definition->domain,
+            $definition->unit,
+            $evaluation['value'],
+            $evaluation['availability'],
+            $definition->source,
+            $definition->permission,
+            $definition->description,
+            $asOf,
+            $definition->version,
+            $definition,
+            $contract,
+            $evaluation['breakdown'],
+            $evaluation,
+        );
     }
 
     /** @param array<string, mixed> $definition
-     * @param  array<string, bool>  $permissions
+     * @param array<string, bool> $permissions
      * @return array<string, mixed>
      */
     private function aggregateStatic(string $key, array $definition, array $permissions, CarbonImmutable $asOf, string $date): array
     {
-        if ($definition['availability'] !== 'available') {
-            $value = null;
-            $availability = $definition['availability'];
+        if (($definition['availability'] ?? null) !== 'available') {
+            $availability = $definition['availability'] ?? 'unavailable_missing_calculation';
+            $evaluation = $this->emptyEvaluation($availability);
         } elseif (! ($permissions[$definition['permission']] ?? false)) {
-            $value = null;
             $availability = 'unavailable_permission_denied';
+            $evaluation = $this->emptyEvaluation($availability);
         } else {
-            $value = $this->calculate($definition['calculation_type'], $permissions, $date);
-            $availability = $value === null ? 'unavailable' : 'available';
+            $evaluation = $this->evaluate($definition['calculation_type'], $permissions, $date);
+            $availability = $evaluation['availability'];
         }
 
-        return $this->result($key, $definition['label'], $definition['domain'], $definition['unit'], $value, $availability, $definition['source'], $definition['permission'], $definition['description'], $asOf, null, null, $definition);
+        return $this->result(
+            $key,
+            $definition['label'],
+            $definition['domain'],
+            $definition['unit'],
+            $evaluation['value'],
+            $availability,
+            $definition['source'],
+            $definition['permission'],
+            $definition['description'],
+            $asOf,
+            null,
+            null,
+            $definition,
+            $evaluation['breakdown'],
+            $evaluation,
+        );
+    }
+
+    /**
+     * Execute only registered query contracts. Counts are exact; source IDs and
+     * grouped dimensions are deliberately capped to keep provenance bounded.
+     *
+     * @param array<string, bool> $permissions
+     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
+     * @param array<int, string> $dimensions
+     * @return array<string, mixed>
+     */
+    private function evaluate(string $type, array $permissions, string $date, array $filters = [], array $dimensions = []): array
+    {
+        $baseQuery = $this->baseQuery($type, $permissions);
+        if ($baseQuery === null) {
+            return $this->emptyEvaluation('unavailable_viewer_context');
+        }
+
+        $query = clone $baseQuery;
+        if (in_array($type, ['unconverted_lead_count', 'unknown_lead_source_count'], true)) {
+            $query = $this->applyLeadFilters($query, $filters);
+        }
+        if ($type === 'overdue_task_count') {
+            $query->whereDate('due_date', '<', $date);
+        }
+
+        $candidateCount = (clone $baseQuery)->count();
+        $includedCount = (clone $query)->count();
+        $recordIds = (clone $query)
+            ->orderBy('id')
+            ->limit(self::MAX_PROVENANCE_RECORDS)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        return [
+            'value' => $includedCount,
+            'availability' => 'available',
+            'included_count' => $includedCount,
+            'excluded_count' => max(0, $candidateCount - $includedCount),
+            'candidate_count' => $candidateCount,
+            'breakdown' => $this->dimensionBreakdown($query, $dimensions),
+            'source_record_ids' => $recordIds,
+            'source_record_ids_truncated' => $includedCount > self::MAX_PROVENANCE_RECORDS,
+            'filters_applied' => $filters,
+        ];
     }
 
     /** @param array<string, bool> $permissions */
-    private function calculate(string $type, array $permissions, string $date, array $filters = []): ?int
+    private function baseQuery(string $type, array $permissions): ?Builder
     {
         return match ($type) {
-            'customer_record_count' => Customer::query()->count(),
-            'unconverted_lead_count' => $this->applyLeadFilters(CustomerLead::query()->whereNull('converted_customer_id'), $filters)->count(),
-            'unknown_lead_source_count' => $this->applyLeadFilters(CustomerLead::query()->where('source_category', 'unknown'), $filters)->count(),
-            'open_task_count' => $this->taskCount(false, $date, $permissions),
-            'overdue_task_count' => $this->taskCount(true, $date, $permissions),
-            'competitor_offer_snapshot_count' => CompetitorOfferObservation::query()->count(),
+            'customer_record_count' => Customer::query(),
+            'unconverted_lead_count' => CustomerLead::query()->whereNull('converted_customer_id'),
+            'unknown_lead_source_count' => CustomerLead::query()->where('source_category', 'unknown'),
+            'open_task_count', 'overdue_task_count' => $this->taskQuery($permissions),
+            'competitor_offer_snapshot_count' => CompetitorOfferObservation::query(),
             default => null,
         };
     }
 
+    /** @param array<string, bool> $permissions */
+    private function taskQuery(array $permissions): ?Builder
+    {
+        $query = Task::query()->where('status', '!=', 'done');
+        if ($permissions['task.view_all'] ?? false) {
+            return $query;
+        }
+
+        $userId = auth()->id();
+        if ($userId === null) {
+            return null;
+        }
+
+        return $query->where(fn (Builder $scope) => $scope
+            ->where('assigned_to', $userId)
+            ->orWhere('created_by', $userId));
+    }
+
     /**
-     * Apply only the validated lead filter contract. Field names and operators
-     * are checked again at execution time so stale or tampered stored JSON
-     * cannot widen the query surface.
+     * Field names and operators are mapped explicitly. Stored JSON is validated
+     * again at execution time so stale or tampered configuration cannot widen
+     * the query surface.
      *
      * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
      */
     private function applyLeadFilters(Builder $query, array $filters): Builder
     {
-        $configuration = app(KpiDefinitionConfiguration::class);
-        $validated = $configuration->validate('unconverted_lead_count', $filters);
+        $validated = app(KpiDefinitionConfiguration::class)->validate('unconverted_lead_count', $filters);
         foreach ($validated['filters'] as $filter) {
             $column = match ($filter['field']) {
                 'status' => 'status',
@@ -162,33 +265,23 @@ class KpiAggregationService
     }
 
     /**
-     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
      * @param array<int, string> $dimensions
      * @return array<string, int>
      */
-    private function dimensionBreakdown(string $type, array $filters, array $dimensions): array
+    private function dimensionBreakdown(Builder $query, array $dimensions): array
     {
-        $allowed = app(KpiDefinitionConfiguration::class)->dimensions($type);
-        if ($dimensions === [] || ! in_array($type, ['unconverted_lead_count', 'unknown_lead_source_count'], true)) {
+        if ($dimensions === []) {
             return [];
         }
-        foreach ($dimensions as $dimension) {
-            if (! in_array($dimension, $allowed, true)) {
-                return [];
-            }
-        }
 
-        $query = CustomerLead::query();
-        if ($type === 'unconverted_lead_count') {
-            $query->whereNull('converted_customer_id');
-        } else {
-            $query->where('source_category', 'unknown');
-        }
-        $rows = $this->applyLeadFilters($query, $filters)
+        // Dimension availability is checked before execution by the definition
+        // configuration service. This method receives only registered columns.
+        $rows = (clone $query)
             ->select($dimensions)
             ->selectRaw('COUNT(*) as aggregate')
             ->groupBy(...$dimensions)
-            ->limit(50)
+            ->orderBy('aggregate')
+            ->limit(self::MAX_DIMENSION_GROUPS)
             ->get();
 
         $breakdown = [];
@@ -198,45 +291,97 @@ class KpiAggregationService
                 ->implode(' / ');
             $breakdown[$label] = (int) $row->getAttribute('aggregate');
         }
+        ksort($breakdown);
 
         return $breakdown;
     }
 
-    /** @param array<string, bool> $permissions */
-    private function taskCount(bool $overdueOnly, string $date, array $permissions): ?int
+    /** @return array<string, mixed> */
+    private function emptyEvaluation(string $availability): array
     {
-        $query = Task::query()->where('status', '!=', 'done');
-        if ($overdueOnly) {
-            $query->whereDate('due_date', '<', $date);
-        }
-        if ($permissions['task.view_all'] ?? false) {
-            return $query->count();
-        }
-        $userId = auth()->id();
-        if ($userId === null) {
-            return null;
-        }
-
-        return $query->where(fn (Builder $scope) => $scope->where('assigned_to', $userId)->orWhere('created_by', $userId))->count();
+        return [
+            'value' => null,
+            'availability' => $availability,
+            'included_count' => null,
+            'excluded_count' => null,
+            'candidate_count' => null,
+            'breakdown' => [],
+            'source_record_ids' => [],
+            'source_record_ids_truncated' => false,
+            'filters_applied' => [],
+        ];
     }
 
-    /** @return array<string, mixed> */
-    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null, array $breakdown = []): array
-    {
+    /**
+     * @param array<string, mixed>|null $contract
+     * @param array<string, int> $breakdown
+     * @param array<string, mixed> $evaluation
+     * @return array<string, mixed>
+     */
+    private function result(
+        string $key,
+        string $label,
+        string $domain,
+        string $unit,
+        ?int $value,
+        string $availability,
+        string $source,
+        string $permission,
+        string $description,
+        CarbonImmutable $asOf,
+        ?int $version,
+        ?KpiDefinition $definition,
+        ?array $contract = null,
+        array $breakdown = [],
+        ?array $evaluation = null,
+    ): array {
         $contract ??= $this->catalogue->get($key) ?? [];
+        $evaluation ??= $this->emptyEvaluation($availability);
         $dimensions = $definition instanceof KpiDefinition ? ($definition->dimensions ?? []) : ($contract['dimensions'] ?? []);
+        $timezone = $this->catalogue->timezone();
+        $date = $asOf->setTimezone($timezone)->toDateString();
 
         return [
             'key' => $key,
             'label' => $label,
             'domain' => $domain,
             'version' => $version,
+            'definition_version' => $version,
             'catalogue_version' => $this->catalogue->version(),
             'unit' => $unit,
             'value' => $value,
             'state' => $availability === 'available' ? 'available' : 'unavailable',
             'availability' => $availability,
             'as_of' => $asOf->toIso8601String(),
+            'period' => [
+                'kind' => 'as_of',
+                'start_date' => $date,
+                'end_date' => $date,
+                'timezone' => $timezone,
+                'boundary' => 'inclusive_calendar_date',
+                'historical' => false,
+            ],
+            'included_count' => $evaluation['included_count'],
+            'excluded_count' => $evaluation['excluded_count'],
+            'candidate_count' => $evaluation['candidate_count'],
+            'freshness' => [
+                'status' => 'source_freshness_unknown',
+                'evaluated_at' => CarbonImmutable::now($timezone)->toIso8601String(),
+                'source_updated_at' => null,
+                'staleness_seconds' => null,
+            ],
+            'provenance' => [
+                'source' => $source,
+                'source_model' => $contract['source_service'] ?? null,
+                'calculation_service' => $contract['calculation_service'] ?? null,
+                'calculation_type' => $contract['calculation_type'] ?? null,
+                'formula' => $contract['formula'] ?? null,
+                'definition_version' => $version,
+                'filters' => $evaluation['filters_applied'],
+                'source_record_ids' => $evaluation['source_record_ids'],
+                'source_record_ids_limit' => self::MAX_PROVENANCE_RECORDS,
+                'source_record_ids_truncated' => $evaluation['source_record_ids_truncated'],
+            ],
             'source' => $source,
             'source_service' => $contract['source_service'] ?? null,
             'calculation_service' => $contract['calculation_service'] ?? null,
@@ -244,6 +389,7 @@ class KpiAggregationService
             'formula' => $contract['formula'] ?? null,
             'dimensions' => $dimensions,
             'dimension_breakdown' => $breakdown,
+            'dimension_breakdown_limit' => self::MAX_DIMENSION_GROUPS,
             'supported_period' => $contract['supported_period'] ?? null,
             'missing_data' => $contract['missing_data'] ?? null,
             'approval_status' => $contract['approval_status'] ?? 'provisional',

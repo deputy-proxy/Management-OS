@@ -42,3 +42,16 @@ Synthetic preview runs against caller-supplied sample rows only. Its response is
 ## Immutable audit history
 
 Every draft creation, draft update, activation, superseding effective-date change, and retirement performed through the KPI definition service writes an append-only audit row. Each row records the actor, event timestamp, event type, effective definition version, a human-readable change summary, and structured before/after values where applicable. The Filament create/edit workflow requires a change summary and routes writes through the authorization-enforcing service. Direct service calls enforce the create, update, and approve gates independently. Audit rows are retained with their definition and are not user-editable. Aggregation results include the selected definition version so reports can identify the configuration used.
+
+
+## Deterministic aggregation result contract
+
+Each available aggregation returns the exact included count and the candidate count before KPI filters or the overdue cutoff. The excluded count is their difference. Candidate queries retain the same model scopes and viewer visibility rules as the included query, so excluded counts do not reveal records outside the caller's permitted scope. Missing viewer context for task-scoped calculations returns an unavailable state with null counts rather than zero.
+
+Results identify the daily as-of date, inclusive calendar-date boundary, and reporting timezone. This is a current-state snapshot labelled with an as-of date; it is not a historical reconstruction of what source records looked like on that date. Historical periods remain unsupported.
+
+Freshness metadata records when the aggregation was evaluated. Source update timestamps and source staleness are null because the registered sources do not currently expose a consistent freshness contract. The service does not claim that evaluation time proves source freshness. Caching is intentionally not enabled until source-specific invalidation rules exist.
+
+Provenance identifies the source model, calculation type/service, formula, filters, definition version, and up to 100 ordered source record IDs. Exact aggregate counts are not truncated. Dimension breakdowns are capped at 50 groups. Both limits are explicit in the response. Source record IDs are emitted only after the KPI permission and task visibility scope have been applied.
+
+All current v1 calculations are record/snapshot counts. No currency conversion, financial aggregation, inferred zero, or historical correction replay is performed. A source correction is reflected on the next uncached evaluation of current state; it does not rewrite a stored historical result because historical result storage is not part of this increment.

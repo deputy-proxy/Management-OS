@@ -9,8 +9,10 @@ use App\Models\ProjectPhase;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\KpiAggregationService;
+use App\Services\KpiDefinitionService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class ExecutiveKpiCatalogueTest extends TestCase
@@ -73,6 +75,91 @@ class ExecutiveKpiCatalogueTest extends TestCase
         $this->assertSame('unavailable', $byKey['open_task_count']['state']);
     }
 
+    public function test_aggregation_returns_period_freshness_and_bounded_source_provenance(): void
+    {
+        $customers = Customer::factory()->count(3)->create();
+        $asOf = CarbonImmutable::parse('2026-10-27 12:00:00', 'Europe/Bucharest');
+
+        $result = collect(app(KpiAggregationService::class)->current([
+            'customer.index' => true,
+        ], $asOf)['results'])->firstWhere('key', 'customer_record_count');
+
+        $this->assertSame(3, $result['value']);
+        $this->assertSame(3, $result['included_count']);
+        $this->assertSame(0, $result['excluded_count']);
+        $this->assertSame(3, $result['candidate_count']);
+        $this->assertSame([
+            'kind' => 'as_of',
+            'start_date' => '2026-10-27',
+            'end_date' => '2026-10-27',
+            'timezone' => 'Europe/Bucharest',
+            'boundary' => 'inclusive_calendar_date',
+            'historical' => false,
+        ], $result['period']);
+        $this->assertSame('source_freshness_unknown', $result['freshness']['status']);
+        $this->assertNotNull($result['freshness']['evaluated_at']);
+        $this->assertNotSame($asOf->toIso8601String(), $result['freshness']['evaluated_at']);
+        $this->assertNull($result['freshness']['source_updated_at']);
+        $this->assertSame($customers->pluck('id')->sort()->values()->all(), $result['provenance']['source_record_ids']);
+        $this->assertFalse($result['provenance']['source_record_ids_truncated']);
+        $this->assertSame(Customer::class, $result['provenance']['source_model']);
+    }
+
+    public function test_lead_filter_excluded_counts_and_provenance_use_the_same_scoped_query(): void
+    {
+        $leads = CustomerLead::factory()->count(3)->sequence(
+            ['status' => 'new', 'source_category' => 'organic_search'],
+            ['status' => 'lost', 'source_category' => 'referral'],
+            ['status' => 'qualified', 'source_category' => 'organic_search'],
+        )->create();
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.create', fn (): bool => true);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        Gate::define('customer_lead.index', fn (): bool => true);
+
+        $definition = app(KpiDefinitionService::class)->createDraft([
+            'key' => 'unconverted_lead_count',
+            'effective_from' => CarbonImmutable::tomorrow('Europe/Bucharest')->toDateString(),
+            'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],
+            'change_summary' => 'Test scoped filter counts.',
+        ]);
+        app(KpiDefinitionService::class)->activate($definition);
+
+        $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), [
+            'customer_lead.index' => true,
+        ]);
+
+        $this->assertSame(1, $result['value']);
+        $this->assertSame(1, $result['included_count']);
+        $this->assertSame(2, $result['excluded_count']);
+        $this->assertSame(3, $result['candidate_count']);
+        $this->assertSame([$leads[0]->id], $result['provenance']['source_record_ids']);
+        $this->assertSame([['field' => 'status', 'operator' => 'eq', 'value' => 'new']], $result['provenance']['filters']);
+    }
+
+    public function test_aggregation_recalculates_after_source_correction_without_cache(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('customer_lead.index', fn (): bool => true);
+        $lead = CustomerLead::factory()->create(['converted_customer_id' => null]);
+        $service = app(KpiAggregationService::class);
+
+        $before = collect($service->current(['customer_lead.index' => true])['results'])
+            ->firstWhere('key', 'unconverted_lead_count');
+        $this->assertSame(1, $before['value']);
+
+        $lead->update(['converted_customer_id' => Customer::factory()->create()->id]);
+
+        $after = collect($service->current(['customer_lead.index' => true])['results'])
+            ->firstWhere('key', 'unconverted_lead_count');
+        $this->assertSame(0, $after['value']);
+        $this->assertSame(0, $after['included_count']);
+        $this->assertSame(0, $after['candidate_count']);
+    }
+
     public function test_task_kpis_respect_viewer_scope_and_due_today_is_not_overdue(): void
     {
         $viewer = User::factory()->create();
@@ -96,6 +183,37 @@ class ExecutiveKpiCatalogueTest extends TestCase
 
         $this->assertSame(2, $byKey['open_task_count']['value']);
         $this->assertSame(1, $byKey['overdue_task_count']['value']);
+        $this->assertSame(1, $byKey['overdue_task_count']['excluded_count']);
+        $this->assertSame(2, $byKey['overdue_task_count']['candidate_count']);
+    }
+
+    public function test_task_aggregation_without_a_viewer_or_global_scope_is_unavailable_not_zero(): void
+    {
+        auth()->logout();
+
+        $result = collect(app(KpiAggregationService::class)->current([
+            'task.index' => true,
+            'task.view_all' => false,
+        ])['results'])->firstWhere('key', 'open_task_count');
+
+        $this->assertNull($result['value']);
+        $this->assertSame('unavailable_viewer_context', $result['availability']);
+        $this->assertNull($result['included_count']);
+        $this->assertNull($result['excluded_count']);
+    }
+
+    public function test_provenance_record_ids_are_capped_without_truncating_the_exact_count(): void
+    {
+        Customer::factory()->count(101)->create();
+
+        $result = collect(app(KpiAggregationService::class)->current([
+            'customer.index' => true,
+        ])['results'])->firstWhere('key', 'customer_record_count');
+
+        $this->assertSame(101, $result['value']);
+        $this->assertSame(101, $result['included_count']);
+        $this->assertCount(KpiAggregationService::MAX_PROVENANCE_RECORDS, $result['provenance']['source_record_ids']);
+        $this->assertTrue($result['provenance']['source_record_ids_truncated']);
     }
 
     public function test_as_of_period_boundary_uses_the_configured_reporting_timezone(): void
@@ -137,5 +255,8 @@ class ExecutiveKpiCatalogueTest extends TestCase
         $this->assertNotContains('customer_lifetime_value', $keys);
         $this->assertNotContains('revenue', $keys);
         $this->assertNotContains('profit_margin', $keys);
+        foreach (config('kpi_catalogue.definitions') as $definition) {
+            $this->assertContains($definition['unit'], ['records', 'snapshots']);
+        }
     }
 }
