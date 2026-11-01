@@ -32,7 +32,11 @@ One row represents one Ads account, campaign, and calendar date. The natural key
 - Current metric rows identify their latest successful batch, source name/version, API version, and import timestamp. Batch and revision history is retained for auditability.
 - All pages are fetched and every normalized row is validated, including duplicate natural keys and consistent source version, before a transaction writes data. Metric updates, correction snapshots, and successful batch completion commit together. Malformed rows, provider failures, or database errors leave metric data unchanged and mark the batch failed with a safe code.
 - `--dry-run` fetches and validates without creating a batch or writing rows. A zero-row response is a completed batch and does not delete prior records or infer zero-valued metrics for campaigns absent from the response.
-- Routine refresh should re-fetch a bounded recent window to capture attribution adjustments. Scheduling is not enabled by this change.
+- Batch outcomes include received/inserted/updated/unchanged row counts, retryability, a safe actionable failure message, retry lineage, and an exponential `next_retry_at` delay for transient provider failures (5 minutes initially, doubling to a 6-hour cap).
+- `php artisan market:retry-google-ads-batch <batch-id>` retries only failed batches explicitly marked retryable, after the persisted backoff deadline, and only while the original configuration remains active. Each retry is a new auditable batch for the same bounded period.
+- `php artisan market:refresh-google-ads` refreshes all active, configured accounts using each account's bounded default period. It skips accounts without credentials or an explicit account timezone. The daily 06:00 application-time schedule is registered but disabled by default; enable it only after deployment credentials and account access are approved with `GOOGLE_ADS_SCHEDULED_REFRESH_ENABLED=true`.
+- Scheduled dates are derived using the configured IANA Google Ads account timezone, not the server timezone. Set this on the configuration before enabling scheduled refresh. Data becomes stale after `GOOGLE_ADS_STALE_AFTER_HOURS` (36 hours by default).
+- The health service reports stale imports, successful batches whose requested period does not cover the configured default window, retryable/non-retryable source errors, duplicate natural keys, invalid counters, and mixed currencies. It never fills missing campaign-days with zero. The configuration table displays the health state, latest batch, last successful import, safe error code, and actionable failure detail.
 
 ## Reporting guardrails
 
@@ -54,4 +58,4 @@ After output reconciles to the Ads UI, an authorized operator can run without `-
 
 ## Validation
 
-Tests cover pagination, replayed batches, correction snapshots, missing campaigns, source/version/freshness provenance, currency preservation, manager-account headers, dry-run, invalid date ranges, duplicate natural keys, and malformed provider rows. Live integration remains unverified until valid credentials and account access are configured in deployment.
+Tests cover pagination, replayed batches, correction snapshots, missing campaigns, source/version/freshness provenance, currency preservation, manager-account headers, dry-run, invalid date ranges, duplicate natural keys, malformed provider rows, retryability/backoff, account-timezone refresh windows, stale/incomplete health states, and currency-change detection. Live integration remains unverified until valid credentials and account access are configured in deployment.

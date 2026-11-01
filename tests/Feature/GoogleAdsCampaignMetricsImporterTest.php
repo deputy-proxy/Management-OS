@@ -55,6 +55,7 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
         $first = $importer->import('2026-10-01', '2026-10-02');
         $this->assertSame(2, $first['row_count']);
         $this->assertSame(2, GoogleAdsCampaignDailyMetric::query()->count());
+        $this->assertSame(2, GoogleAdsImportBatch::query()->firstOrFail()->rows_inserted);
 
         $second = $importer->import('2026-10-01', '2026-10-02');
 
@@ -63,6 +64,8 @@ class GoogleAdsCampaignMetricsImporterTest extends TestCase
         $this->assertSame('Campaign One renamed', GoogleAdsCampaignDailyMetric::query()->where('campaign_id', '1001')->value('campaign_name'));
         $this->assertSame('RON', GoogleAdsCampaignDailyMetric::query()->where('campaign_id', '1001')->value('currency_code'));
         $this->assertSame('3.000000', GoogleAdsCampaignDailyMetric::query()->where('campaign_id', '1001')->value('conversions'));
+        $this->assertSame(1, GoogleAdsImportBatch::query()->latest('id')->value('rows_updated'));
+        $this->assertSame(0, GoogleAdsImportBatch::query()->latest('id')->value('rows_inserted'));
         Http::assertSent(fn ($request): bool => $request->hasHeader('login-customer-id', '9998887777') && $request->hasHeader('Authorization', 'Bearer access-token'));
     }
 
