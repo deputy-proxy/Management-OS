@@ -78,9 +78,11 @@ class KpiAggregationService
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
 
-        $value = $this->calculate($definition->calculation_type, $permissions, $date, $definition->filters ?? []);
+        $filters = $definition->filters ?? [];
+        $value = $this->calculate($definition->calculation_type, $permissions, $date, $filters);
+        $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $definition->dimensions ?? []);
 
-        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract, $breakdown);
     }
 
     /** @param array<string, mixed> $definition
@@ -143,6 +145,38 @@ class KpiAggregationService
         return $query;
     }
 
+    /**
+     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
+     * @param array<int, string> $dimensions
+     * @return array<string, int>
+     */
+    private function dimensionBreakdown(string $type, array $filters, array $dimensions): array
+    {
+        if ($dimensions === [] || ! in_array($type, ['unconverted_lead_count', 'unknown_lead_source_count'], true)) {
+            return [];
+        }
+
+        $field = app(KpiDefinitionConfiguration::class)->dimensions($type)[0] ?? null;
+        if (! is_string($field) || ! in_array($field, $dimensions, true)) {
+            return [];
+        }
+
+        $query = CustomerLead::query();
+        if ($type === 'unconverted_lead_count') {
+            $query->whereNull('converted_customer_id');
+        } else {
+            $query->where('source_category', 'unknown');
+        }
+        $rows = $this->applyLeadFilters($query, $filters)
+            ->select($field)
+            ->selectRaw('COUNT(*) as aggregate')
+            ->groupBy($field)
+            ->limit(50)
+            ->get();
+
+        return $rows->mapWithKeys(fn (CustomerLead $row): array => [(string) ($row->{$field} ?? '(empty)') => (int) $row->aggregate])->all();
+    }
+
     /** @param array<string, bool> $permissions */
     private function taskCount(bool $overdueOnly, string $date, array $permissions): ?int
     {
@@ -162,7 +196,7 @@ class KpiAggregationService
     }
 
     /** @return array<string, mixed> */
-    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null): array
+    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null, array $breakdown = []): array
     {
         $contract ??= $this->catalogue->get($key) ?? [];
 
@@ -182,7 +216,8 @@ class KpiAggregationService
             'calculation_service' => $contract['calculation_service'] ?? null,
             'calculation_type' => $contract['calculation_type'] ?? null,
             'formula' => $contract['formula'] ?? null,
-            'dimensions' => $contract['dimensions'] ?? [],
+            'dimensions' => $definition?->dimensions ?? ($contract['dimensions'] ?? []),
+            'dimension_breakdown' => $breakdown,
             'supported_period' => $contract['supported_period'] ?? null,
             'missing_data' => $contract['missing_data'] ?? null,
             'approval_status' => $contract['approval_status'] ?? 'provisional',
