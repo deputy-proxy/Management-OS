@@ -10,7 +10,8 @@ The following settings are intentionally `unapproved` in `config/customer-unit-e
 - `deduplication`: the rule for multiple leads converted to the same customer;
 - `cac_basis`: which cost categories and source-matching rule form the CAC numerator;
 - `revenue_basis`: which revenue source and semantics are valid for LTV;
-- `ltv_window`: the customer lifetime/observation window.
+- `ltv_window`: the customer lifetime/observation window;
+- `retention_basis` and `retention_policy_version`: the explicit retention evidence and version required to establish the LTV cutoff.
 
 The supported implementation options are present for isolated tests and future owner-approved configuration, but they are **not approved business policy**:
 
@@ -20,7 +21,8 @@ The supported implementation options are present for isolated tests and future o
 | `deduplication` | `earliest_verified_conversion` | Count one customer at the earliest verified conversion in the selected acquisition cohort |
 | `cac_basis` | `source_category_matched_entries` | Match evidence-backed acquisition-cost entries to the selected source category and currency |
 | `revenue_basis` | `canonical_product_revenue` | Use signed `ProductRevenue.amount_decimal` rows linked through `CustomerInvoice.customer_id` |
-| `ltv_window` | `monthly_rows_from_conversion_date` | Include monthly revenue rows whose date is on/after conversion date, through the run end date, without partial-month proration |
+| `ltv_window` | `monthly_rows_from_conversion_date` | Include monthly revenue rows whose date is on/after conversion date, through the approved retention cutoff, without partial-month proration |
+| `retention_basis` | `latest_explicit_observation` | Require the latest evidence-backed retained/churned/reactivated observation, recorded under the configured retention policy version, for every acquired customer |
 
 Changing these settings requires explicit Sales/Finance/business-owner approval and matching policy-version and regression-test updates. Merely setting environment variables is not approval.
 
@@ -28,12 +30,13 @@ Changing these settings requires explicit Sales/Finance/business-owner approval 
 
 Acquisition cost entries require an incurred date, positive decimal amount, ISO currency, source reference, evidence reference, and either an explicit source category or a deliberately blank shared/unattributed category. Entries are append-only. Shared/unattributed costs are surfaced but never silently allocated.
 
-Calculation runs snapshot the configuration, selected period, source record IDs, and exceptions. Runs and results are immutable. Currency totals remain separate; no FX rate is inferred.
+Calculation runs snapshot the configuration, selected period, source record IDs, and exceptions. Runs and results are immutable. Currency totals remain separate; no FX rate is inferred. Retention observations require a customer, date/state, source reference, evidence reference, and policy version; they are never inferred from inactivity, missing interactions, or contract end dates.
 
 When the corresponding policy gates are approved and configured:
 
 - CAC is matched source-category acquisition cost divided by distinct acquired customers for that source and currency.
-- LTV is average signed canonical product revenue for the acquired cohort and currency, but only when every cohort customer has revenue coverage in that currency.
+- Retention is captured as append-only `retained`, `churned`, `reactivated`, or `unknown` observations. Churn caps the revenue window at its explicit observation date; retained observations use the run end date. Reactivated observations are retained as evidence but are not used for LTV until a reactivation-window rule is approved. Missing, unknown, pre-acquisition, or wrong-policy-version observations withhold LTV.
+- LTV is average signed canonical product revenue for the acquired cohort and currency, but only when every cohort customer has both a valid retention observation and revenue coverage in that currency.
 - Multiple converted leads, missing conversion events, mismatched customer links, unknown attribution, shared costs, missing invoice links, and incomplete revenue coverage remain explicit exceptions or withheld values.
 
 ## Revenue semantics and exclusions
@@ -50,14 +53,14 @@ Run the focused suite:
 php artisan test tests/Feature/CustomerUnitEconomicsServiceTest.php tests/Feature/CustomerUnitEconomicsReportAuthorizationTest.php
 ```
 
-The synthetic fixtures cover multiple leads for one customer, missing conversion events, mismatched customer links, unknown attribution, shared costs, mixed currencies, signed correction rows, missing revenue coverage, immutable inputs/runs, and acquisition/revenue period boundaries. Tests explicitly enable the supported options in-memory; that does not change production defaults.
+The synthetic fixtures cover multiple leads for one customer, missing conversion events, mismatched customer links, unknown attribution, shared costs, mixed currencies, signed correction rows, missing revenue and retention coverage, policy-version mismatches, explicit churn cutoffs, reactivation withholding, immutable inputs/runs, and acquisition/revenue period boundaries. Tests explicitly enable the supported options in-memory; that does not change production defaults.
 
 ## Decisions still required
 
 - Sales: customer-level attribution model, treatment of multiple leads, identity/deduplication, and unknown/conflicting attribution.
 - Finance: included acquisition cost categories, shared-cost allocation, accounting period, cost-source reconciliation, and CAC numerator.
 - Finance: invoice/issued/collected/recognized/net revenue basis, VAT, discounts, credit notes, refunds, bad debt, and FX treatment.
-- Business owner: lifetime/retention window, churn, reactivation, and treatment of contract gaps.
+- Business owner: lifetime/retention window, qualifying evidence for retained/churned/reactivated states, churn cutoff, reactivation, and treatment of contract gaps.
 - Data owner: permissions, historical coverage, reconciliation evidence, and report freshness.
 
 Until these decisions are approved and configured, the page can collect evidence-backed costs and create auditable runs, but CAC and LTV values remain unavailable by design.

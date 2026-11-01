@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\CustomerAcquisitionCostEntry;
 use App\Models\CustomerLead;
 use App\Models\CustomerLeadAttributionEvent;
+use App\Models\CustomerRetentionObservation;
 use App\Models\CustomerUnitEconomicsResult;
 use App\Models\CustomerUnitEconomicsRun;
 use App\Models\ProductRevenue;
@@ -59,6 +60,40 @@ class CustomerUnitEconomicsService
         ]);
     }
 
+    /**
+     * Record an explicit, append-only retention observation. The observation is
+     * evidence supplied by an authorized operator, not an inference from inactivity.
+     *
+     * @param  array{customer_id:int,observed_on:string,state:string,source_reference:string,evidence_reference:string}  $attributes
+     */
+    public function recordRetentionObservation(array $attributes): CustomerRetentionObservation
+    {
+        $customerId = (int) $attributes['customer_id'];
+        $state = $attributes['state'];
+
+        if (! Customer::withTrashed()->whereKey($customerId)->exists()
+            || ! Carbon::hasFormat($attributes['observed_on'], 'Y-m-d')
+            || ! in_array($state, config('customer-unit-economics.retention_states', []), true)
+            || blank($attributes['source_reference'])
+            || blank($attributes['evidence_reference'])
+            || mb_strlen($attributes['source_reference']) > 512
+            || mb_strlen($attributes['evidence_reference']) > 512) {
+            throw ValidationException::withMessages([
+                'state' => 'Provide an existing customer, valid observation date and state, source reference, and evidence reference.',
+            ]);
+        }
+
+        return CustomerRetentionObservation::query()->create([
+            'customer_id' => $customerId,
+            'observed_on' => $attributes['observed_on'],
+            'state' => $state,
+            'policy_version' => (string) config('customer-unit-economics.retention_policy_version', 'unapproved'),
+            'source_reference' => trim($attributes['source_reference']),
+            'evidence_reference' => trim($attributes['evidence_reference']),
+            'recorded_by' => auth()->id(),
+        ]);
+    }
+
     public function calculate(string $periodStart, string $periodEnd): CustomerUnitEconomicsRun
     {
         $timezone = (string) config('customer-unit-economics.timezone', 'Europe/Bucharest');
@@ -94,15 +129,24 @@ class CustomerUnitEconomicsService
                 && config('customer-unit-economics.deduplication') === config('customer-unit-economics.supported_deduplication');
             $cacPolicyReady = $acquisitionPolicyReady
                 && config('customer-unit-economics.cac_basis') === config('customer-unit-economics.supported_cac_basis');
+            $retentionPolicyVersion = config('customer-unit-economics.retention_policy_version');
+            $retentionPolicyReady = config('customer-unit-economics.retention_basis') === config('customer-unit-economics.supported_retention_basis')
+                && is_string($retentionPolicyVersion)
+                && $retentionPolicyVersion !== ''
+                && $retentionPolicyVersion !== 'unapproved';
             $ltvPolicyReady = $acquisitionPolicyReady
                 && config('customer-unit-economics.revenue_basis') === config('customer-unit-economics.supported_revenue_basis')
-                && config('customer-unit-economics.ltv_window') === config('customer-unit-economics.supported_ltv_window');
+                && config('customer-unit-economics.ltv_window') === config('customer-unit-economics.supported_ltv_window')
+                && $retentionPolicyReady;
 
             if (! $acquisitionPolicyReady) {
                 $exceptions[] = ['type' => 'acquisition_attribution_policy_unapproved'];
             }
             if (! $cacPolicyReady) {
                 $exceptions[] = ['type' => 'cac_cost_policy_unapproved'];
+            }
+            if (! $retentionPolicyReady) {
+                $exceptions[] = ['type' => 'retention_policy_unapproved'];
             }
             if (! $ltvPolicyReady) {
                 $exceptions[] = ['type' => 'ltv_revenue_policy_unapproved'];
@@ -235,6 +279,58 @@ class CustomerUnitEconomicsService
                 }
             }
 
+            /** @var array<int, array{observation_id:int,state:string,cutoff_date:string}> $retentionByCustomer */
+            $retentionByCustomer = [];
+            if ($retentionPolicyReady) {
+                $cohortCustomerIds = array_map('intval', array_keys($customerToCategory));
+                $observationsByCustomer = CustomerRetentionObservation::query()
+                    ->whereIn('customer_id', $cohortCustomerIds)
+                    ->whereDate('observed_on', '<=', $to->toDateString())
+                    ->orderBy('observed_on')
+                    ->orderBy('id')
+                    ->get()
+                    ->groupBy('customer_id');
+
+                foreach ($customerToCategory as $customerId => $category) {
+                    $observations = $observationsByCustomer->get($customerId);
+                    $observation = $observations?->last();
+                    if (! $observation) {
+                        $exceptions[] = ['type' => 'missing_retention_observation', 'customer_id' => $customerId];
+
+                        continue;
+                    }
+
+                    $observedOn = substr((string) $observation->getRawOriginal('observed_on'), 0, 10);
+                    $acquiredOn = $seenCustomers[$customerId]['converted_at'];
+                    if ($observation->state === 'reactivated') {
+                        $exceptions[] = ['type' => 'reactivation_policy_unapproved', 'customer_id' => $customerId, 'observation_id' => $observation->getKey()];
+
+                        continue;
+                    }
+
+                    if ($observation->policy_version !== config('customer-unit-economics.retention_policy_version')
+                        || $observation->state === 'unknown'
+                        || ! in_array($observation->state, ['retained', 'churned'], true)
+                        || $observedOn < $acquiredOn) {
+                        $exceptions[] = [
+                            'type' => 'unusable_retention_observation',
+                            'customer_id' => $customerId,
+                            'observation_id' => $observation->getKey(),
+                            'state' => $observation->state,
+                            'policy_version' => $observation->policy_version,
+                        ];
+
+                        continue;
+                    }
+
+                    $retentionByCustomer[$customerId] = [
+                        'observation_id' => (int) $observation->getKey(),
+                        'state' => $observation->state,
+                        'cutoff_date' => $observation->state === 'churned' ? $observedOn : $to->toDateString(),
+                    ];
+                }
+            }
+
             $revenues = $ltvPolicyReady
                 ? ProductRevenue::query()
                     ->with('customerInvoice')
@@ -262,8 +358,12 @@ class CustomerUnitEconomicsService
                 }
 
                 $acquiredAt = $seenCustomers[$customerId]['converted_at'];
+                $retention = $retentionByCustomer[$customerId] ?? null;
+                if (! $retention) {
+                    continue;
+                }
                 $revenueMonth = substr((string) $revenue->getRawOriginal('month'), 0, 10);
-                if (! $revenueMonth || $revenueMonth < $acquiredAt || $revenueMonth > $to->toDateString()) {
+                if (! $revenueMonth || $revenueMonth < $acquiredAt || $revenueMonth > $retention['cutoff_date']) {
                     continue;
                 }
 
@@ -322,7 +422,8 @@ class CustomerUnitEconomicsService
                     $revenueTotal = $revenueCoverage > 0
                         ? array_reduce($customerRevenue, fn (BigDecimal $total, BigDecimal $amount): BigDecimal => $total->plus($amount), BigDecimal::zero())
                         : null;
-                    $ltv = $ltvPolicyReady && count($customerIds) > 0 && $revenueCoverage === count($customerIds) && $revenueTotal !== null
+                    $retentionCoverage = count(array_intersect($customerIds, array_keys($retentionByCustomer)));
+                    $ltv = $ltvPolicyReady && count($customerIds) > 0 && $retentionCoverage === count($customerIds) && $revenueCoverage === count($customerIds) && $revenueTotal !== null
                         ? $revenueTotal->dividedBy(count($customerIds), 2, RoundingMode::HALF_UP)
                         : null;
 
@@ -343,6 +444,8 @@ class CustomerUnitEconomicsService
                         'ltv_amount' => $ltv?->toScale(2, RoundingMode::HALF_UP)->__toString(),
                         'revenue_coverage_count' => $revenueCoverage,
                         'revenue_unknown_count' => max(0, count($customerIds) - $revenueCoverage),
+                        'retention_coverage_count' => $retentionCoverage,
+                        'retention_unknown_count' => max(0, count($customerIds) - $retentionCoverage),
                         'result_status' => $cac !== null && $ltv !== null ? 'complete' : 'incomplete',
                         'source_snapshot' => [
                             'customer_ids' => $customerIds,
@@ -351,6 +454,7 @@ class CustomerUnitEconomicsService
                             'cost_entry_ids' => $cost['ids'] ?? [],
                             'cost_references' => $cost['references'] ?? [],
                             'revenue_ids' => array_values(array_unique($revenueIds)),
+                            'retention_observation_ids' => array_map(fn (int $customerId): int => $retentionByCustomer[$customerId]['observation_id'], array_intersect($customerIds, array_keys($retentionByCustomer))),
                             'shared_cost_entry_ids_excluded' => $sharedCostIds,
                             'revenue_basis' => 'ProductRevenue.amount_decimal by month, linked to the acquired customer through CustomerInvoice.customer_id.',
                         ],

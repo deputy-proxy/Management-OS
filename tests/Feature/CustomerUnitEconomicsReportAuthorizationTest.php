@@ -20,6 +20,7 @@ class CustomerUnitEconomicsReportAuthorizationTest extends TestCase
             'finance-unit-economics.view' => __('Allows viewing customer acquisition cost and lifetime-value reports'),
             'finance-unit-economics.calculate' => __('Allows creating immutable customer unit-economics runs'),
             'finance-unit-economics.manage-costs' => __('Allows recording evidence-backed acquisition costs'),
+            'finance-unit-economics.manage-retention' => __('Allows recording explicit customer retention observations'),
         ], $page->defineGates());
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
@@ -53,6 +54,7 @@ class CustomerUnitEconomicsReportAuthorizationTest extends TestCase
                 'finance-unit-economics.view',
                 'finance-unit-economics.calculate',
                 'finance-unit-economics.manage-costs',
+                'finance-unit-economics.manage-retention',
             ]],
             'guard' => 'web',
         ]);
@@ -62,6 +64,7 @@ class CustomerUnitEconomicsReportAuthorizationTest extends TestCase
             ->get(CustomerUnitEconomicsReport::getUrl())
             ->assertSuccessful()
             ->assertSee('Record acquisition cost evidence')
+            ->assertSee('Record explicit retention evidence')
             ->assertSee('Calculate CAC');
     }
 }

@@ -22,6 +22,19 @@ return new class extends Migration
             $table->index(['incurred_on', 'source_category', 'currency_code'], 'cac_entries_period_source_idx');
         });
 
+        Schema::create('customer_retention_observations', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('customer_id')->constrained()->restrictOnDelete();
+            $table->date('observed_on');
+            $table->string('state', 20);
+            $table->string('policy_version', 40);
+            $table->string('source_reference', 512);
+            $table->string('evidence_reference', 512);
+            $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+            $table->index(['customer_id', 'observed_on'], 'customer_retention_customer_date_idx');
+        });
+
         Schema::create('customer_unit_economics_runs', function (Blueprint $table): void {
             $table->id();
             $table->uuid('run_id')->unique();
@@ -47,6 +60,8 @@ return new class extends Migration
             $table->decimal('ltv_amount', 19, 2)->nullable();
             $table->unsignedInteger('revenue_coverage_count');
             $table->unsignedInteger('revenue_unknown_count');
+            $table->unsignedInteger('retention_coverage_count');
+            $table->unsignedInteger('retention_unknown_count');
             $table->string('result_status', 24);
             $table->json('source_snapshot');
             $table->timestamp('created_at')->useCurrent();
@@ -58,6 +73,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('customer_unit_economics_results');
         Schema::dropIfExists('customer_unit_economics_runs');
+        Schema::dropIfExists('customer_retention_observations');
         Schema::dropIfExists('customer_acquisition_cost_entries');
     }
 };

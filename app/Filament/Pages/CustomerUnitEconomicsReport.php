@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Clusters\Finance\FinanceCluster;
+use App\Models\Customer;
 use App\Models\CustomerLead;
 use App\Models\CustomerUnitEconomicsRun;
 use App\Services\CustomerUnitEconomicsService;
@@ -47,12 +48,23 @@ class CustomerUnitEconomicsReport extends Page
 
     public string $costEvidenceReference = '';
 
+    public ?int $retentionCustomerId = null;
+
+    public string $retentionObservedOn = '';
+
+    public string $retentionState = 'retained';
+
+    public string $retentionSourceReference = '';
+
+    public string $retentionEvidenceReference = '';
+
     public function mount(): void
     {
         $today = CarbonImmutable::now('Europe/Bucharest');
         $this->periodStart = $today->startOfMonth()->toDateString();
         $this->periodEnd = $today->toDateString();
         $this->costIncurredOn = $today->toDateString();
+        $this->retentionObservedOn = $today->toDateString();
     }
 
     /** @return array<string, string> */
@@ -62,6 +74,7 @@ class CustomerUnitEconomicsReport extends Page
             'finance-unit-economics.view' => __('Allows viewing customer acquisition cost and lifetime-value reports'),
             'finance-unit-economics.calculate' => __('Allows creating immutable customer unit-economics runs'),
             'finance-unit-economics.manage-costs' => __('Allows recording evidence-backed acquisition costs'),
+            'finance-unit-economics.manage-retention' => __('Allows recording explicit customer retention observations'),
         ];
     }
 
@@ -96,6 +109,28 @@ class CustomerUnitEconomicsReport extends Page
         Notification::make()
             ->title('Acquisition cost recorded')
             ->body('The evidence entry is append-only. Corrections must be recorded as new entries.')
+            ->success()
+            ->send();
+    }
+
+    public function recordRetention(): void
+    {
+        abort_unless(hexa()->can('finance-unit-economics.manage-retention'), 403);
+
+        app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $this->retentionCustomerId,
+            'observed_on' => $this->retentionObservedOn,
+            'state' => $this->retentionState,
+            'source_reference' => $this->retentionSourceReference,
+            'evidence_reference' => $this->retentionEvidenceReference,
+        ]);
+
+        $this->retentionSourceReference = '';
+        $this->retentionEvidenceReference = '';
+
+        Notification::make()
+            ->title('Retention observation recorded')
+            ->body('The observation is append-only and does not itself approve the retention policy.')
             ->success()
             ->send();
     }
@@ -139,6 +174,10 @@ class CustomerUnitEconomicsReport extends Page
             'selectedRun' => $selectedRun,
             'canCalculate' => hexa()->can('finance-unit-economics.calculate'),
             'canManageCosts' => hexa()->can('finance-unit-economics.manage-costs'),
+            'canManageRetention' => hexa()->can('finance-unit-economics.manage-retention'),
+            'customers' => hexa()->can('finance-unit-economics.manage-retention')
+                ? Customer::query()->orderBy('name')->pluck('name', 'id')
+                : collect(),
             'sourceCategories' => CustomerLead::sourceCategories(),
         ];
     }

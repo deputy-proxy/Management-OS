@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <div class="rounded-xl border border-warning-300 bg-warning-50 p-4 text-sm text-warning-950 dark:border-warning-700 dark:bg-warning-950 dark:text-warning-100">
             <strong>Operational unit-economics preview only.</strong>
-            CAC and LTV are withheld unless the customer-level attribution, deduplication, cost basis, revenue basis, and lifetime-window policy switches are explicitly approved and configured. The shipped defaults are unapproved. When enabled, CAC uses evidence-backed cost entries and LTV uses signed canonical ProductRevenue rows linked through customer invoices. These values are not automatically finance-approved, recognized revenue, collected cash, gross margin, or profit. Shared costs, unknown attribution, missing links, and incomplete revenue coverage remain visible and are never silently allocated or treated as zero.
+            CAC and LTV are withheld unless the customer-level attribution, deduplication, cost basis, revenue basis, retention evidence, and lifetime-window policy switches are explicitly approved and configured. The shipped defaults are unapproved. When enabled, CAC uses evidence-backed cost entries and LTV uses signed canonical ProductRevenue rows linked through customer invoices. These values are not automatically finance-approved, recognized revenue, collected cash, gross margin, or profit. Shared costs, unknown attribution, missing links, and incomplete revenue coverage remain visible and are never silently allocated or treated as zero.
         </div>
 
         @if ($canManageCosts)
@@ -40,6 +40,43 @@
                     </label>
                     <div class="flex items-end">
                         <x-filament::button type="submit" wire:loading.attr="disabled">Record cost evidence</x-filament::button>
+                    </div>
+                </div>
+            </form>
+        @endif
+
+        @if ($canManageRetention)
+            <form wire:submit="recordRetention" class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                <h2 class="font-semibold">Record explicit retention evidence</h2>
+                <p class="mt-1 text-sm text-gray-500">Record an operator-supported retention state. Inactivity, an expired contract, or a missing interaction is not a churn event. Observations are append-only and do not approve the retention policy.</p>
+                <div class="mt-4 grid gap-4 md:grid-cols-3">
+                    <label class="text-sm font-medium">Customer
+                        <select wire:model="retentionCustomerId" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                            <option value="">Select customer</option>
+                            @foreach ($customers as $customerId => $customerName)
+                                <option value="{{ $customerId }}">{{ $customerName }} (#{{ $customerId }})</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="text-sm font-medium">Observed on
+                        <input type="date" wire:model="retentionObservedOn" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    </label>
+                    <label class="text-sm font-medium">Explicit state
+                        <select wire:model="retentionState" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                            <option value="retained">Retained</option>
+                            <option value="churned">Churned</option>
+                            <option value="reactivated">Reactivated</option>
+                            <option value="unknown">Unknown</option>
+                        </select>
+                    </label>
+                    <label class="text-sm font-medium">Source reference
+                        <input type="text" wire:model="retentionSourceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    </label>
+                    <label class="text-sm font-medium md:col-span-2">Evidence reference
+                        <input type="text" wire:model="retentionEvidenceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    </label>
+                    <div class="flex items-end">
+                        <x-filament::button type="submit" wire:loading.attr="disabled">Record retention evidence</x-filament::button>
                     </div>
                 </div>
             </form>
@@ -88,7 +125,7 @@
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-left dark:bg-gray-800">
                                 <tr>
-                                    <th class="p-3">First-touch source</th><th class="p-3">Currency</th><th class="p-3">Acquired customers</th><th class="p-3">Acquisition cost</th><th class="p-3">CAC</th><th class="p-3">Operational revenue</th><th class="p-3">LTV</th><th class="p-3">Revenue coverage</th><th class="p-3">Status</th><th class="p-3">Source trace</th>
+                                    <th class="p-3">First-touch source</th><th class="p-3">Currency</th><th class="p-3">Acquired customers</th><th class="p-3">Acquisition cost</th><th class="p-3">CAC</th><th class="p-3">Operational revenue</th><th class="p-3">LTV</th><th class="p-3">Revenue coverage</th><th class="p-3">Retention coverage</th><th class="p-3">Status</th><th class="p-3">Source trace</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,6 +139,7 @@
                                         <td class="p-3">{{ $result->revenue_amount ?? 'Unknown' }}</td>
                                         <td class="p-3">{{ $result->ltv_amount ?? 'Withheld' }}</td>
                                         <td class="p-3">{{ $result->revenue_coverage_count }} / {{ $result->acquired_customer_count }} ({{ $result->revenue_unknown_count }} unknown)</td>
+                                        <td class="p-3">{{ $result->retention_coverage_count }} / {{ $result->acquired_customer_count }} ({{ $result->retention_unknown_count }} unknown)</td>
                                         <td class="p-3">{{ $result->result_status }}</td>
                                         <td class="p-3">
                                             <details>
@@ -112,6 +150,7 @@
                                                     <dt class="font-semibold">Conversion events</dt><dd>{{ implode(', ', $result->source_snapshot['conversion_event_ids'] ?? []) ?: 'None' }}</dd>
                                                     <dt class="font-semibold">Cost entries</dt><dd>{{ implode(', ', $result->source_snapshot['cost_entry_ids'] ?? []) ?: 'None' }}</dd>
                                                     <dt class="font-semibold">Revenue rows</dt><dd>{{ implode(', ', $result->source_snapshot['revenue_ids'] ?? []) ?: 'None' }}</dd>
+                                                    <dt class="font-semibold">Retention observations</dt><dd>{{ implode(', ', $result->source_snapshot['retention_observation_ids'] ?? []) ?: 'None' }}</dd>
                                                     @foreach ($result->source_snapshot['cost_references'] ?? [] as $reference)
                                                         <dt class="font-semibold">Cost evidence</dt><dd>{{ $reference['source_reference'] ?? 'Unknown' }} · {{ $reference['evidence_reference'] ?? 'Unknown' }}</dd>
                                                     @endforeach
@@ -120,7 +159,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="10" class="p-4 text-gray-500">No attributable acquired customers or sourced acquisition costs were found for this period.</td></tr>
+                                    <tr><td colspan="12" class="p-4 text-gray-500">No attributable acquired customers or sourced acquisition costs were found for this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

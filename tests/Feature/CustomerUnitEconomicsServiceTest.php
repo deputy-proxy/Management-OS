@@ -7,6 +7,7 @@ use App\Models\CustomerAcquisitionCostEntry;
 use App\Models\CustomerInvoice;
 use App\Models\CustomerLead;
 use App\Models\CustomerLeadAttributionEvent;
+use App\Models\CustomerRetentionObservation;
 use App\Models\Product;
 use App\Models\ProductRevenue;
 use App\Services\CustomerUnitEconomicsService;
@@ -30,10 +31,12 @@ class CustomerUnitEconomicsServiceTest extends TestCase
             'customer-unit-economics.cac_basis' => 'source_category_matched_entries',
             'customer-unit-economics.revenue_basis' => 'canonical_product_revenue',
             'customer-unit-economics.ltv_window' => 'monthly_rows_from_conversion_date',
+            'customer-unit-economics.retention_basis' => 'latest_explicit_observation',
+            'customer-unit-economics.retention_policy_version' => 'test-retention-v1',
         ]);
     }
 
-    private function convertedLead(Customer $customer, string $category, string $date, ?int $customerIdInEvent = null): CustomerLead
+    private function convertedLead(Customer $customer, string $category, string $date, ?int $customerIdInEvent = null, bool $recordRetention = true): CustomerLead
     {
         $lead = CustomerLead::factory()->create(['source_category' => $category]);
         DB::table('customer_leads')->where('id', $lead->getKey())->update([
@@ -55,6 +58,16 @@ class CustomerUnitEconomicsServiceTest extends TestCase
             ],
             'occurred_at' => $date.' 10:00:00',
         ]);
+
+        if ($recordRetention && ! CustomerRetentionObservation::query()->where('customer_id', $customer->getKey())->exists()) {
+            app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+                'customer_id' => (int) $customer->getKey(),
+                'observed_on' => $date,
+                'state' => 'retained',
+                'source_reference' => 'retention-source:'.$customer->getKey(),
+                'evidence_reference' => 'retention-evidence:'.$customer->getKey(),
+            ]);
+        }
 
         return $lead;
     }
@@ -122,6 +135,7 @@ class CustomerUnitEconomicsServiceTest extends TestCase
         $this->assertSame('70.00', $ron->revenue_amount);
         $this->assertSame('70.00', $ron->ltv_amount);
         $this->assertSame(1, $ron->revenue_coverage_count);
+        $this->assertSame(1, $ron->retention_coverage_count);
 
         $this->assertNotNull($usd);
         $this->assertNull($usd->cac_amount);
@@ -225,6 +239,98 @@ class CustomerUnitEconomicsServiceTest extends TestCase
         $this->assertContains('revenue_missing_invoice_link', array_column($run->exceptions, 'type'));
     }
 
+    public function test_ltv_is_withheld_when_explicit_retention_evidence_is_missing(): void
+    {
+        $customerA = Customer::factory()->create();
+        $customerB = Customer::factory()->create();
+        $customerC = Customer::factory()->create();
+        $this->convertedLead($customerA, 'referral', '2026-10-05');
+        $this->convertedLead($customerB, 'referral', '2026-10-06', null, false);
+        $this->convertedLead($customerC, 'referral', '2026-10-07', null, false);
+        app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $customerC->getKey(),
+            'observed_on' => '2026-10-20',
+            'state' => 'unknown',
+            'source_reference' => 'retention-unknown:'.$customerC->getKey(),
+            'evidence_reference' => 'retention-unknown-evidence:'.$customerC->getKey(),
+        ]);
+        $this->cost('referral', '300.00');
+        $this->revenue($customerA, '2026-10-10', '75.00');
+        $this->revenue($customerB, '2026-10-10', '90.00');
+        $this->revenue($customerC, '2026-10-10', '100.00');
+
+        $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame(1, $result->retention_coverage_count);
+        $this->assertSame(2, $result->retention_unknown_count);
+        $this->assertNull($result->ltv_amount);
+        $types = array_column($run->exceptions, 'type');
+        $this->assertContains('missing_retention_observation', $types);
+        $this->assertContains('unusable_retention_observation', $types);
+    }
+
+    public function test_reactivation_observation_is_not_used_without_an_approved_reactivation_rule(): void
+    {
+        $customer = Customer::factory()->create();
+        $this->convertedLead($customer, 'event', '2026-10-05', null, false);
+        app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $customer->getKey(),
+            'observed_on' => '2026-10-20',
+            'state' => 'reactivated',
+            'source_reference' => 'crm-reactivation:'.$customer->getKey(),
+            'evidence_reference' => 'crm-reactivation-evidence:'.$customer->getKey(),
+        ]);
+        $this->cost('event', '20.00');
+        $this->revenue($customer, '2026-10-10', '30.00');
+
+        $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame(0, $result->retention_coverage_count);
+        $this->assertNull($result->ltv_amount);
+        $this->assertContains('reactivation_policy_unapproved', array_column($run->exceptions, 'type'));
+    }
+
+    public function test_retention_observations_from_a_different_policy_version_are_not_used(): void
+    {
+        $customer = Customer::factory()->create();
+        $this->convertedLead($customer, 'event', '2026-10-05');
+        $this->cost('event', '20.00');
+        $this->revenue($customer, '2026-10-10', '30.00');
+        config(['customer-unit-economics.retention_policy_version' => 'test-retention-v2']);
+
+        $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame(0, $result->retention_coverage_count);
+        $this->assertNull($result->ltv_amount);
+        $this->assertContains('unusable_retention_observation', array_column($run->exceptions, 'type'));
+    }
+
+    public function test_churn_observation_caps_lifetime_revenue_at_the_explicit_churn_date(): void
+    {
+        $customer = Customer::factory()->create();
+        $this->convertedLead($customer, 'event', '2026-10-05', null, false);
+        app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $customer->getKey(),
+            'observed_on' => '2026-10-15',
+            'state' => 'churned',
+            'source_reference' => 'crm-retention:'.$customer->getKey(),
+            'evidence_reference' => 'crm-evidence:'.$customer->getKey(),
+        ]);
+        $this->cost('event', '20.00');
+        $this->revenue($customer, '2026-10-10', '30.00');
+        $this->revenue($customer, '2026-10-20', '40.00');
+
+        $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');
+        $result = $run->results->firstOrFail();
+
+        $this->assertSame('30.00', $result->revenue_amount);
+        $this->assertSame('30.00', $result->ltv_amount);
+        $this->assertSame(1, $result->retention_coverage_count);
+    }
+
     public function test_unapproved_customer_level_policies_withhold_cac_and_ltv_values(): void
     {
         config([
@@ -233,6 +339,8 @@ class CustomerUnitEconomicsServiceTest extends TestCase
             'customer-unit-economics.cac_basis' => 'unapproved',
             'customer-unit-economics.revenue_basis' => 'unapproved',
             'customer-unit-economics.ltv_window' => 'unapproved',
+            'customer-unit-economics.retention_basis' => 'unapproved',
+            'customer-unit-economics.retention_policy_version' => 'unapproved',
         ]);
 
         $customer = Customer::factory()->create();
@@ -251,6 +359,7 @@ class CustomerUnitEconomicsServiceTest extends TestCase
         $this->assertContains('acquisition_attribution_policy_unapproved', $types);
         $this->assertContains('cac_cost_policy_unapproved', $types);
         $this->assertContains('ltv_revenue_policy_unapproved', $types);
+        $this->assertContains('retention_policy_unapproved', $types);
     }
 
     public function test_acquisition_cost_requires_positive_amount_currency_and_evidence_references(): void
@@ -275,6 +384,21 @@ class CustomerUnitEconomicsServiceTest extends TestCase
             $this->fail('Expected acquisition cost evidence to be immutable.');
         } catch (LogicException) {
             $this->assertSame('10.00', $entry->fresh()->amount_decimal);
+        }
+
+        $customer = Customer::factory()->create();
+        $observation = app(CustomerUnitEconomicsService::class)->recordRetentionObservation([
+            'customer_id' => (int) $customer->getKey(),
+            'observed_on' => '2026-10-10',
+            'state' => 'retained',
+            'source_reference' => 'retention-source:immutable',
+            'evidence_reference' => 'retention-evidence:immutable',
+        ]);
+        try {
+            $observation->update(['state' => 'churned']);
+            $this->fail('Expected retention observations to be immutable.');
+        } catch (LogicException) {
+            $this->assertSame('retained', $observation->fresh()->state);
         }
 
         $run = app(CustomerUnitEconomicsService::class)->calculate('2026-10-01', '2026-10-31');

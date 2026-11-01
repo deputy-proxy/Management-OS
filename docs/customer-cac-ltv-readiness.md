@@ -7,13 +7,14 @@ This audit identifies which current records can support customer financial analy
 ## Implementation status
 
 The operational framework is available in the Finance cluster:
-- evidence-backed, append-only acquisition cost entries;
+- evidence-backed, append-only acquisition cost entries and explicit retention observations;
+- retention coverage and a churn-date cutoff for LTV when the retention policy version is approved; reactivation remains withheld pending an approved reactivation rule;
 - immutable calculation runs with configuration snapshots and source IDs;
 - explicit missing/unknown/shared-cost and revenue-coverage exceptions;
 - currency-separated CAC/LTV results, with values withheld when policy or source coverage is unavailable;
 - a permission-gated report page and synthetic regression tests.
 
-See [the framework policy](customer-unit-economics-policy.md). Its supported test configuration is not an approved business policy. Production defaults keep customer attribution, deduplication, CAC basis, revenue basis, and lifetime window set to `unapproved`.
+See [the framework policy](customer-unit-economics-policy.md). Its supported test configuration is not an approved business policy. Production defaults keep customer attribution, deduplication, CAC basis, revenue basis, lifetime window, and retention basis set to `unapproved`.
 
 ## Existing source records
 
@@ -21,7 +22,7 @@ See [the framework policy](customer-unit-economics-policy.md). Its supported tes
 - `CustomerContract` links a customer to a contract with start/end dates and optional originating lead. Contract dates and the existence of a contract do not establish billed/collected revenue or retention.
 - Lead-level source taxonomy and immutable attribution snapshots are implemented under `docs/sales-attribution-policy.md`. They do not approve customer-level credit across multiple leads or prove campaign spend.
 - Product-level `ProductRevenue` and `ProductCost` records exist for product-margin reporting, but product revenue/cost records are not automatically a complete customer-level acquisition-cost or lifetime-value ledger.
-- The new `CustomerAcquisitionCostEntry` ledger captures explicit, evidence-backed cost entries. It does not allocate shared costs or prove campaign-to-customer causality without an approved matching policy.
+- The new `CustomerAcquisitionCostEntry` ledger captures explicit, evidence-backed cost entries. `CustomerRetentionObservation` captures explicit retained/churned/reactivated/unknown observations with policy version and evidence. Neither ledger infers missing source facts; shared costs and missing retention evidence remain excluded.
 
 ## Blocking definitions and data contracts
 
@@ -34,13 +35,13 @@ See [the framework policy](customer-unit-economics-policy.md). Its supported tes
 
 ## Safe boundary until approval
 
-The report framework can record source-backed costs and immutable calculation runs. It deliberately withholds CAC/LTV unless the corresponding policy switches are explicitly configured. Shared costs, missing attribution, and incomplete revenue coverage remain unknown or excluded. Operational ProductRevenue is not presented as invoiced, collected, or recognized revenue.
+The report framework can record source-backed costs, explicit retention observations, and immutable calculation runs. It deliberately withholds CAC/LTV unless the corresponding policy switches are explicitly configured and every cohort customer has valid retention evidence. Shared costs, missing attribution, and incomplete revenue coverage remain unknown or excluded. Operational ProductRevenue is not presented as invoiced, collected, or recognized revenue.
 
 ## Decisions required
 
 - Finance approves cost categories, cost allocation, invoice/revenue basis, correction/refund treatment, currency rules, and time periods.
 - Sales approves customer acquisition event and customer-level source attribution policy, including legacy unknowns and multiple leads per customer.
-- Business owner approves retention/lifetime window and reactivation treatment.
+- Business owner approves retention observation states, evidence requirements, lifetime window, churn cutoff, and reactivation treatment.
 - Data owner approves permissions, reconciliation evidence, and audit requirements.
 
 ## Validation plan after approval
