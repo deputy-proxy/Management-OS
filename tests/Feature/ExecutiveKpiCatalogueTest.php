@@ -9,6 +9,7 @@ use App\Models\ProjectPhase;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\KpiAggregationService;
+use App\Services\KpiDefinitionService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -117,7 +118,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
         \Illuminate\Support\Facades\Gate::define('kpi_definition.approve', fn (): bool => true);
         \Illuminate\Support\Facades\Gate::define('customer_lead.index', fn (): bool => true);
 
-        $definition = app(\App\Services\KpiDefinitionService::class)->createDraft([
+        $definition = app(KpiDefinitionService::class)->createDraft([
             'key' => 'unconverted_lead_count',
             'effective_from' => CarbonImmutable::tomorrow('Europe/Bucharest')->toDateString(),
             'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],

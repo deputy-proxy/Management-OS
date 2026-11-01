@@ -11,8 +11,8 @@ use App\Services\KpiDefinitionConfiguration;
 use App\Services\KpiDefinitionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\TestCase;
@@ -223,5 +223,4 @@ class KpiDefinitionTest extends TestCase
         $this->assertNull($result['included_count']);
         $this->assertSame([], $result['provenance']['source_record_ids']);
     }
-
 }
