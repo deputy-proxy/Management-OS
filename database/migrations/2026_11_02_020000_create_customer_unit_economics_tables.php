@@ -49,7 +49,7 @@ return new class extends Migration
 
         Schema::create('customer_unit_economics_results', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('customer_unit_economics_run_id')->constrained()->restrictOnDelete();
+            $table->foreignId('customer_unit_economics_run_id')->constrained('customer_unit_economics_runs', 'id', 'cue_results_run_fk')->restrictOnDelete();
             $table->string('source_category', 40);
             $table->char('currency_code', 3);
             $table->unsignedInteger('acquired_customer_count');
