@@ -365,7 +365,7 @@ class KpiAggregationService
             'excluded_count' => $evaluation['excluded_count'],
             'candidate_count' => $evaluation['candidate_count'],
             'freshness' => [
-                'status' => 'evaluated_at_request',
+                'status' => 'source_freshness_unknown',
                 'evaluated_at' => CarbonImmutable::now($timezone)->toIso8601String(),
                 'source_updated_at' => null,
                 'staleness_seconds' => null,

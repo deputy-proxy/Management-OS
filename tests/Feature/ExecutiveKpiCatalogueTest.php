@@ -94,7 +94,7 @@ class ExecutiveKpiCatalogueTest extends TestCase
             'boundary' => 'inclusive_calendar_date',
             'historical' => false,
         ], $result['period']);
-        $this->assertSame('evaluated_at_request', $result['freshness']['status']);
+        $this->assertSame('source_freshness_unknown', $result['freshness']['status']);
         $this->assertNotNull($result['freshness']['evaluated_at']);
         $this->assertNotSame($asOf->toIso8601String(), $result['freshness']['evaluated_at']);
         $this->assertNull($result['freshness']['source_updated_at']);
