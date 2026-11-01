@@ -9,6 +9,7 @@ use App\Models\KpiDefinition;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 class KpiAggregationService
 {
@@ -78,9 +79,24 @@ class KpiAggregationService
             return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, $reason, $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
         }
 
-        $value = $this->calculate($definition->calculation_type, $permissions, $date);
+        $filters = $definition->getAttribute('filters') ?? [];
+        $dimensions = $definition->getAttribute('dimensions') ?? [];
+        $aggregation = $definition->getAttribute('aggregation') ?? 'count';
+        $period = $definition->getAttribute('period') ?? ['kind' => 'as_of', 'granularity' => 'day', 'historical' => false];
+        if (! is_array($filters) || ! is_array($dimensions) || ! is_string($aggregation) || ! is_array($period)) {
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        }
+        try {
+            $configuration = app(KpiDefinitionConfiguration::class)->validate($definition->calculation_type, $filters, $dimensions, $aggregation, $period);
+        } catch (ValidationException) {
+            return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, null, 'unavailable_invalid_definition', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        }
+        $filters = $configuration['filters'];
+        $dimensions = $configuration['dimensions'];
+        $value = $this->calculate($definition->calculation_type, $permissions, $date, $filters);
+        $breakdown = $this->dimensionBreakdown($definition->calculation_type, $filters, $dimensions);
 
-        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract);
+        return $this->result($definition->key, $definition->label, $definition->domain, $definition->unit, $value, $value === null ? 'unavailable' : 'available', $definition->source, $definition->permission, $definition->description, $asOf, $definition->version, $definition, $contract, $breakdown);
     }
 
     /** @param array<string, mixed> $definition
@@ -104,17 +120,86 @@ class KpiAggregationService
     }
 
     /** @param array<string, bool> $permissions */
-    private function calculate(string $type, array $permissions, string $date): ?int
+    private function calculate(string $type, array $permissions, string $date, array $filters = []): ?int
     {
         return match ($type) {
             'customer_record_count' => Customer::query()->count(),
-            'unconverted_lead_count' => CustomerLead::query()->whereNull('converted_customer_id')->count(),
-            'unknown_lead_source_count' => CustomerLead::query()->where('source_category', 'unknown')->count(),
+            'unconverted_lead_count' => $this->applyLeadFilters(CustomerLead::query()->whereNull('converted_customer_id'), $filters)->count(),
+            'unknown_lead_source_count' => $this->applyLeadFilters(CustomerLead::query()->where('source_category', 'unknown'), $filters)->count(),
             'open_task_count' => $this->taskCount(false, $date, $permissions),
             'overdue_task_count' => $this->taskCount(true, $date, $permissions),
             'competitor_offer_snapshot_count' => CompetitorOfferObservation::query()->count(),
             default => null,
         };
+    }
+
+    /**
+     * Apply only the validated lead filter contract. Field names and operators
+     * are checked again at execution time so stale or tampered stored JSON
+     * cannot widen the query surface.
+     *
+     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
+     */
+    private function applyLeadFilters(Builder $query, array $filters): Builder
+    {
+        $configuration = app(KpiDefinitionConfiguration::class);
+        $validated = $configuration->validate('unconverted_lead_count', $filters);
+        foreach ($validated['filters'] as $filter) {
+            $column = match ($filter['field']) {
+                'status' => 'status',
+                'source_category' => 'source_category',
+                default => throw new \LogicException('Unregistered KPI filter field.'),
+            };
+            match ($filter['operator']) {
+                'eq' => $query->where($column, '=', $filter['value']),
+                'neq' => $query->where($column, '!=', $filter['value']),
+                'in' => $query->whereIn($column, (array) $filter['value']),
+                default => throw new \LogicException('Unregistered KPI filter operator.'),
+            };
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param array<int, array{field: string, operator: string, value: string|array<int, string>}> $filters
+     * @param array<int, string> $dimensions
+     * @return array<string, int>
+     */
+    private function dimensionBreakdown(string $type, array $filters, array $dimensions): array
+    {
+        $allowed = app(KpiDefinitionConfiguration::class)->dimensions($type);
+        if ($dimensions === [] || ! in_array($type, ['unconverted_lead_count', 'unknown_lead_source_count'], true)) {
+            return [];
+        }
+        foreach ($dimensions as $dimension) {
+            if (! in_array($dimension, $allowed, true)) {
+                return [];
+            }
+        }
+
+        $query = CustomerLead::query();
+        if ($type === 'unconverted_lead_count') {
+            $query->whereNull('converted_customer_id');
+        } else {
+            $query->where('source_category', 'unknown');
+        }
+        $rows = $this->applyLeadFilters($query, $filters)
+            ->select($dimensions)
+            ->selectRaw('COUNT(*) as aggregate')
+            ->groupBy(...$dimensions)
+            ->limit(50)
+            ->get();
+
+        $breakdown = [];
+        foreach ($rows as $row) {
+            $label = collect($dimensions)
+                ->map(fn (string $field): string => $field.'='.((string) ($row->getAttribute($field) ?? '(empty)')))
+                ->implode(' / ');
+            $breakdown[$label] = (int) $row->getAttribute('aggregate');
+        }
+
+        return $breakdown;
     }
 
     /** @param array<string, bool> $permissions */
@@ -136,9 +221,10 @@ class KpiAggregationService
     }
 
     /** @return array<string, mixed> */
-    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null): array
+    private function result(string $key, string $label, string $domain, string $unit, ?int $value, string $availability, string $source, string $permission, string $description, CarbonImmutable $asOf, ?int $version, ?KpiDefinition $definition, ?array $contract = null, array $breakdown = []): array
     {
         $contract ??= $this->catalogue->get($key) ?? [];
+        $dimensions = $definition instanceof KpiDefinition ? ($definition->dimensions ?? []) : ($contract['dimensions'] ?? []);
 
         return [
             'key' => $key,
@@ -156,7 +242,8 @@ class KpiAggregationService
             'calculation_service' => $contract['calculation_service'] ?? null,
             'calculation_type' => $contract['calculation_type'] ?? null,
             'formula' => $contract['formula'] ?? null,
-            'dimensions' => $contract['dimensions'] ?? [],
+            'dimensions' => $dimensions,
+            'dimension_breakdown' => $breakdown,
             'supported_period' => $contract['supported_period'] ?? null,
             'missing_data' => $contract['missing_data'] ?? null,
             'approval_status' => $contract['approval_status'] ?? 'provisional',

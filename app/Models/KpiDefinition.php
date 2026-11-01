@@ -3,38 +3,39 @@
 namespace App\Models;
 
 use App\Services\KpiCatalogueRegistry;
+use App\Services\KpiDefinitionConfiguration;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
+/**
+ * @property array<int, array{field: string, operator: string, value: string|array<int, string>}>|null $filters
+ * @property array<int, string>|null $dimensions
+ * @property array{kind: string, granularity: string, historical: bool}|null $period
+ */
 class KpiDefinition extends Model
 {
     public const STATUS_DRAFT = 'draft';
-
     public const STATUS_ACTIVE = 'active';
-
     public const STATUS_RETIRED = 'retired';
 
     protected $fillable = [
         'key', 'version', 'label', 'description', 'domain', 'calculation_type', 'unit', 'source',
-        'date_basis', 'permission', 'missing_data', 'target_value', 'warning_threshold',
-        'critical_threshold', 'threshold_direction', 'effective_from', 'effective_until', 'status',
-        'created_by', 'approved_by', 'approved_at', 'retired_by', 'retired_at',
+        'date_basis', 'permission', 'missing_data', 'filters', 'dimensions', 'aggregation', 'period',
+        'target_value', 'warning_threshold', 'critical_threshold', 'threshold_direction',
+        'effective_from', 'effective_until', 'status', 'created_by', 'approved_by', 'approved_at',
+        'retired_by', 'retired_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'version' => 'integer',
-            'target_value' => 'decimal:6',
-            'warning_threshold' => 'decimal:6',
-            'critical_threshold' => 'decimal:6',
-            'effective_from' => 'date',
-            'effective_until' => 'date',
-            'approved_at' => 'immutable_datetime',
-            'retired_at' => 'immutable_datetime',
+            'version' => 'integer', 'filters' => 'array', 'dimensions' => 'array', 'period' => 'array',
+            'target_value' => 'decimal:6', 'warning_threshold' => 'decimal:6', 'critical_threshold' => 'decimal:6',
+            'effective_from' => 'date', 'effective_until' => 'date',
+            'approved_at' => 'immutable_datetime', 'retired_at' => 'immutable_datetime',
         ];
     }
 
@@ -45,33 +46,91 @@ class KpiDefinition extends Model
             if (! is_array($catalogue) || $catalogue['availability'] !== 'available') {
                 throw ValidationException::withMessages(['key' => 'Choose a registered KPI key with an available source and calculation contract.']);
             }
-
             $definition->version = (int) self::query()->where('key', $definition->key)->max('version') + 1;
             foreach (['label', 'description', 'domain', 'calculation_type', 'unit', 'source', 'date_basis', 'permission', 'missing_data'] as $field) {
                 $definition->{$field} = $catalogue[$field];
             }
             $definition->status = self::STATUS_DRAFT;
             $definition->threshold_direction ??= 'target_only';
+            $definition->filters ??= [];
+            $definition->dimensions ??= [];
+            $definition->aggregation ??= 'count';
+            $period = $definition->getAttribute('period');
+            if ($period !== null && ! is_array($period)) {
+                throw ValidationException::withMessages(['period' => 'KPI period settings must be a structured object.']);
+            }
+            $period = is_array($period) ? $period : [];
+            $definition->period = [
+                'kind' => (string) ($period['kind'] ?? 'as_of'),
+                'granularity' => (string) ($period['granularity'] ?? 'day'),
+                'historical' => (bool) ($period['historical'] ?? false),
+            ];
             $definition->created_by ??= auth()->id();
             $definition->effective_from ??= now()->toDateString();
         });
 
         static::saving(function (self $definition): void {
+            // Eloquent fires "saving" before "creating". Resolve the catalogue
+            // contract here so validation sees the registered calculation
+            // type on a new draft, rather than a null/untrusted input value.
+            if (! $definition->exists) {
+                $catalogue = app(KpiCatalogueRegistry::class)->get((string) $definition->key);
+                if (! is_array($catalogue) || $catalogue['availability'] !== 'available') {
+                    throw ValidationException::withMessages(['key' => 'Choose a registered KPI key with an available source and calculation contract.']);
+                }
+                foreach (['label', 'description', 'domain', 'calculation_type', 'unit', 'source', 'date_basis', 'permission', 'missing_data'] as $field) {
+                    $definition->{$field} = $catalogue[$field];
+                }
+            }
+
             $definition->threshold_direction ??= 'target_only';
+            $filters = $definition->getAttribute('filters');
+            $dimensions = $definition->getAttribute('dimensions');
+            $period = $definition->getAttribute('period');
+            $aggregation = $definition->getAttribute('aggregation');
+
+            // Null is the database default for the newly introduced JSON
+            // columns. Normalize it before validation, but reject malformed
+            // non-null values rather than silently replacing them.
+            if ($filters === null) {
+                $filters = [];
+                $definition->setAttribute('filters', $filters);
+            }
+            if ($dimensions === null) {
+                $dimensions = [];
+                $definition->setAttribute('dimensions', $dimensions);
+            }
+            if ($period === null) {
+                $period = ['kind' => 'as_of', 'granularity' => 'day', 'historical' => false];
+                $definition->setAttribute('period', $period);
+            }
+            if ($aggregation === null) {
+                $aggregation = 'count';
+                $definition->setAttribute('aggregation', $aggregation);
+            }
+
+            if (! is_array($filters) || ! is_array($dimensions) || ! is_array($period) || ! is_string($aggregation)) {
+                throw ValidationException::withMessages(['configuration' => 'KPI filters, dimensions, period, and aggregation must use supported structured values.']);
+            }
+
+            app(KpiDefinitionConfiguration::class)->validate(
+                (string) $definition->calculation_type,
+                $filters,
+                $dimensions,
+                $aggregation,
+                $period,
+            );
             if (! in_array($definition->threshold_direction, ['higher_is_worse', 'lower_is_worse', 'target_only'], true)) {
                 throw ValidationException::withMessages(['threshold_direction' => 'Choose a supported threshold direction.']);
             }
-
             foreach (['target_value', 'warning_threshold', 'critical_threshold'] as $field) {
                 if ($definition->{$field} !== null && (float) $definition->{$field} < 0) {
                     throw ValidationException::withMessages([$field => 'KPI targets and thresholds cannot be negative.']);
                 }
             }
-
             if ($definition->effective_until && Carbon::parse($definition->effective_until)->lt(Carbon::parse($definition->effective_from))) {
                 throw ValidationException::withMessages(['effective_until' => 'Effective end must be on or after effective start.']);
             }
-
             if ($definition->threshold_direction === 'higher_is_worse' && $definition->warning_threshold !== null && $definition->critical_threshold !== null && (float) $definition->warning_threshold > (float) $definition->critical_threshold) {
                 throw ValidationException::withMessages(['critical_threshold' => 'Critical threshold must be greater than or equal to the warning threshold.']);
             }
@@ -89,10 +148,8 @@ class KpiDefinition extends Model
                 if ($definition->status === self::STATUS_ACTIVE && (! $definition->approved_by || ! $definition->approved_at)) {
                     throw ValidationException::withMessages(['status' => 'Activation requires an approving user and timestamp.']);
                 }
-
                 return;
             }
-
             $dirty = array_keys($definition->getDirty());
             $changed = array_diff($dirty, ['effective_until', 'status', 'retired_by', 'retired_at', 'updated_at']);
             if ($changed !== [] || $originalStatus === self::STATUS_RETIRED || ! in_array($definition->status, [self::STATUS_ACTIVE, self::STATUS_RETIRED], true)) {
@@ -105,25 +162,13 @@ class KpiDefinition extends Model
                 throw ValidationException::withMessages(['status' => 'Retirement requires an actor and timestamp.']);
             }
         });
-
         static::deleting(fn () => throw new LogicException('KPI definitions are versioned audit records and cannot be deleted.'));
     }
 
     /** @return BelongsTo<User, $this> */
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
+    public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
     /** @return BelongsTo<User, $this> */
-    public function approver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
-
+    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }
     /** @return BelongsTo<User, $this> */
-    public function retirer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'retired_by');
-    }
+    public function retirer(): BelongsTo { return $this->belongsTo(User::class, 'retired_by'); }
 }

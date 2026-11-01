@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\CustomerLead;
 use App\Models\KpiDefinition;
 use App\Models\User;
 use App\Services\KpiAggregationService;
+use App\Services\KpiDefinitionConfiguration;
 use App\Services\KpiDefinitionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -126,5 +128,72 @@ class KpiDefinitionTest extends TestCase
         $restricted = app(KpiAggregationService::class)->aggregate($definition->fresh(), ['customer.index' => false]);
         $this->assertNull($restricted['value']);
         $this->assertSame('unavailable_permission_denied', $restricted['availability']);
+    }
+
+    public function test_configuration_rejects_unregistered_fields_operators_and_unbounded_filters(): void
+    {
+        $configuration = app(KpiDefinitionConfiguration::class);
+
+        foreach ([
+            fn () => $configuration->validate('unconverted_lead_count', [['field' => 'email', 'operator' => 'eq', 'value' => 'a@example.test']]),
+            fn () => $configuration->validate('unconverted_lead_count', [['field' => 'status', 'operator' => 'raw', 'value' => 'new']]),
+            fn () => $configuration->validate('unconverted_lead_count', array_fill(0, 6, ['field' => 'status', 'operator' => 'eq', 'value' => 'new'])),
+            fn () => $configuration->validate('unconverted_lead_count', [], [], 'sum'),
+            fn () => $configuration->validate('unconverted_lead_count', [], [], 'count', ['kind' => 'range', 'granularity' => 'day', 'historical' => true]),
+        ] as $invalidConfiguration) {
+            try {
+                $invalidConfiguration();
+                $this->fail('Expected unsupported KPI configuration to be rejected.');
+            } catch (ValidationException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function test_synthetic_preview_applies_validated_filters_and_dimensions(): void
+    {
+        $preview = app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [
+            'filters' => [['field' => 'status', 'operator' => 'neq', 'value' => 'lost']],
+            'dimensions' => ['source_category'],
+        ], [
+            ['status' => 'new', 'source_category' => 'organic_search'],
+            ['status' => 'lost', 'source_category' => 'referral'],
+            ['status' => 'qualified', 'source_category' => 'organic_search'],
+        ]);
+
+        $this->assertTrue($preview['synthetic']);
+        $this->assertSame(3, $preview['sample_size']);
+        $this->assertSame(2, $preview['value']);
+        $this->assertSame(['source_category=organic_search' => 2], $preview['breakdown']);
+    }
+
+    public function test_registered_lead_filters_and_dimensions_are_applied_to_live_aggregation(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Gate::define('kpi_definition.approve', fn (): bool => true);
+        Gate::define('customer_lead.index', fn (): bool => true);
+
+        CustomerLead::factory()->create(['status' => 'new', 'source_category' => 'organic_search']);
+        CustomerLead::factory()->create(['status' => 'lost', 'source_category' => 'referral']);
+
+        $definition = KpiDefinition::query()->create([
+            'key' => 'unconverted_lead_count',
+            'effective_from' => Carbon::now('Europe/Bucharest')->toDateString(),
+            'filters' => [['field' => 'status', 'operator' => 'eq', 'value' => 'new']],
+            'dimensions' => ['source_category'],
+        ]);
+        app(KpiDefinitionService::class)->activate($definition);
+
+        $result = app(KpiAggregationService::class)->aggregate($definition->fresh(), ['customer_lead.index' => true]);
+
+        $this->assertSame(1, $result['value']);
+        $this->assertSame(['source_category=organic_search' => 1], $result['dimension_breakdown']);
+    }
+
+    public function test_synthetic_preview_rejects_more_than_one_hundred_rows(): void
+    {
+        $this->expectException(ValidationException::class);
+        app(KpiDefinitionConfiguration::class)->preview('unconverted_lead_count', [], array_fill(0, 101, []));
     }
 }
