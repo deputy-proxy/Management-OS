@@ -41,6 +41,9 @@ class KpiDefinitionConfiguration
      */
     public function validate(string $calculationType, array $filters = [], array $dimensions = [], string $aggregation = 'count', ?array $period = null): array
     {
+        if (! array_is_list($filters) || ! array_is_list($dimensions)) {
+            throw ValidationException::withMessages(['configuration' => 'Filters and dimensions must be ordered lists.']);
+        }
         $fields = $this->fields($calculationType);
         if (count($filters) > self::MAX_FILTERS) {
             throw ValidationException::withMessages(['filters' => 'A KPI can contain at most five filters.']);
@@ -122,10 +125,15 @@ class KpiDefinitionConfiguration
                 throw ValidationException::withMessages(["preview.{$index}" => 'Each synthetic sample row must be an object-like array.']);
             }
         }
+        $filters = $configuration['filters'] ?? [];
+        $dimensions = $configuration['dimensions'] ?? [];
+        if (! is_array($filters) || ! is_array($dimensions)) {
+            throw ValidationException::withMessages(['configuration' => 'Synthetic preview filters and dimensions must be lists.']);
+        }
         $config = $this->validate(
             $calculationType,
-            $configuration['filters'] ?? [],
-            $configuration['dimensions'] ?? [],
+            $filters,
+            $dimensions,
             $configuration['aggregation'] ?? 'count',
             $configuration['period'] ?? null,
         );
