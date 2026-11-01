@@ -237,6 +237,67 @@ class BankStatementImportBatchServiceTest extends TestCase
         ]);
     }
 
+    public function test_partial_import_persistence_is_rolled_back_when_final_count_validation_fails(): void
+    {
+        [$account, $actor, $singleResult] = $this->validFixture();
+        $source = $singleResult->transactions[0];
+        $second = new NormalizedBankStatementTransaction(
+            $source->transactionDate,
+            $source->valueDate,
+            $source->direction,
+            '25.00',
+            $source->currency,
+            $source->transactionType,
+            $source->classificationStatus,
+            'Second synthetic transaction',
+            'REF-002',
+            $source->documentReference,
+            $source->sourceSha256,
+            $source->parserVersion,
+            $source->sourcePage,
+            9,
+            $source->relatedSourcePage,
+            $source->relatedSourceRow,
+            $source->reviewReasons,
+            '35.00',
+            $source->counterparty,
+        );
+        $result = new BankStatementNormalizationResult(
+            $singleResult->sourceSha256,
+            $singleResult->parserVersion,
+            $singleResult->statementStart,
+            $singleResult->statementEnd,
+            $singleResult->currency,
+            [$source, $second],
+            [],
+        );
+        $service = new BankStatementImportBatchService;
+        $batch = $service->createPreview('ING', $account, $actor, $result);
+        $service->approve($batch->id, $actor, 'Synthetic rows validated');
+
+        // Simulate corrupted preview metadata discovered after rows have been inserted.
+        $batch->forceFill(['transaction_count' => 3])->save();
+
+        try {
+            $service->complete($batch->id, $actor, 'Must roll back incomplete import');
+            $this->fail('A mismatch between persisted and validated row counts must fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Imported line count does not match the validated preview.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('bank_statement_import_items', 0);
+        $this->assertDatabaseHas('bank_statement_import_batches', [
+            'id' => $batch->id,
+            'status' => BankStatementImportBatch::STATUS_APPROVED,
+            'completed_at' => null,
+        ]);
+        $this->assertDatabaseMissing('bank_statement_import_events', [
+            'batch_id' => $batch->id,
+            'event_type' => 'import_completed',
+        ]);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
     public function test_failed_batch_can_be_retried_with_audited_state_transitions(): void
     {
         [$account, $actor, $result] = $this->validFixture();

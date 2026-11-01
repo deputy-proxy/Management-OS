@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Operations;
 
+use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
@@ -161,5 +164,56 @@ class HealthAndObservabilityTest extends TestCase
         } finally {
             @unlink($path);
         }
+    }
+
+    public function test_heartbeat_check_fails_closed_when_database_probe_throws_without_leaking_details(): void
+    {
+        Cache::put('ops:heartbeat:queue-worker', now()->timestamp, now()->addMinutes(5));
+        Cache::put('ops:heartbeat:scheduler', now()->timestamp, now()->addMinutes(5));
+        DB::shouldReceive('connection')->once()->andThrow(new RuntimeException('private database endpoint and password'));
+
+        $this->artisan('ops:check-heartbeats')
+            ->expectsOutput('database: unhealthy')
+            ->expectsOutput('queue-worker: healthy')
+            ->expectsOutput('scheduler: healthy')
+            ->doesntExpectOutputToContain('private database endpoint and password')
+            ->assertExitCode(1);
+    }
+
+    public function test_heartbeat_check_rejects_future_and_non_integer_timestamps(): void
+    {
+        Cache::put('ops:heartbeat:queue-worker', now()->addMinutes(2)->timestamp, now()->addMinutes(5));
+        Cache::put('ops:heartbeat:scheduler', 'not-a-timestamp', now()->addMinutes(5));
+
+        $this->artisan('ops:check-heartbeats')
+            ->expectsOutput('database: healthy')
+            ->expectsOutput('queue-worker: unhealthy')
+            ->expectsOutput('scheduler: unhealthy')
+            ->assertExitCode(1);
+    }
+
+    public function test_failed_job_check_fails_closed_when_failed_jobs_table_is_unavailable(): void
+    {
+        Schema::drop('failed_jobs');
+
+        $this->artisan('ops:check-failed-jobs')
+            ->expectsOutput('failed-jobs: unavailable')
+            ->assertExitCode(1);
+    }
+
+    public function test_scheduled_heartbeat_callback_records_a_fresh_timestamp(): void
+    {
+        Cache::forget('ops:heartbeat:scheduler');
+
+        $heartbeatEvent = collect(Schedule::events())
+            ->first(fn ($event): bool => $event instanceof CallbackEvent);
+
+        $this->assertNotNull($heartbeatEvent, 'The scheduler heartbeat callback must be registered.');
+        $heartbeatEvent->run(app());
+
+        $this->assertSame(now()->timestamp, Cache::get('ops:heartbeat:scheduler'));
+        $this->artisan('ops:check-heartbeats')
+            ->expectsOutput('scheduler: healthy')
+            ->assertExitCode(1);
     }
 }
