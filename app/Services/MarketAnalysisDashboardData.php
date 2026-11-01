@@ -8,6 +8,7 @@ use App\Models\CompetitorOfferObservation;
 use App\Models\GoogleAdsCampaignDailyMetric;
 use App\Models\MarketTrend;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 
 class MarketAnalysisDashboardData
 {
@@ -15,7 +16,7 @@ class MarketAnalysisDashboardData
      * @param  array<string, bool>  $permissions
      * @return array<string, mixed>
      */
-    public function summary(array $permissions, ?CarbonImmutable $now = null): array
+    public function summary(array $permissions, ?CarbonImmutable $now = null, array $filters = []): array
     {
         $now ??= CarbonImmutable::now(config('app.timezone'));
         $today = $now->startOfDay();
@@ -228,20 +229,28 @@ class MarketAnalysisDashboardData
             'can_view' => $permissions['market_trend.index'] ?? false,
             'count' => null,
             'latest_observation_at' => null,
+            'filter_options' => ['markets' => [], 'segments' => [], 'metrics' => []],
+            'filters' => [],
             'recent' => [],
         ];
 
         if ($marketTrends['can_view']) {
-            $marketTrends['count'] = MarketTrend::query()->where('status', 'active')->count();
-            $marketTrends['latest_observation_at'] = $this->formatDateTime(
-                MarketTrend::query()->where('status', 'active')->max('observed_at'),
-            );
-            $marketTrends['recent'] = MarketTrend::query()
-                ->where('status', 'active')
+            $activeTrends = MarketTrend::query()->where('status', 'active');
+            $marketTrends['filter_options'] = [
+                'markets' => (clone $activeTrends)->whereNotNull('market')->distinct()->orderBy('market')->pluck('market')->all(),
+                'segments' => (clone $activeTrends)->whereNotNull('segment')->where('segment', '!=', '')->distinct()->orderBy('segment')->pluck('segment')->all(),
+                'metrics' => (clone $activeTrends)->whereNotNull('metric_key')->distinct()->orderBy('metric_key')->pluck('metric_key')->all(),
+            ];
+            $marketTrends['filters'] = $this->normalizeMarketTrendFilters($filters);
+            $filteredTrends = $this->applyMarketTrendFilters(clone $activeTrends, $marketTrends['filters']);
+            $marketTrends['count'] = (clone $filteredTrends)->count();
+            $marketTrends['latest_observation_at'] = $this->formatDateTime((clone $filteredTrends)->max('observed_at'));
+            $marketTrends['recent'] = $filteredTrends
                 ->orderByDesc('observed_at')->orderByDesc('id')
-                ->limit(10)
+                ->limit(50)
                 ->get(['id', 'name', 'category', 'metric_key', 'value', 'unit', 'market', 'segment', 'period_start', 'period_end', 'source_name', 'source_url', 'observed_at', 'change_pct', 'confidence', 'data_status', 'source_type', 'freshness_status', 'verification_status', 'source_reference', 'source_revision', 'source_metadata', 'missing_reason', 'methodology'])
                 ->map(fn (MarketTrend $trend): array => [
+                    'id' => $trend->id,
                     'name' => $trend->name,
                     'category' => $trend->category,
                     'metric_key' => $trend->metric_key,
@@ -286,6 +295,65 @@ class MarketAnalysisDashboardData
                 'has_imported_ad_metrics' => $canViewGoogleAds && $googleAds['row_count'] > 0,
             ],
         ];
+    }
+
+    /** @param array<string, mixed> $filters
+     * @return array{period_start: ?string, period_end: ?string, market: ?string, segment: ?string, metric: ?string}
+     */
+    private function normalizeMarketTrendFilters(array $filters): array
+    {
+        $start = $this->validFilterDate($filters['period_start'] ?? null);
+        $end = $this->validFilterDate($filters['period_end'] ?? null);
+        if ($start !== null && $end !== null && $start > $end) {
+            $start = $end = null;
+        }
+
+        $value = static function (mixed $candidate, int $maxLength): ?string {
+            return is_string($candidate) && trim($candidate) !== '' && mb_strlen($candidate) <= $maxLength
+                ? trim($candidate)
+                : null;
+        };
+
+        return [
+            'period_start' => $start,
+            'period_end' => $end,
+            'market' => $value($filters['market'] ?? null, 100),
+            'segment' => $value($filters['segment'] ?? null, 100),
+            'metric' => $value($filters['metric'] ?? null, 100),
+        ];
+    }
+
+    private function validFilterDate(mixed $value): ?string
+    {
+        if (! is_string($value) || preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) !== 1) {
+            return null;
+        }
+
+        try {
+            $date = CarbonImmutable::createFromFormat('!Y-m-d', $value);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $date && $date->format('Y-m-d') === $value ? $value : null;
+    }
+
+    /** @param array{period_start: ?string, period_end: ?string, market: ?string, segment: ?string, metric: ?string} $filters
+     * @return Builder<MarketTrend>
+     */
+    private function applyMarketTrendFilters(Builder $query, array $filters): Builder
+    {
+        if ($filters['period_start'] !== null) {
+            $query->whereDate('period_end', '>=', $filters['period_start']);
+        }
+        if ($filters['period_end'] !== null) {
+            $query->whereDate('period_start', '<=', $filters['period_end']);
+        }
+
+        return $query
+            ->when($filters['market'] !== null, fn ($builder) => $builder->where('market', $filters['market']))
+            ->when($filters['segment'] !== null, fn ($builder) => $builder->where('segment', $filters['segment']))
+            ->when($filters['metric'] !== null, fn ($builder) => $builder->where('metric_key', $filters['metric']));
     }
 
     /** @return array<int, array{value: string, count: int}> */

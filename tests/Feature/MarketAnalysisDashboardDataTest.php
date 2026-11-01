@@ -10,6 +10,7 @@ use App\Models\MarketTrend;
 use App\Models\User;
 use App\Services\MarketAnalysisDashboardData;
 use Carbon\CarbonImmutable;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
@@ -134,6 +135,84 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertSame([], $hidden['market_trends']['recent']);
     }
 
+    public function test_market_trend_filters_combine_period_market_segment_and_metric_without_changing_source_values(): void
+    {
+        MarketTrend::query()->create([
+            'name' => 'Romania adult search', 'category' => 'search_interest', 'metric_key' => 'search_interest_index',
+            'value' => 87, 'unit' => 'index', 'market' => 'RO', 'segment' => 'adult-online',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-15', 'source_name' => 'Source A',
+            'source_url' => 'https://example.test/a', 'observed_at' => '2026-10-16 12:00:00',
+            'confidence' => 0.82, 'status' => 'active', 'source_type' => 'imported',
+            'source_reference' => 'source-a:october', 'freshness_status' => 'current',
+        ]);
+        MarketTrend::query()->create([
+            'name' => 'Romania student search', 'category' => 'search_interest', 'metric_key' => 'search_interest_index',
+            'value' => 54, 'unit' => 'index', 'market' => 'RO', 'segment' => 'students',
+            'period_start' => '2026-10-10', 'period_end' => '2026-10-20', 'source_name' => 'Source B',
+            'observed_at' => '2026-10-21 12:00:00', 'status' => 'active',
+        ]);
+        MarketTrend::query()->create([
+            'name' => 'Hungary adult search', 'category' => 'search_interest', 'metric_key' => 'search_interest_index',
+            'value' => 61, 'unit' => 'index', 'market' => 'HU', 'segment' => 'adult-online',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-15', 'source_name' => 'Source C',
+            'observed_at' => '2026-10-16 11:00:00', 'status' => 'active',
+        ]);
+        MarketTrend::query()->create([
+            'name' => 'Romania pricing', 'category' => 'pricing', 'metric_key' => 'average_price',
+            'value' => 120, 'unit' => 'RON', 'market' => 'RO', 'segment' => 'adult-online',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-15', 'source_name' => 'Source D',
+            'observed_at' => '2026-10-16 10:00:00', 'status' => 'archived',
+        ]);
+
+        $summary = app(MarketAnalysisDashboardData::class)->summary(
+            ['market_trend.index' => true],
+            CarbonImmutable::parse('2026-10-22 12:00:00', config('app.timezone')),
+            [
+                'period_start' => '2026-10-10',
+                'period_end' => '2026-10-20',
+                'market' => 'RO',
+                'segment' => 'adult-online',
+                'metric' => 'search_interest_index',
+            ],
+        );
+
+        $this->assertSame(1, $summary['market_trends']['count']);
+        $this->assertSame('Romania adult search', $summary['market_trends']['recent'][0]['name']);
+        $this->assertSame('87.000000', $summary['market_trends']['recent'][0]['value']);
+        $this->assertSame('0.8200', $summary['market_trends']['recent'][0]['confidence']);
+        $this->assertSame('source-a:october', $summary['market_trends']['recent'][0]['source_reference']);
+        $this->assertSame('https://example.test/a', $summary['market_trends']['recent'][0]['source_url']);
+        $this->assertSame('Oct 16, 2026 12:00', $summary['market_trends']['recent'][0]['observed_at']);
+        $this->assertSame('current', $summary['market_trends']['recent'][0]['freshness_status']);
+        $this->assertSame(['HU', 'RO'], $summary['market_trends']['filter_options']['markets']);
+        $this->assertSame(['adult-online', 'students'], $summary['market_trends']['filter_options']['segments']);
+        $this->assertSame(['search_interest_index'], $summary['market_trends']['filter_options']['metrics']);
+
+        $empty = app(MarketAnalysisDashboardData::class)->summary(
+            ['market_trend.index' => true],
+            filters: ['period_start' => '2026-11-01', 'period_end' => '2026-11-30'],
+        );
+        $this->assertSame(0, $empty['market_trends']['count']);
+        $this->assertSame([], $empty['market_trends']['recent']);
+        $this->assertSame(['HU', 'RO'], $empty['market_trends']['filter_options']['markets']);
+    }
+
+    public function test_market_trend_filter_options_and_records_are_not_exposed_without_permission(): void
+    {
+        MarketTrend::query()->create([
+            'name' => 'Restricted observation', 'category' => 'search_interest', 'metric_key' => 'restricted_metric',
+            'value' => 1, 'unit' => 'index', 'market' => 'SECRET', 'segment' => 'private',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'source_name' => 'Private source',
+            'observed_at' => '2026-10-31 12:00:00', 'status' => 'active',
+        ]);
+
+        $summary = app(MarketAnalysisDashboardData::class)->summary(['market_trend.index' => false]);
+
+        $this->assertNull($summary['market_trends']['count']);
+        $this->assertSame([], $summary['market_trends']['recent']);
+        $this->assertSame(['markets' => [], 'segments' => [], 'metrics' => []], $summary['market_trends']['filter_options']);
+    }
+
     public function test_dashboard_preserves_missing_and_source_quality_states_without_zero_imputation(): void
     {
         MarketTrend::query()->create([
@@ -246,10 +325,16 @@ class MarketAnalysisDashboardDataTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
         Gate::before(fn ($user, string $ability): ?bool => match ($ability) {
-            'competitor.index', 'competitor_offer.create' => true,
+            'competitor.index', 'competitor_offer.create', 'market_trend.index' => true,
             'competitor.create', 'competitor_offer.index' => false,
             default => null,
         });
+        MarketTrend::query()->create([
+            'name' => 'Linked trend', 'category' => 'search_interest', 'metric_key' => 'linked_metric',
+            'value' => 10, 'unit' => 'index', 'market' => 'RO', 'segment' => null,
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'source_name' => 'Source',
+            'observed_at' => '2026-10-31 12:00:00', 'status' => 'active',
+        ]);
 
         $data = (new MarketAnalysis)->getDashboardData();
 
@@ -257,6 +342,96 @@ class MarketAnalysisDashboardDataTest extends TestCase
         $this->assertNull($data['competitors']['create_url']);
         $this->assertNull($data['offers']['index_url']);
         $this->assertNotNull($data['offers']['create_url']);
+        $this->assertNotNull($data['market_trends']['recent'][0]['detail_url']);
+        $this->assertSame('linked_metric', $data['market_trends']['recent'][0]['metric_key']);
+    }
+
+    public function test_dashboard_filters_are_applied_by_the_page_and_offer_history_links_require_offer_permission(): void
+    {
+        $competitor = Competitor::factory()->create();
+        $offer = $this->createOffer($competitor, 'History link offer', 'active', 'service', '2026-10-18');
+        MarketTrend::query()->create([
+            'name' => 'Filtered page trend', 'category' => 'search_interest', 'metric_key' => 'page_metric',
+            'value' => 25, 'unit' => 'index', 'market' => 'RO', 'segment' => 'adults',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'source_name' => 'Source',
+            'observed_at' => '2026-10-31 12:00:00', 'status' => 'active',
+        ]);
+
+        $this->actingAs(User::factory()->create());
+        Gate::before(fn ($user, string $ability): ?bool => in_array($ability, [
+            'competitor_offer.index', 'market_trend.index',
+        ], true) ? true : ($ability === 'competitor.index' ? false : null));
+
+        $page = new MarketAnalysis;
+        $page->periodStart = '2026-10-10';
+        $page->periodEnd = '2026-10-20';
+        $page->marketFilter = 'RO';
+        $page->segmentFilter = 'adults';
+        $page->metricFilter = 'page_metric';
+        $data = $page->getDashboardData();
+
+        $this->assertSame(1, $data['market_trends']['count']);
+        $this->assertSame('Filtered page trend', $data['market_trends']['recent'][0]['name']);
+        $this->assertNotNull($data['market_trends']['recent'][0]['detail_url']);
+        $this->assertNotNull($data['offers']['recent_observations'][0]['history_url']);
+        $this->assertStringContainsString((string) $offer->getKey(), $data['offers']['recent_observations'][0]['history_url']);
+
+    }
+
+    public function test_offer_history_drill_down_is_hidden_without_offer_list_permission(): void
+    {
+        $competitor = Competitor::factory()->create();
+        $this->createOffer($competitor, 'Restricted history link', 'active', 'service', '2026-10-18');
+        $this->actingAs(User::factory()->create());
+        Gate::before(fn ($user, string $ability): ?bool => $ability === 'competitor_offer.index' ? false : null);
+
+        $data = (new MarketAnalysis)->getDashboardData();
+
+        $this->assertFalse($data['offers']['can_view']);
+        $this->assertSame([], $data['offers']['recent_observations']);
+    }
+
+    public function test_market_analysis_page_renders_filters_quality_indicators_and_history_drill_downs(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $competitor = Competitor::factory()->create();
+        $offer = $this->createOffer($competitor, 'Visible history offer', 'active', 'service', '2026-10-18');
+        $offer->update(['source_url' => 'https://example.test/offer']);
+        MarketTrend::query()->create([
+            'name' => 'Visible stale trend', 'category' => 'search_interest', 'metric_key' => 'visible_metric',
+            'value' => 42, 'unit' => 'index', 'market' => 'RO', 'segment' => 'adults',
+            'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'source_name' => 'Public source',
+            'source_url' => 'https://example.test/trend', 'observed_at' => '2026-10-31 12:00:00',
+            'confidence' => 0.78, 'status' => 'active', 'freshness_status' => 'stale',
+            'source_type' => 'imported', 'verification_status' => 'unverified',
+            'source_reference' => 'fixture:visible-trend',
+        ]);
+        $user = User::factory()->create();
+        $roleClass = config('hexa.models.role');
+        $role = $roleClass::create([
+            'name' => 'Market analysis dashboard viewer '.uniqid(),
+            'created_by_name' => 'Test',
+            'access' => ['Marketing' => [
+                'market-analysis.view', 'market_trend.index', 'competitor_offer.index',
+            ]],
+            'guard' => 'web',
+        ]);
+        $user->roles()->attach($role->getKey());
+
+        $this->actingAs($user)->get(MarketAnalysis::getUrl())
+            ->assertSuccessful()
+            ->assertSee('Period start')
+            ->assertSee('Period end')
+            ->assertSee('All markets')
+            ->assertSee('All segments')
+            ->assertSee('All metrics')
+            ->assertSee('Visible stale trend')
+            ->assertSee('https://example.test/trend')
+            ->assertSee('Confidence: 78.0%')
+            ->assertSee('stale')
+            ->assertSee('Observed Oct 31, 2026 12:00')
+            ->assertSee('Visible history offer')
+            ->assertSee('Open offer and observation history');
     }
 
     public function test_dashboard_keeps_its_dedicated_page_permission(): void
