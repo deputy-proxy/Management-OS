@@ -70,7 +70,8 @@ class MarketAnalysisDashboardData
 
         if ($canViewGoogleAds) {
             $metrics = GoogleAdsCampaignDailyMetric::query()
-                ->whereBetween('metric_date', [$freshStart->toDateString(), $today->toDateString()]);
+                ->whereDate('metric_date', '>=', $freshStart->toDateString())
+                ->whereDate('metric_date', '<=', $today->toDateString());
             $googleAds['row_count'] = (clone $metrics)->count();
             $googleAds['campaign_count'] = (clone $metrics)->distinct('campaign_id')->count('campaign_id');
             $googleAds['latest_imported_at'] = $this->formatDateTime((clone $metrics)->max('imported_at'));
