@@ -23,8 +23,8 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            $table->index(['account_customer_id', 'started_at']);
-            $table->index(['status', 'started_at']);
+            $table->index(['account_customer_id', 'started_at'], 'ga_import_batches_account_started_idx');
+            $table->index(['status', 'started_at'], 'ga_import_batches_status_started_idx');
         });
 
         Schema::table('google_ads_campaign_daily_metrics', function (Blueprint $table): void {
@@ -45,7 +45,7 @@ return new class extends Migration
                 ->references('id')->on('google_ads_import_batches')->restrictOnDelete();
             $table->json('previous_values');
             $table->timestamp('revised_at');
-            $table->index(['metric_id', 'revised_at']);
+            $table->index(['metric_id', 'revised_at'], 'ga_metric_revisions_metric_revised_idx');
         });
     }
 
