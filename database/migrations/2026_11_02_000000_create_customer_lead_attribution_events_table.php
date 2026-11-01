@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('occurred_at')->index();
             $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
-            $table->index(['customer_lead_id', 'occurred_at']);
+            $table->index(['customer_lead_id', 'occurred_at'], 'lead_attr_events_lead_time_idx');
         });
     }
 
