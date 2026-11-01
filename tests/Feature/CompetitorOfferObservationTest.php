@@ -144,6 +144,37 @@ class CompetitorOfferObservationTest extends TestCase
         $migration->down();
     }
 
+    public function test_offer_history_compares_only_matching_currency_and_price_basis(): void
+    {
+        $offer = CompetitorOffer::factory()->create([
+            'offer_price' => '100.00', 'currency' => 'RON', 'price_basis' => 'monthly',
+            'observed_at' => '2026-10-01 10:00:00',
+        ]);
+        $baseline = $offer->observations()->firstOrFail();
+        $this->assertSame('Baseline observation', $baseline->priceComparisonLabel());
+
+        $offer->update(['offer_price' => '125.00', 'observed_at' => '2026-10-02 10:00:00']);
+        $increase = $offer->observations()->firstOrFail();
+        $this->assertSame('+25.00 RON (same basis)', $increase->priceComparisonLabel());
+
+        $offer->update(['currency' => 'EUR', 'observed_at' => '2026-10-03 10:00:00']);
+        $currencyChange = $offer->observations()->firstOrFail();
+        $this->assertSame('Not comparable: currency changed', $currencyChange->priceComparisonLabel());
+
+        $offer->update(['price_basis' => 'annual', 'observed_at' => '2026-10-04 10:00:00']);
+        $basisChange = $offer->observations()->firstOrFail();
+        $this->assertSame('Not comparable: price basis changed', $basisChange->priceComparisonLabel());
+
+        $unknown = CompetitorOffer::factory()->create([
+            'offer_price' => '50.00', 'currency' => null, 'price_basis' => null,
+            'observed_at' => '2026-10-05 10:00:00',
+        ]);
+        $unknownFirst = $unknown->observations()->firstOrFail();
+        $unknown->update(['offer_price' => '55.00', 'observed_at' => '2026-10-06 10:00:00']);
+        $this->assertSame('Not comparable: currency is unknown', $unknown->observations()->firstOrFail()->priceComparisonLabel());
+        $this->assertSame('Baseline observation', $unknownFirst->fresh()->priceComparisonLabel());
+    }
+
     public function test_missing_source_is_explicitly_unknown_not_inferred(): void
     {
         $offer = CompetitorOffer::factory()->create(['source_url' => null, 'currency' => null]);

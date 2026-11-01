@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPanelSearchTitle;
 use App\Models\Concerns\HasTasks;
+use App\Services\CompetitorOfferSnapshotService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -120,14 +121,14 @@ class CompetitorOffer extends Model implements Commentable
             }
         });
 
-        static::created(fn (self $offer) => $offer->recordObservation());
+        static::created(fn (self $offer) => app(CompetitorOfferSnapshotService::class)->record($offer));
         static::updated(function (self $offer): void {
             if ($offer->wasChanged([
                 'title', 'competitor_id', 'offer_type', 'offer_description', 'offer_price',
                 'our_similar_offer', 'their_differentiator', 'last_check', 'status',
                 'source_url', 'currency', 'price_basis', 'valid_from', 'valid_until', 'observed_at',
             ])) {
-                $offer->recordObservation();
+                app(CompetitorOfferSnapshotService::class)->record($offer);
             }
         });
     }
@@ -154,34 +155,6 @@ class CompetitorOffer extends Model implements Commentable
         }
 
         return $parsed;
-    }
-
-    private function recordObservation(): void
-    {
-        $snapshot = [
-            'title' => $this->title,
-            'offer_type' => $this->offer_type,
-            'offer_description' => $this->offer_description,
-            'offer_price' => $this->offer_price,
-            'currency' => $this->currency,
-            'price_basis' => $this->price_basis,
-            'source_url' => $this->source_url,
-            'valid_from' => $this->valid_from,
-            'valid_until' => $this->valid_until,
-            'observed_at' => $this->observed_at ?? $this->last_check ?? now(),
-            'recorded_at' => now(),
-            'recorded_by' => auth()->id(),
-            'source_status' => filled($this->source_url) ? 'provided' : 'unknown',
-        ];
-        $snapshot['observation_key'] = CompetitorOfferObservation::makeObservationKey([
-            'competitor_offer_id' => $this->getKey(),
-            ...$snapshot,
-        ]);
-
-        $this->observations()->firstOrCreate(
-            ['observation_key' => $snapshot['observation_key']],
-            $snapshot,
-        );
     }
 
     public function getActivitylogOptions(): LogOptions

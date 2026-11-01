@@ -73,6 +73,51 @@ class CompetitorOfferObservation extends Model
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    public function priceComparisonLabel(): string
+    {
+        $previous = self::query()
+            ->where('competitor_offer_id', $this->competitor_offer_id)
+            ->where(function ($query): void {
+                $query->where('observed_at', '<', $this->observed_at)
+                    ->orWhere(function ($sameTimestamp): void {
+                        $sameTimestamp->where('observed_at', $this->observed_at)
+                            ->where('id', '<', $this->getKey());
+                    });
+            })
+            ->orderByDesc('observed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $previous) {
+            return 'Baseline observation';
+        }
+
+        if ($this->offer_price === null || $previous->offer_price === null) {
+            return 'Not comparable: price is unknown';
+        }
+
+        if (blank($this->currency) || blank($previous->currency)) {
+            return 'Not comparable: currency is unknown';
+        }
+
+        if ($this->currency !== $previous->currency) {
+            return 'Not comparable: currency changed';
+        }
+
+        if (blank($this->price_basis) || blank($previous->price_basis)) {
+            return 'Not comparable: price basis is unknown';
+        }
+
+        if ($this->price_basis !== $previous->price_basis) {
+            return 'Not comparable: price basis changed';
+        }
+
+        $difference = bcsub((string) $this->offer_price, (string) $previous->offer_price, 2);
+        $prefix = str_starts_with($difference, '-') ? '' : '+';
+
+        return $prefix.$difference.' '.($this->currency ?? 'currency unknown').' (same basis)';
+    }
+
     private function validateSnapshot(): void
     {
         foreach (['title', 'offer_type', 'offer_description'] as $field) {
