@@ -8,33 +8,33 @@
         <form wire:submit="generateReport" class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
             <div class="grid gap-4 md:grid-cols-2">
                 <label class="text-sm font-medium">Budget version
-                    <select wire:model.live="selectedVersionId" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="selectedVersionId" required class="w-full">
                         <option value="">Select a budget version</option>
                         @foreach ($versions as $version)
                             <option value="{{ $version->id }}">{{ $version->budget?->name ?? 'Budget #'.$version->budget_id }} · v{{ $version->version }} · {{ $version->status }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <div class="text-sm text-gray-600 dark:text-gray-300">
                     <span class="font-medium text-gray-900 dark:text-gray-100">Currency</span>
                     <p class="mt-2">{{ $selectedVersion?->currency_code ?? 'Select a version' }} · FX conversion unavailable</p>
                 </div>
                 <label class="text-sm font-medium">Reporting period start
-                    <input type="date" wire:model="periodStart" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodStart" required class="w-full" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Reporting period end
-                    <input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="w-full" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Dimension
-                    <select wire:model="dimensionKey" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model="dimensionKey" class="w-full">
                         <option value="">All dimensions</option>
                         @foreach (($selectedVersion?->dimensions ?? []) as $key => $value)
                             <option value="{{ $key }}">{{ str($key)->replace('_', ' ')->title() }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Dimension value
-                    <input type="text" wire:model="dimensionValue" placeholder="Exact value from the budget version" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper><x-filament::input type="text" wire:model="dimensionValue" placeholder="Exact value from the budget version" class="w-full" /></x-filament::input.wrapper>
                 </label>
             </div>
             <div class="mt-4">
