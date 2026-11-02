@@ -61,11 +61,11 @@
                 </div>
                 <div class="w-full sm:w-44">
                     <label for="student-trend-period" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Trend period</label>
-                    <select id="student-trend-period" wire:model.live="period" class="w-full rounded-lg border-gray-300 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <x-filament::input.wrapper><x-filament::input.select id="student-trend-period" wire:model.live="period" class="w-full">
                         <option value="7">Last 7 days</option>
                         <option value="30">Last 30 days</option>
                         <option value="90">Last 90 days</option>
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </div>
             </div>
             <x-filament::section>
