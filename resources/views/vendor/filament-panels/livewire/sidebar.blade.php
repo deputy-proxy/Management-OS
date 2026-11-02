@@ -1,22 +1,38 @@
 <div>
     @php
+        use Filament\Enums\GlobalSearchPosition;
+        use Illuminate\Support\Facades\Vite;
+
         $navigation = filament()->getNavigation();
         $isRtl = __('filament-panels::layout.direction') === 'rtl';
         $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();
         $isSidebarFullyCollapsibleOnDesktop = filament()->isSidebarFullyCollapsibleOnDesktop();
         $hasNavigation = filament()->hasNavigation();
         $hasTopbar = filament()->hasTopbar();
+        $hasTenantMenu = filament()->hasTenancy() && filament()->hasTenantMenu();
+        $hasGlobalSearchInSidebar = filament()->isGlobalSearchEnabled() && filament()->getGlobalSearchPosition() === GlobalSearchPosition::Sidebar;
+
+        $cspNonce = Vite::cspNonce();
     @endphp
 
     {{-- format-ignore-start --}}
-    <aside
-        x-data="{}"
+    <div
+        x-data="filamentSidebar({
+            hasTopNavigation: @js(filament()->hasTopNavigation()),
+            isSidebarCollapsibleOnDesktop: @js($isSidebarCollapsibleOnDesktop),
+            isSidebarFullyCollapsibleOnDesktop: @js($isSidebarFullyCollapsibleOnDesktop),
+        })"
         @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
             x-cloak
         @else
             x-cloak="-lg"
         @endif
         x-bind:class="{ 'fi-sidebar-open': $store.sidebar.isOpen }"
+        x-bind:inert="isHidden"
+        x-effect="focusInitialNavigation()"
+        x-on:keydown.tab="handleTab($event)"
+        x-on:keydown.escape.document="handleEscape($event)"
+        id="fi-main-sidebar"
         class="fi-sidebar fi-main-sidebar"
     >
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_START) }}
@@ -42,6 +58,8 @@
                         :label="__('filament-panels::layout.actions.sidebar.expand.label')"
                         x-cloak
                         x-data="{}"
+                        aria-controls="fi-main-sidebar"
+                        x-bind:aria-expanded="$store.sidebar.isOpen"
                         x-on:click="$store.sidebar.open()"
                         x-show="! $store.sidebar.isOpen"
                         class="fi-sidebar-open-collapse-sidebar-btn"
@@ -65,6 +83,8 @@
                         :label="__('filament-panels::layout.actions.sidebar.collapse.label')"
                         x-cloak
                         x-data="{}"
+                        aria-controls="fi-main-sidebar"
+                        x-bind:aria-expanded="$store.sidebar.isOpen"
                         x-on:click="$store.sidebar.close()"
                         x-show="$store.sidebar.isOpen"
                         class="fi-sidebar-close-collapse-sidebar-btn"
@@ -92,21 +112,33 @@
             </header>
         </div>
 
-        @if (filament()->hasTenancy() && filament()->hasTenantMenu())
-            <x-filament-panels::tenant-menu />
-        @endif
-
-        @if (filament()->isGlobalSearchEnabled() && filament()->getGlobalSearchPosition() === \Filament\Enums\GlobalSearchPosition::Sidebar)
+        @if ($hasTenantMenu || $hasGlobalSearchInSidebar)
             <div
-                @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
+                @if ((! $hasTenantMenu) && ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop))
                     x-show="$store.sidebar.isOpen"
                 @endif
+                class="fi-sidebar-header-controls"
             >
-                @livewire(Filament\Livewire\GlobalSearch::class)
+                @if ($hasTenantMenu)
+                    <x-filament-panels::tenant-menu />
+                @endif
+
+                @if ($hasGlobalSearchInSidebar)
+                    <div
+                        @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
+                            x-show="$store.sidebar.isOpen"
+                        @endif
+                    >
+                        @livewire(Filament\Livewire\GlobalSearch::class)
+                    </div>
+                @endif
             </div>
         @endif
 
-        <nav class="fi-sidebar-nav">
+        <nav
+            aria-label="{{ __('filament-panels::layout.navigation.label') }}"
+            class="fi-sidebar-nav"
+        >
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_NAV_START) }}
 
             <ul class="fi-sidebar-nav-groups">
@@ -131,44 +163,40 @@
                 @endforeach
             </ul>
 
-            <script>
-                var collapsedGroups = JSON.parse(
-                    localStorage.getItem('collapsedGroups'),
-                )
-
-                if (collapsedGroups === null || collapsedGroups === 'null') {
-                    localStorage.setItem(
-                        'collapsedGroups',
-                        JSON.stringify(@js(
-                        collect($navigation)
-                            ->filter(fn (\Filament\Navigation\NavigationGroup $group): bool => $group->isCollapsed())
-                            ->map(fn (\Filament\Navigation\NavigationGroup $group): string => $group->getLabel())
-                            ->values()
-                            ->all()
-                    )),
+            <script @if (filled($cspNonce)) nonce="{{ $cspNonce }}" @endif>
+                if (! window.Alpine?.store('sidebar')) {
+                    let collapsedGroups = JSON.parse(
+                        localStorage.getItem('filament:sidebar:collapsed_groups'),
                     )
+
+                    if (collapsedGroups === null || collapsedGroups === 'null') {
+                        collapsedGroups = @js(
+                            collect($navigation)
+                                ->filter(fn (\Filament\Navigation\NavigationGroup $group): bool => $group->isCollapsed())
+                                ->map(fn (\Filament\Navigation\NavigationGroup $group): ?string => ($label = $group->getLabel()) instanceof \Illuminate\Contracts\Support\Htmlable ? $label->toHtml() : $label)
+                                ->values()
+                                ->all()
+                        )
+
+                        localStorage.setItem(
+                            'filament:sidebar:collapsed_groups',
+                            JSON.stringify(collapsedGroups),
+                        )
+                    }
+
+                    document.currentScript
+                        .closest('nav')
+                        .querySelectorAll('.fi-sidebar-group')
+                        .forEach((group) => {
+                            if (! collapsedGroups.includes(group.dataset.groupLabel)) {
+                                return
+                            }
+
+                            // Hide collapsed groups before Alpine initializes to avoid a flash.
+                            group.querySelector('.fi-sidebar-group-items').style.display = 'none'
+                            group.classList.add('fi-collapsed')
+                        })
                 }
-
-                collapsedGroups = JSON.parse(
-                    localStorage.getItem('collapsedGroups'),
-                )
-
-                document
-                    .querySelectorAll('.fi-sidebar-group')
-                    .forEach((group) => {
-                        if (
-                            !collapsedGroups.includes(group.dataset.groupLabel)
-                        ) {
-                            return
-                        }
-
-                        // Alpine.js loads too slow, so attempt to hide a
-                        // collapsed sidebar group earlier.
-                        group.querySelector(
-                            '.fi-sidebar-group-items',
-                        ).style.display = 'none'
-                        group.classList.add('fi-collapsed')
-                    })
             </script>
 
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_NAV_END) }}
@@ -196,7 +224,7 @@
         @endif
 
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_FOOTER) }}
-    </aside>
+    </div>
     {{-- format-ignore-end --}}
 
     <x-filament-actions::modals />
