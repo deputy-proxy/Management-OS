@@ -17,21 +17,21 @@
 
         <div class="mt-4 grid gap-3 md:grid-cols-4">
             <label class="text-sm">From
-                <input type="date" wire:model.live="reportFrom" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="reportFrom" class="w-full" /></x-filament::input.wrapper>
             </label>
             <label class="text-sm">To
-                <input type="date" wire:model.live="reportTo" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="reportTo" class="w-full" /></x-filament::input.wrapper>
             </label>
             <label class="text-sm">Source basis
-                <select wire:model.live="reportBasis" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportBasis" class="w-full">
                     <option value="all">All supported sources</option>
                     <option value="customer_documents">Issued customer documents</option>
                     <option value="vendor_invoices">Vendor invoice records</option>
                     <option value="cash_movements">Canonical cash movements</option>
-                </select>
+                </x-filament::input.select></x-filament::input.wrapper>
             </label>
             <label class="text-sm">Currency code
-                <input type="text" maxlength="3" placeholder="All currencies" wire:model.live.debounce.500ms="reportCurrency" class="mt-1 w-full rounded-lg border-gray-300 text-sm uppercase dark:border-gray-700 dark:bg-gray-950">
+                <x-filament::input.wrapper><x-filament::input type="text" maxlength="3" placeholder="All currencies" wire:model.live.debounce.500ms="reportCurrency" class="w-full" /></x-filament::input.wrapper>
             </label>
         </div>
 
@@ -41,28 +41,28 @@
             <p class="mt-1 text-xs text-gray-500">Account, direction and category filters apply only to canonical cash-movement records, including when all source bases are displayed.</p>
             <div class="mt-3 grid gap-3 md:grid-cols-3">
                 <label class="text-sm">Financial account / source
-                    <select wire:model.live="reportAccount" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportAccount" class="w-full">
                         <option value="">All accounts</option>
                         @foreach ($consolidatedReport['cash_filter_options']['accounts'] as $account)
                             <option value="{{ $account['id'] }}">{{ $account['title'] }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">Direction
-                    <select wire:model.live="reportDirection" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportDirection" class="w-full">
                         <option value="">All directions</option>
                         @foreach ($consolidatedReport['cash_filter_options']['directions'] as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">Transaction category
-                    <select wire:model.live="reportCategory" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportCategory" class="w-full">
                         <option value="">All categories</option>
                         @foreach ($consolidatedReport['cash_filter_options']['categories'] as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
             </div>
         </div>
