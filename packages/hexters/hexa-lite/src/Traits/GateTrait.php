@@ -1,13 +1,13 @@
 <?php
 
-namespace Hexters\\HexaLite\\Traits;
+namespace Hexters\HexaLite\Traits;
 
-use Filament\\Facades\\Filament;
-use Filament\\Panel;
-use Illuminate\\Support\\Arr;
-use Illuminate\\Support\\Facades\\Config;
-use Illuminate\\Support\\Facades\\Gate;
-use Illuminate\\Support\\Str;
+use Filament\Facades\Filament;
+use Filament\Panel;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 trait GateTrait
 {
@@ -60,8 +60,8 @@ trait GateTrait
                             return false;
                         }
 
-                        // Always query the relationship so authorization does not
-                        // depend on whether a stale roles relation was loaded earlier.
+                        // Query the relationship afresh so authorization does not
+                        // depend on a stale, previously loaded roles relation.
                         $rolesQuery = $user->roles();
 
                         if ($tenant = Filament::getTenant()) {
@@ -70,7 +70,7 @@ trait GateTrait
 
                         $roles = $rolesQuery->get();
 
-                        // The configured owner role bypasses individual permission keys.
+                        // The configured Owner role bypasses individual permission keys.
                         $ownerRole = trim((string) config('hexa.super_admin_role', 'Owner'));
 
                         if ($ownerRole !== '' && $roles->contains(
@@ -79,15 +79,13 @@ trait GateTrait
                             return true;
                         }
 
-                        // Keep the existing HexaLite behavior for users without roles.
+                        // Preserve HexaLite's existing no-role superadmin behavior.
                         if ($roles->isEmpty()) {
                             return true;
                         }
 
-                        // HexaLite stores permissions as nested arrays grouped by
-                        // resource. Flatten them to permission-key strings before
-                        // comparing; iterating the flattened strings as arrays caused
-                        // valid permissions to be rejected.
+                        // Permissions are nested by resource. Flatten them to strings
+                        // before comparing them with the requested gate.
                         $allowedGates = $roles
                             ->flatMap(fn ($role) => Arr::flatten($role->access ?? []))
                             ->filter(fn ($permission) => is_string($permission))
