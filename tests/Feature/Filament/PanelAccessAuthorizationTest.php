@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Resources\Camps\CampResource;
 use App\Filament\Resources\ProductReviews\ProductReviewResource;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -62,6 +63,29 @@ class PanelAccessAuthorizationTest extends TestCase
 
         $this->actingAs($user)
             ->get('/admin')
+            ->assertSuccessful();
+    }
+
+    public function test_owner_can_access_clustered_resources_without_individual_permissions(): void
+    {
+        $user = User::factory()->create();
+        $role = $this->createRole([]);
+        $role->update(['name' => 'Owner']);
+        $user->roles()->attach($role->getKey());
+
+        $this->actingAs($user)
+            ->get(CampResource::getUrl('index'))
+            ->assertSuccessful();
+    }
+
+    public function test_role_permission_keys_are_checked_when_the_user_is_not_an_owner(): void
+    {
+        $user = User::factory()->create();
+        $role = $this->createRole(['Camp Management' => ['camp.index']]);
+        $user->roles()->attach($role->getKey());
+
+        $this->actingAs($user)
+            ->get(CampResource::getUrl('index'))
             ->assertSuccessful();
     }
 
