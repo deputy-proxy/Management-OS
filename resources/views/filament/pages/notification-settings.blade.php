@@ -27,10 +27,10 @@
                                         <div class="mt-1 text-xs text-gray-500">{{ $event['event_key'] }}</div>
                                     </td>
                                     <td class="px-4 py-3 text-center">
-                                        <input type="checkbox" wire:model="preferences.{{ $index }}.in_app" aria-label="In-app: {{ $event['label'] }}" class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500" />
+                                        <x-filament::input.checkbox type="checkbox" wire:model="preferences.{{ $index }}.in_app" aria-label="In-app: {{ $event['label'] }}"  />
                                     </td>
                                     <td class="px-4 py-3 text-center">
-                                        <input type="checkbox" wire:model="preferences.{{ $index }}.email" aria-label="Email: {{ $event['label'] }}" class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500" />
+                                        <x-filament::input.checkbox type="checkbox" wire:model="preferences.{{ $index }}.email" aria-label="Email: {{ $event['label'] }}"  />
                                     </td>
                                 </tr>
                             @endforeach

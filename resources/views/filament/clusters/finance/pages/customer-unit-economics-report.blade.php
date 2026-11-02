@@ -11,32 +11,32 @@
                 <p class="mt-1 text-sm text-gray-500">Use one explicit source category and currency per entry. Leave the category blank for shared/unattributed costs, which will be excluded from CAC until allocated with evidence. Entries are append-only.</p>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     <label class="text-sm font-medium">Incurred on
-                        <input type="date" wire:model="costIncurredOn" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="costIncurredOn" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Source category
-                        <select wire:model="costSourceCategory" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model="costSourceCategory" class="w-full">
                             <option value="">Shared / unattributed</option>
                             @foreach ($sourceCategories as $value => $label)
                                 @if ($value !== 'unknown')
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endif
                             @endforeach
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Campaign (optional)
-                        <input type="text" wire:model="costCampaignName" maxlength="255" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" wire:model="costCampaignName" maxlength="255" class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Amount
-                        <input type="number" min="0.01" step="0.01" wire:model="costAmount" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="number" min="0.01" step="0.01" wire:model="costAmount" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Currency
-                        <input type="text" minlength="3" maxlength="3" wire:model="costCurrency" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" minlength="3" maxlength="3" wire:model="costCurrency" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Source reference
-                        <input type="text" wire:model="costSourceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" wire:model="costSourceReference" maxlength="512" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium md:col-span-2">Evidence reference
-                        <input type="text" wire:model="costEvidenceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" wire:model="costEvidenceReference" maxlength="512" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <div class="flex items-end">
                         <x-filament::button type="submit" wire:loading.attr="disabled">Record cost evidence</x-filament::button>
@@ -51,29 +51,29 @@
                 <p class="mt-1 text-sm text-gray-500">Record an operator-supported retention state. Inactivity, an expired contract, or a missing interaction is not a churn event. Observations are append-only and do not approve the retention policy.</p>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     <label class="text-sm font-medium">Customer
-                        <select wire:model="retentionCustomerId" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model="retentionCustomerId" required class="w-full">
                             <option value="">Select customer</option>
                             @foreach ($customers as $customerId => $customerName)
                                 <option value="{{ $customerId }}">{{ $customerName }} (#{{ $customerId }})</option>
                             @endforeach
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Observed on
-                        <input type="date" wire:model="retentionObservedOn" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="retentionObservedOn" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Explicit state
-                        <select wire:model="retentionState" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model="retentionState" required class="w-full">
                             <option value="retained">Retained</option>
                             <option value="churned">Churned</option>
                             <option value="reactivated">Reactivated</option>
                             <option value="unknown">Unknown</option>
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Source reference
-                        <input type="text" wire:model="retentionSourceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" wire:model="retentionSourceReference" maxlength="512" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium md:col-span-2">Evidence reference
-                        <input type="text" wire:model="retentionEvidenceReference" maxlength="512" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="text" wire:model="retentionEvidenceReference" maxlength="512" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <div class="flex items-end">
                         <x-filament::button type="submit" wire:loading.attr="disabled">Record retention evidence</x-filament::button>
@@ -87,10 +87,10 @@
                 <h2 class="font-semibold">Create an immutable calculation run</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     <label class="text-sm font-medium">Acquisition period start
-                        <input type="date" wire:model="periodStart" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodStart" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Acquisition period end
-                        <input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <div class="flex items-end">
                         <x-filament::button type="submit" wire:loading.attr="disabled">Calculate CAC &amp; LTV</x-filament::button>

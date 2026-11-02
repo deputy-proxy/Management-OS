@@ -9,7 +9,7 @@
                 </p>
             </div>
             <label class="text-sm">Reporting date
-                <input type="date" wire:model.live="asOf" class="mt-1 rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="asOf" /></x-filament::input.wrapper>
             </label>
         </div>
         <p class="mt-2 text-xs text-gray-500">

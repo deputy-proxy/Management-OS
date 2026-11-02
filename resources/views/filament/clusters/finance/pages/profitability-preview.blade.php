@@ -11,10 +11,10 @@
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Each run stores its period, formula version, assumptions, source IDs, and exclusions. Corrections create a new immutable run.</p>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     <label class="text-sm font-medium">Period start
-                        <input type="date" wire:model="periodStart" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodStart" required class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <label class="text-sm font-medium">Period end
-                        <input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper><x-filament::input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="w-full" /></x-filament::input.wrapper>
                     </label>
                     <div class="flex items-end">
                         <x-filament::button type="submit" wire:loading.attr="disabled">Create provisional run</x-filament::button>
@@ -69,20 +69,20 @@
                         </div>
                         <div class="mt-3 grid gap-3 sm:grid-cols-2">
                             <label class="text-sm font-medium">Product
-                                <select wire:model.live="productFilter" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                                <x-filament::input.wrapper><x-filament::input.select wire:model.live="productFilter" class="w-full">
                                     <option value="">All products</option>
                                     @foreach ($report['available_products'] as $product)
                                         <option value="{{ $product['id'] }}">{{ $product['label'] }}</option>
                                     @endforeach
-                                </select>
+                                </x-filament::input.select></x-filament::input.wrapper>
                             </label>
                             <label class="text-sm font-medium">Currency
-                                <select wire:model.live="currencyFilter" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                                <x-filament::input.wrapper><x-filament::input.select wire:model.live="currencyFilter" class="w-full">
                                     <option value="">All currencies (separate totals)</option>
                                     @foreach ($report['available_currencies'] as $currency)
                                         <option value="{{ $currency }}">{{ $currency }}</option>
                                     @endforeach
-                                </select>
+                                </x-filament::input.select></x-filament::input.wrapper>
                             </label>
                         </div>
                     </div>

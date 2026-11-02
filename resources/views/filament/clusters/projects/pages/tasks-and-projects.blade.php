@@ -25,38 +25,38 @@
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Status
-                        <select wire:model.live="taskStatusFilter" class="mt-1 block w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-900">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model.live="taskStatusFilter">
                             <option value="">All statuses</option>
                             @foreach ($summary['task_statuses'] as $status)
                                 <option value="{{ $status['status'] }}">{{ $status['status'] !== '' ? str($status['status'])->replace('_', ' ')->title() : 'Unspecified' }}</option>
                             @endforeach
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Assigned to
-                        <select wire:model.live="taskOwnerFilter" class="mt-1 block w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-900">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model.live="taskOwnerFilter">
                             <option value="">All visible assignees</option>
                             @foreach ($summary['task_filter_options']['owners'] as $id => $name)
                                 <option value="{{ $id }}">{{ $name }}</option>
                             @endforeach
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Project
-                        <select wire:model.live="taskProjectFilter" class="mt-1 block w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-900">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model.live="taskProjectFilter">
                             <option value="">All visible projects</option>
                             @foreach ($summary['task_filter_options']['projects'] as $id => $title)
                                 <option value="{{ $id }}">{{ $title }}</option>
                             @endforeach
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Due date
-                        <select wire:model.live="dueDateFilter" class="mt-1 block w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-900">
+                        <x-filament::input.wrapper><x-filament::input.select wire:model.live="dueDateFilter">
                             <option value="all">Overdue and next 7 days</option>
                             <option value="overdue">Overdue only</option>
                             <option value="next_7_days">Next 7 days only</option>
-                        </select>
+                        </x-filament::input.select></x-filament::input.wrapper>
                     </label>
                 </div>
             </x-filament::section>
