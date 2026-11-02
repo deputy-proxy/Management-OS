@@ -1,15 +1,15 @@
 <?php
 
-namespace Hexters\\HexaLite\\Helpers;
+namespace Hexters\HexaLite\Helpers;
 
 use Exception;
-use Filament\\Facades\\Filament;
-use Filament\\Panel;
-use Illuminate\\Contracts\\Auth\\Authenticatable;
-use Illuminate\\Support\\Arr;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\Support\\Facades\\Gate;
-use Illuminate\\Support\\Str;
+use Filament\Facades\Filament;
+use Filament\Panel;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class HexaHelper
 {
