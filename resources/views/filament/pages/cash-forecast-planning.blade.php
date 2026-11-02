@@ -7,12 +7,14 @@
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
             <label class="block text-sm font-medium">Existing forecast scenario
-                <select wire:model.live="selectedScenarioId" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                <x-filament::input.wrapper class="mt-1">
+                    <x-filament::input.select wire:model.live="selectedScenarioId">
                     <option value="">Create a new forecast</option>
                     @foreach ($scenarios as $scenario)
                         <option value="{{ $scenario->id }}">{{ $scenario->forecast?->name }} · {{ $scenario->scenario_name }} · v{{ $scenario->version }} · {{ $scenario->status }}</option>
                     @endforeach
-                </select>
+                    </x-filament::input.select>
+                </x-filament::input.wrapper>
             </label>
         </section>
 
@@ -21,42 +23,42 @@
             <div class="grid gap-4 md:grid-cols-2">
                 @if (! $selectedScenarioId)
                     <label class="text-sm font-medium">Forecast name
-                        <input wire:model="forecastName" required maxlength="160" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                        <x-filament::input.wrapper class="mt-1"><x-filament::input type="text" wire:model="forecastName" required maxlength="160" /></x-filament::input.wrapper>
                     </label>
                 @else
                     <div class="text-sm"><span class="font-medium">Forecast</span><p class="mt-2">{{ $selectedScenario?->forecast?->name }}</p></div>
                 @endif
                 <label class="text-sm font-medium">Scenario name
-                    <input wire:model="scenarioName" required maxlength="120" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper class="mt-1"><x-filament::input type="text" wire:model="scenarioName" required maxlength="120" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Period start
-                    <input type="date" wire:model="periodStart" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper class="mt-1"><x-filament::input type="date" wire:model="periodStart" required /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Period end
-                    <input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper class="mt-1"><x-filament::input type="date" wire:model="periodEnd" required min="{{ $periodStart }}" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Currency code (3-letter)
-                    <input wire:model="currencyCode" required minlength="3" maxlength="3" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper class="mt-1"><x-filament::input type="text" wire:model="currencyCode" required minlength="3" maxlength="3" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm font-medium">Opening cash balance
-                    <input type="number" step="0.01" wire:model="openingBalance" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                    <x-filament::input.wrapper class="mt-1"><x-filament::input type="number" step="0.01" wire:model="openingBalance" required /></x-filament::input.wrapper>
                 </label>
             </div>
             <label class="block text-sm font-medium">Scenario assumptions and methodology
-                <textarea wire:model="assumptions" rows="3" maxlength="4000" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"></textarea>
+                <x-filament::input.wrapper class="mt-1"><x-filament::input type="textarea" wire:model="assumptions" rows="3" maxlength="4000" /></x-filament::input.wrapper>
             </label>
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between"><h2 class="font-semibold">Manual forecast assumptions</h2><x-filament::button color="gray" size="sm" type="button" wire:click="addEntry">Add cash flow</x-filament::button></div>
                 @foreach ($entries as $index => $entry)
                     <div wire:key="cash-flow-{{ $index }}" class="grid gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700 md:grid-cols-4">
-                        <label class="text-sm">Direction<select wire:model="entries.{{ $index }}.direction" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"><option value="inflow">Expected inflow</option><option value="outflow">Expected outflow</option></select></label>
-                        <label class="text-sm">Description<input wire:model="entries.{{ $index }}.description" maxlength="200" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"></label>
-                        <label class="text-sm">Expected date<input type="date" wire:model="entries.{{ $index }}.expected_on" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"></label>
-                        <label class="text-sm">Amount<input type="number" min="0.01" step="0.01" wire:model="entries.{{ $index }}.amount" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"></label>
-                        <label class="text-sm">Confidence<select wire:model="entries.{{ $index }}.confidence" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="unknown">Unknown</option></select></label>
-                        <label class="text-sm">Status<select wire:model="entries.{{ $index }}.status" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"><option value="assumed">Assumed</option><option value="confirmed">Confirmed</option><option value="at_risk">At risk</option><option value="unknown">Unknown</option></select></label>
-                        <label class="text-sm md:col-span-2">Source / reference<input wire:model="entries.{{ $index }}.source_reference" maxlength="160" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"></label>
+                        <label class="text-sm">Direction<x-filament::input.wrapper class="mt-1"><x-filament::input.select wire:model="entries.{{ $index }}.direction"><option value="inflow">Expected inflow</option><option value="outflow">Expected outflow</option></x-filament::input.select></x-filament::input.wrapper></label>
+                        <label class="text-sm">Description<x-filament::input.wrapper class="mt-1"><x-filament::input type="text" wire:model="entries.{{ $index }}.description" maxlength="200" /></x-filament::input.wrapper></label>
+                        <label class="text-sm">Expected date<x-filament::input.wrapper class="mt-1"><x-filament::input type="date" wire:model="entries.{{ $index }}.expected_on" /></x-filament::input.wrapper></label>
+                        <label class="text-sm">Amount<x-filament::input.wrapper class="mt-1"><x-filament::input type="number" min="0.01" step="0.01" wire:model="entries.{{ $index }}.amount" /></x-filament::input.wrapper></label>
+                        <label class="text-sm">Confidence<x-filament::input.wrapper class="mt-1"><x-filament::input.select wire:model="entries.{{ $index }}.confidence"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="unknown">Unknown</option></x-filament::input.select></x-filament::input.wrapper></label>
+                        <label class="text-sm">Status<x-filament::input.wrapper class="mt-1"><x-filament::input.select wire:model="entries.{{ $index }}.status"><option value="assumed">Assumed</option><option value="confirmed">Confirmed</option><option value="at_risk">At risk</option><option value="unknown">Unknown</option></x-filament::input.select></x-filament::input.wrapper></label>
+                        <label class="text-sm md:col-span-2">Source / reference<x-filament::input.wrapper class="mt-1"><x-filament::input type="text" wire:model="entries.{{ $index }}.source_reference" maxlength="160" /></x-filament::input.wrapper></label>
                         <div class="flex items-end"><x-filament::button color="danger" size="sm" type="button" wire:click="removeEntry({{ $index }})">Remove</x-filament::button></div>
                     </div>
                 @endforeach
