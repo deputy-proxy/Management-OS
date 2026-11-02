@@ -23,11 +23,10 @@
                 <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <x-filament::icon icon="heroicon-o-rectangle-stack" class="w-5 h-5 text-primary-500" />
 
-                    <input
+                    <x-filament::input.wrapper><x-filament::input
                         type="text"
-                        x-model="cluster.label"
-                        class="flex-1 bg-transparent font-semibold text-gray-800 dark:text-gray-100 border-none focus:ring-0 focus:outline-none text-sm"
-                    />
+                        x-model="cluster.label" class="flex-1"
+                     /></x-filament::input.wrapper>
 
                     <div class="flex gap-1">
                         <button @click="moveClusters(ci, -1)" :disabled="ci === 0" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30">
@@ -48,11 +47,10 @@
                             <div class="flex items-center gap-2 mb-2">
                                 <x-filament::icon icon="heroicon-o-folder" class="w-4 h-4 text-gray-400" />
 
-                                <input
+                                <x-filament::input.wrapper><x-filament::input
                                     type="text"
-                                    x-model="group.label"
-                                    class="flex-1 bg-transparent text-sm font-medium text-gray-600 dark:text-gray-300 border-none focus:ring-0 focus:outline-none"
-                                />
+                                    x-model="group.label" class="flex-1"
+                                 /></x-filament::input.wrapper>
 
                                 <div class="flex gap-1">
                                     <button @click="moveGroup(ci, gi, -1)" :disabled="gi === 0" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
@@ -129,10 +127,9 @@
                                         </div>
 
                                         {{-- Move to select — pre-selected to current position --}}
-                                        <select
+                                        <x-filament::input.wrapper><x-filament::input.select
                                             :value="`${ci}:${gi}`"
-                                            @change="moveResource(ci, gi, ri, $event.target.value); $event.target.value = `${ci}:${gi}`"
-                                            class="text-xs bg-transparent border-none focus:ring-0 text-gray-400 cursor-pointer max-w-30"
+                                            @change="moveResource(ci, gi, ri, $event.target.value); $event.target.value = `${ci}:${gi}`" class="max-w-30"
                                         >
                                             <template x-for="(tc, tci) in structure.clusters" :key="tci">
                                                 <template x-for="(tg, tgi) in tc.groups" :key="tgi">
@@ -143,7 +140,7 @@
                                                     ></option>
                                                 </template>
                                             </template>
-                                        </select>
+                                        </x-filament::input.select></x-filament::input.wrapper>
                                     </div>
                                 </template>
 
