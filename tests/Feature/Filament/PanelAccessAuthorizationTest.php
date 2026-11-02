@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\\Feature\\Filament;
+namespace Tests\Feature\Filament;
 
-use App\\Filament\\Resources\\Camps\\CampResource;
-use App\\Filament\\Resources\\ProductReviews\\ProductReviewResource;
-use App\\Models\\User;
-use Filament\\Facades\\Filament;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Filament\Resources\Camps\CampResource;
+use App\Filament\Resources\ProductReviews\ProductReviewResource;
+use App\Models\User;
+use Filament\Facades\Filament;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PanelAccessAuthorizationTest extends TestCase
 {
