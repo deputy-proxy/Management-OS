@@ -14,29 +14,29 @@
 
             <div class="mt-4 grid gap-3 md:grid-cols-5">
                 <label class="text-sm">From
-                    <input type="date" wire:model.live="reportFrom" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="reportFrom" class="w-full" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">To
-                    <input type="date" wire:model.live="reportTo" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="reportTo" class="w-full" /></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">Financial account
-                    <select wire:model.live="reportAccount" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportAccount" class="w-full">
                         <option value="">All accounts</option>
                         @foreach ($report['accounts'] as $account)
                             <option value="{{ $account['id'] }}">{{ $account['title'] }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">Currency
-                    <select wire:model.live="reportCurrency" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportCurrency" class="w-full">
                         <option value="">All currencies</option>
                         @foreach ($report['currencies'] as $currency)
                             <option value="{{ $currency }}">{{ $currency }}</option>
                         @endforeach
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
                 <label class="text-sm">Review status
-                    <select wire:model.live="reportDecision" class="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                    <x-filament::input.wrapper><x-filament::input.select wire:model.live="reportDecision" class="w-full">
                         <option value="">All statuses</option>
                         <option value="unreviewed">Unreviewed</option>
                         <option value="exact_match">Exact match decision</option>
@@ -44,7 +44,7 @@
                         <option value="unmatched">Unmatched</option>
                         <option value="ambiguous">Ambiguous</option>
                         <option value="rejected">Rejected</option>
-                    </select>
+                    </x-filament::input.select></x-filament::input.wrapper>
                 </label>
             </div>
 
