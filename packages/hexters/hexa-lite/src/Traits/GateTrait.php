@@ -1,12 +1,13 @@
 <?php
 
-namespace Hexters\HexaLite\Traits;
+namespace Hexters\\HexaLite\\Traits;
 
-use Filament\Facades\Filament;
-use Filament\Panel;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
+use Filament\\Facades\\Filament;
+use Filament\\Panel;
+use Illuminate\\Support\\Arr;
+use Illuminate\\Support\\Facades\\Config;
+use Illuminate\\Support\\Facades\\Gate;
+use Illuminate\\Support\\Str;
 
 trait GateTrait
 {
@@ -48,57 +49,52 @@ trait GateTrait
         return $gates;
     }
 
-    protected function mergeAccess($access): array
-    {
-        $gates = [];
-        foreach ($access as $accessGroup) {
-            foreach ($accessGroup as $access) {
-                $gates[] = $access;
-            }
-        }
-
-        return $gates;
-    }
-
     protected function registerGates(Panel $panel)
     {
         collect($this->callGates($panel))
             ->map(fn ($item) => collect(app($item)->gateIndexs()))
             ->each(function ($gates) use ($panel) {
                 collect($gates)->each(function ($gate) use ($panel) {
-                    Gate::define($gate, function ($user) use ($gate, $panel) {
+                    Gate::define($gate, function ($user) use ($gate) {
                         if (! method_exists($user, 'roles')) {
                             return false;
                         }
 
+                        // Always query the relationship so authorization does not
+                        // depend on whether a stale roles relation was loaded earlier.
+                        $rolesQuery = $user->roles();
+
                         if ($tenant = Filament::getTenant()) {
-                            $roles = $user->roles()->whereBelongsTo($tenant)->get();
-                        } else {
-                            $roles = $user->roles;
+                            $rolesQuery->whereBelongsTo($tenant);
                         }
 
-                        // The configured owner role is the explicit superadmin role.
-                        // New permission keys therefore do not silently lock the owner out.
+                        $roles = $rolesQuery->get();
+
+                        // The configured owner role bypasses individual permission keys.
                         $ownerRole = trim((string) config('hexa.super_admin_role', 'Owner'));
+
                         if ($ownerRole !== '' && $roles->contains(
                             fn ($role) => Str::lower(trim((string) $role->name)) === Str::lower($ownerRole)
                         )) {
                             return true;
                         }
 
-                        if ($roles->isNotEmpty()) {
-                            $allowedGates = [];
-                            foreach ($this->mergeAccess($roles->pluck('access')) as $accessGroup) {
-                                foreach ($accessGroup as $access) {
-                                    $allowedGates[] = $access;
-                                }
-                            }
-
-                            return in_array($gate, $allowedGates, true);
+                        // Keep the existing HexaLite behavior for users without roles.
+                        if ($roles->isEmpty()) {
+                            return true;
                         }
 
-                        // Preserve HexaLite's existing no-role superadmin behavior.
-                        return true;
+                        // HexaLite stores permissions as nested arrays grouped by
+                        // resource. Flatten them to permission-key strings before
+                        // comparing; iterating the flattened strings as arrays caused
+                        // valid permissions to be rejected.
+                        $allowedGates = $roles
+                            ->flatMap(fn ($role) => Arr::flatten($role->access ?? []))
+                            ->filter(fn ($permission) => is_string($permission))
+                            ->values()
+                            ->all();
+
+                        return in_array($gate, $allowedGates, true);
                     });
                 });
             });
