@@ -45,7 +45,7 @@
                 </label>
             </div>
             <label class="block text-sm font-medium">Scenario assumptions and methodology
-                <x-filament::input.wrapper class="mt-1"><x-filament::input type="textarea" wire:model="assumptions" rows="3" maxlength="4000" /></x-filament::input.wrapper>
+                <x-filament::input.wrapper class="mt-1"><textarea wire:model="assumptions" rows="3" maxlength="4000" class="fi-input block w-full resize-y"></textarea></x-filament::input.wrapper>
             </label>
 
             <div class="space-y-3">
