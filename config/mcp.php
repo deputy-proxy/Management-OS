@@ -8,6 +8,7 @@ $authorizationServer = trim((string) env('MCP_AUTHORIZATION_SERVER', ''));
 
 return [
     'authorization_server' => $authorizationServer === '' ? null : rtrim($authorizationServer, '/'),
+    'ai_principal_email' => env('MCP_AI_PRINCIPAL_EMAIL'),
     'access_token_ttl_minutes' => (int) env('MCP_ACCESS_TOKEN_TTL_MINUTES', 60),
     'refresh_token_ttl_days' => (int) env('MCP_REFRESH_TOKEN_TTL_DAYS', 30),
     'redirect_domains' => array_values(array_filter(array_map('trim', explode(',', $configuredRedirectDomains)))),

@@ -90,6 +90,8 @@ class McpOAuthTest extends TestCase
 
         $clientId = (string) $registration->json('client_id');
         $user = User::factory()->create();
+        $principal = User::factory()->create(['name' => 'AI Assistant', 'email' => 'chatgpt@edventure.ro']);
+        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
         $this->actingAs($user, 'web');
 
         $verifier = rtrim(strtr(base64_encode(random_bytes(48)), '+/', '-_'), '=');
@@ -138,6 +140,11 @@ class McpOAuthTest extends TestCase
         $jwt = (new Parser(new JoseEncoder))->parse($token->json('access_token'));
         $this->assertSame([$clientId, url('/mcp')], $jwt->claims()->get('aud'));
         $this->assertSame(url('/'), $jwt->claims()->get('iss'));
+        $this->assertSame((string) $principal->getKey(), $jwt->claims()->get('sub'));
+        $this->assertDatabaseHas('oauth_access_tokens', [
+            'id' => $jwt->claims()->get('jti'),
+            'user_id' => $principal->getKey(),
+        ]);
 
         $this->postJson('/oauth/token', [...$tokenRequest, 'code_verifier' => $verifier])
             ->assertStatus(400);
@@ -173,7 +180,7 @@ class McpOAuthTest extends TestCase
         ])->assertOk()->assertJsonPath('result.serverInfo.name', 'Management-OS');
 
         Passport::tokenModel()::query()
-            ->where('user_id', $user->getKey())
+            ->where('user_id', $principal->getKey())
             ->where('client_id', $clientId)
             ->update(['revoked' => true]);
         Auth::forgetGuards();

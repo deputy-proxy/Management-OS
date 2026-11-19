@@ -2,6 +2,7 @@
 
 namespace App\OAuth;
 
+use App\Models\User;
 use DateTimeImmutable;
 use Laravel\Passport\Bridge\AccessToken as PassportAccessToken;
 use Lcobucci\JWT\Configuration;
@@ -14,6 +15,25 @@ use RuntimeException;
 final class McpAccessToken extends PassportAccessToken
 {
     private ?CryptKeyInterface $mcpPrivateKey = null;
+
+    public function setUserIdentifier(string $identifier): void
+    {
+        $principalEmail = config('mcp.ai_principal_email');
+
+        if (is_string($principalEmail) && trim($principalEmail) !== '') {
+            $principalId = User::query()->where('email', trim($principalEmail))->value('id');
+
+            if ($principalId === null) {
+                throw new RuntimeException('The configured MCP AI principal has not been provisioned.');
+            }
+
+            parent::setUserIdentifier((string) $principalId);
+
+            return;
+        }
+
+        parent::setUserIdentifier($identifier);
+    }
 
     public function setPrivateKey(CryptKeyInterface $privateKey): void
     {
