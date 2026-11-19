@@ -2,6 +2,7 @@
 
 return [
     App\Providers\AppServiceProvider::class,
+    App\Providers\McpServiceProvider::class,
     App\Providers\DomainModelServiceProvider::class,
     App\Providers\ModelNotificationServiceProvider::class,
     App\Providers\CommentNotificationServiceProvider::class,
