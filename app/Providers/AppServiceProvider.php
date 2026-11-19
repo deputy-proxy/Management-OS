@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\Advertising\GoogleAdsCampaignMetricsAdapter;
 use App\Contracts\KpiAlertDeliveryAdapter;
+use App\OAuth\McpAccessToken;
 use App\Services\DatabaseKpiAlertDeliveryAdapter;
 use App\Services\GoogleAds\GoogleAdsRestCampaignMetricsAdapter;
 use App\Services\MarketIntelligence\MarketDataSourceRegistry;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Passport::useAccessTokenEntity(McpAccessToken::class);
+        Passport::authorizationView('mcp.authorize');
+        Passport::tokensCan(['mcp:use' => 'Access the Management-OS MCP server.']);
+        Passport::tokensExpireIn(now()->addMinutes((int) config('mcp.access_token_ttl_minutes', 60)));
+        Passport::refreshTokensExpireIn(now()->addDays((int) config('mcp.refresh_token_ttl_days', 30)));
+
         Queue::looping(function (): void {
             try {
                 Cache::put('ops:heartbeat:queue-worker', now()->timestamp, now()->addMinutes(5));
