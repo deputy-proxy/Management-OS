@@ -22,6 +22,18 @@ The Laravel boundary is intentionally small:
 
 The SDK currently accepts both the 2025-11-25 initialize/session handshake and the 2026-07-28 stateless request envelope. The integration tests exercise both protocol eras. Do not infer that every MCP client uses the same protocol revision; verify against the target client.
 
+## Verified Hostinger runtime snapshot
+
+A read-only Hostinger account inspection on 2026-11-19 for `edv.scl.ro` confirmed:
+
+- The website is enabled and currently runs PHP 8.5.12; PHP 8.4 and 8.5 are available. PHP 8.5.12 satisfies the repository's `^8.4.1` requirement and the SDK/PSR bridge constraints.
+- The required runtime extensions are enabled, including BCMath, cURL, DOM, Fileinfo, GD, Intl, mbstring, the MySQL PDO driver (`nd_pdo_mysql`), PDO SQLite, XML, XSL and ZIP. OpenSSL is built in.
+- SSL is active and the HTTPS redirect is enabled.
+- Hostinger CDN is enabled; the website's server cache is disabled.
+- The configured PHP `max_execution_time` falls back to 300 seconds (Hostinger plan maximum 480 seconds). The MCP controller applies its 25-second application cap on non-CLI SAPIs; the lower app cap does not raise the hosting limit.
+
+This verifies the configured PHP baseline and HTTPS certificate/redirect settings, not the actual `/mcp` request lifecycle. CDN/proxy buffering of SSE or streamed responses, effective PHP-FPM timeout behavior, and the hosting topology still require a deployed staging test. No production deployment or hosting setting was changed for this issue.
+
 ## Transport safeguards and configuration
 
 - Request bodies are limited to 1 MiB by default (`MCP_MAX_BODY_BYTES`). The SDK rejects oversized bodies with HTTP 413.
@@ -35,7 +47,7 @@ The SDK currently accepts both the 2025-11-25 initialize/session handshake and t
 
 Legacy handshake sessions are stored as files under `storage/framework/cache/mcp-sessions` by default. The SDK's file session store and `flock()` session lock support concurrent PHP workers sharing one local filesystem. Sessions expire after 3,600 seconds (`MCP_SESSION_TTL_SECONDS`); garbage collection runs probabilistically. The application creates it with mode `0700` and requires it to be writable by the PHP process. If the application is deployed across multiple hosts/containers with non-shared filesystems, replace this with a shared PSR-16 session store and a distributed lock before routing requests across nodes. Do not use an in-memory session store under PHP-FPM.
 
-The exact production PHP-FPM execution timeout, reverse-proxy buffering/streaming behavior, request-size limit, and multi-instance topology have not been verified. Confirm them in staging before release. The protocol foundation does not override hosting-level request timeouts.
+The effective production PHP-FPM execution timeout, reverse-proxy/CDN buffering and streaming behavior, request-size handling at the edge, and multi-instance topology have not been verified end-to-end. Confirm them in staging before release. The protocol foundation does not override hosting-level request timeouts.
 
 ## Local setup and protocol inspection
 
