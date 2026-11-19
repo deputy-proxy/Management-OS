@@ -129,6 +129,9 @@ class MarketAdvertisingAnalyticsWorkflowTest extends TestCase
 
     public function test_dashboard_renders_empty_and_populated_advertising_states_for_authorized_users(): void
     {
+        // Keep the fixture inside the dashboard's 30-day window regardless of CI date.
+        $this->travelTo(CarbonImmutable::parse('2026-10-18 12:00:00', 'UTC'));
+
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         $user = User::factory()->create();
         $roleClass = config('hexa.models.role');
