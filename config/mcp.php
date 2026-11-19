@@ -1,0 +1,22 @@
+<?php
+
+$applicationHost = parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost';
+$configuredHosts = trim((string) env('MCP_ALLOWED_HOSTS', ''));
+$configuredOrigins = trim((string) env('MCP_ALLOWED_ORIGINS', ''));
+
+return [
+    'server_name' => env('MCP_SERVER_NAME', 'Management-OS'),
+    'server_version' => env('MCP_SERVER_VERSION', '0.1.0'),
+    'max_body_bytes' => (int) env('MCP_MAX_BODY_BYTES', 1048576),
+    'request_timeout_seconds' => (int) env('MCP_REQUEST_TIMEOUT_SECONDS', 25),
+    'pagination_limit' => (int) env('MCP_PAGINATION_LIMIT', 50),
+    'allowed_hosts' => $configuredHosts === ''
+        ? [$applicationHost]
+        : array_values(array_filter(array_map('trim', explode(',', $configuredHosts)))),
+    'allowed_origins' => $configuredOrigins === ''
+        ? []
+        : array_values(array_filter(array_map('trim', explode(',', $configuredOrigins)))),
+    'session_path' => env('MCP_SESSION_PATH') ?: storage_path('framework/cache/mcp-sessions'),
+    'session_ttl_seconds' => (int) env('MCP_SESSION_TTL_SECONDS', 3600),
+    'session_lock_timeout_seconds' => (float) env('MCP_SESSION_LOCK_TIMEOUT_SECONDS', 5),
+];

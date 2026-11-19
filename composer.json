@@ -37,10 +37,13 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0.2",
         "lartisan/filament-architect": "^1.0",
+        "mcp/sdk": "^0.10.0",
+        "nyholm/psr7": "^1.8.2",
         "rappasoft/laravel-authentication-log": "^6.0",
         "relaticle/comments": "^1.1.1",
         "smalot/pdfparser": "^2.12",
         "spatie/laravel-activitylog": "^5.0",
+        "symfony/psr-http-message-bridge": "^8.1",
         "tapp/filament-authentication-log": "^5.0",
         "torann/geoip": "^3.0",
         "usamamuneerchaudhary/filament-command-palette": "^2.0"

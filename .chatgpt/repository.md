@@ -8,10 +8,22 @@ Last verified: 2026-11-19. Re-check the live workflows and manifests before ever
 - Filament: 5.x (`^5.11.4`).
 - Livewire: 4.x (resolved version is recorded in `composer.lock`).
 - Node.js: 22.
+- Production Hostinger site `edv.scl.ro` runs PHP 8.5.12 (read-only account check 2026-11-19); PHP 8.4 and 8.5 are available. This satisfies the Composer `^8.4.1` requirement.
 - Frontend package manager: npm, using committed `package-lock.json`.
 - SQLite CI database for the main PHP job.
 - MySQL 8.0 for database migration and integrity regression tests.
 - Java 21 for pinned CIUS-RO Schematron validation.
+
+## MCP transport integration
+
+- Endpoint: root path `/mcp`, registered from `routes/mcp.php` in the API middleware group (not the web/CSRF group).
+- SDK: official `mcp/sdk` v0.10.0, with the exact source revision locked in `composer.lock`. The SDK is pre-1.0/experimental; upgrade only after compatibility and regression review.
+- HTTP adapters: `symfony/psr-http-message-bridge` v8.1.9 and `nyholm/psr7` v1.8.2.
+- Supports the SDK's legacy 2025-11-25 initialize/session handshake and modern 2026-07-28 stateless request envelope.
+- Legacy protocol sessions use `McpServerFactory`, `FileSessionStore`, and `FileSessionLock` under `storage/framework/cache/mcp-sessions` (mode `0700`) by default. Keep this on a shared local filesystem for every PHP worker; multi-host deployments need a shared session store and distributed lock.
+- The current issue #529 release registers no business tools, resources, or prompts and has no caller authentication. Do not expose business data until issues #530 and #531 are complete; do not enable writes before #532.
+- Transport defaults: 1 MiB body limit, 25-second PHP execution cap on non-CLI SAPIs, 60 requests/minute/IP, Host allowlist derived from `APP_URL`, and no cross-origin browser access unless explicitly configured. See `docs/mcp-server.md` for Inspector commands, environment settings, deployment caveats, and the required ChatGPT OAuth compatibility constraints.
+- Hostinger confirms active SSL/HTTPS redirect, CDN enabled, server cache disabled, and PHP `max_execution_time` default 300 seconds (plan maximum 480). The MCP application caps non-CLI requests at 25 seconds. CDN/proxy streaming, effective PHP-FPM behavior, edge request-size handling, and multi-instance topology remain unverified and require staging validation.
 
 ## Current CI validation
 Source: `.github/workflows/tests.yml`.
