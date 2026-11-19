@@ -33,5 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ],
     )
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Filament provides the web login route; this app does not define a
+        // standalone route named `login`. Passport's browser authorization
+        // flow must send unauthenticated users to the Filament login page.
+        $exceptions->redirectGuestsTo(
+            fn (\Illuminate\Http\Request $request): string => route('filament.admin.auth.login'),
+        );
     })->create();
