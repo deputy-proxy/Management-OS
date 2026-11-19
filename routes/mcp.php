@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Mcp\McpController;
 use App\Http\Middleware\RequireMcpPkceS256;
+use App\Http\Middleware\RequireMcpResource;
 use Illuminate\Support\Facades\Route;
 use Laravel\Mcp\Facades\Mcp;
 use Laravel\Mcp\Server\Middleware\AddWwwAuthenticateHeader;
 
 Mcp::oauthRoutes();
-Route::getRoutes()->getByName('passport.authorizations.authorize')?->middleware(RequireMcpPkceS256::class);
+Route::getRoutes()->getByName('passport.authorizations.authorize')?->middleware([RequireMcpPkceS256::class, RequireMcpResource::class]);
+Route::getRoutes()->getByName('passport.token')?->middleware(RequireMcpResource::class);
 
 Route::options('/mcp', McpController::class)->middleware('throttle:60,1')->name('mcp.preflight');
 Route::match(['GET', 'DELETE', 'PUT', 'PATCH'], '/mcp', McpController::class)->middleware('throttle:60,1')->name('mcp.unsupported-method');

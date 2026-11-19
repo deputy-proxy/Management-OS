@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Laravel\Passport\Passport;
+use Lcobucci\JWT\Encoding\JoseEncoder;
+use Lcobucci\JWT\Token\Parser;
 use Tests\TestCase;
 
 class McpOAuthTest extends TestCase
@@ -97,6 +99,7 @@ class McpOAuthTest extends TestCase
         $authorization = $this->get('/oauth/authorize?'.http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
+            'resource' => url('/mcp'),
             'response_type' => 'code',
             'scope' => 'mcp:use',
             'state' => 'management-os-state',
@@ -119,6 +122,7 @@ class McpOAuthTest extends TestCase
             'grant_type' => 'authorization_code',
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
+            'resource' => url('/mcp'),
             'code' => $redirectQuery['code'],
         ];
 
@@ -127,8 +131,13 @@ class McpOAuthTest extends TestCase
 
         $token = $this->postJson('/oauth/token', [...$tokenRequest, 'code_verifier' => $verifier])
             ->assertOk()
-            ->assertJsonStructure(['access_token', 'refresh_token', 'expires_in', 'token_type'])
+            ->assertJsonStructure(['access_token', 'refresh_token', 'expires_in', 'token_type', 'resource'])
+            ->assertJsonPath('resource', url('/mcp'))
             ->assertJsonPath('expires_in', 3600);
+
+        $jwt = (new Parser(new JoseEncoder))->parse($token->json('access_token'));
+        $this->assertSame([$clientId, url('/mcp')], $jwt->claims()->get('aud'));
+        $this->assertSame(url('/'), $jwt->claims()->get('iss'));
 
         $this->postJson('/oauth/token', [...$tokenRequest, 'code_verifier' => $verifier])
             ->assertStatus(400);
@@ -136,12 +145,15 @@ class McpOAuthTest extends TestCase
         $refreshToken = $token->json('refresh_token');
         $refreshed = $this->postJson('/oauth/token', [
             'grant_type' => 'refresh_token',
+            'resource' => url('/mcp'),
             'client_id' => $clientId,
             'refresh_token' => $refreshToken,
-        ])->assertOk()->assertJsonStructure(['access_token', 'refresh_token', 'expires_in', 'token_type']);
+        ])->assertOk()->assertJsonStructure(['access_token', 'refresh_token', 'expires_in', 'token_type', 'resource'])
+            ->assertJsonPath('resource', url('/mcp'));
 
         $this->postJson('/oauth/token', [
             'grant_type' => 'refresh_token',
+            'resource' => url('/mcp'),
             'client_id' => $clientId,
             'refresh_token' => $refreshToken,
         ])->assertStatus(400);
@@ -174,6 +186,25 @@ class McpOAuthTest extends TestCase
             'Authorization' => 'Bearer '.$refreshed->json('access_token'),
             'Accept' => 'application/json, text/event-stream',
         ])->assertUnauthorized();
+    }
+
+    public function test_oauth_authorization_and_token_requests_reject_wrong_or_missing_resource(): void
+    {
+        $this->get('/oauth/authorize?'.http_build_query([
+            'client_id' => 'public-client',
+            'redirect_uri' => 'https://chatgpt.com/connector_platform_oauth_redirect',
+            'response_type' => 'code',
+            'scope' => 'mcp:use',
+            'state' => 'state',
+            'code_challenge' => str_repeat('a', 43),
+            'code_challenge_method' => 'S256',
+        ]))->assertBadRequest()->assertJsonPath('error', 'invalid_target');
+
+        $this->postJson('/oauth/token', [
+            'grant_type' => 'authorization_code',
+            'client_id' => 'public-client',
+            'resource' => 'https://attacker.example/mcp',
+        ])->assertBadRequest()->assertJsonPath('error', 'invalid_target');
     }
 
     private function ensurePassportKeys(): void
