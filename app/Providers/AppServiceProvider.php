@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\Advertising\GoogleAdsCampaignMetricsAdapter;
 use App\Contracts\KpiAlertDeliveryAdapter;
+use App\Mcp\Authorization\McpToolPermissionRegistry;
 use App\OAuth\McpAccessToken;
 use App\Services\DatabaseKpiAlertDeliveryAdapter;
 use App\Services\GoogleAds\GoogleAdsRestCampaignMetricsAdapter;
@@ -32,7 +33,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Passport::useAccessTokenEntity(McpAccessToken::class);
         Passport::authorizationView('mcp.authorize');
-        Passport::tokensCan(['mcp:use' => 'Access the Management-OS MCP server.']);
+        Passport::tokensCan([
+            'mcp:use' => 'Access the Management-OS MCP server.',
+            ...app(McpToolPermissionRegistry::class)->passportScopes(),
+        ]);
         Passport::tokensExpireIn(now()->addMinutes((int) config('mcp.access_token_ttl_minutes', 60)));
         Passport::refreshTokensExpireIn(now()->addDays((int) config('mcp.refresh_token_ttl_days', 30)));
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
@@ -21,7 +22,7 @@ class ProvisionMcpPrincipalTest extends TestCase
         $assistantRole = $this->createAssistantRole();
 
         $this->artisan('mcp:provision-principal')
-            ->expectsOutputToContain('with the permissionless Assistant role')
+            ->expectsOutputToContain('with only MCP-mapped Assistant permissions')
             ->assertSuccessful();
 
         $principal = User::query()->where('email', 'chatgpt@edventure.ro')->firstOrFail();
@@ -41,12 +42,35 @@ class ProvisionMcpPrincipalTest extends TestCase
         $principal->roles()->attach($assistantRole->getKey());
 
         $this->artisan('mcp:provision-principal')
-            ->expectsOutputToContain('with the permissionless Assistant role')
+            ->expectsOutputToContain('with only MCP-mapped Assistant permissions')
             ->assertSuccessful();
 
         $this->assertEqualsCanonicalizing([$assistantRole->getKey()], $principal->fresh()->roles()->pluck('hexa_roles.id')->all());
         $this->assertFalse($principal->fresh()->canAccessPanel(Filament::getCurrentPanel() ?? new Panel));
         $this->assertFalse(hexa()->user($principal->fresh())->can('users.view_any'));
+    }
+
+    public function test_command_accepts_only_permissions_declared_by_the_mcp_matrix(): void
+    {
+        config([
+            'mcp.ai_principal_email' => 'chatgpt@edventure.ro',
+            'mcp.tool_permissions' => [
+                'get_financial_overview' => [
+                    'mcp_scope' => 'mcp.finance.read',
+                    'domain_permissions' => ['finance.view_any'],
+                    'record_scope' => McpGlobalRecordScope::class,
+                    'allowed_fields' => ['period' => true],
+                ],
+            ],
+        ]);
+        $assistantRole = $this->createAssistantRole(['finance' => ['finance.view_any']]);
+
+        $this->artisan('mcp:provision-principal')
+            ->expectsOutputToContain('with only MCP-mapped Assistant permissions')
+            ->assertSuccessful();
+
+        $principal = User::query()->where('email', 'chatgpt@edventure.ro')->firstOrFail();
+        $this->assertEqualsCanonicalizing([$assistantRole->getKey()], $principal->roles()->pluck('hexa_roles.id')->all());
     }
 
     public function test_command_refuses_to_provision_when_assistant_role_has_permissions(): void
@@ -55,7 +79,7 @@ class ProvisionMcpPrincipalTest extends TestCase
         $this->createAssistantRole(['users' => ['view_any']]);
 
         $this->artisan('mcp:provision-principal')
-            ->expectsOutputToContain('must have an empty permission set')
+            ->expectsOutputToContain('not granted by the MCP permission matrix')
             ->assertFailed();
 
         $this->assertDatabaseMissing('users', ['email' => 'chatgpt@edventure.ro']);

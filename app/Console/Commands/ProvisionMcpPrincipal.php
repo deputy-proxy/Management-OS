@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mcp\Authorization\McpToolPermissionRegistry;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
@@ -43,8 +44,13 @@ final class ProvisionMcpPrincipal extends Command
         $permissions = collect(Arr::flatten($assistantRole->access ?? []))
             ->filter(fn ($permission): bool => is_string($permission) && trim($permission) !== '');
 
-        if ($permissions->isNotEmpty()) {
-            $this->components->error('The Assistant role must have an empty permission set before it can be assigned to the MCP principal.');
+        $allowedPermissions = app(McpToolPermissionRegistry::class)->allowedDomainPermissions();
+        $unmappedPermissions = $permissions->reject(
+            fn ($permission): bool => in_array($permission, $allowedPermissions, true)
+        );
+
+        if ($unmappedPermissions->isNotEmpty()) {
+            $this->components->error('The Assistant role contains domain permissions that are not granted by the MCP permission matrix.');
 
             return self::FAILURE;
         }
@@ -60,7 +66,7 @@ final class ProvisionMcpPrincipal extends Command
                 ]);
                 $user->roles()->attach($assistantRole->getKey());
 
-                $this->components->info("Created AI Assistant principal (user ID {$user->getKey()}) with the permissionless Assistant role.");
+                $this->components->info("Created AI Assistant principal (user ID {$user->getKey()}) with only MCP-mapped Assistant permissions.");
 
                 return self::SUCCESS;
             }
@@ -85,7 +91,7 @@ final class ProvisionMcpPrincipal extends Command
                 return self::FAILURE;
             }
 
-            $this->components->info("Verified existing AI Assistant principal (user ID {$user->getKey()}) with the permissionless Assistant role and no panel access.");
+            $this->components->info("Verified existing AI Assistant principal (user ID {$user->getKey()}) with only MCP-mapped Assistant permissions and no panel access.");
 
             return self::SUCCESS;
         });
