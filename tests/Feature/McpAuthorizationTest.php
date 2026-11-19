@@ -77,6 +77,27 @@ class McpAuthorizationTest extends TestCase
         (new McpToolPermissionRegistry)->forTool('get_financial_overview');
     }
 
+    public function test_registry_rejects_reusing_a_tool_scope_for_multiple_tools(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'get_financial_overview' => [
+                'mcp_scope' => 'mcp.finance.read',
+                'domain_permissions' => ['finance.view_any'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['period' => true],
+            ],
+            'search_financial_records' => [
+                'mcp_scope' => 'mcp.finance.read',
+                'domain_permissions' => ['finance.view_any'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['id' => true],
+            ],
+        ]]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        (new McpToolPermissionRegistry)->all();
+    }
+
     public function test_permission_matrix_requires_domain_permission_and_explicit_field_allowlist(): void
     {
         $this->expectException(\InvalidArgumentException::class);

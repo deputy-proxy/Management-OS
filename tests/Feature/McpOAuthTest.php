@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,32 @@ class McpOAuthTest extends TestCase
             ->assertOk()
             ->assertJsonPath('resource', url('/mcp'))
             ->assertJsonPath('scopes_supported', ['mcp:use']);
+    }
+
+    public function test_oauth_discovery_advertises_each_registered_tool_scope_on_exact_and_nested_metadata(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'get_financial_overview' => [
+                'mcp_scope' => 'mcp.finance.read',
+                'domain_permissions' => ['finance.view_any'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['period' => true],
+            ],
+        ]]);
+
+        $scopes = ['mcp:use', 'mcp.finance.read'];
+
+        $this->get('/.well-known/oauth-authorization-server')
+            ->assertOk()
+            ->assertJsonPath('scopes_supported', $scopes);
+
+        $this->get('/.well-known/oauth-protected-resource')
+            ->assertOk()
+            ->assertJsonPath('scopes_supported', $scopes);
+
+        $this->get('/.well-known/oauth-protected-resource/mcp')
+            ->assertOk()
+            ->assertJsonPath('scopes_supported', $scopes);
     }
 
     public function test_authorization_rejects_missing_or_plain_pkce_challenges(): void

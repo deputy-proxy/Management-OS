@@ -10,7 +10,8 @@ return [
     'authorization_server' => $authorizationServer === '' ? null : rtrim($authorizationServer, '/'),
     'ai_principal_email' => env('MCP_AI_PRINCIPAL_EMAIL'),
     'permission_matrix_version' => '1.0.0',
-    'domain_permission_guard' => config('auth.defaults.guard', 'web'),
+    'domain_permission_guard' => env('MCP_DOMAIN_PERMISSION_GUARD', config('auth.defaults.guard', 'web')),
+    'principal_role' => 'Assistant',
     // Add every exposed tool here. Missing definitions are denied by default.
     'tool_permissions' => [],
     'access_token_ttl_minutes' => (int) env('MCP_ACCESS_TOKEN_TTL_MINUTES', 60),
