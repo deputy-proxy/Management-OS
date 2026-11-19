@@ -235,7 +235,7 @@ class ProfitabilityCalculationService
                 if ($complete) {
                     $profit = $bucket['revenue']->minus($bucket['direct'])->minus($bucket['overhead']);
                     if (! $bucket['revenue']->isZero()) {
-                        $margin = $profit->multipliedBy(100)->dividedBy($bucket['revenue'], 2, RoundingMode::HALF_UP);
+                        $margin = $profit->multipliedBy(100)->dividedBy($bucket['revenue'], 2, RoundingMode::HalfUp);
                     }
                 }
 
@@ -244,10 +244,10 @@ class ProfitabilityCalculationService
                     'product_id' => $bucket['product_id'],
                     'currency_code' => $bucket['currency'],
                     'result_status' => $complete ? 'provisional_complete' : 'incomplete',
-                    'revenue_amount' => $bucket['revenue_ids'] !== [] ? $bucket['revenue']->toScale(2, RoundingMode::HALF_UP)->__toString() : null,
-                    'direct_cost_amount' => $bucket['cost_resource_ids'] !== [] ? $bucket['direct']->toScale(2, RoundingMode::HALF_UP)->__toString() : null,
-                    'overhead_cost_amount' => $bucket['cost_resource_ids'] !== [] ? $bucket['overhead']->toScale(2, RoundingMode::HALF_UP)->__toString() : null,
-                    'provisional_profit_amount' => $profit?->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                    'revenue_amount' => $bucket['revenue_ids'] !== [] ? $bucket['revenue']->toScale(2, RoundingMode::HalfUp)->__toString() : null,
+                    'direct_cost_amount' => $bucket['cost_resource_ids'] !== [] ? $bucket['direct']->toScale(2, RoundingMode::HalfUp)->__toString() : null,
+                    'overhead_cost_amount' => $bucket['cost_resource_ids'] !== [] ? $bucket['overhead']->toScale(2, RoundingMode::HalfUp)->__toString() : null,
+                    'provisional_profit_amount' => $profit?->toScale(2, RoundingMode::HalfUp)->__toString(),
                     'provisional_margin_percent' => $margin?->__toString(),
                     'source_snapshot' => [
                         'revenue_ids' => $bucket['revenue_ids'],

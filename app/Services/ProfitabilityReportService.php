@@ -112,7 +112,7 @@ class ProfitabilityReportService
         if ($profit !== null && $revenue !== null && ! BigDecimal::of($revenue)->isZero()) {
             $margin = BigDecimal::of($profit)
                 ->multipliedBy(100)
-                ->dividedBy(BigDecimal::of($revenue), 2, RoundingMode::HALF_UP)
+                ->dividedBy(BigDecimal::of($revenue), 2, RoundingMode::HalfUp)
                 ->__toString();
         }
 
@@ -207,8 +207,8 @@ class ProfitabilityReportService
                         'product_id' => $result->product_id,
                         'currency' => $result->currency_code,
                         'reason' => 'Current revenue source amounts no longer reconcile to the immutable calculation result; customer amounts are withheld.',
-                        'expected_amount' => $expectedTotal->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                        'current_source_amount' => $actualTotal->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                        'expected_amount' => $expectedTotal->toScale(2, RoundingMode::HalfUp)->__toString(),
+                        'current_source_amount' => $actualTotal->toScale(2, RoundingMode::HalfUp)->__toString(),
                     ];
                 }
 
@@ -263,7 +263,7 @@ class ProfitabilityReportService
             ->filter(fn (array $customer): bool => $customerFilter === null || $customer['customer_id'] === $customerFilter)
             ->map(fn (array $customer): array => [
                 ...$customer,
-                'revenue_amount' => $customer['revenue_amount']->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                'revenue_amount' => $customer['revenue_amount']->toScale(2, RoundingMode::HalfUp)->__toString(),
                 'revenue_ids' => array_values(array_unique($customer['revenue_ids'])),
                 'invoice_ids' => array_values(array_unique($customer['invoice_ids'])),
                 'product_ids' => array_values(array_unique($customer['product_ids'])),
@@ -274,7 +274,7 @@ class ProfitabilityReportService
         $unattributedRows = collect($unattributed)
             ->map(fn (array $item): array => [
                 ...$item,
-                'revenue_amount' => $item['revenue_amount']->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                'revenue_amount' => $item['revenue_amount']->toScale(2, RoundingMode::HalfUp)->__toString(),
                 'revenue_ids' => array_values(array_unique($item['revenue_ids'])),
                 'invoice_ids' => array_values(array_unique($item['invoice_ids'])),
             ])
@@ -313,6 +313,6 @@ class ProfitabilityReportService
             $sum = $sum->plus((string) $value);
         }
 
-        return $sum->toScale(2, RoundingMode::HALF_UP)->__toString();
+        return $sum->toScale(2, RoundingMode::HalfUp)->__toString();
     }
 }

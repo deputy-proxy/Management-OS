@@ -1,12 +1,12 @@
 # Repository-specific development configuration
 
-Last verified: 2026-11-18. Re-check the live workflows and manifests before every implementation; this file is a snapshot, not a substitute for inspection.
+Last verified: 2026-11-19. Re-check the live workflows and manifests before every implementation; this file is a snapshot, not a substitute for inspection.
 
 ## Runtime and framework
-- Composer PHP requirement: `^8.2`; CI currently runs PHP 8.4.
-- Laravel: 12.x. Issue #526 tracks migration to Laravel 13.
-- Filament: 5.x.
-- Livewire: 4.x (resolved dependency; verify the lockfile if the manifest changes).
+- Composer PHP requirement: `^8.4.1`; Composer dependency resolution is pinned to PHP 8.4.1 and CI runs the PHP 8.4 line.
+- Laravel: 13.x (`^13.0`).
+- Filament: 5.x (`^5.11.4`).
+- Livewire: 4.x (resolved version is recorded in `composer.lock`).
 - Node.js: 22.
 - Frontend package manager: npm, using committed `package-lock.json`.
 - SQLite CI database for the main PHP job.
@@ -39,9 +39,9 @@ Run the verified workflow-equivalent checks, adjusting only for unavailable CI s
 12. Run the MySQL 8.0 migration/integrity regression suite when changing database-sensitive behavior.
 
 ## Security and migration status
-- The Composer audit has reported advisories in the locked dependency tree, including a Laravel 12 security advisory and Symfony advisories. Issue #525 tracks immediate remediation on the Laravel 12 line.
+- Issue #525 resolved the locked Composer security advisories on the Laravel 12 line before the separate Laravel 13 migration in issue #526.
 - Do not suppress or ignore known advisories to make CI pass. Re-run the locked audit after updating dependencies.
-- Laravel 13 migration is tracked separately in issue #526. Do not combine the security remediation and major-version migration unless the issue plan explicitly requires it.
+- Issue #526 contains the Laravel 13 major-version migration; keep it separate from issue #525, which was limited to the Laravel 12 dependency security remediation.
 - Production is documented as MySQL 8.x; verify the exact deployed minor version against staging before release.
 
 ## Composer scripts and analysis

@@ -121,7 +121,7 @@ class ProductCostService
                 return;
             }
 
-            $sourceAmount = BigDecimal::of((string) $amount)->toScale(2, RoundingMode::HALF_UP);
+            $sourceAmount = BigDecimal::of((string) $amount)->toScale(2, RoundingMode::HalfUp);
             $resolved = [];
             $invalidTargets = [];
             foreach ($allocations as $allocation) {
@@ -181,9 +181,9 @@ class ProductCostService
 
             foreach ($resolved as $index => $entry) {
                 $allocatedAmount = $sourceAmount->multipliedBy($entry['percent'])
-                    ->dividedBy(100, 2, RoundingMode::HALF_UP);
+                    ->dividedBy(100, 2, RoundingMode::HalfUp);
                 $allocatedSoFar = $allocatedSoFar->plus($allocatedAmount);
-                $allocatedAmountString = $allocatedAmount->toScale(2, RoundingMode::HALF_UP)->__toString();
+                $allocatedAmountString = $allocatedAmount->toScale(2, RoundingMode::HalfUp)->__toString();
                 $resolved[$index]['allocated_amount_decimal'] = $allocatedAmountString;
 
                 $this->snapshot(
@@ -221,7 +221,7 @@ class ProductCostService
                     null,
                     null,
                     100 - $allocatedPercent,
-                    $unallocatedAmount->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                    $unallocatedAmount->toScale(2, RoundingMode::HalfUp)->__toString(),
                     $sourceSnapshot,
                     [
                         'reason' => $resolved === []

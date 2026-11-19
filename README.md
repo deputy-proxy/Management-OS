@@ -2,6 +2,14 @@
 
 Management-OS is a Laravel monolith for EdVenture's administrative, finance, academic, portfolio, and operations workflows. Laravel/Eloquent owns application state and business rules; Filament provides the internal management UI. The project is organized into domain areas, not separately deployed services.
 
+## Supported runtime
+
+- PHP `^8.4.1` (the project baseline follows the existing PHP 8.4 CI runtime; Laravel 13 itself requires PHP 8.3 or newer).
+- Laravel Framework `^13.0`.
+- Filament `^5.11.4` and Livewire 4 (resolved version is recorded in `composer.lock`).
+- Node.js 22 and npm, using the committed `package-lock.json`.
+- SQLite for the main CI migration/test job and MySQL 8.0 for database-sensitive regression coverage. Production is documented as MySQL 8.x; verify the exact deployed PHP and MySQL versions before release.
+
 ## Architecture map
 
 | Area | Main locations | Responsibility |

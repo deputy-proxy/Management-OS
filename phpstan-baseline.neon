@@ -964,12 +964,6 @@ parameters:
 			path: app/Providers/DomainModelServiceProvider.php
 
 		-
-			message: '#^Parameter \#1 \$map of static method Illuminate\\Database\\Eloquent\\Relations\\Relation\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,mixed\>\:\:enforceMorphMap\(\) expects array\<class\-string\<Illuminate\\Database\\Eloquent\\Model\>\>, array\<string, string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Providers/DomainModelServiceProvider.php
-
-		-
 			message: '#^Match expression does not handle remaining value\: string$#'
 			identifier: match.unhandled
 			count: 1

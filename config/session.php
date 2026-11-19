@@ -214,4 +214,7 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    // Preserve PHP session payload compatibility during the Laravel 13 upgrade.
+    'serialization' => 'php',
+
 ];
