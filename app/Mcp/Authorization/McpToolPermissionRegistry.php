@@ -34,6 +34,7 @@ final class McpToolPermissionRegistry
         }
 
         $permissions = [];
+        $scopes = [];
         foreach ($definitions as $toolName => $definition) {
             if (! is_string($toolName) || ! is_array($definition)) {
                 throw new InvalidArgumentException('Every MCP permission matrix entry must have a tool name and definition.');
@@ -52,7 +53,12 @@ final class McpToolPermissionRegistry
                 throw new InvalidArgumentException("Duplicate MCP permission definition for [{$toolName}].");
             }
 
+            if (isset($scopes[$permission->mcpScope])) {
+                throw new InvalidArgumentException("MCP scope [{$permission->mcpScope}] must belong to exactly one tool.");
+            }
+
             $permissions[$toolName] = $permission;
+            $scopes[$permission->mcpScope] = $toolName;
         }
 
         return $this->permissions = $permissions;
