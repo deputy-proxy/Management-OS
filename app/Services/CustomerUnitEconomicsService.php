@@ -52,7 +52,7 @@ class CustomerUnitEconomicsService
             'incurred_on' => $attributes['incurred_on'],
             'source_category' => $category,
             'campaign_name' => $attributes['campaign_name'] ?? null,
-            'amount_decimal' => BigDecimal::of($amount)->toScale(2, RoundingMode::HALF_UP)->__toString(),
+            'amount_decimal' => BigDecimal::of($amount)->toScale(2, RoundingMode::HalfUp)->__toString(),
             'currency_code' => $currency,
             'source_reference' => trim($attributes['source_reference']),
             'evidence_reference' => trim($attributes['evidence_reference']),
@@ -413,7 +413,7 @@ class CustomerUnitEconomicsService
                     $cost = $costsByCategory[$category][$currency] ?? null;
                     $costAmount = $cost['amount'] ?? null;
                     $cac = $cacPolicyReady && $costAmount !== null && count($customerIds) > 0
-                        ? $costAmount->dividedBy(count($customerIds), 2, RoundingMode::HALF_UP)
+                        ? $costAmount->dividedBy(count($customerIds), 2, RoundingMode::HalfUp)
                         : null;
 
                     $revenueKey = $category.'|'.$currency;
@@ -424,7 +424,7 @@ class CustomerUnitEconomicsService
                         : null;
                     $retentionCoverage = count(array_intersect($customerIds, array_keys($retentionByCustomer)));
                     $ltv = $ltvPolicyReady && count($customerIds) > 0 && $retentionCoverage === count($customerIds) && $revenueCoverage === count($customerIds) && $revenueTotal !== null
-                        ? $revenueTotal->dividedBy(count($customerIds), 2, RoundingMode::HALF_UP)
+                        ? $revenueTotal->dividedBy(count($customerIds), 2, RoundingMode::HalfUp)
                         : null;
 
                     $revenueIds = [];
@@ -438,10 +438,10 @@ class CustomerUnitEconomicsService
                         'currency_code' => $currency,
                         'acquired_customer_count' => count($customerIds),
                         'cost_entry_count' => count($cost['ids'] ?? []),
-                        'acquisition_cost_amount' => $costAmount?->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                        'cac_amount' => $cac?->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                        'revenue_amount' => $revenueTotal?->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                        'ltv_amount' => $ltv?->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                        'acquisition_cost_amount' => $costAmount?->toScale(2, RoundingMode::HalfUp)->__toString(),
+                        'cac_amount' => $cac?->toScale(2, RoundingMode::HalfUp)->__toString(),
+                        'revenue_amount' => $revenueTotal?->toScale(2, RoundingMode::HalfUp)->__toString(),
+                        'ltv_amount' => $ltv?->toScale(2, RoundingMode::HalfUp)->__toString(),
                         'revenue_coverage_count' => $revenueCoverage,
                         'revenue_unknown_count' => max(0, count($customerIds) - $revenueCoverage),
                         'retention_coverage_count' => $retentionCoverage,

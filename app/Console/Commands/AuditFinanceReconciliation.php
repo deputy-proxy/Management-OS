@@ -71,8 +71,8 @@ class AuditFinanceReconciliation extends Command
         $count = 0;
 
         foreach ($rows as $row) {
-            $expected = BigDecimal::of((string) $row->manual_amount)->plus((string) $row->line_total)->toScale(2, RoundingMode::HALF_UP);
-            $actual = BigDecimal::of((string) $row->amount)->toScale(2, RoundingMode::HALF_UP);
+            $expected = BigDecimal::of((string) $row->manual_amount)->plus((string) $row->line_total)->toScale(2, RoundingMode::HalfUp);
+            $actual = BigDecimal::of((string) $row->amount)->toScale(2, RoundingMode::HalfUp);
 
             if ($expected->compareTo($actual) !== 0) {
                 $count++;

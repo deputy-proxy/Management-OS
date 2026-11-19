@@ -14,6 +14,11 @@ use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @property array<string, mixed> $parameters
+ * @property list<string> $required_parameters
+ * @property list<string> $calculation_order
+ */
 class PayrollPolicy extends Model
 {
     use HasFactory;

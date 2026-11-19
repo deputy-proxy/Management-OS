@@ -161,7 +161,7 @@ class BudgetActualsComparisonService
             $actual = $dimensioned ? null : ($mapped ? $actuals[$line->code] : null);
             $variance = $actual instanceof BigDecimal ? $actual->minus($budget) : null;
             $variancePercent = $variance !== null && ! $budget->isZero()
-                ? $variance->multipliedBy(100)->dividedBy($budget, 2, RoundingMode::HALF_UP)->__toString()
+                ? $variance->multipliedBy(100)->dividedBy($budget, 2, RoundingMode::HalfUp)->__toString()
                 : null;
 
             return [
@@ -169,9 +169,9 @@ class BudgetActualsComparisonService
                 'code' => $line->code,
                 'description' => $line->description,
                 'dimensions' => $line->dimensions ?? [],
-                'budget_amount' => $budget->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                'actual_amount' => $actual?->toScale(2, RoundingMode::HALF_UP)->__toString(),
-                'variance_amount' => $variance?->toScale(2, RoundingMode::HALF_UP)->__toString(),
+                'budget_amount' => $budget->toScale(2, RoundingMode::HalfUp)->__toString(),
+                'actual_amount' => $actual?->toScale(2, RoundingMode::HalfUp)->__toString(),
+                'variance_amount' => $variance?->toScale(2, RoundingMode::HalfUp)->__toString(),
                 'variance_percent' => $variancePercent,
                 'status' => $dimensioned ? 'unknown_dimension_attribution' : ($ambiguous ? 'ambiguous_budget_code' : ($mapped ? 'matched' : 'missing_actuals')),
                 'source_transaction_ids' => $sources[$line->code] ?? [],
@@ -191,7 +191,7 @@ class BudgetActualsComparisonService
             'rows' => $rows,
             'excluded' => $excluded,
             'excluded_known_amount' => $excludedKnownAmountCount > 0
-                ? $excludedKnownAmounts->toScale(2, RoundingMode::HALF_UP)->__toString()
+                ? $excludedKnownAmounts->toScale(2, RoundingMode::HalfUp)->__toString()
                 : null,
             'excluded_known_amount_count' => $excludedKnownAmountCount,
             'generated_at' => now()->toIso8601String(),

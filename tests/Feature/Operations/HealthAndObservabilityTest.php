@@ -25,7 +25,7 @@ class HealthAndObservabilityTest extends TestCase
 
     public function test_readiness_hides_database_failure_details(): void
     {
-        DB::shouldReceive('connection')->once()->andThrow(new RuntimeException('secret host and credentials'));
+        DB::partialMock()->shouldReceive('connection')->once()->andThrow(new RuntimeException('secret host and credentials'));
 
         $this->getJson('/ready')
             ->assertStatus(503)
@@ -170,7 +170,7 @@ class HealthAndObservabilityTest extends TestCase
     {
         Cache::put('ops:heartbeat:queue-worker', now()->timestamp, now()->addMinutes(5));
         Cache::put('ops:heartbeat:scheduler', now()->timestamp, now()->addMinutes(5));
-        DB::shouldReceive('connection')->once()->andThrow(new RuntimeException('private database endpoint and password'));
+        DB::partialMock()->shouldReceive('connection')->once()->andThrow(new RuntimeException('private database endpoint and password'));
 
         $this->artisan('ops:check-heartbeats')
             ->expectsOutput('database: unhealthy')

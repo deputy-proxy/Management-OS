@@ -78,6 +78,7 @@ use App\Models\WorkshopParticipant;
 use App\Observers\ProductableObserver;
 use App\Observers\ProductResourceAllocationObserver;
 use App\Observers\ProductResourceObserver;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
@@ -91,7 +92,8 @@ class DomainModelServiceProvider extends ServiceProvider
         }
         ProductResourceAllocation::observe(ProductResourceAllocationObserver::class);
 
-        Relation::enforceMorphMap([
+        /** @var array<string, class-string<Model>> $morphMap */
+        $morphMap = [
             'user' => User::class,
             'course' => Course::class,
             'camp' => Camp::class,
@@ -166,6 +168,13 @@ class DomainModelServiceProvider extends ServiceProvider
             'test_submission' => TestSubmission::class,
             'test_result' => TestResult::class,
             'test_type' => TestType::class,
-        ]);
+        ];
+
+        // Keep legacy fully-qualified morph values readable while new writes use aliases.
+        foreach (array_unique(array_values($morphMap)) as $legacyClass) {
+            $morphMap[$legacyClass] = $legacyClass;
+        }
+
+        Relation::enforceMorphMap($morphMap);
     }
 }
