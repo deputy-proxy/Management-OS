@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Testing\TestResponse;
+use Laravel\Passport\Passport;
 use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -14,11 +17,20 @@ use Tests\TestCase;
 
 class McpTransportTest extends TestCase
 {
+    use RefreshDatabase;
+
     private string $sessionPath;
+
+    private string $passportKeyPath;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->passportKeyPath = storage_path('framework/testing/passport-keys');
+        File::ensureDirectoryExists($this->passportKeyPath, 0700, true);
+        $this->ensurePassportKeys();
+        Passport::loadKeysFrom($this->passportKeyPath);
 
         $this->sessionPath = storage_path('framework/testing/mcp-sessions');
         config()->set('mcp.session_path', $this->sessionPath);
@@ -61,6 +73,7 @@ class McpTransportTest extends TestCase
 
     public function test_modern_stateless_protocol_discovery_is_supported(): void
     {
+        Passport::actingAs(User::factory()->create(), ['mcp:use']);
         $response = $this->call('POST', '/mcp', [], [], [], [
             'HTTP_ACCEPT' => 'application/json, text/event-stream',
             'HTTP_MCP_PROTOCOL_VERSION' => '2026-07-28',
@@ -75,8 +88,31 @@ class McpTransportTest extends TestCase
             ->assertJsonMissingPath('result.capabilities.prompts');
     }
 
-    public function test_unauthenticated_session_discovers_no_business_tools_resources_or_prompts(): void
+    public function test_mcp_requires_passport_authentication_and_scope_before_protocol_processing(): void
     {
+        $payload = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+            'params' => [
+                'protocolVersion' => '2025-11-25',
+                'capabilities' => new \stdClass,
+                'clientInfo' => ['name' => 'mcp-auth-test', 'version' => '1.0.0'],
+            ],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->call('POST', '/mcp', [], [], [], [
+            'HTTP_ACCEPT' => 'application/json, text/event-stream',
+            'CONTENT_TYPE' => 'application/json',
+        ], $payload)->assertUnauthorized()->assertHeader('WWW-Authenticate');
+
+        Passport::actingAs(User::factory()->create(), ['profile:read']);
+        $this->call('POST', '/mcp', [], [], [], [
+            'HTTP_ACCEPT' => 'application/json, text/event-stream',
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_MCP_PROTOCOL_VERSION' => '2025-11-25',
+        ], $payload)->assertForbidden();
+
         $sessionId = $this->initializeSession();
 
         $this->mcpPost([
@@ -208,6 +244,25 @@ class McpTransportTest extends TestCase
         $this->assertStringNotContainsString(base_path(), (string) $response->getContent());
     }
 
+    private function ensurePassportKeys(): void
+    {
+        $privateKeyPath = $this->passportKeyPath.'/oauth-private.key';
+        $publicKeyPath = $this->passportKeyPath.'/oauth-public.key';
+        if (is_file($privateKeyPath) && is_file($publicKeyPath)) {
+            return;
+        }
+        $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        $this->assertNotFalse($key);
+        $this->assertTrue(openssl_pkey_export($key, $privateKey));
+        $details = openssl_pkey_get_details($key);
+        $this->assertIsArray($details);
+        $this->assertArrayHasKey('key', $details);
+        file_put_contents($privateKeyPath, $privateKey);
+        file_put_contents($publicKeyPath, $details['key']);
+        chmod($privateKeyPath, 0600);
+        chmod($publicKeyPath, 0600);
+    }
+
     private function initializeSession(): string
     {
         $response = $this->mcpPost([
@@ -236,6 +291,8 @@ class McpTransportTest extends TestCase
      */
     private function mcpPost(array|string $payload, ?string $sessionId = null): TestResponse
     {
+        Passport::actingAs(User::factory()->create(), ['mcp:use']);
+
         $server = [
             'HTTP_ACCEPT' => 'application/json, text/event-stream',
             'CONTENT_TYPE' => 'application/json',

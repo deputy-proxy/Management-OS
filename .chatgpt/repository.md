@@ -14,16 +14,21 @@ Last verified: 2026-11-19. Re-check the live workflows and manifests before ever
 - MySQL 8.0 for database migration and integrity regression tests.
 - Java 21 for pinned CIUS-RO Schematron validation.
 
-## MCP transport integration
+## MCP transport and OAuth integration
 
-- Endpoint: root path `/mcp`, registered from `routes/mcp.php` in the API middleware group (not the web/CSRF group).
-- SDK: official `mcp/sdk` v0.10.0, with the exact source revision locked in `composer.lock`. The SDK is pre-1.0/experimental; upgrade only after compatibility and regression review.
-- HTTP adapters: `symfony/psr-http-message-bridge` v8.1.9 and `nyholm/psr7` v1.8.2.
-- Supports the SDK's legacy 2025-11-25 initialize/session handshake and modern 2026-07-28 stateless request envelope.
-- Legacy protocol sessions use `McpServerFactory`, `FileSessionStore`, and `FileSessionLock` under `storage/framework/cache/mcp-sessions` (mode `0700`) by default. Keep this on a shared local filesystem for every PHP worker; multi-host deployments need a shared session store and distributed lock.
-- The current issue #529 release registers no business tools, resources, or prompts and has no caller authentication. Do not expose business data until issues #530 and #531 are complete; do not enable writes before #532.
-- Transport defaults: 1 MiB body limit, 25-second PHP execution cap on non-CLI SAPIs, 60 requests/minute/IP, Host allowlist derived from `APP_URL`, and no cross-origin browser access unless explicitly configured. See `docs/mcp-server.md` for Inspector commands, environment settings, deployment caveats, and the required ChatGPT OAuth compatibility constraints.
-- Hostinger confirms active SSL/HTTPS redirect, CDN enabled, server cache disabled, and PHP `max_execution_time` default 300 seconds (plan maximum 480). The MCP application caps non-CLI requests at 25 seconds. CDN/proxy streaming, effective PHP-FPM behavior, edge request-size handling, and multi-instance topology remain unverified and require staging validation.
+- Endpoint: root path /mcp, registered from routes/mcp.php in the API middleware group (not the web/CSRF group).
+- Transport SDK: official mcp/sdk v0.10.0, with the exact source revision locked in composer.lock. The SDK is pre-1.0/experimental; upgrade only after compatibility and regression review.
+- OAuth provider: Laravel Passport, matching the provider used in deputy-proxy/cr8or; Laravel MCP registers OAuth discovery, protected-resource metadata, and dynamic client registration.
+- Current lockfile resolves laravel/passport v13.12.0 and laravel/mcp v1.2.1. The ChatGPT MCP route uses Passport's api guard and requires the mcp:use ability.
+- Public authorization-code clients must use PKCE S256. The callback domain allowlist defaults to https://chatgpt.com; configure explicit domains only. Access tokens default to 60 minutes and refresh tokens to 30 days.
+- Passport keys are environment secrets. Generate once per environment with php artisan passport:keys --force; never commit private keys.
+- Passport OAuth consent uses resources/views/mcp/authorize.blade.php. ChatGPT OAuth authorization maps to the Management-OS user who completes the interactive login/consent flow.
+- Local feature tests exercise OAuth discovery, DCR allowlisting, S256 enforcement, complete authorization-code exchange, refresh-token rotation, code replay rejection, scope checks, and token revocation.
+- Known compatibility gate: the current Laravel MCP + Passport integration does not echo the OAuth resource parameter or bind issued access tokens to the MCP resource audience. This must be implemented and tested against a real ChatGPT workspace before claiming compatibility.
+- No dedicated AI technical user has been provisioned; confirm its exact email and least-privilege HexaLite permissions with the system owner. Never grant Owner/superadmin.
+- No business tools, resources, or prompts are registered. Do not expose business data until #531 is complete; do not enable writes before #532.
+- Transport defaults: 1 MiB body limit, 25-second PHP execution cap on non-CLI SAPIs, 60 requests/minute/IP, Host allowlist derived from APP_URL, and no cross-origin browser access unless explicitly configured. See docs/mcp-server.md for OAuth setup, environment settings, deployment caveats, and release gates.
+- Hostinger confirms active SSL/HTTPS redirect, CDN enabled, server cache disabled, and PHP max_execution_time default 300 seconds (plan maximum 480). The MCP application caps non-CLI requests at 25 seconds. CDN/proxy streaming, effective PHP-FPM behavior, edge request-size handling, and multi-instance topology remain unverified and require staging validation.
 
 ## Current CI validation
 Source: `.github/workflows/tests.yml`.

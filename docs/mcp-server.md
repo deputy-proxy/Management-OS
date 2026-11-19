@@ -2,16 +2,30 @@
 
 ## Current implementation status
 
-The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. This issue implements the protocol and transport foundation only.
+The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. The transport foundation from #529 is now protected by the Passport OAuth integration in #530. The server remains intentionally empty until domain authorization is completed.
 
 - The endpoint currently exposes no business tools, resources, or prompts.
-- It does not authenticate callers or expose business data. Do not add business handlers or deploy it as a usable management integration until the identity and authorization work in issues #530 and #531 is complete.
+- MCP POST requests require a Laravel Passport OAuth access token with the mcp:use scope. No business data is exposed; do not add business handlers until issue #531 completes domain authorization.
 - No mutations are enabled. The approval and audit controls in #532 are required before any controlled write is introduced.
 - The endpoint is not yet verified against the production reverse proxy/hosting environment or a live ChatGPT workspace.
 
 ## Implementation
 
 The transport uses the official PHP MCP SDK `mcp/sdk` v0.10.0. Composer's `composer.lock` pins the resolved SDK source revision. The SDK supports PHP 8.2+, while this application requires PHP 8.4.1 or newer. The SDK is pre-1.0 and describes itself as experimental; review release notes and rerun protocol/security tests before upgrading.
+
+
+OAuth uses the same provider and Laravel integration as deputy-proxy/cr8or:
+
+- laravel/passport provides the OAuth 2 authorization server and token validation.
+- laravel/mcp provides protected-resource metadata, authorization-server discovery, and dynamic client registration through Mcp::oauthRoutes().
+- The api guard uses Passport; MCP POST requests require auth:api and the mcp:use scope.
+- OAuth clients are public authorization-code clients. The ChatGPT callback allowlist defaults to https://chatgpt.com; configure MCP_OAUTH_REDIRECT_DOMAINS as an explicit comma-separated allowlist. Never use a wildcard.
+- Access tokens expire after 60 minutes and refresh tokens after 30 days by default.
+- Generate Passport signing keys once per environment with php artisan passport:keys --force. Keep the private key outside source control.
+- The authorization endpoint enforces PKCE S256. CORS preflight remains unauthenticated; MCP POST requests are authenticated and scope-checked. Unauthorized responses include a WWW-Authenticate resource-metadata challenge.
+- The current lockfile resolves laravel/passport v13.12.0 and laravel/mcp v1.2.1; CR8OR uses the same Passport provider with earlier package releases.
+
+This follows CR8OR's Passport provider choice, not its separate machine-to-machine integration grant. ChatGPT uses authorization-code + PKCE; client-credentials is not exposed through MCP dynamic registration.
 
 The Laravel boundary is intentionally small:
 
@@ -53,48 +67,33 @@ The effective production PHP-FPM execution timeout, reverse-proxy/CDN buffering 
 
 Use the repository's normal PHP and Node prerequisites. From the repository root:
 
-```sh
-cp .env.example .env
-composer install --no-interaction --prefer-dist --no-progress
-npm ci
-php artisan key:generate --force
-mkdir -p database && touch database/database.sqlite
-php artisan migrate --force
-npm run build
-MCP_ALLOWED_HOSTS=localhost,127.0.0.1 php artisan serve --host=127.0.0.1 --port=8000
-```
+    cp .env.example .env
+    composer install --no-interaction --prefer-dist --no-progress
+    npm ci
+    php artisan key:generate --force
+    php artisan passport:keys --force
+    mkdir -p database && touch database/database.sqlite
+    php artisan migrate --force
+    npm run build
+    MCP_ALLOWED_HOSTS=localhost,127.0.0.1 php artisan serve --host=127.0.0.1 --port=8000
 
-In another terminal, inspect the legacy initialize/session handshake:
+The MCP POST endpoint requires an OAuth bearer token with the mcp:use scope. The feature suite exercises OAuth discovery, dynamic registration, the full authorization-code exchange with PKCE S256, refresh-token rotation, code replay rejection, scope checks, and token revocation:
 
-```sh
-npx @modelcontextprotocol/inspector --cli \
-  --protocol-era legacy \
-  --transport http \
-  --server-url http://127.0.0.1:8000/mcp \
-  --method initialize
-```
+    php artisan test tests/Feature/McpTransportTest.php tests/Feature/McpOAuthTest.php
 
-Inspect the current stateless protocol discovery:
+To connect the web MCP Inspector, launch it with npx @modelcontextprotocol/inspector, choose Streamable HTTP, and enter http://127.0.0.1:8000/mcp. Use its OAuth authorization flow. Add only the exact callback origin shown by the Inspector to MCP_OAUTH_REDIRECT_DOMAINS in the local .env file; do not commit that local override or use a wildcard. The Inspector CLI's unauthenticated commands are not suitable for this protected endpoint.
 
-```sh
-npx @modelcontextprotocol/inspector --cli \
-  --protocol-era modern \
-  --transport http \
-  --server-url http://127.0.0.1:8000/mcp \
-  --method tools/list
-```
-
-The web Inspector can also be launched with `npx @modelcontextprotocol/inspector`; choose Streamable HTTP and enter `http://127.0.0.1:8000/mcp`. The Inspector CLI requires Node.js 22.19.0 or newer. The repository's CI Node 22 line and local runtime should be checked for that minimum when using the current Inspector release.
-
-Expected current result: server identity `Management-OS`, protocol discovery succeeds, and the tool/resource/prompt lists are empty. This is intentional until the later authorization and domain-tool issues are complete.
+Expected current result after OAuth authorization: server identity Management-OS, protocol discovery succeeds, and the tool/resource/prompt lists are empty. This is intentional until the later domain-tool issues are complete.
 
 ## ChatGPT connection and authentication constraints
 
 ChatGPT custom MCP connections use a public HTTPS endpoint and support Streamable HTTP. Current custom MCP server connection availability is limited to ChatGPT Business and Enterprise/Edu workspaces; Pro currently has read/fetch-only custom MCP access. Confirm the target workspace's permissions before planning rollout.
 
-The transport endpoint is not ready to connect to a production Management-OS account. Issue #530 must implement and verify the supported OAuth flow before private data or tools are exposed. Current OpenAI guidance requires OAuth 2.1 authorization code with PKCE (`S256`), MCP protected-resource metadata, authorization-server discovery, and an appropriate client registration method (CIMD, DCR, or a predefined client). ChatGPT does not support machine-to-machine OAuth grants such as the client-credentials grant, service-account grant, or JWT bearer assertion. Therefore, reconcile the issue's proposed dedicated AI service identity with user-delegated OAuth before implementation; do not implement a service-account OAuth grant or assume a static API key is supported.
+The Passport provider and OAuth metadata routes are wired, but production readiness is not yet established. Local tests verify discovery, public-client registration, the ChatGPT callback allowlist, authentication denial, scope enforcement, a complete authorization-code/PKCE exchange, refresh-token rotation, replay rejection, and revocation. A live ChatGPT workspace connection remains a staging gate.
 
-A least-privilege Management-OS principal may still be part of the application's internal authorization design, but it must be mapped to a verified ChatGPT-supported authorization flow. Authenticate and authorize every business tool on the server. ChatGPT conversational confirmation is not a substitute for the independent Management-OS approval workflow required by #532.
+OpenAI's current guidance also requires the authorization server to echo the OAuth resource parameter and issue an access token bound to the MCP resource audience. The Laravel MCP + Passport integration in CR8OR does not implement that resource-indicator/audience behavior out of the box, and neither does the current Management-OS integration. Do not claim ChatGPT OAuth compatibility until this gap is implemented and verified end-to-end.
+
+Passport authorization associates the token with the Management-OS user who completes the interactive login/consent flow. A dedicated technical user can be used as that principal, but it has not been provisioned: the system owner must confirm the exact account email and its least-privilege HexaLite permissions. Do not create a guessed technical account or grant Owner/superadmin access. ChatGPT conversational confirmation is not a substitute for the independent Management-OS approval workflow required by #532.
 
 ## Validation
 
@@ -104,6 +103,6 @@ Focused transport regression tests:
 php artisan test tests/Feature/McpTransportTest.php
 ```
 
-The test suite covers legacy initialization and persistent session headers, modern stateless discovery, empty business capability lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
+The test suite covers Passport OAuth discovery, PKCE S256 metadata and enforcement, dynamic public-client registration, ChatGPT callback allowlisting, authorization-code exchange, refresh-token rotation, code replay rejection, token revocation, unauthenticated and insufficient-scope denial, legacy initialization, modern stateless discovery, empty business capability lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
 
 Before the PR, run every validation job defined in `.github/workflows/tests.yml`, including the PHP/SQLite suite, PHPStan/Larastan, MySQL 8.0 migration/integrity tests, frontend production build, and dependency audits. A local pass does not replace inspecting the actual GitHub Actions run. Staging verification must separately confirm HTTPS, reverse-proxy streaming, timeouts, request limits, and ChatGPT's real connection behavior.

@@ -33,6 +33,8 @@
         "hammadzafar05/mobile-bottom-nav": "^1.2",
         "hexters/hexa-lite": "*",
         "laravel/framework": "^13.0",
+        "laravel/mcp": "^1.0",
+        "laravel/passport": "^13.0",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0.2",
