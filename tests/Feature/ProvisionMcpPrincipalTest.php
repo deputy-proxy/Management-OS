@@ -15,20 +15,79 @@ class ProvisionMcpPrincipalTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_command_creates_a_deny_by_default_ai_principal(): void
+    public function test_command_creates_a_deny_by_default_ai_principal_with_the_permissionless_assistant_role(): void
     {
         config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
+        $assistantRole = $this->createAssistantRole();
 
         $this->artisan('mcp:provision-principal')
-            ->expectsOutputToContain('with no roles or panel permissions')
+            ->expectsOutputToContain('with the permissionless Assistant role')
             ->assertSuccessful();
 
         $principal = User::query()->where('email', 'chatgpt@edventure.ro')->firstOrFail();
 
         $this->assertSame('AI Assistant', $principal->name);
         $this->assertNull($principal->email_verified_at);
-        $this->assertFalse($principal->roles()->exists());
+        $this->assertEqualsCanonicalizing([$assistantRole->getKey()], $principal->roles()->pluck('hexa_roles.id')->all());
         $this->assertFalse($principal->canAccessPanel(Filament::getCurrentPanel() ?? new Panel));
+        $this->assertFalse(hexa()->user($principal)->can('users.view_any'));
+    }
+
+    public function test_command_accepts_an_existing_principal_with_only_the_permissionless_assistant_role(): void
+    {
+        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
+        $assistantRole = $this->createAssistantRole();
+        $principal = User::factory()->create(['name' => 'AI Assistant', 'email' => 'chatgpt@edventure.ro']);
+        $principal->roles()->attach($assistantRole->getKey());
+
+        $this->artisan('mcp:provision-principal')
+            ->expectsOutputToContain('with the permissionless Assistant role')
+            ->assertSuccessful();
+
+        $this->assertEqualsCanonicalizing([$assistantRole->getKey()], $principal->fresh()->roles()->pluck('hexa_roles.id')->all());
+        $this->assertFalse($principal->fresh()->canAccessPanel(Filament::getCurrentPanel() ?? new Panel));
+        $this->assertFalse(hexa()->user($principal->fresh())->can('users.view_any'));
+    }
+
+    public function test_command_refuses_to_provision_when_assistant_role_has_permissions(): void
+    {
+        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
+        $this->createAssistantRole(['users' => ['view_any']]);
+
+        $this->artisan('mcp:provision-principal')
+            ->expectsOutputToContain('must have an empty permission set')
+            ->assertFailed();
+
+        $this->assertDatabaseMissing('users', ['email' => 'chatgpt@edventure.ro']);
+    }
+
+    public function test_command_refuses_to_reuse_an_existing_account_with_an_unexpected_role(): void
+    {
+        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
+        $this->createAssistantRole();
+        $principal = User::factory()->create(['name' => 'AI Assistant', 'email' => 'chatgpt@edventure.ro']);
+        $role = HexaRole::query()->create([
+            'name' => 'MCP unexpected role',
+            'created_by_name' => 'Test',
+            'access' => ['users' => ['view_any']],
+            'guard' => hexa()->guard(),
+        ]);
+        $principal->roles()->attach($role->getKey());
+
+        $this->artisan('mcp:provision-principal')
+            ->expectsOutputToContain('must have exactly the permissionless Assistant role')
+            ->assertFailed();
+    }
+
+    public function test_command_refuses_to_provision_without_a_global_assistant_role(): void
+    {
+        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
+
+        $this->artisan('mcp:provision-principal')
+            ->expectsOutputToContain('Create exactly one global Assistant role')
+            ->assertFailed();
+
+        $this->assertDatabaseMissing('users', ['email' => 'chatgpt@edventure.ro']);
     }
 
     public function test_emergency_command_revokes_all_ai_principal_access_and_refresh_tokens(): void
@@ -62,20 +121,14 @@ class ProvisionMcpPrincipalTest extends TestCase
         $this->assertDatabaseHas('oauth_refresh_tokens', ['access_token_id' => $tokenId, 'revoked' => true]);
     }
 
-    public function test_command_refuses_to_reuse_an_existing_account_with_roles(): void
+    /** @param array<string, mixed> $access */
+    private function createAssistantRole(array $access = []): HexaRole
     {
-        config(['mcp.ai_principal_email' => 'chatgpt@edventure.ro']);
-        $principal = User::factory()->create(['name' => 'AI Assistant', 'email' => 'chatgpt@edventure.ro']);
-        $role = HexaRole::query()->create([
-            'name' => 'MCP unexpected role',
+        return HexaRole::query()->create([
+            'name' => 'Assistant',
             'created_by_name' => 'Test',
-            'access' => ['users' => ['view_any']],
+            'access' => $access,
             'guard' => hexa()->guard(),
         ]);
-        $principal->roles()->attach($role->getKey());
-
-        $this->artisan('mcp:provision-principal')
-            ->expectsOutputToContain('already has HexaLite roles')
-            ->assertFailed();
     }
 }
