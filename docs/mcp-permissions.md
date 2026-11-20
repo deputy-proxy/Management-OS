@@ -1,6 +1,6 @@
 # MCP permission matrix
 
-**Matrix version:** `1.2.0` (configured by `mcp.permission_matrix_version`)
+**Matrix version:** `1.3.0` (configured by `mcp.permission_matrix_version`)
 
 This document is the operator-facing companion to `config/mcp.php`. The configuration is the runtime source of truth. Every registered MCP tool must have exactly one entry under `mcp.tool_permissions`; the server refuses to register a tool without one.
 
@@ -91,8 +91,24 @@ Never assign Owner/superadmin or copy a human user's role set to the AI principa
 
 ## Current state
 
-Issue #533 registers six read-only executive tools. Issue #534 adds nine read-only finance tools. Executive tools use `overview-dashboard.view` (with `kpi_alert.view_own` for alerts); finance tools declare granular permissions for dashboard, transactions, receivables/payables, forecasts, budgets, profitability, reconciliation and invoice detail. Optional source permissions are evaluated independently. The AI principal receives no domain permissions automatically. Operators must explicitly assign only reviewed permissions declared in the runtime matrix. See [MCP executive tools](mcp-executive-tools.md) and [MCP finance tools](mcp-finance-tools.md) for schemas, sources, and limitations.
+Issue #533 registers six read-only executive tools. Issue #534 adds nine read-only finance tools. Issue #535 adds seven read-only CRM/sales tools. Executive tools use `overview-dashboard.view` (with `kpi_alert.view_own` for alerts); finance tools declare granular permissions for dashboard, transactions, receivables/payables, forecasts, budgets, profitability, reconciliation and invoice detail. Optional source permissions are evaluated independently. The AI principal receives no domain permissions automatically. Operators must explicitly assign only reviewed permissions declared in the runtime matrix. See [MCP executive tools](mcp-executive-tools.md), [MCP finance tools](mcp-finance-tools.md), and [MCP CRM tools](mcp-crm-tools.md) for schemas, sources, and limitations.
 
+
+## CRM and sales tool permission matrix
+
+All seven CRM tools are read-only. Customer, contract, interaction and lead tools use the corresponding current resource index permissions. Customer economics uses the separate unit-economics report-view permission.
+
+| Tool | OAuth scope | Required permissions |
+| --- | --- | --- |
+| `search_customers` | `mcp.crm.customers.search` | customer.index |
+| `get_customer_details` | `mcp.crm.customers.read` | customer.index |
+| `get_customer_contracts` | `mcp.crm.contracts.read` | customer.index, customer_contract.index |
+| `get_customer_interactions` | `mcp.crm.interactions.read` | customer.index, customer_interaction.index |
+| `get_sales_pipeline` | `mcp.crm.sales-pipeline.read` | customer_lead.index |
+| `get_lead_details` | `mcp.crm.leads.read` | customer_lead.index |
+| `get_customer_economics` | `mcp.crm.customer-economics.read` | finance-unit-economics.view |
+
+CRM outputs exclude customer email, phone, CNP/CUI, addresses, contract documents, free-text interaction notes, lead contact details, personal interests, actor identities, converted customer IDs and unit-economics source snapshots. Search and list queries are scoped before count/pagination and use bounded database pagination. The sales pipeline uses current lead status and attribution data; its open-lead status counts exclude converted leads while source attribution counts include non-soft-deleted converted leads. Unit-economics reads existing immutable runs and preserves null/incomplete values rather than recalculating or treating unknown amounts as zero. See [MCP CRM tools](mcp-crm-tools.md) for complete output and metric semantics.
 
 ## Human approval and audit permissions
 
@@ -104,7 +120,7 @@ Issue #532 adds three separate Management-OS staff permissions:
 
 Assign these only to designated human reviewers/auditors. The configured AI principal is explicitly denied access even if it is accidentally assigned one of these permissions. The Filament resources are read-only except for the approve/reject actions; model/service guards preserve the same boundary server-side. See [MCP approval and execution audit controls](mcp-approvals-and-audit.md).
 
-All fifteen read-only executive and finance tools are registered with explicit tool scopes, required and optional domain permissions, record scopes, and output-field allowlists. No write tools are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.
+All twenty-two read-only executive, finance and CRM tools are registered with explicit tool scopes, required and optional domain permissions, record scopes, and output-field allowlists. No write tools are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.
 
 
 ## Finance tool permission matrix

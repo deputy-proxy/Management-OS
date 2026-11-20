@@ -2,6 +2,7 @@
 
 use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Mcp\Authorization\Scopes\McpOwnedRecordScope;
+use App\Mcp\Tools\Crm\CrmMcpCapabilityRegistrar;
 use App\Mcp\Tools\Executive\ExecutiveMcpCapabilityRegistrar;
 use App\Mcp\Tools\Finance\FinanceMcpCapabilityRegistrar;
 
@@ -71,12 +72,13 @@ $kpiResultFields = [
 return [
     'authorization_server' => $authorizationServer === '' ? null : rtrim($authorizationServer, '/'),
     'ai_principal_email' => env('MCP_AI_PRINCIPAL_EMAIL'),
-    'permission_matrix_version' => '1.2.0',
+    'permission_matrix_version' => '1.3.0',
     'domain_permission_guard' => env('MCP_DOMAIN_PERMISSION_GUARD', config('auth.defaults.guard', 'web')),
     'principal_role' => 'Assistant',
     'capability_registrars' => [
         ExecutiveMcpCapabilityRegistrar::class,
         FinanceMcpCapabilityRegistrar::class,
+        CrmMcpCapabilityRegistrar::class,
     ],
     'tool_permissions' => [
         'get_executive_overview' => [
@@ -201,6 +203,100 @@ return [
                 'comparison_period' => ['start_date' => true, 'end_date' => true],
                 'timezone' => true,
                 'results' => ['key' => true],
+            ],
+        ],
+        'search_customers' => [
+            'mcp_scope' => 'mcp.crm.customers.search',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'customers' => ['id' => true, 'name' => true, 'customer_type' => true, 'created_at' => true],
+            ],
+        ],
+        'get_customer_details' => [
+            'mcp_scope' => 'mcp.crm.customers.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true,
+                'customer' => ['id' => true, 'name' => true, 'customer_type' => true, 'created_at' => true, 'updated_at' => true],
+            ],
+        ],
+        'get_customer_contracts' => [
+            'mcp_scope' => 'mcp.crm.contracts.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer.index', 'customer_contract.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'contracts' => ['contract_code' => true, 'start_date' => true, 'end_date' => true, 'signed_at' => true],
+            ],
+        ],
+        'get_customer_interactions' => [
+            'mcp_scope' => 'mcp.crm.interactions.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer.index', 'customer_interaction.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'interactions' => ['timestamp' => true, 'interaction_rating' => true],
+            ],
+        ],
+        'get_sales_pipeline' => [
+            'mcp_scope' => 'mcp.crm.sales-pipeline.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer_lead.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'as_of' => true, 'timezone' => true, 'open_lead_count' => true,
+                'lead_statuses' => ['status' => true, 'count' => true],
+                'attribution' => [
+                    'source_categories' => ['source_category' => true, 'count' => true],
+                    'unknown_source_count' => true, 'campaign_tagged_count' => true, 'referral_tagged_count' => true, 'basis' => true,
+                ],
+            ],
+        ],
+        'get_lead_details' => [
+            'mcp_scope' => 'mcp.crm.leads.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['customer_lead.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true,
+                'lead' => [
+                    'id' => true, 'full_name' => true, 'status' => true, 'source_category' => true,
+                    'campaign_name' => true, 'referral_partner' => true, 'created_at' => true, 'last_contacted_at' => true,
+                ],
+                'status_history_count' => true, 'attribution_history_count' => true, 'history_truncated' => true,
+                'status_history' => ['from_status' => true, 'to_status' => true, 'changed_at' => true],
+                'attribution_history' => [
+                    'event_type' => true, 'occurred_at' => true, 'source_category' => true,
+                    'campaign_name' => true, 'referral_partner' => true, 'attribution_policy_version' => true,
+                    'source_captured_at' => true, 'first_touch_source_category' => true,
+                    'first_touch_campaign_name' => true, 'converted_at' => true,
+                ],
+            ],
+        ],
+        'get_customer_economics' => [
+            'mcp_scope' => 'mcp.crm.customer-economics.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['finance-unit-economics.view'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'run_id' => true, 'period_start' => true, 'period_end' => true,
+                'policy_version' => true, 'created_at' => true, 'exception_count' => true,
+                'exception_code_counts' => ['code' => true, 'count' => true],
+                'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'results' => [
+                    'source_category' => true, 'currency_code' => true, 'acquired_customer_count' => true,
+                    'cost_entry_count' => true, 'acquisition_cost_amount' => true, 'cac_amount' => true,
+                    'revenue_amount' => true, 'ltv_amount' => true, 'revenue_coverage_count' => true,
+                    'revenue_unknown_count' => true, 'retention_coverage_count' => true,
+                    'retention_unknown_count' => true, 'result_status' => true,
+                ],
             ],
         ],
         'get_financial_overview' => [

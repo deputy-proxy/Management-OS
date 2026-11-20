@@ -127,12 +127,14 @@ class McpTransportTest extends TestCase
             'params' => new \stdClass,
         ], $sessionId)->assertOk();
         $tools = $toolsResponse->json('result.tools');
-        $this->assertCount(15, $tools);
+        $this->assertCount(22, $tools);
         $this->assertEqualsCanonicalizing([
             'get_executive_overview', 'get_management_kpis', 'get_kpi_alerts', 'get_business_health',
             'get_management_priorities', 'get_period_comparison', 'get_financial_overview', 'get_transactions',
             'get_receivables', 'get_payables', 'get_cash_forecast', 'get_budget_vs_actuals',
             'get_profitability_report', 'get_reconciliation_status', 'get_invoice_details',
+            'search_customers', 'get_customer_details', 'get_customer_contracts', 'get_customer_interactions',
+            'get_sales_pipeline', 'get_lead_details', 'get_customer_economics',
         ], array_column($tools, 'name'));
 
         $this->mcpPost([
