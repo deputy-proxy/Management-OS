@@ -112,6 +112,19 @@ class BudgetActualsComparisonServiceTest extends TestCase
         }
     }
 
+    public function test_non_persisting_preview_omits_source_ids_and_does_not_create_a_report_run(): void
+    {
+        $version = $this->budget(['dimensions' => []]);
+        $this->transaction('Customer', 'money_in', '125.00', 'RON', '2027-02-10 12:00:00');
+        $before = BudgetActualReportRun::query()->count();
+
+        $report = app(BudgetActualsComparisonService::class)->compare($version, null, null, null, [], false, false);
+
+        $this->assertSame($before, BudgetActualReportRun::query()->count());
+        $this->assertArrayNotHasKey('report_run_id', $report);
+        $this->assertSame([], $report['rows'][0]['source_transaction_ids']);
+    }
+
     public function test_duplicate_budget_codes_are_not_duplicated_across_lines(): void
     {
         $version = $this->budget([

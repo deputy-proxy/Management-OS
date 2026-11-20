@@ -11,9 +11,7 @@ use App\Services\KpiAlertService;
 use App\Services\KpiCatalogueRegistry;
 use App\Services\TasksAndProjectsData;
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Mcp\Server\Builder;
@@ -394,33 +392,6 @@ final class ExecutiveMcpCapabilityRegistrar extends AuthorizedMcpCapabilityRegis
     private function reportingNow(): CarbonImmutable
     {
         return CarbonImmutable::now(app(KpiCatalogueRegistry::class)->timezone());
-    }
-
-    /** @template T
-     * @param  callable(): T  $callback
-     * @return T
-     */
-    private function withPrincipalContext(User $principal, callable $callback): mixed
-    {
-        $previousGuard = Auth::getDefaultDriver();
-        $domainGuard = (string) config('mcp.domain_permission_guard', config('auth.defaults.guard', 'web'));
-        $guard = Auth::guard($domainGuard);
-        $previousUser = $guard->user();
-        $guard->setUser($principal);
-        Auth::shouldUse($domainGuard);
-
-        try {
-            return $callback();
-        } finally {
-            if ($previousUser instanceof Authenticatable) {
-                $guard->setUser($previousUser);
-            } elseif (method_exists($guard, 'forgetUser')) {
-                $guard->forgetUser();
-            } else {
-                Auth::forgetGuards();
-            }
-            Auth::shouldUse($previousGuard);
-        }
     }
 
     /** @return array<string, mixed> */

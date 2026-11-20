@@ -1,6 +1,6 @@
 # MCP permission matrix
 
-**Matrix version:** `1.1.0` (configured by `mcp.permission_matrix_version`)
+**Matrix version:** `1.2.0` (configured by `mcp.permission_matrix_version`)
 
 This document is the operator-facing companion to `config/mcp.php`. The configuration is the runtime source of truth. Every registered MCP tool must have exactly one entry under `mcp.tool_permissions`; the server refuses to register a tool without one.
 
@@ -91,7 +91,7 @@ Never assign Owner/superadmin or copy a human user's role set to the AI principa
 
 ## Current state
 
-Issue #533 registers six read-only executive tools. The AI principal must have `overview-dashboard.view` to invoke the overview/KPI/health/priorities/comparison tools; optional source permissions are evaluated independently for each data domain. KPI alerts require `kpi_alert.view_own` and are owner-scoped. The AI principal receives no domain permissions automatically. Operators must explicitly assign only reviewed permissions declared in the runtime matrix. See [MCP executive tools](mcp-executive-tools.md) for schemas, sources, and limitations.
+Issue #533 registers six read-only executive tools. Issue #534 adds nine read-only finance tools. Executive tools use `overview-dashboard.view` (with `kpi_alert.view_own` for alerts); finance tools declare granular permissions for dashboard, transactions, receivables/payables, forecasts, budgets, profitability, reconciliation and invoice detail. Optional source permissions are evaluated independently. The AI principal receives no domain permissions automatically. Operators must explicitly assign only reviewed permissions declared in the runtime matrix. See [MCP executive tools](mcp-executive-tools.md) and [MCP finance tools](mcp-finance-tools.md) for schemas, sources, and limitations.
 
 
 ## Human approval and audit permissions
@@ -104,4 +104,25 @@ Issue #532 adds three separate Management-OS staff permissions:
 
 Assign these only to designated human reviewers/auditors. The configured AI principal is explicitly denied access even if it is accidentally assigned one of these permissions. The Filament resources are read-only except for the approve/reject actions; model/service guards preserve the same boundary server-side. See [MCP approval and execution audit controls](mcp-approvals-and-audit.md).
 
-The six read-only executive tools are registered with explicit tool scopes, required and optional domain permissions, record scopes, and output-field allowlists. No write tools are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.
+All fifteen read-only executive and finance tools are registered with explicit tool scopes, required and optional domain permissions, record scopes, and output-field allowlists. No write tools are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.
+
+
+## Finance tool permission matrix
+
+All nine finance tools are read-only. They use existing financial query/report services and dedicated OAuth scopes. A missing optional source permission produces an unavailable or omitted section, never an inferred zero.
+
+| Tool | OAuth scope | Required permissions | Optional source permissions |
+| --- | --- | --- | --- |
+| `get_financial_overview` | `mcp.finance.overview.read` | `finance-dashboard.view` | `transaction.index`, `customer_invoice.index`, `vendor_invoice.index` |
+| `get_transactions` | `mcp.finance.transactions.read` | `transaction.index` | `financial_account.index` |
+| `get_receivables` | `mcp.finance.receivables.read` | `receivables-payables.view`, `customer_invoice.index` | `transaction.index` |
+| `get_payables` | `mcp.finance.payables.read` | `receivables-payables.view`, `vendor_invoice.index` | `transaction.index` |
+| `get_cash_forecast` | `mcp.finance.cash-forecast.read` | `cash-forecast.view`, `transaction.index`, `customer_invoice.index`, `vendor_invoice.index` | None |
+| `get_budget_vs_actuals` | `mcp.finance.budget-actuals.read` | `budget.actuals.view`, `budget.index`, `transaction.index` | None |
+| `get_profitability_report` | `mcp.finance.profitability.read` | `finance-profitability.view` | `product.index` |
+| `get_reconciliation_status` | `mcp.finance.reconciliation.read` | `financial-reconciliation.view` | `transaction.index`, `financial_account.index` |
+| `get_invoice_details` | `mcp.finance.invoice.read` | `receivables-payables.view` | `customer_invoice.index`, `vendor_invoice.index`, `transaction.index` |
+
+Finance output allowlists exclude internal record IDs, source URLs, party names, addresses, tax identifiers, raw descriptions, allocation history, reconciliation hashes and free-text forecast assumptions. Payment/allocation values require `transaction.index`; account labels require `financial_account.index`. `get_cash_forecast` requires permissions for every included source.
+
+The data contract is currency-safe and source-aware: no FX conversion or cross-currency total is inferred; unsupported amounts remain null or explicitly unavailable; legacy integer transaction amounts are labelled `legacy_integer_unverified`; vendor payable totals remain unavailable because the current source contract does not approve them. `get_budget_vs_actuals` uses a non-persisting preview and never creates a report snapshot. `get_cash_forecast` reads approved/retired scenarios and never generates a run. `get_profitability_report` reads completed immutable runs. Reconciliation candidates are suggestions and are never automatically accepted. See [MCP finance tools](mcp-finance-tools.md) for complete contracts and limitations.
