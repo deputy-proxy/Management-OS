@@ -3,6 +3,7 @@
 namespace App\Mcp\Authorization;
 
 use App\Mcp\Contracts\McpCapabilityRegistrar;
+use App\Models\Mcp\McpApproval;
 use App\Models\User;
 use App\Services\Mcp\McpApprovalService;
 use App\Services\Mcp\McpExecutionAuditRecorder;
@@ -117,6 +118,75 @@ abstract class AuthorizedMcpCapabilityRegistrar implements McpCapabilityRegistra
                 'expires_at' => $approval->expires_at?->toIso8601String(),
                 'preview_summary' => $approval->preview_summary,
             ];
+        };
+
+        $builder->addTool(
+            handler: $this->wrapAuthorizedHandler($permission, $handler),
+            name: $permission->toolName,
+            description: $description,
+            inputSchema: $inputSchema,
+        );
+    }
+
+    /**
+     * Register the execution half of a controlled write. Its only input is an approval
+     * ID; the executor receives the encrypted, validated arguments from the approval
+     * record, never new arguments supplied by the MCP caller.
+     *
+     * @param  callable(User, array<string, mixed>): array<string, mixed>  $executor
+     * @param  array<string, mixed>  $inputSchema
+     */
+    protected function addApprovedExecutionTool(
+        Builder $builder,
+        string $toolName,
+        string $approvedOperationToolName,
+        callable $executor,
+        string $description,
+        array $inputSchema,
+    ): void {
+        $permission = $this->permissions->forTool($toolName);
+        $approvedPermission = $this->permissions->forTool($approvedOperationToolName);
+
+        if ($permission->operationType !== 'write' || ! $permission->requiresApproval
+            || $approvedPermission->operationType !== 'write' || ! $approvedPermission->requiresApproval) {
+            throw new LogicException('Approved execution tools and their approved operations must both require human approval.');
+        }
+
+        $properties = $inputSchema['properties'] ?? null;
+        $required = $inputSchema['required'] ?? null;
+        if (! is_array($properties)
+            || array_keys($properties) !== ['approval_id']
+            || ! is_array($required)
+            || ! in_array('approval_id', $required, true)) {
+            throw new LogicException('Approved execution tools may accept only a required approval_id argument.');
+        }
+
+        $approvalService = app(McpApprovalService::class);
+
+        $handler = static function (User $principal, array $arguments) use (
+            $approvalService,
+            $approvedOperationToolName,
+            $executor,
+        ): array {
+            if (count($arguments) !== 1 || ! array_key_exists('approval_id', $arguments)) {
+                throw ValidationException::withMessages([
+                    'arguments' => 'Approved execution accepts only the original approval_id.',
+                ]);
+            }
+
+            $approvalId = filter_var($arguments['approval_id'], FILTER_VALIDATE_INT);
+            if (! is_int($approvalId) || $approvalId < 1) {
+                throw ValidationException::withMessages([
+                    'approval_id' => 'A valid approval_id is required.',
+                ]);
+            }
+
+            $approval = McpApproval::query()
+                ->whereKey($approvalId)
+                ->where('tool_name', $approvedOperationToolName)
+                ->firstOrFail();
+
+            return $approvalService->executeApproved($approval, $principal, $executor);
         };
 
         $builder->addTool(

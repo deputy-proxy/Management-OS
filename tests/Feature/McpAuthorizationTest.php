@@ -11,7 +11,9 @@ use App\Mcp\Authorization\McpToolPermissionRegistry;
 use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Mcp\Authorization\Scopes\McpOwnedRecordScope;
 use App\Mcp\Authorization\Scopes\McpTaskRecordScope;
+use App\Models\Mcp\McpApproval;
 use App\Models\User;
+use App\Services\Mcp\McpApprovalService;
 use Hexters\HexaLite\Models\HexaRole;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Laravel\Passport\Passport;
 use Mcp\Server\Builder;
 use Mcp\Server\Capability\Registry\ReferenceHandler;
@@ -496,6 +499,94 @@ class McpAuthorizationTest extends TestCase
         $this->assertSame(0, DB::table('mcp_execution_audits')->where('event_type', 'approved_operation_execution')->count());
     }
 
+    public function test_approved_execution_tool_uses_only_stored_arguments_after_human_approval(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.write',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => [
+                    'approval_id' => true,
+                    'status' => true,
+                    'expires_at' => true,
+                    'preview_summary' => true,
+                ],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+            'execute_create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.execute',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => [
+                    'task_id' => true,
+                    'title' => true,
+                    'domain_event_reference' => true,
+                ],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+        ]]);
+
+        $principal = $this->principalWithPermissions(['tasks' => ['task.create']]);
+        Passport::actingAs($principal, [
+            'mcp:use',
+            'mcp.operations.tasks.write',
+            'mcp.operations.tasks.execute',
+        ]);
+        request()->attributes->set('oauth_client_id', 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c');
+
+        $requestBuilder = Server::builder();
+        app(McpAuthorizationTestRegistrar::class)->registerApprovalRequestTool($requestBuilder);
+        $toolsProperty = new ReflectionProperty(Builder::class, 'tools');
+        $requestHandler = $toolsProperty->getValue($requestBuilder)[0]['handler'];
+        $requested = $requestHandler([
+            'title' => 'Approval-gated task',
+            'idempotency_key' => 'approval-execution-001',
+            '_session' => (object) [],
+            '_request' => (object) [],
+        ]);
+        $approval = McpApproval::query()->findOrFail($requested['approval_id']);
+
+        $executionBuilder = Server::builder();
+        $registrar = app(McpAuthorizationTestRegistrar::class);
+        $registrar->registerApprovedExecutionTool($executionBuilder);
+        $executionHandler = $toolsProperty->getValue($executionBuilder)[0]['handler'];
+        try {
+            $executionHandler(['approval_id' => $approval->id, '_session' => (object) [], '_request' => (object) []]);
+            $this->fail('A pending approval must not execute.');
+        } catch (ValidationException) {
+            $this->assertSame(0, $registrar->approvedExecutionCalls);
+        }
+
+        $reviewer = User::factory()->create(['name' => 'MCP reviewer']);
+        $reviewerRole = HexaRole::query()->create([
+            'name' => 'MCP Approval Reviewer',
+            'created_by_name' => 'Test',
+            'access' => ['MCP' => ['mcp_approval.approve']],
+            'guard' => 'web',
+        ]);
+        DB::table('hexa_role_user')->insert(['user_id' => $reviewer->id, 'role_id' => $reviewerRole->getKey()]);
+        $approved = app(McpApprovalService::class)->approve($approval, $reviewer, 'Approved in Management-OS.');
+        $this->assertSame(McpApproval::STATUS_APPROVED, $approved->status);
+        $approval = $approved;
+
+        $result = $executionHandler([
+            'approval_id' => $approval->id,
+            '_session' => (object) [],
+            '_request' => (object) [],
+        ]);
+
+        $this->assertSame([
+            'task_id' => 42,
+            'title' => 'Approval-gated task',
+            'domain_event_reference' => 'task:42:created',
+        ], $result);
+        $this->assertSame(1, $registrar->approvedExecutionCalls);
+        $this->assertSame(McpApproval::STATUS_EXECUTED, $approval->fresh()->status);
+    }
+
     public function test_generic_authorized_tool_registration_rejects_write_operations(): void
     {
         config(['mcp.tool_permissions' => [
@@ -569,6 +660,8 @@ class McpAuthorizationTestRecord extends Model
 
 class McpAuthorizationTestRegistrar extends AuthorizedMcpCapabilityRegistrar
 {
+    public int $approvedExecutionCalls = 0;
+
     public function register(Builder $builder): void
     {
         $this->addAuthorizedTool(
@@ -618,6 +711,30 @@ class McpAuthorizationTestRegistrar extends AuthorizedMcpCapabilityRegistrar
                     'idempotency_key' => ['type' => 'string'],
                 ],
                 'required' => ['title', 'idempotency_key'],
+            ],
+        );
+    }
+
+    public function registerApprovedExecutionTool(Builder $builder): void
+    {
+        $this->addApprovedExecutionTool(
+            $builder,
+            'execute_create_task',
+            'create_task',
+            function (User $principal, array $arguments): array {
+                $this->approvedExecutionCalls++;
+
+                return [
+                    'task_id' => 42,
+                    'title' => $arguments['title'],
+                    'domain_event_reference' => 'task:42:created',
+                ];
+            },
+            'Executes a human-approved task creation.',
+            [
+                'type' => 'object',
+                'properties' => ['approval_id' => ['type' => 'integer']],
+                'required' => ['approval_id'],
             ],
         );
     }

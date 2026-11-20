@@ -60,7 +60,7 @@ Example only. Do not add it until the named tool, domain service, record scope, 
 ## Implementing a tool
 
 - Register each capability registrar in mcp.capability_registrars, and implement it by extending `AuthorizedMcpCapabilityRegistrar`.
-- Register read-only tools with `addAuthorizedTool()`. It rejects permission-matrix entries marked as writes. Controlled write request tools must declare `operation_type => write` and `requires_approval => true`, then use `addApprovalRequestTool()`; execution must go through `McpApprovalService::executeApproved()`. Do not call the MCP SDK's `Builder::addTool()` directly from application capability code.
+- Register read-only tools with `addAuthorizedTool()`. It rejects permission-matrix entries marked as writes. Controlled write request tools must declare `operation_type => write` and `requires_approval => true`, then use `addApprovalRequestTool()`; the execution tool must use `addApprovedExecutionTool()`, which accepts only the approval ID and dispatches the stored payload through `McpApprovalService::executeApproved()`. Do not call the MCP SDK's `Builder::addTool()` directly from application capability code.
 - The wrapper checks the current API-authenticated principal and the permission matrix on every call, then filters the returned structured data.
 - For list/search/report tools, call `scopeQuery()` before applying user filters, pagination, `count`, `sum`, grouping or other aggregation.
 - For direct record lookups, call `authorizeRecord()` after loading the record and before returning it or passing it to a domain action.

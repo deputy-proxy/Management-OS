@@ -55,7 +55,7 @@ The idempotency key is unique per AI principal and OAuth client:
 
 Approval is single-use. Execution claims the approval row under a database lock and moves it to `executing` before the callback can run. A second worker cannot claim an already executing operation. The service re-checks the current AI principal, OAuth scopes, domain permissions, payload integrity, expiry, and distinct human approver. It performs a second authorization check immediately before invoking the domain callback.
 
-A future write tool must declare `operation_type => write` and `requires_approval => true`. Generic `addAuthorizedTool()` registration rejects writes; `addApprovalRequestTool()` can only create a pending request and never invokes a domain callback. A future approved-execution tool must dispatch through `McpApprovalService::executeApproved()`.
+A future write tool must declare `operation_type => write` and `requires_approval => true`. Generic `addAuthorizedTool()` registration rejects writes; `addApprovalRequestTool()` can only create a pending request and never invokes a domain callback. `addApprovedExecutionTool()` accepts only the approval ID and dispatches the stored encrypted arguments through `McpApprovalService::executeApproved()`; it cannot accept replacement arguments.
 
 A future tool callback must call the existing application/domain service. It must not implement parallel business logic or write directly to Eloquent models to bypass existing policy and lifecycle checks.
 
