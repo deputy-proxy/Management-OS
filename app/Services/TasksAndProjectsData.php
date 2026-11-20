@@ -25,18 +25,20 @@ class TasksAndProjectsData
         ?int $ownerFilter = null,
         ?int $projectFilter = null,
         string $dueDateFilter = 'all',
+        ?Builder $authorizedTaskQuery = null,
     ): array {
         $now ??= CarbonImmutable::now(config('app.timezone'));
         $today = $now->toDateString();
         $weekEnd = $now->addDays(7)->toDateString();
 
-        $taskQuery = Task::query()->with(['project:id,title', 'projectPhase:id,title', 'assignedTo:id,name']);
-        if (! $canViewAllTasks && auth()->check()) {
+        $taskQuery = ($authorizedTaskQuery !== null ? clone $authorizedTaskQuery : Task::query())
+            ->with(['project:id,title', 'projectPhase:id,title', 'assignedTo:id,name']);
+        if ($authorizedTaskQuery === null && ! $canViewAllTasks && auth()->check()) {
             $userId = auth()->id();
             $taskQuery->where(fn (Builder $query) => $query
                 ->where('assigned_to', $userId)
                 ->orWhere('created_by', $userId));
-        } elseif (! $canViewAllTasks && ! auth()->check()) {
+        } elseif ($authorizedTaskQuery === null && ! $canViewAllTasks && ! auth()->check()) {
             $taskQuery->whereRaw('1 = 0');
         }
 
@@ -60,7 +62,7 @@ class TasksAndProjectsData
         ];
         $statusCounts = $canViewTasks
             ? (clone $visibleTasks)->select('status')->selectRaw('COUNT(*) as record_count')->groupBy('status')->orderBy('status')->get()
-                ->map(fn (object $row): array => ['status' => (string) $row->status, 'count' => (int) $row->record_count])->all()
+                ->map(fn ($row): array => ['status' => (string) $row->getAttribute('status'), 'count' => (int) $row->getAttribute('record_count')])->all()
             : [];
 
         $openTasks = (clone $visibleTasks)->where('status', '!=', 'done');
