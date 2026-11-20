@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Mcp\McpController;
+use App\Http\Middleware\CaptureMcpAuditContext;
 use App\Http\Middleware\RequireMcpPkceS256;
 use App\Http\Middleware\RequireMcpResource;
 use App\Mcp\Authorization\McpToolPermissionRegistry;
@@ -48,4 +49,4 @@ Route::getRoutes()->getByName('passport.token')?->middleware(RequireMcpResource:
 
 Route::options('/mcp', McpController::class)->middleware('throttle:60,1')->name('mcp.preflight');
 Route::match(['GET', 'DELETE', 'PUT', 'PATCH'], '/mcp', McpController::class)->middleware('throttle:60,1')->name('mcp.unsupported-method');
-Route::post('/mcp', McpController::class)->middleware(['throttle:60,1', AddWwwAuthenticateHeader::class, 'auth:api', 'abilities:mcp:use'])->name('mcp.endpoint');
+Route::post('/mcp', McpController::class)->middleware(['throttle:60,1', AddWwwAuthenticateHeader::class, 'auth:api', CaptureMcpAuditContext::class, 'abilities:mcp:use'])->name('mcp.endpoint');

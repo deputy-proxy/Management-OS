@@ -30,6 +30,8 @@ Add an entry to `config/mcp.php` for each tool:
 | `domain_permissions` | Non-empty list of exact existing HexaLite permission keys. All listed permissions are required. |
 | `record_scope` | Class implementing `App\Mcp\Authorization\Scopes\McpRecordScope`. It must scope collection queries and authorize individual records. |
 | `allowed_fields` | Non-empty nested allowlist. Only listed scalar fields are returned. Nested objects/relationships must declare their own field map. |
+| `operation_type` | Required. Declare `read` or `write` for every registered tool. Direct registration through `addAuthorizedTool()` is read-only. |
+| `requires_approval` | Must be `true` for every `write` tool. Write request tools must use `addApprovalRequestTool()`; execution must use the approved execution service. |
 
 Example only. Do not add it until the named tool, domain service, record scope, and field contract are implemented and tested:
 
@@ -39,6 +41,8 @@ Example only. Do not add it until the named tool, domain service, record scope, 
         'mcp_scope' => 'mcp.operations.tasks.read',
         'domain_permissions' => ['task.index'],
         'record_scope' => \App\Mcp\Authorization\Scopes\McpTaskRecordScope::class,
+        'operation_type' => 'read',
+        'requires_approval' => false,
         'allowed_fields' => [
             'id' => true,
             'title' => true,
@@ -56,7 +60,7 @@ Example only. Do not add it until the named tool, domain service, record scope, 
 ## Implementing a tool
 
 - Register each capability registrar in mcp.capability_registrars, and implement it by extending `AuthorizedMcpCapabilityRegistrar`.
-- Register tools only with `addAuthorizedTool()`. Do not call the MCP SDK's `Builder::addTool()` directly from application capability code.
+- Register read-only tools with `addAuthorizedTool()`. It rejects permission-matrix entries marked as writes. Controlled write request tools must declare `operation_type => write` and `requires_approval => true`, then use `addApprovalRequestTool()`; the execution tool must use `addApprovedExecutionTool()`, which accepts only the approval ID and dispatches the stored payload through `McpApprovalService::executeApproved()`. Do not call the MCP SDK's `Builder::addTool()` directly from application capability code.
 - The wrapper checks the current API-authenticated principal and the permission matrix on every call, then filters the returned structured data.
 - For list/search/report tools, call `scopeQuery()` before applying user filters, pagination, `count`, `sum`, grouping or other aggregation.
 - For direct record lookups, call `authorizeRecord()` after loading the record and before returning it or passing it to a domain action.
@@ -86,4 +90,17 @@ Never assign Owner/superadmin or copy a human user's role set to the AI principa
 
 ## Current state
 
-No business tools are registered yet, so the runtime matrix is intentionally empty. The authorization framework is in place for subsequent read-only tool issues. This issue does not grant the AI identity any domain permission and does not enable business data access.
+No business tools are registered yet, so the runtime matrix is intentionally empty. The authorization framework and approval boundary are in place for subsequent domain-tool issues. This issue does not grant the AI identity any domain permission and does not enable business data access.
+
+
+## Human approval and audit permissions
+
+Issue #532 adds three separate Management-OS staff permissions:
+
+- `mcp_approval.index` — view pending and historical approval requests and their safe previews.
+- `mcp_approval.approve` — approve or reject a pending operation with a required rationale.
+- `mcp_execution_audit.index` — view execution and approval audit history.
+
+Assign these only to designated human reviewers/auditors. The configured AI principal is explicitly denied access even if it is accidentally assigned one of these permissions. The Filament resources are read-only except for the approve/reject actions; model/service guards preserve the same boundary server-side. See [MCP approval and execution audit controls](mcp-approvals-and-audit.md).
+
+The approval and audit infrastructure is implemented, but `mcp.tool_permissions` remains empty and no business tools or writes are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.

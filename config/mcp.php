@@ -31,4 +31,7 @@ return [
     'session_path' => env('MCP_SESSION_PATH') ?: storage_path('framework/cache/mcp-sessions'),
     'session_ttl_seconds' => (int) env('MCP_SESSION_TTL_SECONDS', 3600),
     'session_lock_timeout_seconds' => (float) env('MCP_SESSION_LOCK_TIMEOUT_SECONDS', 5),
+    'approval_ttl_minutes' => (int) env('MCP_APPROVAL_TTL_MINUTES', 15),
+    'approval_max_payload_bytes' => (int) env('MCP_APPROVAL_MAX_PAYLOAD_BYTES', 65536),
+    'execution_stale_minutes' => (int) env('MCP_EXECUTION_STALE_MINUTES', 5),
 ];

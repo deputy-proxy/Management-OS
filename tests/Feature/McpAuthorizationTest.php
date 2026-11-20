@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\CaptureMcpAuditContext;
 use App\Mcp\Authorization\AuthorizedMcpCapabilityRegistrar;
 use App\Mcp\Authorization\McpAuthorizationService;
 use App\Mcp\Authorization\McpFieldFilter;
@@ -10,15 +11,20 @@ use App\Mcp\Authorization\McpToolPermissionRegistry;
 use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Mcp\Authorization\Scopes\McpOwnedRecordScope;
 use App\Mcp\Authorization\Scopes\McpTaskRecordScope;
+use App\Models\Mcp\McpApproval;
 use App\Models\User;
+use App\Services\Mcp\McpApprovalService;
 use Hexters\HexaLite\Models\HexaRole;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Laravel\Passport\Passport;
 use Mcp\Server\Builder;
 use Mcp\Server\Capability\Registry\ReferenceHandler;
@@ -77,7 +83,7 @@ class McpAuthorizationTest extends TestCase
         (new McpToolPermissionRegistry)->forTool('get_financial_overview');
     }
 
-    public function test_registry_rejects_reusing_a_tool_scope_for_multiple_tools(): void
+    public function test_registry_requires_each_tool_to_declare_read_or_write_operation_type(): void
     {
         config(['mcp.tool_permissions' => [
             'get_financial_overview' => [
@@ -86,8 +92,25 @@ class McpAuthorizationTest extends TestCase
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['period' => true],
             ],
+        ]]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        (new McpToolPermissionRegistry)->forTool('get_financial_overview');
+    }
+
+    public function test_registry_rejects_reusing_a_tool_scope_for_multiple_tools(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'get_financial_overview' => [
+                'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
+                'domain_permissions' => ['finance.view_any'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['period' => true],
+            ],
             'search_financial_records' => [
                 'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
                 'domain_permissions' => ['finance.view_any'],
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['id' => true],
@@ -301,6 +324,7 @@ class McpAuthorizationTest extends TestCase
         config(['mcp.tool_permissions' => [
             'get_financial_overview' => [
                 'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
                 'domain_permissions' => ['finance.view_any'],
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['id' => true, 'name' => true],
@@ -316,14 +340,58 @@ class McpAuthorizationTest extends TestCase
         $handler = $tools[0]['handler'];
 
         $this->assertSame(ReferenceHandler::class, (new ReflectionFunction($handler))->getClosureScopeClass()?->getName());
+        request()->attributes->set('oauth_client_id', 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c');
+        request()->attributes->set('request_id', 'mcp-wrapper-request-001');
+
         $this->assertSame(
             ['id' => 9, 'name' => 'Visible'],
             $handler(['record_id' => 9, '_session' => (object) [], '_request' => (object) []]),
         );
+        $auditColumns = Schema::getColumnListing('mcp_execution_audits');
+        $this->assertNotContains('arguments', $auditColumns);
+        $this->assertNotContains('result', $auditColumns);
+
+        $this->assertDatabaseHas('mcp_execution_audits', [
+            'event_type' => 'tool_invocation',
+            'tool_name' => 'get_financial_overview',
+            'status' => 'succeeded',
+            'ai_principal_id' => $principal->id,
+            'oauth_client_id' => 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c',
+            'request_id' => 'mcp-wrapper-request-001',
+            'target_type' => 'record',
+            'target_id' => '9',
+        ]);
+        $successfulAudit = DB::table('mcp_execution_audits')
+            ->where('event_type', 'tool_invocation')
+            ->where('tool_name', 'get_financial_overview')
+            ->where('target_id', '9')
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($successfulAudit);
+        $this->assertNull($successfulAudit->domain_event_reference);
+
+        $handler(['record_id' => '1234567890123', '_session' => (object) [], '_request' => (object) []]);
+        $this->assertTrue(DB::table('mcp_execution_audits')
+            ->where('event_type', 'tool_invocation')
+            ->where('tool_name', 'get_financial_overview')
+            ->where('target_type', 'record')
+            ->whereNull('target_id')
+            ->where('status', 'succeeded')
+            ->exists());
 
         HexaRole::query()->where('name', 'Assistant')->update(['access' => []]);
-        $this->expectException(AuthorizationException::class);
-        $handler(['record_id' => 9, '_session' => (object) [], '_request' => (object) []]);
+        try {
+            $handler(['record_id' => 9, '_session' => (object) [], '_request' => (object) []]);
+            $this->fail('The tool invocation should be denied after its permission is revoked.');
+        } catch (AuthorizationException) {
+            $this->assertDatabaseHas('mcp_execution_audits', [
+                'event_type' => 'tool_invocation',
+                'tool_name' => 'get_financial_overview',
+                'status' => 'failed',
+                'error_code' => 'authorization_denied',
+                'ai_principal_id' => $principal->id,
+            ]);
+        }
     }
 
     public function test_registered_tool_wrapper_rejects_unauthenticated_invocations(): void
@@ -331,6 +399,7 @@ class McpAuthorizationTest extends TestCase
         config(['mcp.tool_permissions' => [
             'get_financial_overview' => [
                 'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
                 'domain_permissions' => ['finance.view_any'],
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['id' => true],
@@ -343,8 +412,213 @@ class McpAuthorizationTest extends TestCase
         $handler = $toolsProperty->getValue($builder)[0]['handler'];
         Auth::guard('api')->forgetUser();
 
-        $this->expectException(AuthorizationException::class);
-        $handler(['record_id' => 9, '_session' => (object) [], '_request' => (object) []]);
+        try {
+            $handler(['record_id' => 9, '_session' => (object) [], '_request' => (object) []]);
+            $this->fail('An unauthenticated MCP tool invocation must be denied.');
+        } catch (AuthorizationException) {
+            $this->assertDatabaseHas('mcp_execution_audits', [
+                'event_type' => 'tool_invocation',
+                'tool_name' => 'get_financial_overview',
+                'status' => 'failed',
+                'error_code' => 'authorization_denied',
+                'ai_principal_id' => null,
+            ]);
+        }
+    }
+
+    public function test_mcp_audit_context_rejects_tokens_without_a_valid_client_id_claim(): void
+    {
+        $payload = rtrim(strtr(base64_encode(json_encode(['aud' => 'https://example.test/mcp'], JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
+        $request = Request::create('/mcp', 'POST', [], [], [], [
+            'HTTP_AUTHORIZATION' => 'Bearer header.'.$payload.'.signature',
+        ]);
+
+        app(CaptureMcpAuditContext::class)->handle($request, static fn () => response()->noContent());
+
+        $this->assertNull($request->attributes->get('oauth_client_id'));
+    }
+
+    public function test_mcp_audit_context_captures_client_id_from_the_authenticated_jwt_claim(): void
+    {
+        $clientId = 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c';
+        $payload = rtrim(strtr(base64_encode(json_encode(['client_id' => $clientId], JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
+        $request = Request::create('/mcp', 'POST', [], [], [], [
+            'HTTP_AUTHORIZATION' => 'Bearer header.'.$payload.'.signature',
+        ]);
+
+        app(CaptureMcpAuditContext::class)->handle($request, static fn () => response()->noContent());
+
+        $this->assertSame($clientId, $request->attributes->get('oauth_client_id'));
+    }
+
+    public function test_permission_matrix_requires_human_approval_for_write_tools(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.write',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['approval_id' => true],
+                'operation_type' => 'write',
+            ],
+        ]]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        (new McpToolPermissionRegistry)->forTool('create_task');
+    }
+
+    public function test_approval_request_tool_creates_pending_request_without_running_a_domain_mutation(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.write',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => [
+                    'approval_id' => true,
+                    'status' => true,
+                    'expires_at' => true,
+                    'preview_summary' => true,
+                ],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+        ]]);
+
+        $principal = $this->principalWithPermissions(['tasks' => ['task.create']]);
+        Passport::actingAs($principal, ['mcp:use', 'mcp.operations.tasks.write']);
+        request()->attributes->set('oauth_client_id', 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c');
+
+        $builder = Server::builder();
+        app(McpAuthorizationTestRegistrar::class)->registerApprovalRequestTool($builder);
+        $toolsProperty = new ReflectionProperty(Builder::class, 'tools');
+        $handler = $toolsProperty->getValue($builder)[0]['handler'];
+
+        $result = $handler([
+            'title' => 'Approval-gated task',
+            'idempotency_key' => 'approval-request-001',
+            '_session' => (object) [],
+            '_request' => (object) [],
+        ]);
+
+        $this->assertSame('pending', $result['status']);
+        $this->assertArrayHasKey('approval_id', $result);
+        $this->assertDatabaseHas('mcp_approvals', [
+            'id' => $result['approval_id'],
+            'tool_name' => 'create_task',
+            'status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('mcp_execution_audits', [
+            'event_type' => 'approval_requested',
+            'tool_name' => 'create_task',
+            'status' => 'pending',
+        ]);
+        $this->assertSame(0, DB::table('mcp_execution_audits')->where('event_type', 'approved_operation_execution')->count());
+    }
+
+    public function test_approved_execution_tool_uses_only_stored_arguments_after_human_approval(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.write',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => [
+                    'approval_id' => true,
+                    'status' => true,
+                    'expires_at' => true,
+                    'preview_summary' => true,
+                ],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+            'execute_create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.execute',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => [
+                    'task_id' => true,
+                    'title' => true,
+                    'domain_event_reference' => true,
+                ],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+        ]]);
+
+        $principal = $this->principalWithPermissions(['tasks' => ['task.create']]);
+        Passport::actingAs($principal, [
+            'mcp:use',
+            'mcp.operations.tasks.write',
+            'mcp.operations.tasks.execute',
+        ]);
+        request()->attributes->set('oauth_client_id', 'd8d14d2c-0a80-4f4c-aac8-bb3e67e2a11c');
+
+        $requestBuilder = Server::builder();
+        app(McpAuthorizationTestRegistrar::class)->registerApprovalRequestTool($requestBuilder);
+        $toolsProperty = new ReflectionProperty(Builder::class, 'tools');
+        $requestHandler = $toolsProperty->getValue($requestBuilder)[0]['handler'];
+        $requested = $requestHandler([
+            'title' => 'Approval-gated task',
+            'idempotency_key' => 'approval-execution-001',
+            '_session' => (object) [],
+            '_request' => (object) [],
+        ]);
+        $approval = McpApproval::query()->findOrFail($requested['approval_id']);
+
+        $executionBuilder = Server::builder();
+        $registrar = app(McpAuthorizationTestRegistrar::class);
+        $registrar->registerApprovedExecutionTool($executionBuilder);
+        $executionHandler = $toolsProperty->getValue($executionBuilder)[0]['handler'];
+        try {
+            $executionHandler(['approval_id' => $approval->id, '_session' => (object) [], '_request' => (object) []]);
+            $this->fail('A pending approval must not execute.');
+        } catch (ValidationException) {
+            $this->assertSame(0, $registrar->approvedExecutionCalls);
+        }
+
+        $reviewer = User::factory()->create(['name' => 'MCP reviewer']);
+        $reviewerRole = HexaRole::query()->create([
+            'name' => 'MCP Approval Reviewer',
+            'created_by_name' => 'Test',
+            'access' => ['MCP' => ['mcp_approval.approve']],
+            'guard' => 'web',
+        ]);
+        DB::table('hexa_role_user')->insert(['user_id' => $reviewer->id, 'role_id' => $reviewerRole->getKey()]);
+        $approved = app(McpApprovalService::class)->approve($approval, $reviewer, 'Approved in Management-OS.');
+        $this->assertSame(McpApproval::STATUS_APPROVED, $approved->status);
+        $approval = $approved;
+
+        $result = $executionHandler([
+            'approval_id' => $approval->id,
+            '_session' => (object) [],
+            '_request' => (object) [],
+        ]);
+
+        $this->assertSame([
+            'task_id' => 42,
+            'title' => 'Approval-gated task',
+            'domain_event_reference' => 'task:42:created',
+        ], $result);
+        $this->assertSame(1, $registrar->approvedExecutionCalls);
+        $this->assertSame(McpApproval::STATUS_EXECUTED, $approval->fresh()->status);
+    }
+
+    public function test_generic_authorized_tool_registration_rejects_write_operations(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'create_task' => [
+                'mcp_scope' => 'mcp.operations.tasks.write',
+                'domain_permissions' => ['task.create'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['id' => true],
+                'operation_type' => 'write',
+                'requires_approval' => true,
+            ],
+        ]]);
+
+        $this->expectException(\LogicException::class);
+        app(McpAuthorizationTestRegistrar::class)->registerWriteTool(Server::builder());
     }
 
     public function test_registry_exposes_only_registered_tool_scopes_to_passport(): void
@@ -352,6 +626,7 @@ class McpAuthorizationTest extends TestCase
         config(['mcp.tool_permissions' => [
             'get_financial_overview' => [
                 'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
                 'domain_permissions' => ['finance.view_any'],
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['period' => true],
@@ -402,6 +677,8 @@ class McpAuthorizationTestRecord extends Model
 
 class McpAuthorizationTestRegistrar extends AuthorizedMcpCapabilityRegistrar
 {
+    public int $approvedExecutionCalls = 0;
+
     public function register(Builder $builder): void
     {
         $this->addAuthorizedTool(
@@ -418,6 +695,63 @@ class McpAuthorizationTestRegistrar extends AuthorizedMcpCapabilityRegistrar
                 'type' => 'object',
                 'properties' => ['record_id' => ['type' => 'integer']],
                 'required' => ['record_id'],
+            ],
+        );
+    }
+
+    public function registerWriteTool(Builder $builder): void
+    {
+        $this->addAuthorizedTool(
+            $builder,
+            'create_task',
+            static fn (User $principal, array $arguments): array => ['id' => 1],
+            'Creates a task.',
+            ['type' => 'object'],
+        );
+    }
+
+    public function registerApprovalRequestTool(Builder $builder): void
+    {
+        $this->addApprovalRequestTool(
+            $builder,
+            'create_task',
+            static fn (User $principal, array $arguments): array => [
+                'preview' => ['action' => 'Create task', 'title' => $arguments['title']],
+                'target_type' => 'task',
+                'target_id' => null,
+            ],
+            'Requests an approval to create a task.',
+            [
+                'type' => 'object',
+                'properties' => [
+                    'title' => ['type' => 'string'],
+                    'idempotency_key' => ['type' => 'string'],
+                ],
+                'required' => ['title', 'idempotency_key'],
+            ],
+        );
+    }
+
+    public function registerApprovedExecutionTool(Builder $builder): void
+    {
+        $this->addApprovedExecutionTool(
+            $builder,
+            'execute_create_task',
+            'create_task',
+            function (User $principal, array $arguments): array {
+                $this->approvedExecutionCalls++;
+
+                return [
+                    'task_id' => 42,
+                    'title' => $arguments['title'],
+                    'domain_event_reference' => 'task:42:created',
+                ];
+            },
+            'Executes a human-approved task creation.',
+            [
+                'type' => 'object',
+                'properties' => ['approval_id' => ['type' => 'integer']],
+                'required' => ['approval_id'],
             ],
         );
     }

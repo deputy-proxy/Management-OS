@@ -96,3 +96,10 @@ The Activity Log resource is view-only. Listing and viewing activities require t
 4. Use `logOnlyDirty()->dontLogEmptyChanges()` so only reviewed changes are stored and empty changes do not create noise. For models where the lifecycle event is important but all values are sensitive, use `logOnly([])->logEmptyChanges()` instead.
 5. Add a regression test proving disallowed values are absent from `properties` and allowed state changes remain traceable to actor and timestamp.
 6. Update this inventory and obtain policy-owner approval for any new sensitive-field exception.
+
+
+## MCP execution audit
+
+MCP tool invocations and approval lifecycle events use dedicated `mcp_execution_audits` records rather than generic Spatie activity properties. Records capture the AI principal, OAuth client, tool/version, target, request ID, idempotency key, payload hash, event/status, safe result/error codes, timestamps, human initiator/approver when known, and a domain-event reference when available. Raw tool arguments, result bodies, tokens, credentials, and exception messages are excluded. Approved arguments, safe preview, and idempotent result are stored encrypted on the separate `mcp_approvals` record.
+
+MCP audit identity/payload fields are immutable through the model and application deletion is denied. The dedicated Filament audit resource is read-only and requires `mcp_execution_audit.index`; approval visibility/review is separately permissioned. No MCP-specific retention period has been approved, so no automatic MCP audit deletion is scheduled. The retention/access and incident review procedure is documented in [MCP approval and execution audit controls](mcp-approvals-and-audit.md).

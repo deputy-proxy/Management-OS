@@ -257,6 +257,8 @@ jobs:
           tests/Feature/MarketIntelligenceConfigurationTest.php
           tests/Feature/MarketDataImportAdaptersTest.php
           tests/Feature/MarketAnalysisDashboardDataTest.php
+          tests/Feature/McpApprovalWorkflowTest.php
+          tests/Feature/McpAuthorizationTest.php
           tests/Feature/ExecutiveKpiCatalogueTest.php
           tests/Feature/KpiCatalogueRegistryTest.php
           tests/Feature/KpiDefinitionTest.php
