@@ -251,6 +251,7 @@ jobs:
           tests/Feature/CashForecastServiceTest.php
           tests/Feature/BudgetActualsComparisonServiceTest.php
           tests/Feature/McpFinanceToolsTest.php
+          tests/Feature/McpCrmToolsTest.php
           tests/Feature/MarketTrendTest.php
           tests/Feature/CompetitorOfferObservationTest.php
           tests/Feature/GoogleAdsCampaignMetricsImporterTest.php

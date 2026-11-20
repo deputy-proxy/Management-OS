@@ -10,6 +10,7 @@ use App\Models\CustomerLead;
 use App\Models\CustomerLifecycleEvent;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +47,7 @@ class CustomerDashboardData
                 ->groupBy('status')
                 ->orderBy('status')
                 ->get()
-                ->map(fn (object $row): array => ['status' => (string) $row->status, 'count' => (int) $row->record_count])
+                ->map(fn ($row): array => ['status' => (string) $row->getAttribute('status'), 'count' => (int) $row->getAttribute('record_count')])
                 ->all(),
             'lead_statuses' => (clone $openLeads)
                 ->select('status')
@@ -54,7 +55,7 @@ class CustomerDashboardData
                 ->groupBy('status')
                 ->orderBy('status')
                 ->get()
-                ->map(fn (object $row): array => ['status' => (string) $row->status, 'count' => (int) $row->record_count])
+                ->map(fn ($row): array => ['status' => (string) $row->getAttribute('status'), 'count' => (int) $row->getAttribute('record_count')])
                 ->all(),
             'recent_interactions' => CustomerInteraction::query()
                 ->with('customer:id,name')
@@ -80,6 +81,46 @@ class CustomerDashboardData
                     ->limit(8)
                     ->get(['id', 'customer_id', 'contract_code', 'end_date'])
                 : collect(),
+        ];
+    }
+
+    /**
+     * Build CRM pipeline aggregates from an already-authorized lead query.
+     *
+     * @return array{as_of: string, timezone: string, open_lead_count: int, lead_statuses: array<int, array{status: string, count: int}>, attribution: array{source_categories: array<int, array{source_category: string, count: int}>, unknown_source_count: int, campaign_tagged_count: int, referral_tagged_count: int}}
+     */
+    public function salesPipeline(Builder $leadQuery, ?CarbonImmutable $now = null): array
+    {
+        $now ??= CarbonImmutable::now(config('app.timezone'));
+        $openLeads = (clone $leadQuery)->whereNull('converted_customer_id');
+        $statuses = $openLeads
+            ->select('status')
+            ->selectRaw('COUNT(*) as record_count')
+            ->groupBy('status')
+            ->orderBy('status')
+            ->get()
+            ->map(fn ($row): array => ['status' => (string) $row->getAttribute('status'), 'count' => (int) $row->getAttribute('record_count')])
+            ->all();
+        $sourceCategories = (clone $leadQuery)
+            ->selectRaw("COALESCE(source_category, 'unknown') as source_category")
+            ->selectRaw('COUNT(*) as record_count')
+            ->groupByRaw("COALESCE(source_category, 'unknown')")
+            ->orderBy('source_category')
+            ->get()
+            ->map(fn ($row): array => ['source_category' => (string) $row->getAttribute('source_category'), 'count' => (int) $row->getAttribute('record_count')])
+            ->all();
+
+        return [
+            'as_of' => $now->toIso8601String(),
+            'timezone' => (string) config('customer-retention.timezone', 'Europe/Bucharest'),
+            'open_lead_count' => array_sum(array_column($statuses, 'count')),
+            'lead_statuses' => $statuses,
+            'attribution' => [
+                'source_categories' => $sourceCategories,
+                'unknown_source_count' => (clone $leadQuery)->where('source_category', 'unknown')->count(),
+                'campaign_tagged_count' => (clone $leadQuery)->whereNotNull('campaign_name')->where('campaign_name', '!=', '')->count(),
+                'referral_tagged_count' => (clone $leadQuery)->whereNotNull('referral_partner')->where('referral_partner', '!=', '')->count(),
+            ],
         ];
     }
 

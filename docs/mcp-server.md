@@ -2,9 +2,9 @@
 
 ## Current implementation status
 
-The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. The transport foundation from #529 is protected by the Passport OAuth integration in #530, and the authorization boundary from #531 is in place. The capability registry includes six read-only executive tools from #533 and nine read-only finance tools from #534. CRM and operations tools, controlled writes, resources, and prompts remain disabled until their individual issues implement and test their data contracts.
+The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. The transport foundation from #529 is protected by the Passport OAuth integration in #530, and the authorization boundary from #531 is in place. The capability registry includes six read-only executive tools from #533, nine read-only finance tools from #534, and seven read-only CRM/sales tools from #535. Operations tools, controlled writes, resources, and prompts remain disabled until their individual issues implement and test their data contracts.
 
-- The endpoint exposes 15 read-only tools: six executive tools and nine finance tools. The finance set is `get_financial_overview`, `get_transactions`, `get_receivables`, `get_payables`, `get_cash_forecast`, `get_budget_vs_actuals`, `get_profitability_report`, `get_reconciliation_status`, and `get_invoice_details`.
+- The endpoint exposes 22 read-only tools: six executive tools, nine finance tools and seven CRM/sales tools. The CRM set is `search_customers`, `get_customer_details`, `get_customer_contracts`, `get_customer_interactions`, `get_sales_pipeline`, `get_lead_details`, `get_customer_economics`. The finance set is `get_financial_overview`, `get_transactions`, `get_receivables`, `get_payables`, `get_cash_forecast`, `get_budget_vs_actuals`, `get_profitability_report`, `get_reconciliation_status`, and `get_invoice_details`.
 - MCP POST requests require a Laravel Passport OAuth access token with the `mcp:use` scope. Each business tool additionally requires its dedicated OAuth tool scope and the configured AI principal; source-level data is filtered by the principal's current HexaLite permissions.
 - No mutations are enabled. Issue #532 adds encrypted payload-bound approvals, independent human review, execution audit, idempotency and conservative recovery primitives. Future write tools must use these controls and existing domain services.
 - The endpoint is not yet verified against the production reverse proxy/hosting environment or a live ChatGPT workspace.
@@ -83,7 +83,7 @@ The MCP POST endpoint requires an OAuth bearer token with the mcp:use scope. The
 
 To connect the web MCP Inspector, launch it with npx @modelcontextprotocol/inspector, choose Streamable HTTP, and enter http://127.0.0.1:8000/mcp. Use its OAuth authorization flow. Add only the exact callback origin shown by the Inspector to MCP_OAUTH_REDIRECT_DOMAINS in the local .env file; do not commit that local override or use a wildcard. The Inspector CLI's unauthenticated commands are not suitable for this protected endpoint.
 
-Expected current result after OAuth authorization: server identity Management-OS, protocol discovery succeeds, and `tools/list` returns 15 read-only executive and finance tools. Resource and prompt lists remain empty. Tool calls additionally require the configured AI principal, the tool-specific OAuth scope, and the relevant domain permissions.
+Expected current result after OAuth authorization: server identity Management-OS, protocol discovery succeeds, and `tools/list` returns 22 read-only executive, finance and CRM tools. Resource and prompt lists remain empty. Tool calls additionally require the configured AI principal, the tool-specific OAuth scope, and the relevant domain permissions.
 
 ## ChatGPT connection and authentication constraints
 
@@ -103,13 +103,13 @@ Focused transport regression tests:
 php artisan test tests/Feature/McpTransportTest.php
 ```
 
-The test suite covers Passport OAuth discovery, PKCE S256 metadata and enforcement, dynamic public-client registration, ChatGPT callback allowlisting, authorization-code exchange, refresh-token rotation, code replay rejection, token revocation, unauthenticated and insufficient-scope denial, legacy initialization, modern stateless discovery, the 15 permission-gated executive and finance tools and empty resource/prompt lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
+The test suite covers Passport OAuth discovery, PKCE S256 metadata and enforcement, dynamic public-client registration, ChatGPT callback allowlisting, authorization-code exchange, refresh-token rotation, code replay rejection, token revocation, unauthenticated and insufficient-scope denial, legacy initialization, modern stateless discovery, the 22 permission-gated executive, finance and CRM tools and empty resource/prompt lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
 
 Before the PR, run every validation job defined in `.github/workflows/tests.yml`, including the PHP/SQLite suite, PHPStan/Larastan, MySQL 8.0 migration/integrity tests, frontend production build, and dependency audits. A local pass does not replace inspecting the actual GitHub Actions run. Staging verification must separately confirm HTTPS, reverse-proxy streaming, timeouts, request limits, and ChatGPT's real connection behavior.
 
 ## Tool authorization
 
-MCP tools must follow the versioned permission matrix and authorization contract in [MCP permission matrix](mcp-permissions.md). Each tool has an explicit OAuth scope, required and optional HexaLite permissions, record scope and output-field allowlist. See [MCP executive tools](mcp-executive-tools.md) and [MCP finance tools](mcp-finance-tools.md) for the read-only tool contracts and their data limitations.
+MCP tools must follow the versioned permission matrix and authorization contract in [MCP permission matrix](mcp-permissions.md). Each tool has an explicit OAuth scope, required and optional HexaLite permissions, record scope and output-field allowlist. See [MCP executive tools](mcp-executive-tools.md), [MCP finance tools](mcp-finance-tools.md), and [MCP CRM tools](mcp-crm-tools.md) for the read-only tool contracts and their data limitations.
 
 
 ## Approval and execution audit controls

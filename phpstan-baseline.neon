@@ -1059,17 +1059,7 @@ parameters:
 			count: 2
 			path: app/Services/ContentManagementDashboardData.php
 
-		-
-			message: '#^Access to an undefined property App\\Models\\CustomerInvoice\:\:\$record_count\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/CustomerDashboardData.php
 
-		-
-			message: '#^Access to an undefined property App\\Models\\CustomerLead\:\:\$record_count\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/CustomerDashboardData.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$ends_at\.$#'
