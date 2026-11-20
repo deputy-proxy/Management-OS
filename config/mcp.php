@@ -3,8 +3,10 @@
 use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Mcp\Authorization\Scopes\McpOwnedRecordScope;
 use App\Mcp\Tools\Crm\CrmMcpCapabilityRegistrar;
+use App\Mcp\Authorization\Scopes\McpTaskRecordScope;
 use App\Mcp\Tools\Executive\ExecutiveMcpCapabilityRegistrar;
 use App\Mcp\Tools\Finance\FinanceMcpCapabilityRegistrar;
+use App\Mcp\Tools\Operations\OperationsMcpCapabilityRegistrar;
 
 $applicationHost = parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost';
 $configuredHosts = trim((string) env('MCP_ALLOWED_HOSTS', ''));
@@ -72,13 +74,14 @@ $kpiResultFields = [
 return [
     'authorization_server' => $authorizationServer === '' ? null : rtrim($authorizationServer, '/'),
     'ai_principal_email' => env('MCP_AI_PRINCIPAL_EMAIL'),
-    'permission_matrix_version' => '1.3.0',
+    'permission_matrix_version' => '1.4.0',
     'domain_permission_guard' => env('MCP_DOMAIN_PERMISSION_GUARD', config('auth.defaults.guard', 'web')),
     'principal_role' => 'Assistant',
     'capability_registrars' => [
         ExecutiveMcpCapabilityRegistrar::class,
         FinanceMcpCapabilityRegistrar::class,
         CrmMcpCapabilityRegistrar::class,
+        OperationsMcpCapabilityRegistrar::class,
     ],
     'tool_permissions' => [
         'get_executive_overview' => [
@@ -297,6 +300,97 @@ return [
                     'revenue_unknown_count' => true, 'retention_coverage_count' => true,
                     'retention_unknown_count' => true, 'result_status' => true,
                 ],
+            ],
+        ],
+        'get_projects' => [
+            'mcp_scope' => 'mcp.operations.projects.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['project.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'projects' => ['id' => true, 'title' => true, 'project_manager_name' => true, 'status' => true, 'planned_start_date' => true, 'planned_end_date' => true, 'start_date' => true, 'end_date' => true],
+            ],
+        ],
+        'get_project_details' => [
+            'mcp_scope' => 'mcp.operations.project.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['project.index'],
+            'optional_domain_permissions' => ['project_phase.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'phases_available' => true, 'phase_count' => true, 'phases_truncated' => true,
+                'project' => ['id' => true, 'title' => true, 'project_manager_name' => true, 'status' => true, 'planned_start_date' => true, 'planned_end_date' => true, 'start_date' => true, 'end_date' => true],
+                'phases' => ['title' => true, 'start_on' => true, 'end_on' => true, 'order' => true],
+            ],
+        ],
+        'get_tasks' => [
+            'mcp_scope' => 'mcp.operations.tasks.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['task.index'],
+            'optional_domain_permissions' => ['task.view_all'],
+            'record_scope' => McpTaskRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'as_of' => true, 'timezone' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'tasks' => ['id' => true, 'action' => true, 'status' => true, 'due_date' => true, 'estimated_effort_minutes' => true, 'assignee_name' => true, 'project_title' => true, 'project_phase_title' => true],
+            ],
+        ],
+        'get_task_details' => [
+            'mcp_scope' => 'mcp.operations.task.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['task.index'],
+            'optional_domain_permissions' => ['task.view_all'],
+            'record_scope' => McpTaskRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true,
+                'task' => ['id' => true, 'action' => true, 'status' => true, 'due_date' => true, 'estimated_effort_minutes' => true, 'assignee_name' => true, 'project_title' => true, 'project_phase_title' => true],
+            ],
+        ],
+        'get_overdue_tasks' => [
+            'mcp_scope' => 'mcp.operations.overdue-tasks.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['task.index'],
+            'optional_domain_permissions' => ['task.view_all'],
+            'record_scope' => McpTaskRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'as_of' => true, 'timezone' => true, 'basis' => true,
+                'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'tasks' => ['id' => true, 'action' => true, 'status' => true, 'due_date' => true, 'estimated_effort_minutes' => true, 'assignee_name' => true, 'project_title' => true, 'project_phase_title' => true, 'overdue_days' => true],
+            ],
+        ],
+        'get_operational_bottlenecks' => [
+            'mcp_scope' => 'mcp.operations.bottlenecks.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['task.index'],
+            'optional_domain_permissions' => ['task.view_all', 'project.index', 'project_phase.index'],
+            'record_scope' => McpTaskRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'as_of' => true, 'week_end' => true, 'timezone' => true,
+                'task_total' => true, 'task_open' => true, 'task_overdue' => true,
+                'task_statuses' => ['status' => true, 'count' => true],
+                'assignee_workload' => ['assignee_name' => true, 'open_count' => true, 'overdue_count' => true, 'estimated_effort_minutes' => true, 'unestimated_count' => true],
+                'project_schedule' => ['projects_total' => true, 'projects_in_date_range' => true, 'projects_started_after_plan' => true, 'projects_finished_after_plan' => true, 'phases_total' => true, 'phases_in_date_range' => true],
+                'status_basis' => true, 'due_date_basis' => true,
+            ],
+        ],
+        'get_quarterly_objectives' => [
+            'mcp_scope' => 'mcp.operations.quarterly-objectives.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['quarterly_objective.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'objectives' => ['id' => true, 'employee_name' => true, 'objective' => true, 'quarter' => true, 'status' => true, 'created_at' => true],
+            ],
+        ],
+        'get_meetings' => [
+            'mcp_scope' => 'mcp.operations.meetings.read',
+            'operation_type' => 'read',
+            'domain_permissions' => ['meeting.index'],
+            'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => [
+                'availability' => true, 'timezone' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'meetings' => ['id' => true, 'subject' => true, 'type' => true, 'status' => true, 'starts_at' => true, 'ends_at' => true, 'location' => true, 'organizer_name' => true, 'participants_count' => true],
             ],
         ],
         'get_financial_overview' => [

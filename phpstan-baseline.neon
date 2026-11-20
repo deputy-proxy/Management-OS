@@ -1301,11 +1301,6 @@ parameters:
 			count: 1
 			path: app/Services/PublicSubmissions/CompetitionEntrySubmission.php
 
-		-
-			message: '#^Access to an undefined property App\\Models\\Task\:\:\$record_count\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/TasksAndProjectsData.php
 
 		-
 			message: '#^Instanceof between Illuminate\\Support\\Collection\<\(int\|string\), mixed\> and Illuminate\\Support\\Collection will always evaluate to true\.$#'
