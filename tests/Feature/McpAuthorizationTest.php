@@ -361,6 +361,23 @@ class McpAuthorizationTest extends TestCase
             'target_type' => 'record',
             'target_id' => '9',
         ]);
+        $successfulAudit = DB::table('mcp_execution_audits')
+            ->where('event_type', 'tool_invocation')
+            ->where('tool_name', 'get_financial_overview')
+            ->where('target_id', '9')
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($successfulAudit);
+        $this->assertNull($successfulAudit->domain_event_reference);
+
+        $handler(['record_id' => '1234567890123', '_session' => (object) [], '_request' => (object) []]);
+        $this->assertTrue(DB::table('mcp_execution_audits')
+            ->where('event_type', 'tool_invocation')
+            ->where('tool_name', 'get_financial_overview')
+            ->where('target_type', 'record')
+            ->whereNull('target_id')
+            ->where('status', 'succeeded')
+            ->exists());
 
         HexaRole::query()->where('name', 'Assistant')->update(['access' => []]);
         try {

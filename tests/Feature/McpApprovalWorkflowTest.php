@@ -487,6 +487,23 @@ final class McpApprovalWorkflowTest extends TestCase
         app(McpApprovalService::class)->approve($approval, $reviewer, 'The old tool contract must not be approved.');
     }
 
+    public function test_approval_rejects_sensitive_target_identifiers(): void
+    {
+        $principal = $this->principal();
+        Passport::actingAs($principal, ['mcp:use', 'mcp.operations.tasks.write']);
+
+        $this->expectException(ValidationException::class);
+        app(McpApprovalService::class)->request(
+            $principal,
+            'create_task',
+            ['title' => 'Synthetic task'],
+            ['action' => 'Create task', 'title' => 'Synthetic task'],
+            'task-request-sensitive-target',
+            'task',
+            '1234567890123',
+        );
+    }
+
     public function test_approval_preview_rejects_sensitive_field_names(): void
     {
         $principal = $this->principal();

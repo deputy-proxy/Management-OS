@@ -56,9 +56,9 @@ final class McpApprovalService
             ]);
         }
 
-        if (($targetType !== null && mb_strlen($targetType) > 191) || ($targetId !== null && mb_strlen($targetId) > 191)) {
+        if (! $this->audit->isSafeTargetType($targetType) || ! $this->audit->isSafeTargetId($targetId)) {
             throw ValidationException::withMessages([
-                'target' => 'Approval target identifiers cannot exceed 191 characters.',
+                'target' => 'Approval target identifiers must be safe record types and non-sensitive identifiers.',
             ]);
         }
 
@@ -281,6 +281,19 @@ final class McpApprovalService
      */
     public function executeApproved(McpApproval $approval, User $principal, callable $executor): array
     {
+        // Reject obviously non-executable states before opening a transaction. Besides
+        // avoiding needless savepoint churn for ordinary pending requests, the locked
+        // read below remains authoritative and closes the approval/revocation race.
+        $currentStatus = McpApproval::query()
+            ->whereKey($approval->getKey())
+            ->value('status');
+
+        if (! in_array($currentStatus, [McpApproval::STATUS_APPROVED, McpApproval::STATUS_EXECUTED], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'The operation is not in an executable approved state.',
+            ]);
+        }
+
         $claim = DB::transaction(function () use ($approval, $principal): array {
             $locked = McpApproval::query()->whereKey($approval->getKey())->lockForUpdate()->firstOrFail();
 
@@ -413,7 +426,7 @@ final class McpApprovalService
             $executionAudit->forceFill([
                 'status' => 'succeeded',
                 'result_code' => 'success',
-                'domain_event_reference' => is_string($reference) ? mb_substr($reference, 0, 191) : null,
+                'domain_event_reference' => $this->audit->safeDomainEventReference($reference),
                 'completed_at' => now(),
             ])->save();
 

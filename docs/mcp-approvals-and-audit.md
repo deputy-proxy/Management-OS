@@ -35,7 +35,7 @@ The current states are:
 
 Pending and approved requests expire after 15 minutes by default. Configure the duration with `MCP_APPROVAL_TTL_MINUTES` (bounded to 1–1,440 minutes). The maximum encoded argument/result size is 64 KiB by default (bounded between 1 KiB and 1 MiB); configure it with `MCP_APPROVAL_MAX_PAYLOAD_BYTES`.
 
-A request requires a non-empty human-readable preview of up to 20 short scalar fields. Field names that indicate credentials, contact details, banking, identity or medical data are rejected. Preview values are encrypted at rest and only the preview, not the raw arguments, is shown in the Management-OS list.
+A request requires a non-empty human-readable preview of up to 20 short scalar fields. Field names that indicate credentials, contact details, banking, identity or medical data are rejected. Target metadata is restricted to safe record types and non-sensitive identifiers; email addresses, IBAN-like values and long numeric personal identifiers are not copied into the audit. Preview values are encrypted at rest and only the preview, not the raw arguments, is shown in the Management-OS list.
 
 The human reviewer must have the explicit `mcp_approval.approve` permission and must be distinct from the AI principal and, when known, the human initiator. The AI principal is denied all approval UI permissions even if a role is misconfigured. Review actions require a concise rationale. Approval and rejection are separate audited events.
 

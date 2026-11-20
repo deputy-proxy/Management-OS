@@ -53,12 +53,10 @@ final class McpExecutionAuditRecorder
      */
     public function completeToolInvocation(McpExecutionAudit $audit, array $result): void
     {
-        $reference = $result['domain_event_reference'] ?? null;
-
         $audit->forceFill([
             'status' => 'succeeded',
             'result_code' => 'success',
-            'domain_event_reference' => is_string($reference) ? mb_substr($reference, 0, 191) : null,
+            'domain_event_reference' => $this->safeDomainEventReference($result['domain_event_reference'] ?? null),
             'completed_at' => now(),
         ])->save();
     }
@@ -102,6 +100,15 @@ final class McpExecutionAuditRecorder
      */
     private function targetFromArguments(array $arguments): array
     {
+        if (array_key_exists('target_id', $arguments)) {
+            $targetType = is_string($arguments['target_type'] ?? null)
+                && $this->isSafeTargetType($arguments['target_type'])
+                ? $arguments['target_type']
+                : 'record';
+
+            return ['type' => $targetType, 'id' => $this->safeTargetId($arguments['target_id'])];
+        }
+
         foreach ([
             'task_id' => 'task',
             'customer_id' => 'customer',
@@ -112,11 +119,64 @@ final class McpExecutionAuditRecorder
         ] as $key => $type) {
             $value = $arguments[$key] ?? null;
             if (is_string($value) || is_int($value)) {
-                return ['type' => $type, 'id' => mb_substr((string) $value, 0, 191)];
+                return ['type' => $type, 'id' => $this->safeTargetId($value)];
             }
         }
 
         return ['type' => null, 'id' => null];
+    }
+
+    public function isSafeTargetType(?string $targetType): bool
+    {
+        return $targetType === null
+            || preg_match('/^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/D', $targetType) === 1;
+    }
+
+    public function isSafeTargetId(?string $targetId): bool
+    {
+        if ($targetId === null) {
+            return true;
+        }
+
+        if (preg_match('/^[0-9]{1,9}$/D', $targetId) === 1) {
+            return true;
+        }
+
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iD', $targetId) === 1
+            || preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/D', $targetId) === 1) {
+            return true;
+        }
+
+        if (preg_match('/^[A-Za-z][A-Za-z0-9._:-]{0,190}$/D', $targetId) !== 1
+            || preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/iD', $targetId) === 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function safeDomainEventReference(mixed $reference): ?string
+    {
+        if (! is_string($reference)) {
+            return null;
+        }
+
+        $reference = trim($reference);
+
+        return $reference !== '' && $this->isSafeTargetId($reference)
+            ? mb_substr($reference, 0, 191)
+            : null;
+    }
+
+    private function safeTargetId(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_int($value)) {
+            return null;
+        }
+
+        $identifier = mb_substr(trim((string) $value), 0, 191);
+
+        return $this->isSafeTargetId($identifier) ? $identifier : null;
     }
 
     private function stringAttribute(string $key, int $maxLength): ?string
