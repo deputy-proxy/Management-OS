@@ -1,6 +1,6 @@
 # Repository-specific development configuration
 
-Last verified: 2026-11-19. Exact resolved versions are recorded in the cross-repository matrix at [Cr8or](https://github.com/deputy-proxy/cr8or/blob/main/.chatgpt/repository-versions.md). Re-check manifests, lockfiles, and workflows before each implementation.
+Last verified: 2026-11-20. Exact resolved versions are recorded in the cross-repository matrix at [Cr8or](https://github.com/deputy-proxy/cr8or/blob/main/.chatgpt/repository-versions.md). Re-check manifests, lockfiles, and workflows before each implementation.
 
 ## Runtime and resolved framework versions
 - PHP constraint: `^8.4.1`; CI uses PHP 8.4.
@@ -23,3 +23,11 @@ Follow the actual current workflow and Composer scripts. At minimum, validate Co
 - Re-run `composer audit --locked` against the current lockfile. Earlier audit findings were against a previous Laravel 12 dependency tree and must not be presented as current findings without reproducing them.
 - Verify both SQLite and MySQL-specific tests when changing database behavior.
 - Review and reduce the PHPStan baseline when fixing findings; do not add suppressions without justification.
+
+
+## MCP implementation state
+- Streamable HTTP transport, Passport authorization-code + PKCE, resource/audience binding, dedicated AI principal, and server-side tool authorization are implemented. The capability registry and business permission matrix remain empty; no business read or mutation tools are enabled.
+- Issue #532 adds `mcp_approvals` and `mcp_execution_audits`, encrypted operation arguments/previews/results, payload-bound independent human review, single-use execution claims, idempotency, expiry, and stale-execution recovery.
+- Human-only Filament resources: MCP Approvals (`mcp_approval.index`, `mcp_approval.approve`) and MCP Execution Audit (`mcp_execution_audit.index`). The AI principal cannot review its own operations.
+- `mcp:expire-approvals` is scheduled every minute. No MCP-specific audit retention period has been approved; no MCP audit deletion is scheduled.
+- See `docs/mcp-server.md`, `docs/mcp-permissions.md`, and `docs/mcp-approvals-and-audit.md`.

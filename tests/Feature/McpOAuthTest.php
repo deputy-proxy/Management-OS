@@ -50,6 +50,7 @@ class McpOAuthTest extends TestCase
         config(['mcp.tool_permissions' => [
             'get_financial_overview' => [
                 'mcp_scope' => 'mcp.finance.read',
+                'operation_type' => 'read',
                 'domain_permissions' => ['finance.view_any'],
                 'record_scope' => McpGlobalRecordScope::class,
                 'allowed_fields' => ['period' => true],

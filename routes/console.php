@@ -43,3 +43,8 @@ Schedule::command('kpi:alerts-evaluate')
     ->everyFiveMinutes()
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();
+
+Schedule::command('mcp:expire-approvals')
+    ->everyMinute()
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();

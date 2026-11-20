@@ -16,13 +16,21 @@ final readonly class McpToolPermission
         public array $domainPermissions,
         public string $recordScope,
         public array $allowedFields,
+        public string $operationType = 'read',
+        public bool $requiresApproval = false,
     ) {
         if (trim($this->toolName) === '' || trim($this->mcpScope) === '' || trim($this->recordScope) === '') {
             throw new InvalidArgumentException('An MCP tool permission requires a tool name, OAuth scope and record scope.');
         }
 
-        if (! preg_match('/^mcp\\.[A-Za-z0-9_.-]{1,120}$/', $this->mcpScope)) {
+        if (! preg_match('/^mcp\.[A-Za-z0-9_.-]{1,120}$/', $this->mcpScope)) {
             throw new InvalidArgumentException('Tool-specific Passport scopes must use the reserved mcp.* namespace.');
+        }
+
+        if (! in_array($this->operationType, ['read', 'write'], true)
+            || ($this->operationType === 'write' && ! $this->requiresApproval)
+            || ($this->operationType === 'read' && $this->requiresApproval)) {
+            throw new InvalidArgumentException('MCP write tools must explicitly require human approval; read tools cannot be marked as writes.');
         }
 
         if (! array_is_list($this->domainPermissions) || $this->domainPermissions === [] || count(array_unique($this->domainPermissions)) !== count($this->domainPermissions) || $this->allowedFields === []) {
@@ -65,6 +73,8 @@ final readonly class McpToolPermission
             domainPermissions: $definition['domain_permissions'] ?? [],
             recordScope: (string) ($definition['record_scope'] ?? ''),
             allowedFields: $definition['allowed_fields'] ?? [],
+            operationType: (string) ($definition['operation_type'] ?? 'read'),
+            requiresApproval: (bool) ($definition['requires_approval'] ?? false),
         );
     }
 }

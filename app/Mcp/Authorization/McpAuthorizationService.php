@@ -17,14 +17,24 @@ final class McpAuthorizationService
 {
     public function authorizeTool(User $principal, McpToolPermission $permission): void
     {
-        $configuredEmail = trim((string) config('mcp.ai_principal_email', ''));
-        if ($configuredEmail === '' || ! hash_equals(Str::lower($configuredEmail), Str::lower((string) $principal->email))) {
-            throw new AuthorizationException('The MCP service identity is not authorized.');
-        }
+        $this->assertConfiguredPrincipal($principal);
 
         if (! $principal->tokenCan('mcp:use') || ! $principal->tokenCan($permission->mcpScope)) {
             throw new AuthorizationException('The MCP tool scope is not authorized.');
         }
+
+        $this->authorizePrincipalForTool($principal, $permission);
+    }
+
+    /**
+     * Re-check the AI principal's current domain authorization when a human reviews an
+     * approval. Human review has no access token for the AI principal, so OAuth scopes
+     * are checked at request and execution time, while the live role permission is
+     * checked again here.
+     */
+    public function authorizePrincipalForTool(User $principal, McpToolPermission $permission): void
+    {
+        $this->assertConfiguredPrincipal($principal);
 
         $roles = $this->rolesFor($principal);
         if (! $this->hasDedicatedAssistantRole($roles)) {
@@ -80,15 +90,22 @@ final class McpAuthorizationService
         }
     }
 
+    private function assertConfiguredPrincipal(User $principal): void
+    {
+        $configuredEmail = trim((string) config('mcp.ai_principal_email', ''));
+        if ($configuredEmail === '' || ! hash_equals(Str::lower($configuredEmail), Str::lower((string) $principal->email))) {
+            throw new AuthorizationException('The MCP service identity is not authorized.');
+        }
+    }
+
     private function rolesFor(User $principal): Collection
     {
-        $query = HexaRole::query()
+        return HexaRole::query()
             ->select('hexa_roles.*')
             ->join('hexa_role_user', 'hexa_role_user.role_id', '=', 'hexa_roles.id')
             ->where('hexa_role_user.user_id', $principal->getKey())
-            ->where('hexa_roles.guard', (string) config('mcp.domain_permission_guard', config('auth.defaults.guard', 'web')));
-
-        return $query->get();
+            ->where('hexa_roles.guard', (string) config('mcp.domain_permission_guard', config('auth.defaults.guard', 'web')))
+            ->get();
     }
 
     private function hasDedicatedAssistantRole(Collection $roles): bool

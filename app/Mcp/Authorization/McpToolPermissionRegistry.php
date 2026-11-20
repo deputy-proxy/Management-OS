@@ -44,6 +44,10 @@ final class McpToolPermissionRegistry
                 throw new InvalidArgumentException('MCP tool names must use the supported identifier format.');
             }
 
+            if (! array_key_exists('operation_type', $definition)) {
+                throw new InvalidArgumentException("MCP tool [{$toolName}] must explicitly declare operation_type as read or write.");
+            }
+
             $permission = McpToolPermission::fromArray($toolName, $definition);
             if (! class_exists($permission->recordScope) || ! is_subclass_of($permission->recordScope, McpRecordScope::class)) {
                 throw new InvalidArgumentException("The record scope for MCP tool [{$toolName}] is invalid.");
