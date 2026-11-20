@@ -3,6 +3,7 @@
 use App\Mcp\Authorization\Scopes\McpGlobalRecordScope;
 use App\Mcp\Authorization\Scopes\McpOwnedRecordScope;
 use App\Mcp\Tools\Executive\ExecutiveMcpCapabilityRegistrar;
+use App\Mcp\Tools\Finance\FinanceMcpCapabilityRegistrar;
 
 $applicationHost = parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost';
 $configuredHosts = trim((string) env('MCP_ALLOWED_HOSTS', ''));
@@ -70,11 +71,12 @@ $kpiResultFields = [
 return [
     'authorization_server' => $authorizationServer === '' ? null : rtrim($authorizationServer, '/'),
     'ai_principal_email' => env('MCP_AI_PRINCIPAL_EMAIL'),
-    'permission_matrix_version' => '1.1.0',
+    'permission_matrix_version' => '1.2.0',
     'domain_permission_guard' => env('MCP_DOMAIN_PERMISSION_GUARD', config('auth.defaults.guard', 'web')),
     'principal_role' => 'Assistant',
     'capability_registrars' => [
         ExecutiveMcpCapabilityRegistrar::class,
+        FinanceMcpCapabilityRegistrar::class,
     ],
     'tool_permissions' => [
         'get_executive_overview' => [
@@ -200,6 +202,56 @@ return [
                 'timezone' => true,
                 'results' => ['key' => true],
             ],
+        ],
+        'get_financial_overview' => [
+            'mcp_scope' => 'mcp.finance.overview.read', 'operation_type' => 'read', 'domain_permissions' => ['finance-dashboard.view'],
+            'optional_domain_permissions' => ['transaction.index', 'customer_invoice.index', 'vendor_invoice.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'as_of' => true, 'timezone' => true, 'period' => true, 'previous_period' => true,
+                'legacy_transactions' => ['currency' => true, 'type' => true, 'current_total' => true, 'previous_total' => true, 'current_count' => true, 'previous_count' => true, 'amount_unit' => true],
+                'canonical_cash_movements' => ['availability' => true, 'basis' => true, 'rows' => ['currency' => true, 'direction' => true, 'current_amount' => true, 'previous_amount' => true, 'current_count' => true, 'previous_count' => true], 'excluded_current_count' => true, 'excluded_previous_count' => true],
+                'transaction_classifications' => ['code' => true, 'label' => true, 'status' => true, 'current_count' => true, 'previous_count' => true],
+                'customer_invoice_statuses' => ['status' => true, 'count' => true], 'vendor_invoice_statuses' => ['status' => true, 'currency' => true, 'count' => true],
+                'source_availability' => ['legacy_transactions' => true, 'canonical_cash_movements' => true, 'transaction_classifications' => true, 'customer_invoice_statuses' => true, 'vendor_invoice_statuses' => true]],
+        ],
+        'get_transactions' => [
+            'mcp_scope' => 'mcp.finance.transactions.read', 'operation_type' => 'read', 'domain_permissions' => ['transaction.index'], 'optional_domain_permissions' => ['financial_account.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['status' => true, 'from' => true, 'to' => true, 'timezone' => true, 'maximum_days' => true, 'basis' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true,
+                'totals' => ['included' => true, 'excluded' => true, 'unknown' => true], 'records' => ['source_type' => true, 'date' => true, 'direction' => true, 'category' => true, 'currency_code' => true, 'amount' => true, 'amount_status' => true, 'reason_code' => true, 'classification_label' => true, 'classification_status' => true, 'account_label' => true, 'duplicate_status' => true, 'duplicate_count' => true, 'special_event_status' => true]],
+        ],
+        'get_receivables' => [
+            'mcp_scope' => 'mcp.finance.receivables.read', 'operation_type' => 'read', 'domain_permissions' => ['receivables-payables.view', 'customer_invoice.index'], 'optional_domain_permissions' => ['transaction.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'as_of' => true, 'timezone' => true, 'generated_at' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'payment_data_availability' => true,
+                'totals_by_currency' => ['currency_code' => true, 'invoice_total' => true, 'confirmed_allocated' => true, 'outstanding_amount' => true, 'credit_amount' => true, 'invoice_count' => true],
+                'summary' => ['supported_receivables' => true, 'unresolved_receivables' => true, 'invoice_record_count' => true],
+                'receivables' => ['source_type' => true, 'source_reference' => true, 'document_date' => true, 'due_date' => true, 'currency_code' => true, 'invoice_total' => true, 'confirmed_allocated' => true, 'outstanding_amount' => true, 'credit_amount' => true, 'balance_status' => true, 'payment_state' => true, 'aging_bucket' => true, 'days_overdue' => true, 'allocation_count' => true, 'pending_allocation_count' => true, 'reversed_allocation_count' => true, 'reason_codes' => true, 'document_status' => true, 'source_status' => true, 'payable_amount_availability' => true, 'payment_data_availability' => true]],
+        ],
+        'get_payables' => [
+            'mcp_scope' => 'mcp.finance.payables.read', 'operation_type' => 'read', 'domain_permissions' => ['receivables-payables.view', 'vendor_invoice.index'], 'optional_domain_permissions' => ['transaction.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'as_of' => true, 'timezone' => true, 'generated_at' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'amount_availability' => true, 'payment_data_availability' => true,
+                'summary' => ['vendor_invoice_records' => true, 'payable_total_contract_approved' => true],
+                'payables' => ['source_type' => true, 'source_reference' => true, 'document_date' => true, 'due_date' => true, 'currency_code' => true, 'invoice_total' => true, 'confirmed_allocated' => true, 'outstanding_amount' => true, 'credit_amount' => true, 'balance_status' => true, 'payment_state' => true, 'aging_bucket' => true, 'days_overdue' => true, 'allocation_count' => true, 'pending_allocation_count' => true, 'reversed_allocation_count' => true, 'reason_codes' => true, 'document_status' => true, 'source_status' => true, 'payable_amount_availability' => true, 'payment_data_availability' => true]],
+        ],
+        'get_cash_forecast' => [
+            'mcp_scope' => 'mcp.finance.cash-forecast.read', 'operation_type' => 'read', 'domain_permissions' => ['cash-forecast.view', 'transaction.index', 'customer_invoice.index', 'vendor_invoice.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'timezone' => true, 'forecast_name' => true, 'scenario_name' => true, 'version' => true, 'scenario_status' => true, 'period_start' => true, 'period_end' => true, 'currency_code' => true, 'opening_balance' => true, 'closing_balance' => true, 'as_of' => true, 'manual_assumption_count' => true,
+                'totals' => ['actual_inflows' => true, 'actual_outflows' => true, 'projected_inflows' => true, 'projected_outflows' => true], 'sources' => ['supported_receivable_count' => true, 'unresolved_receivable_payment_links' => true, 'payables_unavailable_count' => true, 'undated_payables_missing_amount_count' => true, 'unknown_actual_transaction_count' => true, 'other_currency_actual_transaction_count' => true, 'expired_manual_assumption_count' => true, 'duplicate_manual_assumption_count' => true, 'actual_basis' => true, 'receivable_basis' => true, 'payable_basis' => true, 'currency_basis' => true],
+                'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'rows' => ['date' => true, 'actual_inflows' => true, 'actual_outflows' => true, 'projected_inflows' => true, 'projected_outflows' => true, 'closing_balance' => true, 'actual_transaction_count' => true, 'projected_sources' => ['type' => true, 'amount' => true, 'confidence' => true, 'status' => true]]],
+        ],
+        'get_budget_vs_actuals' => [
+            'mcp_scope' => 'mcp.finance.budget-actuals.read', 'operation_type' => 'read', 'domain_permissions' => ['budget.actuals.view', 'budget.index', 'transaction.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'timezone' => true, 'generated_at' => true, 'budget_version' => true, 'period_start' => true, 'period_end' => true, 'currency_code' => true, 'actuals_basis' => true, 'actuals_basis_label' => true, 'excluded_count' => true, 'excluded_known_amount' => true, 'excluded_known_amount_count' => true, 'excluded_reason_counts' => ['reason_code' => true, 'count' => true], 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'rows' => ['code' => true, 'description' => true, 'budget_amount' => true, 'actual_amount' => true, 'variance_amount' => true, 'variance_percent' => true, 'status' => true]],
+        ],
+        'get_profitability_report' => [
+            'mcp_scope' => 'mcp.finance.profitability.read', 'operation_type' => 'read', 'domain_permissions' => ['finance-profitability.view'], 'optional_domain_permissions' => ['product.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'timezone' => true, 'run_status' => true, 'formula_version' => true, 'period_start' => true, 'period_end' => true, 'created_at' => true, 'result_count' => true, 'results_availability' => true, 'currency_totals' => ['currency_code' => true, 'revenue_amount' => true, 'direct_cost_amount' => true, 'overhead_cost_amount' => true, 'provisional_profit_amount' => true, 'provisional_margin_percent' => true, 'result_count' => true, 'complete' => true], 'exception_count' => true, 'exception_code_counts' => ['code' => true, 'count' => true], 'customer_details_available' => true, 'project_dimension_available' => true, 'project_dimension_reason' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'results' => ['product_title' => true, 'currency_code' => true, 'revenue_amount' => true, 'direct_cost_amount' => true, 'overhead_cost_amount' => true, 'provisional_profit_amount' => true, 'provisional_margin_percent' => true]],
+        ],
+        'get_reconciliation_status' => [
+            'mcp_scope' => 'mcp.finance.reconciliation.read', 'operation_type' => 'read', 'domain_permissions' => ['financial-reconciliation.view'], 'optional_domain_permissions' => ['transaction.index', 'financial_account.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'timezone' => true, 'from' => true, 'to' => true, 'generated_at' => true, 'maximum_days' => true, 'summary' => ['statement_rows' => true, 'exact_match' => true, 'partial_candidate' => true, 'unmatched' => true, 'ambiguous' => true, 'rejected' => true, 'unreviewed' => true, 'exact_candidates' => true, 'near_candidates' => true, 'partial_candidates' => true], 'totals_by_currency' => ['currency_code' => true, 'direction' => true, 'statement_rows' => true, 'statement_amount' => true, 'exact_match_amount' => true, 'partial_candidate_amount' => true, 'unmatched_amount' => true, 'ambiguous_amount' => true, 'unreviewed_amount' => true, 'rejected_amount' => true], 'currencies' => true, 'accounts' => ['title' => true], 'account_data_availability' => true, 'candidate_data_availability' => true, 'total_count' => true, 'returned_count' => true, 'limit' => true, 'offset' => true, 'has_more' => true, 'rows' => ['date' => true, 'direction' => true, 'amount' => true, 'currency_code' => true, 'account' => true, 'status' => true, 'review_reasons' => true, 'candidate_status' => true, 'candidate_count' => true, 'candidates' => ['date' => true, 'amount' => true, 'currency_code' => true, 'direction' => true, 'match_type' => true, 'allocation_counts' => true, 'shared_candidate_count' => true]]],
+        ],
+        'get_invoice_details' => [
+            'mcp_scope' => 'mcp.finance.invoice.read', 'operation_type' => 'read', 'domain_permissions' => ['receivables-payables.view'], 'optional_domain_permissions' => ['customer_invoice.index', 'vendor_invoice.index', 'transaction.index'], 'record_scope' => McpGlobalRecordScope::class,
+            'allowed_fields' => ['availability' => true, 'as_of' => true, 'timezone' => true, 'invoice' => ['source_type' => true, 'source_reference' => true, 'document_date' => true, 'due_date' => true, 'currency_code' => true, 'invoice_total' => true, 'confirmed_allocated' => true, 'outstanding_amount' => true, 'credit_amount' => true, 'balance_status' => true, 'payment_state' => true, 'aging_bucket' => true, 'days_overdue' => true, 'allocation_count' => true, 'pending_allocation_count' => true, 'reversed_allocation_count' => true, 'reason_codes' => true, 'document_status' => true, 'source_status' => true, 'payable_amount_availability' => true, 'payment_data_availability' => true]],
         ],
     ],
     'access_token_ttl_minutes' => (int) env('MCP_ACCESS_TOKEN_TTL_MINUTES', 60),

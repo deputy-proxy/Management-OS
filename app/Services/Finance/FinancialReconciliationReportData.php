@@ -17,7 +17,7 @@ class FinancialReconciliationReportData
      * Read-only reconciliation diagnostics for completed statement imports.
      * Candidate matches are suggestions only and never mutate source records.
      *
-     * @return array{from: string, to: string, generated_at: string, summary: array<string, int>, rows: array<int, array<string, mixed>>, currencies: array<int, string>, accounts: array<int, array{id: int, title: string}>}
+     * @return array{from: string, to: string, generated_at: string, summary: array<string, int>, totals_by_currency: array<int, array<string, mixed>>, rows: array<int, array<string, mixed>>, currencies: array<int, string>, accounts: array<int, array{id: int, title: string}>}
      */
     public function report(
         CarbonImmutable $from,

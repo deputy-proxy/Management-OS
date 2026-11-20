@@ -120,13 +120,20 @@ class McpTransportTest extends TestCase
             'method' => 'notifications/initialized',
         ], $sessionId)->assertAccepted();
 
-        $this->mcpPost([
+        $toolsResponse = $this->mcpPost([
             'jsonrpc' => '2.0',
             'id' => 2,
             'method' => 'tools/list',
             'params' => new \stdClass,
-        ], $sessionId)->assertOk()->assertJsonPath('result.tools.0.name', 'get_executive_overview')
-            ->assertJsonPath('result.tools.5.name', 'get_period_comparison');
+        ], $sessionId)->assertOk();
+        $tools = $toolsResponse->json('result.tools');
+        $this->assertCount(15, $tools);
+        $this->assertEqualsCanonicalizing([
+            'get_executive_overview', 'get_management_kpis', 'get_kpi_alerts', 'get_business_health',
+            'get_management_priorities', 'get_period_comparison', 'get_financial_overview', 'get_transactions',
+            'get_receivables', 'get_payables', 'get_cash_forecast', 'get_budget_vs_actuals',
+            'get_profitability_report', 'get_reconciliation_status', 'get_invoice_details',
+        ], array_column($tools, 'name'));
 
         $this->mcpPost([
             'jsonrpc' => '2.0',

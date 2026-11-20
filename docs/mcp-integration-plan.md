@@ -1,10 +1,10 @@
 # Management-OS MCP integration: implementation plan
 
-**Status:** Proposed architecture and delivery plan  
-**Repository:** `deputy-proxy/Management-OS`  
+**Status:** Implementation plan with verified progress through issue #534
+**Repository:** `deputy-proxy/os-edventure-ro` (application name: Management-OS)
 **Target deployment:** Existing Management-OS Laravel application  
 **Transport target:** Remote MCP over HTTPS using Streamable HTTP, subject to SDK and ChatGPT-client compatibility verification  
-**Planning baseline:** 2026-11-19
+**Planning baseline:** 2026-11-20
 
 ## 1. Executive summary
 
@@ -20,6 +20,18 @@ Delivery is incremental:
 4. Expand to HR, products, marketing and academic operations after domain-specific privacy and permission review.
 
 The first usable release is read-only. Payroll, invoice issuance, financial corrections, user administration and other high-impact operations are not enabled as AI mutations in this plan.
+
+## Verified implementation status (2026-11-20)
+
+- Secure transport, Passport authorization-code + PKCE, dedicated AI principal, permission boundary and approval/audit infrastructure are implemented (#529–#532; PR #548 merged).
+- Executive read-only tools are implemented (#533; PR #549 merged).
+- Finance read-only tools are implemented in #534: nine tools, permission matrix v1.2.0, strict response allowlists and a non-persisting budget comparison preview. No finance mutation is enabled.
+- CRM and operations read-only tools remain pending (#535 and #536). Controlled task/CRM actions remain pending (#537). Resources/prompts remain pending (#538).
+- Extended HR/payroll, products, marketing and academic tools remain blocked pending domain-owner approval of fields, audience and retention (#539). Statutory payroll/general-ledger reporting is not approved for MCP.
+- Cross-cutting developer/operator documentation remains pending (#540), with domain documentation updated incrementally.
+- Live ChatGPT workspace interoperability and production reverse-proxy/streaming behavior remain staging verification gates. No production deployment or hosting configuration was changed.
+
+The current registered tool set is fifteen read-only tools: six executive and nine finance. See `mcp-server.md`, `mcp-permissions.md`, `mcp-executive-tools.md` and `mcp-finance-tools.md`.
 
 ## 2. Verified repository context and constraints
 
@@ -438,7 +450,7 @@ These are verification tasks, not assumptions:
 4. Which current HexaLite permissions and role-seeding conventions should map to the AI principal?
 5. Which staff roles may approve each class of task/CRM mutation?
 6. What retention period and access policy apply to MCP execution and approval records?
-7. Which executive/finance/CRM/operations fields are approved for AI disclosure?
+7. Finance fields for #534 use the conservative allowlist in `mcp-finance-tools.md`, with explicit source permissions and no AI-principal permissions granted by default. CRM/operations field allowlists remain for #535/#536. HR/payroll, products, marketing and academic disclosure remains blocked until each domain owner approves exact fields, audience and retention.
 8. Which production runtime/database versions and operational controls are actually deployed?
 
 Do not resolve these questions by guessing. Record verified answers in implementation PRs and update this document when decisions become authoritative.

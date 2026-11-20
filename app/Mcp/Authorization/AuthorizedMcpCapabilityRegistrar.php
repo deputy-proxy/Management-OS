@@ -9,9 +9,11 @@ use App\Services\Mcp\McpApprovalService;
 use App\Services\Mcp\McpExecutionAuditRecorder;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Mcp\Server\Builder;
@@ -251,6 +253,31 @@ abstract class AuthorizedMcpCapabilityRegistrar implements McpCapabilityRegistra
             null,
             ReferenceHandler::class,
         );
+    }
+
+    protected function withPrincipalContext(User $principal, callable $callback): mixed
+    {
+        $previousGuard = Auth::getDefaultDriver();
+        $domainGuard = (string) config('mcp.domain_permission_guard', config('auth.defaults.guard', 'web'));
+        $guard = Auth::guard($domainGuard);
+        $previousUser = $guard->user();
+        $guard->setUser($principal);
+        Auth::shouldUse($domainGuard);
+        $gate = Gate::getFacadeRoot();
+        Gate::swap($gate->forUser($principal));
+        try {
+            return $callback();
+        } finally {
+            Gate::swap($gate);
+            if ($previousUser instanceof Authenticatable) {
+                $guard->setUser($previousUser);
+            } elseif (method_exists($guard, 'forgetUser')) {
+                $guard->forgetUser();
+            } else {
+                Auth::forgetGuards();
+            }
+            Auth::shouldUse($previousGuard);
+        }
     }
 
     /** Apply the declared record scope before search, pagination, totals or aggregation. */

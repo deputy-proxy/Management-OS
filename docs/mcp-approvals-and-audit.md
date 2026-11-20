@@ -2,7 +2,7 @@
 
 ## Status and boundary
 
-Issue #532 implements the approval and audit infrastructure required before controlled MCP writes. The MCP capability registry and business permission matrix remain empty. No business write tool is registered or enabled by this issue.
+Issue #532 implements the approval and audit infrastructure required before controlled MCP writes. At the time #532 was implemented, the MCP capability registry and business permission matrix were empty. The registry now contains six read-only executive tools from #533 and nine read-only finance tools from #534. No business write tool is registered or enabled; the approval lifecycle remains infrastructure for later controlled-action work.
 
 Future write tools must use the approval service and an existing domain service. A tool must not mutate domain data directly from its initial MCP request. This infrastructure is not a substitute for domain-specific authorization, record scoping, field allowlists, or service-level validation.
 

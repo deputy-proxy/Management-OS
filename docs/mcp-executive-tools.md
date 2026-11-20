@@ -16,7 +16,7 @@ This is deliberate: an overview permission does not grant access to the underlyi
 
 `get_kpi_alerts` is separately gated by `kpi_alert.view_own` and uses the owner record scope. It returns only alerts visible to the AI principal. It does not expose alert owners, lifecycle event metadata, or raw evidence payloads.
 
-The permission matrix version is `1.1.0`. Optional permissions are included in the provisioning allowlist, but are checked individually by the executive handlers before a source is queried.
+The executive tool contracts were introduced with permission matrix version `1.1.0`; the current global matrix is `1.2.0` after the finance tools were added. Optional permissions are included in the provisioning allowlist, but are checked individually by the executive handlers before a source is queried.
 
 ## Tool contracts
 

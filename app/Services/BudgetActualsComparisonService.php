@@ -29,6 +29,38 @@ class BudgetActualsComparisonService
         ?string $periodEnd = null,
         ?string $currencyCode = null,
         array $dimensions = [],
+        bool $persistSnapshot = true,
+        bool $includeSourceIds = true,
+    ): array {
+        $report = $this->preview($version, $periodStart, $periodEnd, $currencyCode, $dimensions, $includeSourceIds);
+        if (! $persistSnapshot) {
+            return $report;
+        }
+
+        $snapshot = BudgetActualReportRun::query()->create([
+            'budget_version_id' => $version->getKey(),
+            'created_by' => auth()->id(),
+            'period_start' => $report['period_start'],
+            'period_end' => $report['period_end'],
+            'currency_code' => $report['currency_code'],
+            'actuals_basis' => $report['actuals_basis'],
+            'dimensions' => $dimensions,
+            'report_snapshot' => $report,
+            'created_at' => now(),
+        ]);
+        $report['report_run_id'] = (int) $snapshot->getKey();
+
+        return $report;
+    }
+
+    /** @param array<string, string> $dimensions @return array<string, mixed> */
+    public function preview(
+        BudgetVersion $version,
+        ?string $periodStart = null,
+        ?string $periodEnd = null,
+        ?string $currencyCode = null,
+        array $dimensions = [],
+        bool $includeSourceIds = true,
     ): array {
         $version->loadMissing('lineItems');
         $start = Carbon::parse($periodStart ?? $version->period_start)->startOfDay();
@@ -74,7 +106,7 @@ class BudgetActualsComparisonService
         $transactions = Transaction::query()
             ->whereBetween('timestamp', [$start, $end])
             ->orderBy('id')
-            ->get();
+            ->cursor();
 
         $classifier = app(TransactionClassificationService::class);
         $actuals = [];
@@ -150,10 +182,12 @@ class BudgetActualsComparisonService
 
             $actuals[$code] ??= BigDecimal::zero();
             $actuals[$code] = $actuals[$code]->plus((string) $amount);
-            $sources[$code][] = (int) $transaction->getKey();
+            if ($includeSourceIds) {
+                $sources[$code][] = (int) $transaction->getKey();
+            }
         }
 
-        $rows = $lines->map(function ($line) use ($actuals, $sources, $codeCounts): array {
+        $rows = $lines->map(function ($line) use ($actuals, $sources, $codeCounts, $includeSourceIds): array {
             $budget = BigDecimal::of((string) $line->amount);
             $dimensioned = ($line->dimensions ?? []) !== [];
             $ambiguous = filled($line->code) && ($codeCounts[$line->code] ?? 0) > 1;
@@ -174,7 +208,7 @@ class BudgetActualsComparisonService
                 'variance_amount' => $variance?->toScale(2, RoundingMode::HalfUp)->__toString(),
                 'variance_percent' => $variancePercent,
                 'status' => $dimensioned ? 'unknown_dimension_attribution' : ($ambiguous ? 'ambiguous_budget_code' : ($mapped ? 'matched' : 'missing_actuals')),
-                'source_transaction_ids' => $sources[$line->code] ?? [],
+                'source_transaction_ids' => $includeSourceIds ? ($sources[$line->code] ?? []) : [],
             ];
         })->all();
 
@@ -196,20 +230,6 @@ class BudgetActualsComparisonService
             'excluded_known_amount_count' => $excludedKnownAmountCount,
             'generated_at' => now()->toIso8601String(),
         ];
-
-        $snapshot = BudgetActualReportRun::query()->create([
-            'budget_version_id' => $version->getKey(),
-            'created_by' => auth()->id(),
-            'period_start' => $report['period_start'],
-            'period_end' => $report['period_end'],
-            'currency_code' => $currency,
-            'actuals_basis' => $report['actuals_basis'],
-            'dimensions' => $dimensions,
-            'report_snapshot' => $report,
-            'created_at' => now(),
-        ]);
-
-        $report['report_run_id'] = (int) $snapshot->getKey();
 
         return $report;
     }
