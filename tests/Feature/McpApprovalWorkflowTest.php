@@ -245,6 +245,29 @@ final class McpApprovalWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_approval_decision_cannot_be_reused_or_overwritten(): void
+    {
+        $principal = $this->principal();
+        Passport::actingAs($principal, ['mcp:use', 'mcp.operations.tasks.write']);
+        $reviewer = $this->reviewer();
+        $service = app(McpApprovalService::class);
+        $approval = $service->approve(
+            $this->requestApproval($principal),
+            $reviewer,
+            'Reviewed and approved.',
+        );
+
+        try {
+            $service->reject($approval, $reviewer, 'Attempt to overwrite the prior decision.');
+            $this->fail('An approval decision must be single-use.');
+        } catch (ValidationException) {
+            $this->assertSame(McpApproval::STATUS_APPROVED, $approval->fresh()->status);
+        }
+
+        $this->assertSame(1, DB::table('mcp_execution_audits')->where('event_type', 'approval_approved')->count());
+        $this->assertSame(0, DB::table('mcp_execution_audits')->where('event_type', 'approval_rejected')->count());
+    }
+
     public function test_reviewer_must_be_distinct_from_known_human_initiator(): void
     {
         $principal = $this->principal();
