@@ -221,36 +221,42 @@ final class OperationsMcpCapabilityRegistrar extends AuthorizedMcpCapabilityRegi
 
         return $this->withPrincipalContext($user, function () use ($user, $v): array {
             $asOf = CarbonImmutable::parse($v['as_of'] ?? CarbonImmutable::now(self::TZ)->toDateString(), self::TZ)->startOfDay();
-            /** @var Builder<Task> $query */
-            $query = $this->scopeQuery($user, 'get_overdue_tasks', Task::query())
-                ->with(['assignedTo:id,name', 'project:id,title', 'projectPhase:id,title'])
-                ->whereNotNull('due_date')
-                ->whereDate('due_date', '<', $asOf->toDateString())
-                ->where('status', '!=', 'done');
-            if (isset($v['assigned_to'])) {
-                $query->where('assigned_to', $v['assigned_to']);
-            }
-            if (isset($v['project_id'])) {
-                $query->where('project_id', $v['project_id']);
-            }
-            $query->select([
-                'id', 'action', 'status', 'due_date', 'estimated_effort_minutes',
-                'assigned_to', 'project_id', 'project_phase_id', 'created_at',
-            ])->orderBy('due_date')->orderBy('id');
+            $limit = (int) ($v['limit'] ?? 50);
+            $offset = (int) ($v['offset'] ?? 0);
+            $summary = app(TasksAndProjectsData::class)->summary(
+                now: $asOf,
+                canViewTasks: true,
+                canViewAllTasks: true,
+                canViewProjects: false,
+                canViewPhases: false,
+                ownerFilter: $v['assigned_to'] ?? null,
+                projectFilter: $v['project_id'] ?? null,
+                authorizedTaskQuery: $this->scopeQuery($user, 'get_overdue_tasks', Task::query()),
+                listLimit: $limit,
+                listOffset: $offset,
+            );
+
+            $tasks = $summary['overdue_tasks'];
+            $total = (int) $summary['overdue_tasks_total'];
 
             return [
                 'availability' => 'available',
                 'as_of' => $asOf->toIso8601String(),
                 'timezone' => self::TZ,
-                'basis' => 'Due date is strictly earlier than as_of and status is not done. Null due dates are excluded; unrecognized status values are returned unchanged.',
-                ...$this->pageQuery($query, $v, 'tasks', function (Task $task) use ($asOf): array {
+                'basis' => 'Uses TasksAndProjectsData: due date is strictly earlier than as_of and status is not done. Null due dates are excluded; unrecognized status values are returned unchanged.',
+                'total_count' => $total,
+                'returned_count' => $tasks->count(),
+                'limit' => $limit,
+                'offset' => $offset,
+                'has_more' => $offset + $tasks->count() < $total,
+                'tasks' => $tasks->map(function (Task $task) use ($asOf): array {
                     $dueDate = CarbonImmutable::parse($task->getAttribute('due_date'), self::TZ);
 
                     return [
                         ...$this->taskDto($task),
                         'overdue_days' => (int) $dueDate->diffInDays($asOf),
                     ];
-                }),
+                })->values()->all(),
             ];
         });
     }

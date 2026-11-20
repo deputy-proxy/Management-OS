@@ -182,6 +182,17 @@ class McpOperationsToolsTest extends TestCase
         $this->assertSame('blocked', $result['tasks'][0]['status']);
         $this->assertSame(2, $result['tasks'][0]['overdue_days']);
         $this->assertStringContainsString('Null due dates are excluded', $result['basis']);
+
+        $page = $this->callTool('get_overdue_tasks', [
+            'as_of' => '2026-11-20',
+            'limit' => 1,
+            'offset' => 1,
+        ], $this->initialize())->assertOk()->json('result.structuredContent');
+
+        $this->assertSame(2, $page['total_count']);
+        $this->assertSame(1, $page['returned_count']);
+        $this->assertFalse($page['has_more']);
+        $this->assertSame('Yesterday overdue', $page['tasks'][0]['action']);
     }
 
     public function test_bottleneck_aggregates_use_the_same_task_record_scope_as_task_lists(): void
@@ -352,6 +363,47 @@ class McpOperationsToolsTest extends TestCase
         $content = (string) $this->callTool('get_meetings', ['query' => 'Quarterly'], $this->initialize())->getContent();
         $this->assertStringNotContainsString('Confidential meeting notes', $content);
         $this->assertStringNotContainsString('Secret Person', $content);
+    }
+
+    public function test_list_tools_return_empty_results_for_unmatched_filters(): void
+    {
+        $this->grant(['project.index', 'task.index', 'quarterly_objective.index', 'meeting.index']);
+        $session = $this->initialize();
+
+        $projects = $this->callTool('get_projects', ['status' => 'no-such-status'], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame(0, $projects['total_count']);
+        $this->assertSame(0, $projects['returned_count']);
+        $this->assertFalse($projects['has_more']);
+        $this->assertSame([], $projects['projects']);
+
+        $tasks = $this->callTool('get_tasks', ['status' => 'done'], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame(0, $tasks['total_count']);
+        $this->assertSame([], $tasks['tasks']);
+
+        $overdue = $this->callTool('get_overdue_tasks', ['as_of' => '2026-11-20'], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame(0, $overdue['total_count']);
+        $this->assertSame([], $overdue['tasks']);
+
+        $objectives = $this->callTool('get_quarterly_objectives', ['quarter' => '2099-Q1'], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame(0, $objectives['total_count']);
+        $this->assertSame([], $objectives['objectives']);
+
+        $meetings = $this->callTool('get_meetings', ['query' => 'No matching subject'], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame(0, $meetings['total_count']);
+        $this->assertSame([], $meetings['meetings']);
+
+        $projectDetail = $this->callTool('get_project_details', ['project_id' => 999999], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame('unavailable_project_not_found', $projectDetail['availability']);
+
+        $taskDetail = $this->callTool('get_task_details', ['task_id' => 999999], $session)
+            ->assertOk()->json('result.structuredContent');
+        $this->assertSame('unavailable_task_not_found', $taskDetail['availability']);
     }
 
     private function grant(array $permissions): void

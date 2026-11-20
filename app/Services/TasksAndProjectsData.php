@@ -26,10 +26,14 @@ class TasksAndProjectsData
         ?int $projectFilter = null,
         string $dueDateFilter = 'all',
         ?Builder $authorizedTaskQuery = null,
+        int $listLimit = 8,
+        int $listOffset = 0,
     ): array {
         $now ??= CarbonImmutable::now(config('app.timezone'));
         $today = $now->toDateString();
         $weekEnd = $now->addDays(7)->toDateString();
+        $listLimit = max(1, min(100, $listLimit));
+        $listOffset = max(0, min(1000, $listOffset));
 
         $taskQuery = ($authorizedTaskQuery !== null ? clone $authorizedTaskQuery : Task::query())
             ->with(['project:id,title', 'projectPhase:id,title', 'assignedTo:id,name']);
@@ -67,7 +71,7 @@ class TasksAndProjectsData
 
         $openTasks = (clone $visibleTasks)->where('status', '!=', 'done');
         $overdue = $canViewTasks
-            ? (clone $openTasks)->whereDate('due_date', '<', $today)->count()
+            ? $this->overdueQuery(clone $visibleTasks, $today)->count()
             : 0;
 
         $assigneeWorkload = $canViewTasks
@@ -86,13 +90,16 @@ class TasksAndProjectsData
 
         $upcoming = $canViewTasks && $dueDateFilter !== 'overdue'
             ? (clone $tasks)->whereDate('due_date', '>=', $today)->whereDate('due_date', '<=', $weekEnd)->where('status', '!=', 'done')
-                ->orderBy('due_date')->orderBy('id')->limit(8)->get()
+                ->orderBy('due_date')->orderBy('id')->offset($listOffset)->limit($listLimit)->get()
             : collect();
 
-        $overdueTasks = $canViewTasks && $dueDateFilter !== 'next_7_days'
-            ? (clone $tasks)->whereDate('due_date', '<', $today)->where('status', '!=', 'done')
-                ->orderBy('due_date')->orderBy('id')->limit(8)->get()
-            : collect();
+        $overdueTasksQuery = $canViewTasks && $dueDateFilter !== 'next_7_days'
+            ? $this->overdueQuery(clone $tasks, $today)
+            : null;
+        $overdueTasksTotal = $overdueTasksQuery === null ? 0 : (clone $overdueTasksQuery)->count();
+        $overdueTasks = $overdueTasksQuery === null
+            ? collect()
+            : $overdueTasksQuery->orderBy('due_date')->orderBy('id')->offset($listOffset)->limit($listLimit)->get();
 
         return [
             'as_of' => $now->format('F j, Y'),
@@ -100,6 +107,7 @@ class TasksAndProjectsData
             'tasks_total' => $canViewTasks ? (clone $tasks)->count() : null,
             'tasks_open' => $canViewTasks ? (clone $tasks)->where('status', '!=', 'done')->count() : null,
             'tasks_overdue' => $overdue,
+            'overdue_tasks_total' => $overdueTasksTotal,
             'assignee_workload' => $assigneeWorkload,
             'projects_started_after_plan' => $canViewProjects
                 ? Project::query()->whereColumn('start_date', '>', 'planned_start_date')->count()
@@ -120,5 +128,13 @@ class TasksAndProjectsData
                 ? ProjectPhase::query()->whereDate('start_on', '<=', $today)->whereDate('end_on', '>=', $today)->count()
                 : null,
         ];
+    }
+
+    private function overdueQuery(Builder $query, string $asOfDate): Builder
+    {
+        return $query
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', '<', $asOfDate)
+            ->where('status', '!=', 'done');
     }
 }
