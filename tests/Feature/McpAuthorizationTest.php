@@ -621,6 +621,31 @@ class McpAuthorizationTest extends TestCase
         app(McpAuthorizationTestRegistrar::class)->registerWriteTool(Server::builder());
     }
 
+    public function test_optional_domain_permissions_are_allowlisted_without_becoming_tool_requirements(): void
+    {
+        config(['mcp.tool_permissions' => [
+            'get_executive_overview' => [
+                'mcp_scope' => 'mcp.executive.overview.read',
+                'operation_type' => 'read',
+                'domain_permissions' => ['overview-dashboard.view'],
+                'optional_domain_permissions' => ['customer.index', 'task.index'],
+                'record_scope' => McpGlobalRecordScope::class,
+                'allowed_fields' => ['status' => true],
+            ],
+        ]]);
+
+        $registry = new McpToolPermissionRegistry;
+        $principal = $this->principalWithPermissions(['Overview' => ['overview-dashboard.view']]);
+        Passport::actingAs($principal, ['mcp:use', 'mcp.executive.overview.read']);
+
+        app(McpAuthorizationService::class)->authorizeTool($principal, $registry->forTool('get_executive_overview'));
+
+        $this->assertSame(
+            ['overview-dashboard.view', 'customer.index', 'task.index'],
+            $registry->allowedDomainPermissions(),
+        );
+    }
+
     public function test_registry_exposes_only_registered_tool_scopes_to_passport(): void
     {
         config(['mcp.tool_permissions' => [

@@ -73,7 +73,7 @@ final class McpToolPermissionRegistry
     {
         $permissions = [];
         foreach ($this->all() as $definition) {
-            array_push($permissions, ...$definition->domainPermissions);
+            array_push($permissions, ...$definition->domainPermissions, ...$definition->optionalDomainPermissions);
         }
 
         return array_values(array_unique($permissions));

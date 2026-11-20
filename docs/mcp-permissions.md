@@ -1,6 +1,6 @@
 # MCP permission matrix
 
-**Matrix version:** `1.0.0` (configured by `mcp.permission_matrix_version`)
+**Matrix version:** `1.1.0` (configured by `mcp.permission_matrix_version`)
 
 This document is the operator-facing companion to `config/mcp.php`. The configuration is the runtime source of truth. Every registered MCP tool must have exactly one entry under `mcp.tool_permissions`; the server refuses to register a tool without one.
 
@@ -18,7 +18,7 @@ Every tool call must pass all of the following checks, on every invocation:
 8. A record loaded by an externally supplied identifier is checked again against the declared record scope.
 9. Tool output is filtered through its explicit field allowlist. Nested relationships require their own nested allowlists.
 
-The tool permission is an additional restriction, not a replacement for the domain permission. Both the OAuth tool scope and every listed domain permission are required. The MCP authorization path deliberately does not use HexaLite's implicit no-role or Owner bypasses. The domain-permission guard defaults to the application's configured default guard (`web`); set `MCP_DOMAIN_PERMISSION_GUARD` only if the deployment deliberately uses a different guard.
+The tool permission is an additional restriction, not a replacement for the domain permission. Both the OAuth tool scope and every required `domain_permissions` entry are required. Optional domain permissions are not part of the tool invocation gate: handlers must check them independently before querying each optional source. This supports permission-filtered overview tools without requiring the AI identity to have every underlying resource permission. The MCP authorization path deliberately does not use HexaLite's implicit no-role or Owner bypasses. The domain-permission guard defaults to the application's configured default guard (`web`); set `MCP_DOMAIN_PERMISSION_GUARD` only if the deployment deliberately uses a different guard.
 
 ## Matrix entry contract
 
@@ -27,7 +27,8 @@ Add an entry to `config/mcp.php` for each tool:
 | Field | Requirement |
 | --- | --- |
 | `mcp_scope` | A Passport scope dedicated to the capability. It is registered from the matrix and must be present on the caller's token. |
-| `domain_permissions` | Non-empty list of exact existing HexaLite permission keys. All listed permissions are required. |
+| `domain_permissions` | Non-empty list of exact existing HexaLite permission keys. All listed permissions are required to invoke the tool. |
+| `optional_domain_permissions` | Optional list of exact existing HexaLite permission keys. These are included in the Assistant-role provisioning allowlist but are checked individually by the handler; they must not be treated as granted merely because the tool itself is callable. |
 | `record_scope` | Class implementing `App\Mcp\Authorization\Scopes\McpRecordScope`. It must scope collection queries and authorize individual records. |
 | `allowed_fields` | Non-empty nested allowlist. Only listed scalar fields are returned. Nested objects/relationships must declare their own field map. |
 | `operation_type` | Required. Declare `read` or `write` for every registered tool. Direct registration through `addAuthorizedTool()` is read-only. |
@@ -90,7 +91,7 @@ Never assign Owner/superadmin or copy a human user's role set to the AI principa
 
 ## Current state
 
-No business tools are registered yet, so the runtime matrix is intentionally empty. The authorization framework and approval boundary are in place for subsequent domain-tool issues. This issue does not grant the AI identity any domain permission and does not enable business data access.
+Issue #533 registers six read-only executive tools. The AI principal must have `overview-dashboard.view` to invoke the overview/KPI/health/priorities/comparison tools; optional source permissions are evaluated independently for each data domain. KPI alerts require `kpi_alert.view_own` and are owner-scoped. The AI principal receives no domain permissions automatically. Operators must explicitly assign only reviewed permissions declared in the runtime matrix. See [MCP executive tools](mcp-executive-tools.md) for schemas, sources, and limitations.
 
 
 ## Human approval and audit permissions
@@ -103,4 +104,4 @@ Issue #532 adds three separate Management-OS staff permissions:
 
 Assign these only to designated human reviewers/auditors. The configured AI principal is explicitly denied access even if it is accidentally assigned one of these permissions. The Filament resources are read-only except for the approve/reject actions; model/service guards preserve the same boundary server-side. See [MCP approval and execution audit controls](mcp-approvals-and-audit.md).
 
-The approval and audit infrastructure is implemented, but `mcp.tool_permissions` remains empty and no business tools or writes are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.
+The six read-only executive tools are registered with explicit tool scopes, required and optional domain permissions, record scopes, and output-field allowlists. No write tools are enabled. Each future write tool must use payload-bound approval, an independent human reviewer, execution-time authorization, and an existing domain service.

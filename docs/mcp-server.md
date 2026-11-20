@@ -2,10 +2,10 @@
 
 ## Current implementation status
 
-The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. The transport foundation from #529 is protected by the Passport OAuth integration in #530, and the authorization boundary from #531 is in place. The capability registry remains intentionally empty until individual domain-tool issues implement and test their own data contracts.
+The repository exposes a remote Model Context Protocol (MCP) endpoint at `/mcp` using Streamable HTTP. The transport foundation from #529 is protected by the Passport OAuth integration in #530, and the authorization boundary from #531 is in place. The capability registry now includes the six read-only executive tools delivered by #533. Other domain tools, resources, and prompts remain disabled until their individual issues implement and test their data contracts.
 
-- The endpoint currently exposes no business tools, resources, or prompts.
-- MCP POST requests require a Laravel Passport OAuth access token with the mcp:use scope. No business data is exposed; add business handlers only through the reviewed permission matrix and existing domain services.
+- The endpoint exposes six read-only executive tools: `get_executive_overview`, `get_management_kpis`, `get_kpi_alerts`, `get_business_health`, `get_management_priorities`, and `get_period_comparison`.
+- MCP POST requests require a Laravel Passport OAuth access token with the `mcp:use` scope. Each business tool additionally requires its dedicated OAuth tool scope and the configured AI principal; source-level data is filtered by the principal's current HexaLite permissions.
 - No mutations are enabled. Issue #532 adds encrypted payload-bound approvals, independent human review, execution audit, idempotency and conservative recovery primitives. Future write tools must use these controls and existing domain services.
 - The endpoint is not yet verified against the production reverse proxy/hosting environment or a live ChatGPT workspace.
 
@@ -83,7 +83,7 @@ The MCP POST endpoint requires an OAuth bearer token with the mcp:use scope. The
 
 To connect the web MCP Inspector, launch it with npx @modelcontextprotocol/inspector, choose Streamable HTTP, and enter http://127.0.0.1:8000/mcp. Use its OAuth authorization flow. Add only the exact callback origin shown by the Inspector to MCP_OAUTH_REDIRECT_DOMAINS in the local .env file; do not commit that local override or use a wildcard. The Inspector CLI's unauthenticated commands are not suitable for this protected endpoint.
 
-Expected current result after OAuth authorization: server identity Management-OS, protocol discovery succeeds, and the tool/resource/prompt lists are empty. This is intentional until the later domain-tool issues are complete.
+Expected current result after OAuth authorization: server identity Management-OS, protocol discovery succeeds, and `tools/list` returns the six read-only executive tools. Resource and prompt lists remain empty. Tool calls additionally require the configured AI principal, the tool-specific OAuth scope, and the relevant domain permissions.
 
 ## ChatGPT connection and authentication constraints
 
@@ -103,13 +103,13 @@ Focused transport regression tests:
 php artisan test tests/Feature/McpTransportTest.php
 ```
 
-The test suite covers Passport OAuth discovery, PKCE S256 metadata and enforcement, dynamic public-client registration, ChatGPT callback allowlisting, authorization-code exchange, refresh-token rotation, code replay rejection, token revocation, unauthenticated and insufficient-scope denial, legacy initialization, modern stateless discovery, empty business capability lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
+The test suite covers Passport OAuth discovery, PKCE S256 metadata and enforcement, dynamic public-client registration, ChatGPT callback allowlisting, authorization-code exchange, refresh-token rotation, code replay rejection, token revocation, unauthenticated and insufficient-scope denial, legacy initialization, modern stateless discovery, the six permission-gated executive tools and empty resource/prompt lists, unsupported HTTP methods, malformed JSON, DNS-rebinding host rejection, CORS origin restrictions, rate limiting, private session-directory permissions, and request-body limits.
 
 Before the PR, run every validation job defined in `.github/workflows/tests.yml`, including the PHP/SQLite suite, PHPStan/Larastan, MySQL 8.0 migration/integrity tests, frontend production build, and dependency audits. A local pass does not replace inspecting the actual GitHub Actions run. Staging verification must separately confirm HTTPS, reverse-proxy streaming, timeouts, request limits, and ChatGPT's real connection behavior.
 
 ## Tool authorization
 
-MCP tools must follow the versioned permission matrix and authorization contract in [MCP permission matrix](mcp-permissions.md). No business tools are registered until each tool has an explicit OAuth scope, underlying HexaLite permissions, record scope and output-field allowlist.
+MCP tools must follow the versioned permission matrix and authorization contract in [MCP permission matrix](mcp-permissions.md). Each tool has an explicit OAuth scope, required and optional HexaLite permissions, record scope and output-field allowlist. See [MCP executive tools](mcp-executive-tools.md) for the first read-only tool contracts and their data limitations.
 
 
 ## Approval and execution audit controls
