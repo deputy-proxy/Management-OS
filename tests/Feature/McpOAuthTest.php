@@ -30,6 +30,8 @@ class McpOAuthTest extends TestCase
 
     public function test_oauth_discovery_advertises_authorization_code_pkce_and_mcp_scope(): void
     {
+        $scopes = ['mcp:use', ...array_column(config('mcp.tool_permissions'), 'mcp_scope')];
+
         $this->get('/.well-known/oauth-authorization-server')
             ->assertOk()
             ->assertJsonPath('authorization_endpoint', route('passport.authorizations.authorize'))
@@ -37,12 +39,12 @@ class McpOAuthTest extends TestCase
             ->assertJsonPath('response_types_supported', ['code'])
             ->assertJsonPath('code_challenge_methods_supported', ['S256'])
             ->assertJsonPath('grant_types_supported', ['authorization_code', 'refresh_token'])
-            ->assertJsonPath('scopes_supported', ['mcp:use']);
+            ->assertJsonPath('scopes_supported', $scopes);
 
         $this->get('/.well-known/oauth-protected-resource/mcp')
             ->assertOk()
             ->assertJsonPath('resource', url('/mcp'))
-            ->assertJsonPath('scopes_supported', ['mcp:use']);
+            ->assertJsonPath('scopes_supported', $scopes);
     }
 
     public function test_oauth_discovery_advertises_each_registered_tool_scope_on_exact_and_nested_metadata(): void

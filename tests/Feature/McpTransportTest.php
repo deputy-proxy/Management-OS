@@ -83,7 +83,7 @@ class McpTransportTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('result.supportedVersions.0', '2026-07-28')
-            ->assertJsonMissingPath('result.capabilities.tools')
+            ->assertJsonPath('result.capabilities.tools', [])
             ->assertJsonMissingPath('result.capabilities.resources')
             ->assertJsonMissingPath('result.capabilities.prompts');
     }
@@ -125,7 +125,8 @@ class McpTransportTest extends TestCase
             'id' => 2,
             'method' => 'tools/list',
             'params' => new \stdClass,
-        ], $sessionId)->assertOk()->assertJsonPath('result.tools', []);
+        ], $sessionId)->assertOk()->assertJsonPath('result.tools.0.name', 'get_executive_overview')
+            ->assertJsonPath('result.tools.5.name', 'get_period_comparison');
 
         $this->mcpPost([
             'jsonrpc' => '2.0',

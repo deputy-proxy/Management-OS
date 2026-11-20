@@ -212,7 +212,20 @@ abstract class AuthorizedMcpCapabilityRegistrar implements McpCapabilityRegistra
         return Closure::bind(
             static function (array $arguments) use ($permission, $authorization, $fieldFilter, $audit, $handler): array {
                 $principal = Auth::guard('api')->user();
-                $toolArguments = Arr::except($arguments, ['_session', '_request']);
+                $normalize = static function (mixed $value) use (&$normalize): mixed {
+                    if ($value instanceof \stdClass) {
+                        $value = get_object_vars($value);
+                    }
+
+                    if (is_array($value)) {
+                        foreach ($value as $key => $item) {
+                            $value[$key] = $normalize($item);
+                        }
+                    }
+
+                    return $value;
+                };
+                $toolArguments = $normalize(Arr::except($arguments, ['_session', '_request']));
                 $auditRecord = $audit->startToolInvocation(
                     $principal instanceof User ? $principal : null,
                     $permission->toolName,

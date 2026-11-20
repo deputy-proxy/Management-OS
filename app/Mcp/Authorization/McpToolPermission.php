@@ -9,6 +9,7 @@ final readonly class McpToolPermission
     /**
      * @param  array<array-key, string>  $domainPermissions
      * @param  array<string, mixed>  $allowedFields
+     * @param  list<string>  $optionalDomainPermissions
      */
     public function __construct(
         public string $toolName,
@@ -18,6 +19,7 @@ final readonly class McpToolPermission
         public array $allowedFields,
         public string $operationType = 'read',
         public bool $requiresApproval = false,
+        public array $optionalDomainPermissions = [],
     ) {
         if (trim($this->toolName) === '' || trim($this->mcpScope) === '' || trim($this->recordScope) === '') {
             throw new InvalidArgumentException('An MCP tool permission requires a tool name, OAuth scope and record scope.');
@@ -37,7 +39,12 @@ final readonly class McpToolPermission
             throw new InvalidArgumentException('MCP tools require explicit domain permissions and an output-field allowlist.');
         }
 
-        foreach ($this->domainPermissions as $permission) {
+        if (count(array_unique($this->optionalDomainPermissions)) !== count($this->optionalDomainPermissions)
+            || array_intersect($this->domainPermissions, $this->optionalDomainPermissions) !== []) {
+            throw new InvalidArgumentException('Optional MCP domain permissions must be a unique list separate from required permissions.');
+        }
+
+        foreach ([...$this->domainPermissions, ...$this->optionalDomainPermissions] as $permission) {
             if (trim($permission) === '') {
                 throw new InvalidArgumentException('MCP domain permissions must be non-empty strings.');
             }
@@ -75,6 +82,7 @@ final readonly class McpToolPermission
             allowedFields: $definition['allowed_fields'] ?? [],
             operationType: (string) ($definition['operation_type'] ?? 'read'),
             requiresApproval: (bool) ($definition['requires_approval'] ?? false),
+            optionalDomainPermissions: $definition['optional_domain_permissions'] ?? [],
         );
     }
 }
